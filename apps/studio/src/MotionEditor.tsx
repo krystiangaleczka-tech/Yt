@@ -210,6 +210,13 @@ function InsertEditor({
       j.project_id === p.id &&
       ["QUEUED", "RUNNING", "CANCEL_REQUESTED"].includes(j.status),
   );
+  const latestMotion = s.jobs.find(
+    (j) => j.kind === "motion" && j.project_id === p.id,
+  );
+  const lastFailure =
+    latestMotion && ["FAILED", "INTERRUPTED"].includes(latestMotion.status)
+      ? latestMotion
+      : null;
   const images = p.assets.filter((a) => a.kind === "image");
   const rendered = p.assets.find((a) => a.id === item.rendered_asset_id);
   const change = (changes: Partial<MotionInsert>) =>
@@ -591,6 +598,15 @@ function InsertEditor({
           </Button>
         </div>
       ))}
+      {lastFailure && (
+        <div className="motion-job surface" role="status">
+          <div>
+            <strong>Ostatni render wstawek wymaga ponowienia</strong>
+            <p className="motion-note">{lastFailure.message}</p>
+          </div>
+          <Button onClick={() => s.setPage("jobs")}>Zadania</Button>
+        </div>
+      )}
       <div className="motion-handoff surface">
         <div>
           <h3>

@@ -411,7 +411,13 @@ export default function Timeline() {
           <section className="clip-inspector surface">
             {active &&
               p.assets.find((a) => a.id === active.asset_id)?.provenance
-                .kind === "remotion" && (
+                .kind === "remotion" &&
+              p.inserts.some(
+                (i) =>
+                  i.id ===
+                  p.assets.find((a) => a.id === active.asset_id)?.provenance
+                    .insert_id,
+              ) && (
                 <Button
                   icon={Film}
                   onClick={() => {

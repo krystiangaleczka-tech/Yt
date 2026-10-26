@@ -103,7 +103,8 @@ def run_motion(store, project, insert_id, job_id, progress, cancel):
                     target.rendered_asset_id = asset.id
                     target.rendered_signature = expected_signature
                 store.mutate(project.id, current.revision, attach)
-        return {"asset_id": asset.id, "insert_id": item.id, "attached": attached, "revision": project.revision}
+        return {"asset_id": asset.id, "insert_id": item.id, "attached": attached, "revision": project.revision,
+                "url": f"/api/projects/{project.id}/media/{asset.id}"}
     finally:
         shutil.rmtree(work / "bundle", ignore_errors=True)
         shutil.rmtree(public, ignore_errors=True)

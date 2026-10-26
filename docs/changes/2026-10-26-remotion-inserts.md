@@ -50,7 +50,11 @@ zatrzymała się w bibliotece na `uv_interface_addresses` (odczyt interfejsów s
 w środowisku wykonawczym). Nie obchodzono tych ograniczeń. Pełna weryfikacja interfejsu
 w przeglądarce i lokalnego MP4 z Remotion pozostaje niewykonana.
 
-Workflow CI został rozszerzony o przygotowanie renderera i prawdziwy test pięciu szablonów:
+Lista zadań pozwala też otwierać i pobierać MP4 wstawki; błąd ostatniego renderu jest widoczny
+w edytorze. Usunięta definicja nie pozostawia aktywnego przycisku edycji źródła na klipie.
+
+Workflow CI wykorzystuje istniejące FFmpeg/ffprobe na runnerze i instaluje je tylko w razie braku.
+Został rozszerzony o przygotowanie renderera i prawdziwy test pięciu szablonów:
 render Remotion → rejestracja materiału → oś czasu → eksport FFmpeg. Wynik CI należy sprawdzić
 na opublikowanym commicie; sam opis testu nie stanowi potwierdzenia jego powodzenia.
 

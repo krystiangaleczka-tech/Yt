@@ -34,6 +34,7 @@ const kinds: Record<string, string> = {
   preview: "Dokładny podgląd",
   image: "Generowanie obrazu",
   voice: "Generowanie lektora",
+  motion: "Renderowanie wstawki",
 };
 export function JobList({ all = false }: { all?: boolean }) {
   const s = useStudio();
