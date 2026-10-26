@@ -90,3 +90,7 @@ Lektor wymaga własnej próbki głosu (15–30 s czystej mowy) — patrz [docs/V
 
 Narzędzia: Stable Diffusion 1.5, Kokoro-82M (Apache 2.0), Chatterbox Multilingual (MIT, watermark Perth),
 ffmpeg, Pillow, NumPy. Fonty: Courier Prime, Montserrat (SIL OFL 1.1, licencje w `pilot/fonts/`).
+
+## Licencja
+
+Kod: [MIT](LICENSE). Fonty: SIL OFL 1.1. Materiały zewnętrzne (NOAA, NASA, US Navy, Wikimedia Commons) — na licencjach z rejestrów `licenses.json`, nie objęte MIT.

@@ -26,4 +26,4 @@ Watermark Perth (Chatterbox) zostaje w nagraniach.
 ## Licencje narzędzi
 SD 1.5 — CreativeML OpenRAIL-M · Kokoro-82M — Apache 2.0 · Chatterbox — MIT ·
 Courier Prime, Montserrat — SIL OFL 1.1 (`pilot/fonts/OFL-*.txt`).
-Kod w tym repo nie ma jeszcze wybranej licencji (domyślnie: wszelkie prawa zastrzeżone).
+Kod w tym repo: licencja MIT (`LICENSE`). Nie obejmuje materiałów zewnętrznych (fonty — OFL, media — licencje z rejestrów).
