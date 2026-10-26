@@ -1,0 +1,1092 @@
+{
+  "meta": {
+    "title": "The Bloop: The Scientist Who Said Ice, and the World That Heard a Monster",
+    "logline": "In 1997 NOAA hydrophones caught a sound no one could name. The scientist running the listening said ice. The press said monster. It took eight years to settle it.",
+    "thesis": "The Bloop is less a sea-monster story than a story about how a careful scientific hunch gets drowned out by a better headline.",
+    "curiosity_gap": "Why did a sound that turned out to be ice become the world's most famous sea monster?",
+    "narrator": "Rzeczowy, dynamiczny narrator dokumentalny w 3. osobie. Krótkie zdania, rytm reportażu, napięcie bez sensacji. Cytaty czytane dosłownie.",
+    "audience_relation": "Prowadzi widza tropem bohatera (Christopher Fox) jak w reportażu śledczym; czasem 'you' na zwrotach.",
+    "lexicon": "hydrophones = 'the ears'; SOSUS = Sound Surveillance System",
+    "bans": "Zero lania wody. Żadnych zmyślonych nazwisk, dat, liczb, cytatów. Nie pokazuj obcych osób jako Foxa. Rekonstrukcje AI oznaczone.",
+    "language": "English",
+    "target_minutes": 4.5,
+    "wpm": 150,
+    "visual_style": "archival documentary, desaturated, film grain, typewriter titles, black and red cards",
+    "master_outline": "1) Cold open: the real sound + the conflict. 2) Cold War ears (SOSUS). 3) Fox's team turns them to science (1993 eruption). 4) Fox's library of named sounds. 5) The Bloop. 6) Fox says ice (2001) vs press says monster (2002). 7) 2005: icequake; 2008 A53a. 8) Outro.",
+    "min_unique_visuals": 25
+  },
+  "chapters": [
+    {
+      "id": "1",
+      "title": "The Sound",
+      "description": "Real recording, the conflict in one line",
+      "segment": "COLD_OPEN",
+      "default_dynamic": "ACTION"
+    },
+    {
+      "id": "2",
+      "title": "The Ears",
+      "description": "SOSUS: listening for Soviet submarines; opened to science",
+      "segment": "CONTEXT",
+      "default_dynamic": "STORY"
+    },
+    {
+      "id": "3",
+      "title": "The Listener",
+      "description": "Christopher Fox and NOAA PMEL: volcano in 1993, a library of sounds",
+      "segment": "INVESTIGATION",
+      "default_dynamic": "STORY"
+    },
+    {
+      "id": "4",
+      "title": "Ice or Monster",
+      "description": "Fox's ice suspicion (2001) vs the 2002 monster headlines",
+      "segment": "TWIST",
+      "default_dynamic": "ACTION"
+    },
+    {
+      "id": "5",
+      "title": "The Answer",
+      "description": "2005 icequake; 2008 A53a; outro",
+      "segment": "RESOLUTION",
+      "default_dynamic": "EUREKA"
+    },
+    {
+      "id": "6",
+      "title": "Still Listening",
+      "description": "Outro",
+      "segment": "OUTRO",
+      "default_dynamic": "CHILL"
+    }
+  ],
+  "subchapters": [],
+  "facts": [
+    {
+      "id": "F1",
+      "claim": "In 1997 NOAA researchers listening for underwater volcanic activity in the southern Pacific recorded a mysterious sound later named 'the Bloop'.",
+      "status": "VERIFIED",
+      "source": "NOAA National Ocean Service — What is the Bloop?",
+      "url": "https://oceanservice.noaa.gov/facts/bloop.html",
+      "note": ""
+    },
+    {
+      "id": "F2",
+      "claim": "The Bloop was picked up by hydrophones placed more than 3,219 km apart across the Pacific.",
+      "status": "VERIFIED",
+      "source": "NOAA National Ocean Service — What is the Bloop?",
+      "url": "https://oceanservice.noaa.gov/facts/bloop.html",
+      "note": "New Scientist 2002: 'up to 4800 kilometres apart'"
+    },
+    {
+      "id": "F3",
+      "claim": "In the 1960s the US Navy set up an array of underwater microphones (hydrophones) around the globe, known as SOSUS (Sound Surveillance System), to track Soviet submarines.",
+      "status": "VERIFIED",
+      "source": "David Wolman, 'Calls from the deep', New Scientist, 15 June 2002",
+      "url": "https://web.archive.org/web/20130106141048/http://www.science.org.au/nova/newscientist/102ns_001.htm",
+      "note": ""
+    },
+    {
+      "id": "F4",
+      "claim": "The end of the Cold War meant that by 1991 SOSUS could be shared with civilian scientists; in 1991 NOAA was granted access to it.",
+      "status": "VERIFIED",
+      "source": "New Scientist 2002; Fox et al., GRL 1995 (NOAA PMEL)",
+      "url": "https://www.pmel.noaa.gov/pubs/outstand/fox1526/fox1526.shtml",
+      "note": ""
+    },
+    {
+      "id": "F5",
+      "claim": "On June 22, 1993 NOAA installed a real-time monitoring system at U.S. Naval Facility Whidbey Island (Washington State); on June 26 a burst of seismic activity with harmonic tremor was detected on the Juan de Fuca Ridge, four days later; fresh lavas were subsequently found at the site.",
+      "status": "VERIFIED",
+      "source": "Fox, Radford, Dziak et al., Geophysical Research Letters 22 (1995), NOAA PMEL",
+      "url": "https://www.pmel.noaa.gov/pubs/outstand/fox1526/fox1526.shtml",
+      "note": ""
+    },
+    {
+      "id": "F6",
+      "claim": "In 2002 Christopher Fox directed NOAA's Acoustic Monitoring Project at the Pacific Marine Environmental Laboratory in Newport, Oregon.",
+      "status": "VERIFIED",
+      "source": "New Scientist, 15 June 2002",
+      "url": "https://web.archive.org/web/20130106141048/http://www.science.org.au/nova/newscientist/102ns_001.htm",
+      "note": ""
+    },
+    {
+      "id": "F7",
+      "claim": "Fox named unidentified ocean sounds on a whim: Train, Whistle, Slowdown and Bloop.",
+      "status": "VERIFIED",
+      "source": "New Scientist, 15 June 2002",
+      "url": "https://web.archive.org/web/20130106141048/http://www.science.org.au/nova/newscientist/102ns_001.htm",
+      "note": ""
+    },
+    {
+      "id": "F8",
+      "claim": "Fox quote: 'Just when you think there're no mysteries left in this world, we have a whole bucket of them on the screen here.'",
+      "status": "VERIFIED",
+      "source": "New Scientist, 15 June 2002",
+      "url": "https://web.archive.org/web/20130106141048/http://www.science.org.au/nova/newscientist/102ns_001.htm",
+      "note": "cytat dosłowny"
+    },
+    {
+      "id": "F9",
+      "claim": "Fox quote to CNN, 7 September 2001: 'We're suspecting that it's ice off the coast of Antarctica, in which case it's darn loud.'",
+      "status": "VERIFIED",
+      "source": "CNN, 'Scientists tune in to sounds of the sea', 7 September 2001",
+      "url": "http://edition.cnn.com/2001/TECH/science/09/07/listening.ocean/index.html",
+      "note": "cytat dosłowny"
+    },
+    {
+      "id": "F10",
+      "claim": "Fox on military hydrophones used for science (CNN 2001): 'It was sort of a plowshare sort of thing.'",
+      "status": "VERIFIED",
+      "source": "CNN, 7 September 2001",
+      "url": "http://edition.cnn.com/2001/TECH/science/09/07/listening.ocean/index.html",
+      "note": "cytat dosłowny"
+    },
+    {
+      "id": "F11",
+      "claim": "New Scientist (June 2002) reported: 'Fox's hunch is that the sound nicknamed Bloop is the most likely to come from some sort of animal', because its frequency varied rapidly like sounds made by marine animals.",
+      "status": "VERIFIED",
+      "source": "New Scientist, 15 June 2002",
+      "url": "https://web.archive.org/web/20130106141048/http://www.science.org.au/nova/newscientist/102ns_001.htm",
+      "note": "relacja dziennikarza; historyk P. Hayward uważa, że przeczucie zostało 'wzmocnione'"
+    },
+    {
+      "id": "F12",
+      "claim": "CNN, 13 June 2002: 'Scientists have revealed a mysterious recording that they say could be the sound of a giant beast lurking in the depths of the ocean.'",
+      "status": "VERIFIED",
+      "source": "CNN, 'Tuning in to a deep sea monster', 13 June 2002",
+      "url": "http://edition.cnn.com/2002/WORLD/sailing/06/13/bloop.tech/index.html",
+      "note": "cytat dosłowny"
+    },
+    {
+      "id": "F13",
+      "claim": "Fox quote (New Scientist 2002): 'There's a blue whale, there's a fin whale, there's a boat, there's a humpback whale and here comes an earthquake.' He could identify most sounds by their spectrogram alone.",
+      "status": "VERIFIED",
+      "source": "New Scientist, 15 June 2002",
+      "url": "https://web.archive.org/web/20130106141048/http://www.science.org.au/nova/newscientist/102ns_001.htm",
+      "note": "cytat dosłowny"
+    },
+    {
+      "id": "F14",
+      "claim": "Popular claims said the Bloop was much louder than a blue whale, the loudest known animal.",
+      "status": "DISPUTED",
+      "source": "Popular Science — The sea monster goes 'bloop'—or does it?",
+      "url": "https://www.popsci.com/environment/sea-monster-bloop-sound/",
+      "note": "tylko warunkowo / jako twierdzenie"
+    },
+    {
+      "id": "F15",
+      "claim": "In 2005, after placing hydrophones closer to Antarctica, NOAA researchers found the Bloop was an icequake: an iceberg cracking and breaking away from an Antarctic glacier.",
+      "status": "VERIFIED",
+      "source": "NOAA National Ocean Service — What is the Bloop?",
+      "url": "https://oceanservice.noaa.gov/facts/bloop.html",
+      "note": ""
+    },
+    {
+      "id": "F16",
+      "claim": "NOAA's public recording of the Bloop is sped up 16 times so human ears can hear it.",
+      "status": "VERIFIED",
+      "source": "NOAA PMEL Acoustics Program — Icequakes (Bloop)",
+      "url": "https://www.pmel.noaa.gov/acoustics/sounds/bloop.html",
+      "note": ""
+    },
+    {
+      "id": "F17",
+      "claim": "Icequakes are loud enough to be detected on multiple sensors at a range of over 5,000 km.",
+      "status": "VERIFIED",
+      "source": "NOAA PMEL Acoustics Program — Icequakes (Bloop)",
+      "url": "https://www.pmel.noaa.gov/acoustics/sounds/bloop.html",
+      "note": ""
+    },
+    {
+      "id": "F18",
+      "claim": "NOAA hydrophones in the Scotia Sea recorded icequakes very similar to the Bloop and used them to track iceberg A53a as it broke apart near South Georgia Island in early 2008.",
+      "status": "VERIFIED",
+      "source": "NOAA PMEL Acoustics Program — Icequakes (Bloop)",
+      "url": "https://www.pmel.noaa.gov/acoustics/sounds/bloop.html",
+      "note": "audio: A53JD33Calving_3x.wav (NOAA)"
+    },
+    {
+      "id": "F19",
+      "claim": "Fox (CNN 2001) on what hydrophones hear: 'Whales, dolphins and fish, the rumblings of the Earth.'",
+      "status": "VERIFIED",
+      "source": "CNN, 7 September 2001",
+      "url": "http://edition.cnn.com/2001/TECH/science/09/07/listening.ocean/index.html",
+      "note": ""
+    },
+    {
+      "id": "F20",
+      "claim": "Reconstruction: fresh lava on the seafloor (AI image).",
+      "status": "DRAMATIZATION",
+      "source": "rekonstrukcja AI",
+      "url": "",
+      "note": ""
+    },
+    {
+      "id": "F21",
+      "claim": "Based on the direction the sound arrived from, NOAA estimates the Bloop source was most likely between the Bransfield Strait and the Ross Sea, or possibly at Cape Adare, Antarctica.",
+      "status": "VERIFIED",
+      "source": "NOAA PMEL Acoustics Program — Icequakes (Bloop)",
+      "url": "https://www.pmel.noaa.gov/acoustics/sounds/bloop.html",
+      "note": ""
+    },
+    {
+      "id": "F22",
+      "claim": "SOFAR is a natural ocean channel that lets low-frequency sound bounce between layers and travel hundreds, sometimes thousands of miles; hydrophones placed at the channel axis (typically around 1 km deep, varying with latitude) record distant sounds.",
+      "status": "VERIFIED",
+      "source": "NOAA Ocean Service — What is SOFAR?; NOAA PMEL",
+      "url": "https://oceanservice.noaa.gov/facts/sofar.html",
+      "note": "do diagramu"
+    }
+  ],
+  "beats": [
+    {
+      "id": "B01",
+      "segment": "COLD_OPEN",
+      "scene_no": "1",
+      "scene_desc": "The real sound",
+      "chapter": "1",
+      "subchapter": "",
+      "action": "Play the real NOAA recording. State the conflict: scientist said ice, world said monster.",
+      "goal": "Viewer hears the real sound and knows the central conflict in 15 seconds.",
+      "turn": "Curiosity [+] → Tension [-]",
+      "typology": "INTRODUCTION",
+      "dynamic": "ACTION",
+      "chaos": "NONE",
+      "facts": [
+        "F1",
+        "F2",
+        "F9",
+        "F12",
+        "F16"
+      ],
+      "seconds": 18,
+      "narration": "This is a real recording from the bottom of the Pacific, sped up sixteen times so you can hear it. In 1997 it reached hydrophones more than three thousand kilometres apart. The scientist who ran the listening said it was ice. The world heard a monster.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Live",
+          "asset": "SPEKTRO",
+          "desc": "\"REAL RECORDING — NOAA, 1997\" FILE: bloop.wav START: 0 SPAN: 3 MAXHZ: 700",
+          "prompt": "",
+          "dur": 3
+        },
+        {
+          "n": 2,
+          "framing": "Aerial",
+          "asset": "ARCHIWUM",
+          "desc": "humpback whale under the surface, aerial FILE: v_humpback_aerial.webm START: 54",
+          "prompt": "",
+          "dur": 3,
+          "transition": "dissolve"
+        },
+        {
+          "n": 3,
+          "framing": "Counter",
+          "asset": "LICZNIK",
+          "desc": "\"0 → 3,219 km\" \"between hydrophones\"",
+          "prompt": "",
+          "dur": 3
+        },
+        {
+          "n": 4,
+          "framing": "Aerial",
+          "asset": "ARCHIWUM",
+          "desc": "research ship at sea, aerial FILE: v_ship_moorings.webm START: 98",
+          "prompt": "",
+          "dur": 3.5,
+          "transition": "slide"
+        },
+        {
+          "n": 5,
+          "framing": "Clipping",
+          "asset": "PRASA",
+          "desc": "\"ice off the coast of Antarctica\" — CNN, 7 September 2001",
+          "prompt": "",
+          "dur": 3
+        },
+        {
+          "n": 6,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "icebergs drifting FILE: v_nasa_icebergs.webm START: 23",
+          "prompt": "",
+          "dur": 3,
+          "transition": "flash"
+        },
+        {
+          "n": 7,
+          "framing": "Clipping",
+          "asset": "PRASA",
+          "desc": "\"a giant beast lurking in the depths of the ocean\" — CNN, 13 June 2002",
+          "prompt": "",
+          "dur": 3.5
+        }
+      ],
+      "facts_used": [
+        "F1",
+        "F2",
+        "F9",
+        "F12",
+        "F16"
+      ],
+      "link": "A real NOAA recording from 1997 opens the film: the scientist said ice, the world heard a monster.",
+      "raw": "Narracja:\nThis is a real recording from the bottom of the Pacific, sped up sixteen times so you can hear it. In 1997 it reached hydrophones more than three thousand kilometres apart. The scientist who ran the listening said it was ice. The world heard a monster.\n\nShot List:\n[WIZ 1] (Live) SPEKTRO: \"REAL RECORDING — NOAA, 1997\" FILE: bloop.wav START: 0 SPAN: 3 MAXHZ: 700 (3 s)\n[WIZ 2] (Black, live) WAVEFORM: \"THE BLOOP\" FILE: bloop.wav START: 3 (2.5 s)\n[WIZ 3] (Insert) TYTUŁ: \"PLAYBACK x16\" stamped (1 s)\n[WIZ 4] (Wide) ARCHIWUM: scientists lowering a hydrophone FILE: hydrophone_lowered_atlantic.jpg (1.5 s)\n[WIZ 5] (Map) MAPA: Pacific with hydrophone dots lighting up one by one (1.5 s)\n[WIZ 6] (Counter) LICZNIK: \"0 → 3,219 km\" \"between hydrophones\" (2 s)\n[WIZ 7] (Clipping) PRASA: \"ice off the coast of Antarctica\" — CNN, 7 September 2001 (2 s)\n[WIZ 8] (Clipping) PRASA: \"a giant beast lurking in the depths of the ocean\" — CNN, 13 June 2002 (2.5 s)\n[WIZ 9] (Slow push / REKONSTRUKCJA) AI_OBRAZ: dark depth below the surface FILE: ai_deep.png (2 s)\n\nFakty użyte: F1, F2, F9, F12, F16\nPołączenie do N-1: A real NOAA recording from 1997 opens the film: the scientist said ice, the world heard a monster.\n"
+    },
+    {
+      "id": "B02",
+      "segment": "COLD_OPEN",
+      "scene_no": "1",
+      "scene_desc": "The promise",
+      "chapter": "1",
+      "subchapter": "",
+      "action": "Introduce the hero and the 8-year arc.",
+      "goal": "Viewer knows whose story this is and what question it answers.",
+      "turn": "Tension [-] → Intrigue [+]",
+      "typology": "RISING_ACTION",
+      "dynamic": "EUREKA",
+      "chaos": "NONE",
+      "facts": [
+        "F1",
+        "F15",
+        "F7"
+      ],
+      "seconds": 10,
+      "narration": "This is the story of that sound, the man who gave it its name, and the eight years it took to find out what it really was.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Archive",
+          "asset": "ARCHIWUM",
+          "desc": "submarine crew, 1945 colour film FILE: v_uss_skate_1945.ogv START: 59 CAPTION: \"USS Skate crew, 1945 — US Navy\"",
+          "prompt": "",
+          "dur": 2.5,
+          "transition": "dip"
+        },
+        {
+          "n": 2,
+          "framing": "Timeline",
+          "asset": "OŚ_CZASU",
+          "desc": "\"1997 / 2001 / 2002 / 2005\"",
+          "prompt": "",
+          "dur": 3
+        },
+        {
+          "n": 3,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "blue whales blowing in Antarctic waters FILE: v_blue_whales_antarctic.webm START: 87",
+          "prompt": "",
+          "dur": 2.5,
+          "transition": "dissolve"
+        }
+      ],
+      "facts_used": [
+        "F1",
+        "F7",
+        "F15"
+      ],
+      "link": "The film promises the story of the sound, the man who named it, and the eight-year search for its source.",
+      "raw": "Narracja:\nThis is the story of that sound, the man who gave it its name, and the eight years it took to find out what it really was.\n\nShot List:\n[WIZ 1] (Fast) ARCHIWUM: Navy sonar operator at his display, 1987 FILE: sonar_operator_1987.JPEG (1 s)\n[WIZ 2] (Fast) ARCHIWUM: Ross Ice Shelf, 1997 FILE: ross_ice_shelf_1997.jpg (1 s)\n[WIZ 3] (Timeline) OŚ_CZASU: \"1997 / 2001 / 2002 / 2005\" (3 s)\n[WIZ 4] (Fast) ARCHIWUM: giant squid specimen FILE: giant_squid_archie.jpg (1 s)\n[WIZ 5] (Kinetic) HASŁO: \"ICE OR MONSTER?\" (3 s)\n\nFakty użyte: F1, F7, F15\nPołączenie do N-1: The film promises the story of the sound, the man who named it, and the eight-year search for its source.\n"
+    },
+    {
+      "id": "B03",
+      "segment": "CONTEXT",
+      "scene_no": "2",
+      "scene_desc": "A war fought by listening",
+      "chapter": "2",
+      "subchapter": "",
+      "action": "SOSUS: Navy hydrophones built to hear Soviet submarines.",
+      "goal": "Viewer understands where the ears came from.",
+      "turn": "Intrigue [+] → Unease [-]",
+      "typology": "INTRODUCTION",
+      "dynamic": "STORY",
+      "chaos": "NONE",
+      "facts": [
+        "F3"
+      ],
+      "seconds": 24,
+      "narration": "To understand the Bloop, start with a war that was fought by listening. In the 1960s, the US Navy laid underwater microphones across the oceans. The system was called SOSUS, the Sound Surveillance System. Its job was simple: hear a Soviet submarine long before anyone could see it.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "Soviet cruiser and Foxtrot-class submarine, 1971 FILE: soviet_foxtrot_1971.jpg",
+          "prompt": "",
+          "dur": 5,
+          "transition": "dissolve"
+        },
+        {
+          "n": 2,
+          "framing": "Label",
+          "asset": "TYTUŁ",
+          "desc": "\"SOSUS / Sound Surveillance System\"",
+          "prompt": "",
+          "dur": 5,
+          "style": "lower-left"
+        },
+        {
+          "n": 3,
+          "framing": "Archive",
+          "asset": "ARCHIWUM",
+          "desc": "submarine crew on deck, 1945 FILE: v_uss_skate_1945.ogv START: 178",
+          "prompt": "",
+          "dur": 5,
+          "transition": "cut"
+        },
+        {
+          "n": 4,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "hydrophone arrays on the deck of USNS Kane FILE: usns_kane_hydrophones_1968.jpg CAPTION: \"Hydrophone arrays, USNS Kane, 1968\"",
+          "prompt": "",
+          "dur": 6,
+          "transition": "slide"
+        }
+      ],
+      "facts_used": [
+        "F3"
+      ],
+      "link": "SOSUS, the Navy's Cold War hydrophone network, was built to hear Soviet submarines.",
+      "raw": "Narracja:\nTo understand the Bloop, start with a war that was fought by listening. In the 1960s, the US Navy laid underwater microphones across the oceans. The system was called SOSUS, the Sound Surveillance System. Its job was simple: hear a Soviet submarine long before anyone could see it.\n\nShot List:\n[WIZ 1] (Wide) ARCHIWUM: Soviet cruiser and Foxtrot-class submarine, 1971 FILE: soviet_foxtrot_1971.jpg (4 s)\n[WIZ 2] (Low angle / push) ARCHIWUM: US Navy Argus Island tower, c. 1963 FILE: argus_tower_1963.jpg (4 s)\n[WIZ 3] (Document) DOKUMENT: hydrophone diagram from a military encyclopedia FILE: hydrophone_diagram_1911.jpg CAPTION: \"Hydrophone diagram, military encyclopedia, 1911–15\" (3 s)\n[WIZ 4] (Wide) ARCHIWUM: hydrophone arrays spread on the deck of USNS Kane FILE: usns_kane_hydrophones_1968.jpg CAPTION: \"Hydrophone arrays on USNS Kane, 1968\" (4 s)\n[WIZ 5] (Close-up) ARCHIWUM: Soviet sailors shaking fists at a US patrol plane FILE: soviet_sailors_sub.jpg (5 s)\n\nFakty użyte: F3\nPołączenie do N-1: SOSUS, the Navy's Cold War hydrophone network, was built to hear Soviet submarines.\n"
+    },
+    {
+      "id": "B04",
+      "segment": "CONTEXT",
+      "scene_no": "2",
+      "scene_desc": "Swords to plowshares",
+      "chapter": "2",
+      "subchapter": "",
+      "action": "Cold War ends; by 1991 scientists get access; Fox: plowshare.",
+      "goal": "Viewer sees the military ears turned to science.",
+      "turn": "Unease [-] → Wonder [+]",
+      "typology": "TRANSITION",
+      "dynamic": "STORY",
+      "chaos": "NONE",
+      "facts": [
+        "F4",
+        "F10",
+        "F19"
+      ],
+      "seconds": 20,
+      "narration": "Then the Cold War ended, and the ears were still in the water. By 1991, civilian scientists were let in. Fox called it a plowshare sort of thing. Machines built to hunt submarines could now hear whales, dolphins and fish, the rumblings of the Earth.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Conversation",
+          "asset": "QA",
+          "desc": "Q: \"What happened to the Navy's ears after the Cold War?\" A: \"It was sort of a plowshare sort of thing.\" — Chris Fox, CNN, 2001",
+          "prompt": "",
+          "dur": 6,
+          "transition": "dip"
+        },
+        {
+          "n": 2,
+          "framing": "Close-up",
+          "asset": "ARCHIWUM",
+          "desc": "Soviet sailors shaking fists at a US patrol plane FILE: soviet_sailors_sub.jpg",
+          "prompt": "",
+          "dur": 5,
+          "transition": "burn"
+        },
+        {
+          "n": 3,
+          "framing": "Wipe",
+          "asset": "PORÓWNANIE",
+          "desc": "\"BUILT FOR SUBMARINES\" \"NOW HEARING WHALES\" FILES: argus_tower_1963.jpg | blue_whale_blow.jpg",
+          "prompt": "",
+          "dur": 7,
+          "transition": "dissolve",
+          "style": "wipe"
+        }
+      ],
+      "facts_used": [
+        "F4",
+        "F10",
+        "F19"
+      ],
+      "link": "After the Cold War, scientists like Fox got access to the Navy's ears and began hearing the living ocean.",
+      "raw": "Narracja:\nThen the Cold War ended, and the ears were still in the water. By 1991, civilian scientists were let in. Fox called it a plowshare sort of thing. Machines built to hunt submarines could now hear whales, dolphins and fish, the rumblings of the Earth.\n\nShot List:\n[WIZ 1] (Insert) DOKUMENT: SOSUS lofargram paper FILE: sosus_lofargram.gif (3 s)\n[WIZ 2] (Medium) ARCHIWUM: US Navy operator at an anti-submarine console FILE: navy_awo_operator.jpg (4 s)\n[WIZ 3] (Conversation) QA: Q: \"What happened to the Navy's ears after the Cold War?\" A: \"It was sort of a plowshare sort of thing.\" — Chris Fox, CNN, 2001 (6 s)\n[WIZ 4] (Split) SPLIT: \"BUILT FOR SUBMARINES\" \"NOW HEARING WHALES\" FILES: soviet_foxtrot_1971.jpg | blue_whale_blow.jpg (5 s)\n\nFakty użyte: F4, F10, F19\nPołączenie do N-1: After the Cold War, scientists like Fox got access to the Navy's ears and began hearing the living ocean.\n"
+    },
+    {
+      "id": "B05",
+      "segment": "INVESTIGATION",
+      "scene_no": "3",
+      "scene_desc": "The volcano",
+      "chapter": "3",
+      "subchapter": "",
+      "action": "1993: real-time link at Whidbey Island; four days later a seafloor eruption; lava found.",
+      "goal": "Viewer trusts Fox's team: they really can hear the seafloor.",
+      "turn": "Wonder [+] → Excitement [+]",
+      "typology": "EVIDENCE",
+      "dynamic": "EUREKA",
+      "chaos": "NONE",
+      "facts": [
+        "F4",
+        "F5",
+        "F20"
+      ],
+      "seconds": 19,
+      "narration": "Fox's team proved what that meant. On June 22, 1993, they switched on a real-time link at a naval station on Whidbey Island. Four days later, the seafloor started talking: a burst of tremor on the Juan de Fuca Ridge. Ships went out. They found fresh lava.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "Whidbey Island FILE: whidbey_island.jpg CAPTION: \"Whidbey Island, Washington\"",
+          "prompt": "",
+          "dur": 2.5,
+          "transition": "dip"
+        },
+        {
+          "n": 2,
+          "framing": "Typewriter",
+          "asset": "TYTUŁ",
+          "desc": "\"June 22 / 1993\"",
+          "prompt": "",
+          "dur": 2.5,
+          "style": "typewriter"
+        },
+        {
+          "n": 3,
+          "framing": "Map",
+          "asset": "MAPA",
+          "desc": "Juan de Fuca Ridge off Oregon and Washington, Whidbey Island marked",
+          "prompt": "",
+          "dur": 4
+        },
+        {
+          "n": 4,
+          "framing": "Data",
+          "asset": "DOKUMENT",
+          "desc": "3-D sonar scan of the water column FILE: v_noaa_sonar_scan.ogv START: 0 CAPTION: \"NOAA sonar data — illustrative\"",
+          "prompt": "",
+          "dur": 3,
+          "transition": "zoom"
+        },
+        {
+          "n": 5,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "NOAA research ship Discoverer FILE: rv_discoverer_1995.jpg CAPTION: \"NOAA ship Discoverer, 1995\"",
+          "prompt": "",
+          "dur": 3.5,
+          "transition": "cut"
+        },
+        {
+          "n": 6,
+          "framing": "Long Ken Burns",
+          "asset": "ARCHIWUM",
+          "desc": "fresh pillow lava on the seafloor FILE: pillow_lava_noaa.jpg CAPTION: \"Pillow lava, Galápagos Rift — NOAA (illustrative)\"",
+          "prompt": "",
+          "dur": 5,
+          "transition": "dissolve"
+        }
+      ],
+      "facts_used": [
+        "F4",
+        "F5",
+        "F20"
+      ],
+      "link": "In 1993 Fox's team heard a seafloor eruption in real time and ships confirmed fresh lava.",
+      "raw": "Narracja:\nFox's team proved what that meant. On June 22, 1993, they switched on a real-time link at a naval station on Whidbey Island. Four days later, the seafloor started talking: a burst of tremor on the Juan de Fuca Ridge. Ships went out. They found fresh lava.\n\nShot List:\n[WIZ 1] (Fast) ARCHIWUM: Whidbey Island FILE: whidbey_island.jpg CAPTION: \"Whidbey Island, Washington\" (1 s)\n[WIZ 2] (Fast) TYTUŁ: \"June 22 / 1993\" (1.2 s)\n[WIZ 3] (Fast) TYTUŁ: \"+4 DAYS\" stamped (1 s)\n[WIZ 4] (Map) MAPA: Juan de Fuca Ridge off Oregon and Washington, Whidbey Island marked (2.5 s)\n[WIZ 5] (Document) DOKUMENT: NOAA map of seismic activity on the Juan de Fuca Ridge FILE: juan_de_fuca_quakes.png (3 s)\n[WIZ 6] (Wide) ARCHIWUM: NOAA research ship Discoverer FILE: rv_discoverer_1995.jpg CAPTION: \"NOAA ship Discoverer, 1995\" (3 s)\n[WIZ 7] (Long Ken Burns) ARCHIWUM: fresh pillow lava on the seafloor FILE: pillow_lava_noaa.jpg CAPTION: \"Pillow lava, Galápagos Rift — NOAA (illustrative)\" (6 s)\n\nFakty użyte: F4, F5, F20\nPołączenie do N-1: In 1993 Fox's team heard a seafloor eruption in real time and ships confirmed fresh lava.\n"
+    },
+    {
+      "id": "B06",
+      "segment": "INVESTIGATION",
+      "scene_no": "3",
+      "scene_desc": "Reading the ocean",
+      "chapter": "3",
+      "subchapter": "",
+      "action": "Fox in Newport reads sounds off a spectrogram; his quote.",
+      "goal": "Viewer meets Fox as an expert listener.",
+      "turn": "Excitement [+] → Confidence [+]",
+      "typology": "RISING_ACTION",
+      "dynamic": "STORY",
+      "chaos": "NONE",
+      "facts": [
+        "F6",
+        "F13"
+      ],
+      "seconds": 22,
+      "narration": "By 2002, Fox was running NOAA's acoustic monitoring project in Newport, Oregon. He could read the ocean off a screen, sound by sound. In his own words: there's a blue whale, there's a fin whale, there's a boat, there's a humpback whale, and here comes an earthquake.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Lower third",
+          "asset": "PODPIS",
+          "desc": "\"CHRISTOPHER FOX / Acoustic Monitoring Project, NOAA PMEL — Newport, Oregon\" over research ship FILE: v_ship_moorings.webm START: 230",
+          "prompt": "",
+          "dur": 6,
+          "transition": "dip"
+        },
+        {
+          "n": 2,
+          "framing": "Medium",
+          "asset": "ARCHIWUM",
+          "desc": "NOAA crew on deck with acoustic moorings FILE: noaa_rainier_deck.png",
+          "prompt": "",
+          "dur": 5,
+          "transition": "slide"
+        },
+        {
+          "n": 3,
+          "framing": "Conversation",
+          "asset": "QA",
+          "desc": "Q: \"What does he see on the screen?\" A: \"There's a blue whale, there's a fin whale, there's a boat, there's a humpback whale and here comes an earthquake.\" — Chris Fox, New Scientist, 2002",
+          "prompt": "",
+          "dur": 8
+        }
+      ],
+      "facts_used": [
+        "F6",
+        "F13"
+      ],
+      "link": "Fox, running NOAA's acoustic project in Newport, could identify whales, boats and earthquakes from a spectrogram.",
+      "raw": "Narracja:\nBy 2002, Fox was running NOAA's acoustic monitoring project in Newport, Oregon. He could read the ocean off a screen, sound by sound. In his own words: there's a blue whale, there's a fin whale, there's a boat, there's a humpback whale, and here comes an earthquake.\n\nShot List:\n[WIZ 1] (Lower third) PODPIS: \"CHRISTOPHER FOX / Acoustic Monitoring Project, NOAA PMEL — Newport, Oregon\" over a hydrophone FILE: hydrophone_device.jpg (5 s)\n[WIZ 2] (Medium) ARCHIWUM: NOAA crew on deck with acoustic moorings FILE: noaa_rainier_deck.png (4 s)\n[WIZ 3] (Conversation) QA: Q: \"What does he see on the screen?\" A: \"There's a blue whale, there's a fin whale, there's a boat, there's a humpback whale and here comes an earthquake.\" — Chris Fox, New Scientist, 2002 (6 s)\n[WIZ 4] (Ken Burns) DOKUMENT: NOAA spectrogram 'Whistle', 1997 FILE: noaa_whistle_1997.jpg (3 s)\n\nFakty użyte: F6, F13\nPołączenie do N-1: Fox, running NOAA's acoustic project in Newport, could identify whales, boats and earthquakes from a spectrogram.\n"
+    },
+    {
+      "id": "B07",
+      "segment": "INVESTIGATION",
+      "scene_no": "3",
+      "scene_desc": "Naming the unknown",
+      "chapter": "3",
+      "subchapter": "",
+      "action": "Sounds with no owner get names on a whim: Train, Whistle, Slowdown, Bloop.",
+      "goal": "Viewer sees the Bloop is one of a collection of unknowns.",
+      "turn": "Confidence [+] → Mystery [-]",
+      "typology": "CONFLICT",
+      "dynamic": "STORY",
+      "chaos": "NONE",
+      "facts": [
+        "F7",
+        "F8"
+      ],
+      "seconds": 16,
+      "narration": "Some sounds had no owner. So Fox named them, on a whim. Train. Whistle. Slowdown. And one he called the Bloop. Just when you think there are no mysteries left in this world, he said, we have a whole bucket of them on the screen here.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Interior",
+          "asset": "ARCHIWUM",
+          "desc": "sailors at their stations inside a submarine FILE: v_sub_interior_crew_1080.mp4 START: 20",
+          "prompt": "",
+          "dur": 5,
+          "transition": "dissolve"
+        },
+        {
+          "n": 2,
+          "framing": "Kinetic",
+          "asset": "HASŁO",
+          "desc": "\"TRAIN WHISTLE SLOWDOWN BLOOP\"",
+          "prompt": "",
+          "dur": 5
+        },
+        {
+          "n": 3,
+          "framing": "Zoom",
+          "asset": "LUPA",
+          "desc": "hydrophone close-up FILE: hydrophone_device.jpg ZOOM: 0.35,0.3,0.3 \"A hydrophone: an underwater microphone\"",
+          "prompt": "",
+          "dur": 4
+        },
+        {
+          "n": 4,
+          "framing": "Quote",
+          "asset": "CYTAT",
+          "desc": "\"we have a whole bucket of them on the screen here\" — Chris Fox, New Scientist, 2002",
+          "prompt": "",
+          "dur": 5
+        }
+      ],
+      "facts_used": [
+        "F7",
+        "F8"
+      ],
+      "link": "Fox named unexplained sounds on a whim, and one of them was the Bloop.",
+      "raw": "Narracja:\nSome sounds had no owner. So Fox named them, on a whim. Train. Whistle. Slowdown. And one he called the Bloop. Just when you think there are no mysteries left in this world, he said, we have a whole bucket of them on the screen here.\n\nShot List:\n[WIZ 1] (Kinetic) HASŁO: \"TRAIN WHISTLE SLOWDOWN BLOOP\" (5 s)\n[WIZ 2] (Zoom) LUPA: hydrophone close-up FILE: hydrophone_device.jpg ZOOM: 0.35,0.3,0.3 \"A hydrophone: an underwater microphone\" (4 s)\n[WIZ 3] (Quote) CYTAT: \"we have a whole bucket of them on the screen here\" — Chris Fox, New Scientist, 2002 (5 s)\n[WIZ 4] (Close-up / REKONSTRUKCJA) AI_OBRAZ: hand pressing headphones in a dim lab FILE: ai_headphones.png (2 s)\n\nFakty użyte: F7, F8\nPołączenie do N-1: Fox named unexplained sounds on a whim, and one of them was the Bloop.\n"
+    },
+    {
+      "id": "B08",
+      "segment": "INVESTIGATION",
+      "scene_no": "3",
+      "scene_desc": "The Bloop",
+      "chapter": "3",
+      "subchapter": "",
+      "action": "Why the Bloop looked alive and why that was impossible to square with its reach.",
+      "goal": "Viewer feels the pull of the monster theory, hedged.",
+      "turn": "Mystery [-] → Awe [+]",
+      "typology": "CONFLICT",
+      "dynamic": "STORY",
+      "chaos": "MINI",
+      "facts": [
+        "F11",
+        "F14",
+        "F2"
+      ],
+      "seconds": 19,
+      "narration": "The Bloop was different. Its frequency rose fast, the way calls made by animals do. But it was heard across an ocean. If something alive made it, that something would have to be louder than a blue whale, the loudest animal we know.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Aerial",
+          "asset": "ARCHIWUM",
+          "desc": "humpback whale raising its tail, aerial FILE: v_humpback_tail_noaa.webm START: 10",
+          "prompt": "",
+          "dur": 5,
+          "transition": "zoom"
+        },
+        {
+          "n": 2,
+          "framing": "Document",
+          "asset": "DOKUMENT",
+          "desc": "NOAA spectrogram of the Bloop FILE: bloop.jpg",
+          "prompt": "",
+          "dur": 4,
+          "transition": "cut"
+        },
+        {
+          "n": 3,
+          "framing": "Diagonal",
+          "asset": "PORÓWNANIE",
+          "desc": "\"BLUE WHALE — loudest known animal\" \"THE BLOOP — ?\" FILES: blue_whale_body.jpg | bloop.jpg",
+          "prompt": "",
+          "dur": 4,
+          "transition": "dissolve",
+          "style": "diagonal"
+        },
+        {
+          "n": 4,
+          "framing": "Medium",
+          "asset": "ARCHIWUM",
+          "desc": "giant squid specimen FILE: giant_squid_archie.jpg CAPTION: \"Giant squid specimen — Natural History Museum, London\"",
+          "prompt": "",
+          "dur": 4.5,
+          "transition": "slide"
+        }
+      ],
+      "facts_used": [
+        "F11",
+        "F14",
+        "F2"
+      ],
+      "link": "The Bloop sounded animal-like, yet carried across an ocean, so anything alive would need to out-shout a blue whale.",
+      "raw": "Narracja:\nThe Bloop was different. Its frequency rose fast, the way calls made by animals do. But it was heard across an ocean. If something alive made it, that something would have to be louder than a blue whale, the loudest animal we know.\n\nShot List:\n[WIZ 1] (Macro) DOKUMENT: NOAA spectrogram of the Bloop FILE: bloop.jpg (1.5 s)\n[WIZ 2] (Fast) ARCHIWUM: blue whale at the surface FILE: blue_whale_body.jpg (1.5 s)\n[WIZ 3] (Fast) ARCHIWUM: Navy sonar operator at his display FILE: sonar_operator_1987.JPEG (1.5 s)\n[WIZ 4] (Map) MAPA: rings spreading across the Pacific from an unknown point (2.5 s)\n[WIZ 5] (Split) PORÓWNANIE: left \"BLUE WHALE — loudest known animal\", right \"THE BLOOP — ?\" FILES: blue_whale_blow.jpg | bloop.jpg (4 s)\n[WIZ 6] (Stamp) TYTUŁ: \"ALIVE?\" stamped (1 s)\n[WIZ 7] (Medium) ARCHIWUM: giant squid specimen FILE: giant_squid_archie.jpg CAPTION: \"Giant squid specimen — Natural History Museum, London\" (3 s)\n[WIZ 8] (Hold) ARCHIWUM: ocean surface FILE: v_ocean_waves.ogv (3 s)\n\nFakty użyte: F11, F14, F2\nPołączenie do N-1: The Bloop sounded animal-like, yet carried across an ocean, so anything alive would need to out-shout a blue whale.\n"
+    },
+    {
+      "id": "B09",
+      "segment": "TWIST",
+      "scene_no": "4",
+      "scene_desc": "Fox's suspect",
+      "chapter": "4",
+      "subchapter": "",
+      "action": "September 2001: Fox tells CNN it's probably ice off Antarctica.",
+      "goal": "Viewer learns the scientist already suspected ice.",
+      "turn": "Awe [+] → Doubt [-]",
+      "typology": "COMEBACK",
+      "dynamic": "STORY",
+      "chaos": "NONE",
+      "facts": [
+        "F9",
+        "F21"
+      ],
+      "seconds": 14,
+      "narration": "But Fox already had a suspect. In September 2001 he told CNN: We're suspecting that it's ice off the coast of Antarctica, in which case it's darn loud.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Clipping",
+          "asset": "PRASA",
+          "desc": "\"We're suspecting that it's ice off the coast of Antarctica, in which case it's darn loud.\" — CNN, 7 September 2001",
+          "prompt": "",
+          "dur": 6,
+          "transition": "dip"
+        },
+        {
+          "n": 2,
+          "framing": "Satellite",
+          "asset": "ARCHIWUM",
+          "desc": "satellite view: ice off the coast of Antarctica FILE: v_ice_off_antarctica_sat.webm START: 0 CAPTION: \"Ice off the coast of Antarctica — NOAA/CIRA satellite\"",
+          "prompt": "",
+          "dur": 2.5,
+          "transition": "dissolve"
+        },
+        {
+          "n": 3,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "expedition boats beneath the Ross Ice Shelf FILE: v_ross_ice_shelf.webm START: 21",
+          "prompt": "",
+          "dur": 5,
+          "transition": "cut"
+        }
+      ],
+      "facts_used": [
+        "F9",
+        "F21"
+      ],
+      "link": "In September 2001 Fox told CNN he suspected Antarctic ice.",
+      "raw": "Narracja:\nBut Fox already had a suspect. In September 2001 he told CNN: We're suspecting that it's ice off the coast of Antarctica, in which case it's darn loud.\n\nShot List:\n[WIZ 1] (Clipping) PRASA: \"We're suspecting that it's ice off the coast of Antarctica, in which case it's darn loud.\" — CNN, 7 September 2001 (6 s)\n[WIZ 2] (Map) MAPA: Southern Ocean, Antarctica, estimated source area (3 s)\n[WIZ 3] (Wide) ARCHIWUM: Ross Ice Shelf FILE: ross_ice_shelf_1997.jpg CAPTION: \"Ross Ice Shelf, 1997 — NOAA\" (3 s)\n[WIZ 4] (Wide) ARCHIWUM: flight over an Antarctic iceberg FILE: v_nasa_iceberg_flight.webm (2 s)\n\nFakty użyte: F9, F21\nPołączenie do N-1: In September 2001 Fox told CNN he suspected Antarctic ice.\n"
+    },
+    {
+      "id": "B10",
+      "segment": "TWIST",
+      "scene_no": "4",
+      "scene_desc": "The headline wins",
+      "chapter": "4",
+      "subchapter": "",
+      "action": "June 2002: New Scientist reports an animal hunch; CNN: giant beast.",
+      "goal": "Viewer sees how the monster story took over.",
+      "turn": "Doubt [-] → Frenzy [+]",
+      "typology": "CLIMAX",
+      "dynamic": "ACTION",
+      "chaos": "MACRO",
+      "facts": [
+        "F11",
+        "F12"
+      ],
+      "seconds": 19,
+      "narration": "Nine months later, the story flipped. In June 2002, New Scientist wrote that Fox's hunch was some sort of animal. CNN ran it as a mysterious recording that could be the sound of a giant beast lurking in the depths of the ocean. The monster had arrived.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Counter",
+          "asset": "LICZNIK",
+          "desc": "\"0 → 9 months\" \"between the two stories\"",
+          "prompt": "",
+          "dur": 2.5,
+          "transition": "dip"
+        },
+        {
+          "n": 2,
+          "framing": "Interior",
+          "asset": "ARCHIWUM",
+          "desc": "submarine crew FILE: v_sub_interior_crew_1080.mp4 START: 110",
+          "prompt": "",
+          "dur": 2,
+          "transition": "cut"
+        },
+        {
+          "n": 3,
+          "framing": "Clipping",
+          "asset": "PRASA",
+          "desc": "\"Fox's hunch is that the sound nicknamed Bloop is the most likely to come from some sort of animal\" — New Scientist, 15 June 2002",
+          "prompt": "",
+          "dur": 3.5,
+          "transition": "whip"
+        },
+        {
+          "n": 4,
+          "framing": "Fast",
+          "asset": "ARCHIWUM",
+          "desc": "giant squid specimen FILE: giant_squid_archie.jpg",
+          "prompt": "",
+          "dur": 2,
+          "transition": "cut"
+        },
+        {
+          "n": 5,
+          "framing": "Clipping",
+          "asset": "PRASA",
+          "desc": "\"could be the sound of a giant beast lurking in the depths of the ocean\" — CNN, 13 June 2002",
+          "prompt": "",
+          "dur": 3.5,
+          "transition": "whip"
+        },
+        {
+          "n": 6,
+          "framing": "Fast",
+          "asset": "ARCHIWUM",
+          "desc": "humpback whale under the surface FILE: v_humpback_aerial.webm START: 126",
+          "prompt": "",
+          "dur": 2,
+          "transition": "cut"
+        },
+        {
+          "n": 7,
+          "framing": "Split",
+          "asset": "PORÓWNANIE",
+          "desc": "\"SCIENTIST — ice, 2001\" \"HEADLINES — beast, 2002\" FILES: ross_ice_shelf_1997.jpg | blue_whale_body.jpg",
+          "prompt": "",
+          "dur": 3.5,
+          "transition": "flash",
+          "style": "split"
+        }
+      ],
+      "facts_used": [
+        "F11",
+        "F12"
+      ],
+      "link": "By June 2002 the press had turned the Bloop into a giant beast, even though Fox had suspected ice.",
+      "raw": "Narracja:\nNine months later, the story flipped. In June 2002, New Scientist wrote that Fox's hunch was some sort of animal. CNN ran it as a mysterious recording that could be the sound of a giant beast lurking in the depths of the ocean. The monster had arrived.\n\nShot List:\n[WIZ 1] (Counter) LICZNIK: \"0 → 9 months\" \"between the two stories\" (2 s)\n[WIZ 2] (Clipping) PRASA: \"Fox's hunch is that the sound nicknamed Bloop is the most likely to come from some sort of animal\" — New Scientist, 15 June 2002 (3 s)\n[WIZ 3] (Fast / REKONSTRUKCJA) AI_OBRAZ: CRT monitor glow in a dark room FILE: ai_crt.png (1 s)\n[WIZ 4] (Clipping) PRASA: \"could be the sound of a giant beast lurking in the depths of the ocean\" — CNN, 13 June 2002 (3 s)\n[WIZ 5] (Stamp) TYTUŁ: \"MONSTER\" stamped (1 s)\n[WIZ 6] (Kinetic) HASŁO: \"THE MONSTER HAD ARRIVED\" (3 s)\n[WIZ 7] (Split) PORÓWNANIE: left \"SCIENTIST — ice, 2001\", right \"HEADLINES — beast, 2002\" FILES: a53a_radar_fissure.jpg | ai_deep.png (4 s)\n\nFakty użyte: F11, F12\nPołączenie do N-1: By June 2002 the press had turned the Bloop into a giant beast, even though Fox had suspected ice.\n"
+    },
+    {
+      "id": "B11",
+      "segment": "RESOLUTION",
+      "scene_no": "5",
+      "scene_desc": "The answer",
+      "chapter": "5",
+      "subchapter": "",
+      "action": "Breath: two stories, nine months apart; only way to know is to get closer. Then 2005 icequake; 2008 A53a — play real NOAA audio.",
+      "goal": "Viewer gets the answer and hears ice breaking.",
+      "turn": "Suspense [-] → Revelation [+]",
+      "typology": "PAYOFF",
+      "dynamic": "EUREKA",
+      "chaos": "NONE",
+      "facts": [
+        "F15",
+        "F18"
+      ],
+      "seconds": 34,
+      "narration": "Two stories. One scientist. Nine months apart. Ice, or something alive. The only way to know was to get closer. So NOAA did. Researchers placed hydrophones nearer to Antarctica, and in 2005 they had the answer. The Bloop was an icequake: an iceberg cracking and breaking away from an Antarctic glacier. Three years later, the same kind of listening followed an iceberg called A53a as it broke apart near South Georgia Island. This is what that sounded like.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Slow, held",
+          "asset": "ARCHIWUM",
+          "desc": "icebergs in still water FILE: v_nasa_icebergs.webm START: 115",
+          "prompt": "",
+          "dur": 7,
+          "transition": "dip"
+        },
+        {
+          "n": 2,
+          "framing": "Diagram",
+          "asset": "DIAGRAM",
+          "desc": "SOFAR channel, how sound crosses an ocean",
+          "prompt": "",
+          "dur": 6,
+          "transition": "dissolve"
+        },
+        {
+          "n": 3,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "people on the ice beside a surfaced submarine FILE: v_sub_breaking_ice.ogv START: 138 CAPTION: \"USS Hartford in Arctic ice — US Navy (illustrative)\"",
+          "prompt": "",
+          "dur": 7,
+          "transition": "slide"
+        },
+        {
+          "n": 4,
+          "framing": "PiP",
+          "asset": "PORÓWNANIE",
+          "desc": "\"ICEBERG A53A — 2008\" \"ICEQUAKE — NOAA\" FILES: a53a_radar_fissure.jpg | icequake-JD33CalvingHF1.png",
+          "prompt": "",
+          "dur": 7,
+          "transition": "dissolve",
+          "style": "pip"
+        },
+        {
+          "n": 5,
+          "framing": "Satellite",
+          "asset": "ARCHIWUM",
+          "desc": "ice breaking up near Antarctica, satellite FILE: v_ice_breaking_sat.webm START: 2 CAPTION: \"Ice breaking up near Antarctica — NOAA/CIRA\"",
+          "prompt": "",
+          "dur": 6,
+          "transition": "burn"
+        },
+        {
+          "n": 6,
+          "framing": "Live",
+          "asset": "SPEKTRO",
+          "desc": "\"ICEBERG A53a BREAKING APART — NOAA\" FILE: A53JD33Calving_3x.wav START: 0 SPAN: 7 MAXHZ: 400",
+          "prompt": "",
+          "dur": 7,
+          "transition": "cut"
+        }
+      ],
+      "facts_used": [
+        "F15",
+        "F18"
+      ],
+      "link": "In 2005 NOAA confirmed the Bloop was an icequake, and in 2008 the same listening tracked iceberg A53a breaking apart.",
+      "raw": "Narracja:\nTwo stories. One scientist. Nine months apart. Ice, or something alive. The only way to know was to get closer. So NOAA did. Researchers placed hydrophones nearer to Antarctica, and in 2005 they had the answer. The Bloop was an icequake: an iceberg cracking and breaking away from an Antarctic glacier. Three years later, the same kind of listening followed an iceberg called A53a as it broke apart near South Georgia Island. This is what that sounded like.\n\nShot List:\n[WIZ 1] (Slow, held) ARCHIWUM: flight over an Antarctic iceberg FILE: v_nasa_iceberg_flight.webm (6 s)\n[WIZ 2] (Diagram) DIAGRAM: SOFAR channel, how sound crosses an ocean (5 s)\n[WIZ 3] (Fast) TYTUŁ: \"2005\" (1 s)\n[WIZ 4] (Fast) ARCHIWUM: radar image of a fissure in iceberg A53A FILE: a53a_radar_fissure.jpg (1 s)\n[WIZ 5] (Zoom) LUPA: NOAA icequake record FILE: icequake-JD33CalvingHF1.png ZOOM: 0.08,0.45,0.5 \"Icequake — NOAA PMEL\" (5 s)\n[WIZ 6] (Wide) ARCHIWUM: glacier calving into the sea FILE: v_margerie_calving.webm CAPTION: \"Glacier calving, Alaska — illustrative\" (7 s)\n[WIZ 7] (Ken Burns) ARCHIWUM: iceberg A53A splitting, seen by Envisat FILE: a53a_envisat_split.jpg CAPTION: \"Iceberg A53A, 2008 — ESA Envisat\" (4 s)\n[WIZ 8] (Scrolling) SPEKTRO: \"ICEBERG A53a BREAKING APART — NOAA\" FILE: A53JD33Calving_3x.wav START: 0 SPAN: 7 MAXHZ: 400 (6 s)\n\nFakty użyte: F15, F18\nPołączenie do N-1: In 2005 NOAA confirmed the Bloop was an icequake, and in 2008 the same listening tracked iceberg A53a breaking apart.\n"
+    },
+    {
+      "id": "B12",
+      "segment": "OUTRO",
+      "scene_no": "5",
+      "scene_desc": "Still listening",
+      "chapter": "6",
+      "subchapter": "",
+      "action": "Close: icequakes carry across oceans; the monster was ice; the ears are still listening.",
+      "goal": "Viewer leaves with the thesis and a lingering image.",
+      "turn": "Revelation [+] → Quiet awe [-]",
+      "typology": "OPEN_QUESTION",
+      "dynamic": "CHILL",
+      "chaos": "NONE",
+      "facts": [
+        "F17",
+        "F8"
+      ],
+      "seconds": 20,
+      "narration": "Icequakes can carry more than five thousand kilometres. The loudest monster the ocean ever recorded was the sound of ice letting go. Fox once called his screen a whole bucket of mysteries. One of them was ice. The ears are still down there, listening.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "blue whales in Antarctic waters FILE: v_blue_whales_antarctic.webm START: 62",
+          "prompt": "",
+          "dur": 6,
+          "transition": "dissolve"
+        },
+        {
+          "n": 2,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "Ross Ice Shelf from the water FILE: v_ross_ice_shelf.webm START: 147",
+          "prompt": "",
+          "dur": 6,
+          "transition": "dissolve"
+        },
+        {
+          "n": 3,
+          "framing": "End title",
+          "asset": "TYTUŁ",
+          "desc": "\"THE BLOOP / 1997–2005\" over black",
+          "prompt": "",
+          "dur": 5,
+          "transition": "dip",
+          "style": "center-big"
+        }
+      ],
+      "facts_used": [
+        "F17",
+        "F8"
+      ],
+      "link": "The film closes on icequakes carrying across oceans and the hydrophones still listening.",
+      "raw": "Narracja:\nIcequakes can carry more than five thousand kilometres. The loudest monster the ocean ever recorded was the sound of ice letting go. Fox once called his screen a whole bucket of mysteries. One of them was ice. The ears are still down there, listening.\n\nShot List:\n[WIZ 1] (Slow) ARCHIWUM: ocean surface FILE: v_ocean_waves.ogv (6 s)\n[WIZ 2] (Ken Burns) DOKUMENT: NOAA spectrogram of iceberg harmonic tremor FILE: IcebergHarmonicTremor_HighFreq.png (5 s)\n[WIZ 3] (Hold, fade) TYTUŁ: \"THE BLOOP / 1997–2005\" over black (6 s)\n\nFakty użyte: F17, F8\nPołączenie do N-1: The film closes on icequakes carrying across oceans and the hydrophones still listening.\n"
+    }
+  ],
+  "render": {
+    "media": [
+      "raw"
+    ],
+    "voice": "voice",
+    "lead": {
+      "B01": 3
+    },
+    "tail": {
+      "B11": 6.5
+    },
+    "cues": [
+      "B01:start:bloop.wav:1.0:10",
+      "B08:start:bloop.wav:0.6:4",
+      "B11:end:A53JD33Calving_3x.wav:1.0:6.5",
+      "B12:start:HarmonicTremor2006_215_09_20UsedOnBloopWebsite.wav:0.35:20"
+    ],
+    "credits": [
+      "raw/commons/licenses.json",
+      "raw/video/licenses.json"
+    ],
+    "credit_lines": [
+      "Audio & spectrograms: NOAA PMEL Acoustics Program (public domain)",
+      "Facts: NOAA Ocean Service; NOAA PMEL; Fox et al., Geophysical Research Letters 22 (1995)",
+      "Press quotes: CNN (7 Sep 2001; 13 Jun 2002); D. Wolman, New Scientist (15 Jun 2002)",
+      "AI reconstructions are marked on screen. Narration: AI clone of the narrator's voice."
+    ],
+    "silence_before": "B11"
+  }
+}

@@ -1,0 +1,692 @@
+{
+  "meta": {
+    "title": "The Bloop: The Loudest Mystery the Ocean Ever Recorded",
+    "logline": "In 1997 hydrophones across the Pacific caught a sound nobody could identify. It took eight years to learn what it really was.",
+    "thesis": "The ocean is so poorly mapped by sound that a cracking iceberg passed for a monster for eight years.",
+    "curiosity_gap": "What made a sound that hydrophones thousands of kilometres apart all heard?",
+    "narrator": "Spokojny, rzeczowy narrator dokumentalny w 3. osobie. Niski ton, krótkie zdania, zero sensacji bez dowodu.",
+    "audience_relation": "Prowadzi widza przez akta jak śledczy. Czasem zwraca się na 'you' w kluczowych momentach.",
+    "lexicon": "hydrophone = 'the ear'; NOAA = 'the listeners'",
+    "bans": "Zero lania wody. Żadnych zmyślonych nazwisk, dat, liczb i cytatów. Nie udawaj, że rekonstrukcja to archiwum.",
+    "language": "English",
+    "target_minutes": 3,
+    "wpm": 140,
+    "visual_style": "1990s archival documentary photograph, black and white, film grain, vignette, high contrast",
+    "master_outline": "1) Cold open: the sound. 2) Who was listening and why. 3) Why it looked like an animal. 4) The answer: ice (2005). 5) Why it still matters."
+  },
+  "chapters": [
+    {
+      "id": "1",
+      "title": "The Sound",
+      "description": "Hook: an unidentified ultra-low sound in 1997",
+      "segment": "COLD_OPEN",
+      "default_dynamic": "ACTION"
+    },
+    {
+      "id": "2",
+      "title": "The Listeners",
+      "description": "Who had underwater microphones and why",
+      "segment": "CONTEXT",
+      "default_dynamic": "STORY"
+    },
+    {
+      "id": "3",
+      "title": "The Monster Theory",
+      "description": "Why people believed it was alive",
+      "segment": "INVESTIGATION",
+      "default_dynamic": ""
+    },
+    {
+      "id": "4",
+      "title": "The Ice",
+      "description": "The 2012 explanation",
+      "segment": "TWIST",
+      "default_dynamic": "EUREKA"
+    },
+    {
+      "id": "5",
+      "title": "What We Still Don't Hear",
+      "description": "Open question and outro",
+      "segment": "OUTRO",
+      "default_dynamic": "CHILL"
+    }
+  ],
+  "subchapters": [
+    {
+      "id": "3.1",
+      "chapter": "3",
+      "title": "Too loud for a whale?",
+      "description": "The popular claim and why it spread"
+    },
+    {
+      "id": "3.2",
+      "chapter": "3",
+      "title": "The location",
+      "description": "A remote point in the South Pacific"
+    }
+  ],
+  "facts": [
+    {
+      "id": "F1",
+      "claim": "In 1997 NOAA researchers listening for underwater volcanic activity in the southern Pacific recorded a mysterious sound later named 'the Bloop'.",
+      "status": "VERIFIED",
+      "source": "NOAA National Ocean Service — What is the Bloop?",
+      "url": "https://oceanservice.noaa.gov/facts/bloop.html",
+      "note": ""
+    },
+    {
+      "id": "F2",
+      "claim": "The Bloop was picked up by hydrophones placed more than 3,219 km apart across the Pacific (over three thousand kilometres).",
+      "status": "VERIFIED",
+      "source": "NOAA National Ocean Service — What is the Bloop?",
+      "url": "https://oceanservice.noaa.gov/facts/bloop.html",
+      "note": "Pop. źródła: 'over 3,000 miles' — nie używać"
+    },
+    {
+      "id": "F3",
+      "claim": "Based on the direction the sound arrived from, NOAA estimates the source was most likely between the Bransfield Strait and the Ross Sea, or possibly at Cape Adare, Antarctica.",
+      "status": "VERIFIED",
+      "source": "NOAA PMEL Acoustics Program — Icequakes (Bloop)",
+      "url": "https://www.pmel.noaa.gov/acoustics/sounds/bloop.html",
+      "note": "Szacunek NOAA, nie dokładny punkt"
+    },
+    {
+      "id": "F4",
+      "claim": "In 2005, after placing hydrophones closer to Antarctica, NOAA researchers found the Bloop was an icequake: an iceberg cracking and breaking away from an Antarctic glacier.",
+      "status": "VERIFIED",
+      "source": "NOAA National Ocean Service — What is the Bloop?",
+      "url": "https://oceanservice.noaa.gov/facts/bloop.html",
+      "note": ""
+    },
+    {
+      "id": "F5",
+      "claim": "Popular claims said the Bloop was much louder than a blue whale, the loudest known animal, and must have come from a giant unknown creature.",
+      "status": "DISPUTED",
+      "source": "Popular Science — The sea monster goes 'bloop'—or does it?",
+      "url": "https://www.popsci.com/environment/sea-monster-bloop-sound/",
+      "note": "Tylko jako spekulacja z epoki"
+    },
+    {
+      "id": "F6",
+      "claim": "Analyst listening to the recording in a dim lab at night.",
+      "status": "DRAMATIZATION",
+      "source": "rekonstrukcja",
+      "url": "",
+      "note": ""
+    },
+    {
+      "id": "F7",
+      "claim": "Early guesses about the Bloop included secret military exercises, ship engines, fishing boat winches, giant squids and whales.",
+      "status": "VERIFIED",
+      "source": "NOAA National Ocean Service — What is the Bloop?",
+      "url": "https://oceanservice.noaa.gov/facts/bloop.html",
+      "note": ""
+    },
+    {
+      "id": "F8",
+      "claim": "NOAA's public recording of the Bloop is sped up 16 times so human ears can hear it.",
+      "status": "VERIFIED",
+      "source": "NOAA PMEL Acoustics Program — Icequakes (Bloop)",
+      "url": "https://www.pmel.noaa.gov/acoustics/sounds/bloop.html",
+      "note": ""
+    },
+    {
+      "id": "F9",
+      "claim": "NOAA oceanographer Chris Fox said in 2001 that he suspected ice off the coast of Antarctica.",
+      "status": "VERIFIED",
+      "source": "Popular Science — The sea monster goes 'bloop'—or does it?",
+      "url": "https://www.popsci.com/environment/sea-monster-bloop-sound/",
+      "note": ""
+    },
+    {
+      "id": "F10",
+      "claim": "Icequakes are loud enough to be detected on multiple sensors at a range of over 5,000 km.",
+      "status": "VERIFIED",
+      "source": "NOAA PMEL Acoustics Program — Icequakes (Bloop)",
+      "url": "https://www.pmel.noaa.gov/acoustics/sounds/bloop.html",
+      "note": "Zasięg wykrycia, nie rozstaw czujników"
+    },
+    {
+      "id": "F11",
+      "claim": "NOAA hydrophones in the Scotia Sea recorded icequakes with spectrograms very similar to the Bloop and used them to track iceberg A53a as it broke apart near South Georgia Island in early 2008.",
+      "status": "VERIFIED",
+      "source": "NOAA PMEL Acoustics Program — Icequakes (Bloop)",
+      "url": "https://www.pmel.noaa.gov/acoustics/sounds/bloop.html",
+      "note": ""
+    }
+  ],
+  "beats": [
+    {
+      "id": "B01",
+      "segment": "COLD_OPEN",
+      "scene_no": "1",
+      "scene_desc": "The recording",
+      "chapter": "1",
+      "subchapter": "",
+      "action": "A sound appears on hydrophone recordings that matches nothing in the library.",
+      "goal": "The viewer knows something unidentified was recorded in 1997 and that it was huge in reach.",
+      "turn": "Calm [+] → Unease [-]",
+      "typology": "INTRODUCTION",
+      "dynamic": "",
+      "chaos": "NONE",
+      "facts": [
+        "F1",
+        "F2",
+        "F6"
+      ],
+      "seconds": 15,
+      "narration": "Summer, 1997. Under the Pacific, machines are listening for volcanoes. Whales. Ships. Earthquakes. All logged. All known. Then the tape catches something else. Slow. Rising. Enormous. And it isn't heard once. Hydrophones more than three thousand kilometres apart all hear it.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Wide / slow push",
+          "asset": "TYTUŁ",
+          "desc": "\"Summer / 1997\" typed over black ocean at night",
+          "prompt": "",
+          "dur": 1.5
+        },
+        {
+          "n": 2,
+          "framing": "Macro",
+          "asset": "AI_OBRAZ",
+          "desc": "reel-to-reel tape spinning in the dark",
+          "prompt": "close-up of a reel-to-reel tape recorder spinning in a dark lab",
+          "dur": 1.0
+        },
+        {
+          "n": 3,
+          "framing": "ECU",
+          "asset": "ARCHIWUM",
+          "desc": "seismograph needle twitching — search \"seismograph drum 1990s footage\"",
+          "prompt": "",
+          "dur": 1.0
+        },
+        {
+          "n": 4,
+          "framing": "Medium",
+          "asset": "ARCHIWUM",
+          "desc": "humpback whale breaching",
+          "prompt": "",
+          "dur": 1.0
+        },
+        {
+          "n": 5,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "cargo ship at sea",
+          "prompt": "",
+          "dur": 1.0
+        },
+        {
+          "n": 6,
+          "framing": "Close-up",
+          "asset": "DOKUMENT",
+          "desc": "seismograph printout scrolling",
+          "prompt": "",
+          "dur": 1.0
+        },
+        {
+          "n": 7,
+          "framing": "POV / REKONSTRUKCJA",
+          "asset": "AI_OBRAZ",
+          "desc": "analyst's hand pressing headphones to ear",
+          "prompt": "hand pressing headphones to ear, dim lab, night",
+          "dur": 1.5
+        },
+        {
+          "n": 8,
+          "framing": "Macro / Ken Burns",
+          "asset": "AI_OBRAZ",
+          "desc": "spectrogram paper with a rising curve",
+          "prompt": "paper sonar spectrogram printout with one rising curve",
+          "dur": 1.5
+        },
+        {
+          "n": 9,
+          "framing": "Match Cut",
+          "asset": "AI_OBRAZ",
+          "desc": "the curve cuts to a dark ocean horizon",
+          "prompt": "dark empty ocean horizon at night",
+          "dur": 1.0
+        },
+        {
+          "n": 10,
+          "framing": "Map zoom-out",
+          "asset": "MAPA",
+          "desc": "Pacific with hydrophone dots lighting up one by one",
+          "prompt": "",
+          "dur": 1.5
+        },
+        {
+          "n": 11,
+          "framing": "Graphic",
+          "asset": "TYTUŁ",
+          "desc": "\"3,219 km\" drawn between two hydrophone dots",
+          "prompt": "",
+          "dur": 1.0
+        },
+        {
+          "n": 12,
+          "framing": "Hold",
+          "asset": "AI_OBRAZ",
+          "desc": "black water, slow drift",
+          "prompt": "black deep ocean water, faint particles",
+          "dur": 1.0
+        }
+      ],
+      "facts_used": [
+        "F1",
+        "F2",
+        "F6"
+      ],
+      "link": "A 1997 hydrophone recording caught an unidentified rising sound that hydrophones more than three thousand kilometres apart all heard.",
+      "raw": "Narracja:\nSummer, 1997. Under the Pacific, machines are listening for volcanoes. Whales. Ships. Earthquakes. All logged. All known. Then the tape catches something else. Slow. Rising. Enormous. And it isn't heard once. Hydrophones more than three thousand kilometres apart all hear it.\n\nShot List:\n[WIZ 1] (Wide / slow push) TYTUŁ: \"Summer / 1997\" typed over black ocean at night (1.5 s)\n[WIZ 2] (Macro) AI_OBRAZ: reel-to-reel tape spinning in the dark PROMPT: \"close-up of a reel-to-reel tape recorder spinning in a dark lab\" (1 s)\n[WIZ 3] (ECU) ARCHIWUM: seismograph needle twitching — search \"seismograph drum 1990s footage\" (1 s)\n[WIZ 4] (Medium) ARCHIWUM: humpback whale breaching (1 s)\n[WIZ 5] (Wide) ARCHIWUM: cargo ship at sea (1 s)\n[WIZ 6] (Close-up) DOKUMENT: seismograph printout scrolling (1 s)\n[WIZ 7] (POV / REKONSTRUKCJA) AI_OBRAZ: analyst's hand pressing headphones to ear PROMPT: \"hand pressing headphones to ear, dim lab, night\" (1.5 s)\n[WIZ 8] (Macro / Ken Burns) AI_OBRAZ: spectrogram paper with a rising curve PROMPT: \"paper sonar spectrogram printout with one rising curve\" (1.5 s)\n[WIZ 9] (Match Cut) AI_OBRAZ: the curve cuts to a dark ocean horizon PROMPT: \"dark empty ocean horizon at night\" (1 s)\n[WIZ 10] (Map zoom-out) MAPA: Pacific with hydrophone dots lighting up one by one (1.5 s)\n[WIZ 11] (Graphic) TYTUŁ: \"3,219 km\" drawn between two hydrophone dots (1 s)\n[WIZ 12] (Hold) AI_OBRAZ: black water, slow drift PROMPT: \"black deep ocean water, faint particles\" (1 s)\n\nFakty użyte: F1, F2, F6\nPołączenie do N-1: A 1997 hydrophone recording caught an unidentified rising sound that hydrophones more than three thousand kilometres apart all heard.\n"
+    },
+    {
+      "id": "B02",
+      "segment": "COLD_OPEN",
+      "scene_no": "1",
+      "scene_desc": "The question",
+      "chapter": "1",
+      "subchapter": "",
+      "action": "Open the curiosity gap: play the sound (sped up 16x) and ask what could carry that far.",
+      "goal": "The viewer wants the answer.",
+      "turn": "Unease [-] → Curiosity [+]",
+      "typology": "RISING_ACTION",
+      "dynamic": "EUREKA",
+      "chaos": "NONE",
+      "facts": [
+        "F8",
+        "F10"
+      ],
+      "seconds": 12,
+      "narration": "This is what they heard, sped up 16 times so human ears can catch it. A sound like this can reach sensors over 5,000 km away. So what, in the open ocean, is that loud?",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "ECU",
+          "asset": "AI_OBRAZ",
+          "desc": "speaker cone vibrating in the dark",
+          "prompt": "extreme close-up of a vintage loudspeaker cone vibrating, dark room",
+          "dur": 1.0
+        },
+        {
+          "n": 2,
+          "framing": "Macro",
+          "asset": "DOKUMENT",
+          "desc": "spectrogram curve drawing itself left to right",
+          "prompt": "",
+          "dur": 1.0
+        },
+        {
+          "n": 3,
+          "framing": "Insert",
+          "asset": "TYTUŁ",
+          "desc": "\"PLAYBACK x16\" stamped in the corner",
+          "prompt": "",
+          "dur": 1.0
+        },
+        {
+          "n": 4,
+          "framing": "Whip pan",
+          "asset": "MAPA",
+          "desc": "rings spreading across the Pacific from an unknown point",
+          "prompt": "",
+          "dur": 1.0
+        },
+        {
+          "n": 5,
+          "framing": "Graphic",
+          "asset": "TYTUŁ",
+          "desc": "\"5,000 km\" along one ring's radius",
+          "prompt": "",
+          "dur": 2.0
+        },
+        {
+          "n": 6,
+          "framing": "Slow Ken Burns push-in",
+          "asset": "AI_OBRAZ",
+          "desc": "empty black ocean, nothing visible",
+          "prompt": "empty black ocean surface under overcast sky, horizon, nothing visible",
+          "dur": 6.0
+        }
+      ],
+      "facts_used": [
+        "F8",
+        "F10"
+      ],
+      "link": "Played 16 times faster, the sound showed it could carry thousands of kilometres, raising the question of what could be that loud.",
+      "raw": "Narracja:\nThis is what they heard, sped up 16 times so human ears can catch it. A sound like this can reach sensors over 5,000 km away. So what, in the open ocean, is that loud?\n\nShot List:\n[WIZ 1] (ECU) AI_OBRAZ: speaker cone vibrating in the dark PROMPT: \"extreme close-up of a vintage loudspeaker cone vibrating, dark room\" (1 s)\n[WIZ 2] (Macro) DOKUMENT: spectrogram curve drawing itself left to right (1 s)\n[WIZ 3] (Insert) TYTUŁ: \"PLAYBACK x16\" stamped in the corner (1 s)\n[WIZ 4] (Whip pan) MAPA: rings spreading across the Pacific from an unknown point (1 s)\n[WIZ 5] (Graphic) TYTUŁ: \"5,000 km\" along one ring's radius (2 s)\n[WIZ 6] (Slow Ken Burns push-in) AI_OBRAZ: empty black ocean, nothing visible PROMPT: \"empty black ocean surface under overcast sky, horizon, nothing visible\" (6 s)\n\nFakty użyte: F8, F10\nPołączenie do N-1: Played 16 times faster, the sound showed it could carry thousands of kilometres, raising the question of what could be that loud.\n"
+    },
+    {
+      "id": "B03",
+      "segment": "CONTEXT",
+      "scene_no": "2",
+      "scene_desc": "Who was listening",
+      "chapter": "2",
+      "subchapter": "",
+      "action": "Who was listening: NOAA researchers tracking underwater volcanoes. What hydrophones normally hear and the early guesses.",
+      "goal": "The viewer understands the tools and why an unknown sound was rare.",
+      "turn": "Curiosity [+] → Trust in the data [+]",
+      "typology": "INTRODUCTION",
+      "dynamic": "",
+      "chaos": "NONE",
+      "facts": [
+        "F1",
+        "F7"
+      ],
+      "seconds": 30,
+      "narration": "The listeners were NOAA researchers. Their hydrophones, underwater microphones, sat in the southern Pacific for one reason: to hear underwater volcanoes. Most days the tapes were predictable. Rumbles from the seafloor. Whale song. The churn of propellers. Every sound had a shape, and every shape had a name. This one didn't. The guesses came fast. Secret military exercises. Ship engines. Fishing boat winches. Giant squids. Whales.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Wide / slow pan",
+          "asset": "ARCHIWUM",
+          "desc": "research vessel lowering an instrument over the side — search \"NOAA research vessel hydrophone deployment\"",
+          "prompt": "",
+          "dur": 5.0
+        },
+        {
+          "n": 2,
+          "framing": "Close-up",
+          "asset": "ARCHIWUM",
+          "desc": "hydrophone mooring hardware on deck",
+          "prompt": "",
+          "dur": 4.0
+        },
+        {
+          "n": 3,
+          "framing": "Insert",
+          "asset": "DOKUMENT",
+          "desc": "typed log sheet with columns SEISMIC / BIOLOGIC / SHIP",
+          "prompt": "",
+          "dur": 5.0
+        },
+        {
+          "n": 4,
+          "framing": "Medium",
+          "asset": "ARCHIWUM",
+          "desc": "whale fluke disappearing under water",
+          "prompt": "",
+          "dur": 5.0
+        },
+        {
+          "n": 5,
+          "framing": "Macro / Ken Burns",
+          "asset": "AI_OBRAZ",
+          "desc": "blank logbook row with a pencil question mark",
+          "prompt": "open paper logbook with one blank row marked with a pencil question mark, desk lamp",
+          "dur": 5.0
+        },
+        {
+          "n": 6,
+          "framing": "Card flips",
+          "asset": "PORÓWNANIE",
+          "desc": "quick cards MILITARY / SHIP / WINCH / SQUID / WHALE",
+          "prompt": "",
+          "dur": 6.0
+        }
+      ],
+      "facts_used": [
+        "F1",
+        "F7"
+      ],
+      "link": "NOAA's volcano-listening hydrophones recorded a sound with no name, and the guesses ranged from military exercises to giant squids and whales.",
+      "raw": "Narracja:\nThe listeners were NOAA researchers. Their hydrophones, underwater microphones, sat in the southern Pacific for one reason: to hear underwater volcanoes. Most days the tapes were predictable. Rumbles from the seafloor. Whale song. The churn of propellers. Every sound had a shape, and every shape had a name. This one didn't. The guesses came fast. Secret military exercises. Ship engines. Fishing boat winches. Giant squids. Whales.\n\nShot List:\n[WIZ 1] (Wide / slow pan) ARCHIWUM: research vessel lowering an instrument over the side — search \"NOAA research vessel hydrophone deployment\" (5 s)\n[WIZ 2] (Close-up) ARCHIWUM: hydrophone mooring hardware on deck (4 s)\n[WIZ 3] (Insert) DOKUMENT: typed log sheet with columns SEISMIC / BIOLOGIC / SHIP (5 s)\n[WIZ 4] (Medium) ARCHIWUM: whale fluke disappearing under water (5 s)\n[WIZ 5] (Macro / Ken Burns) AI_OBRAZ: blank logbook row with a pencil question mark PROMPT: \"open paper logbook with one blank row marked with a pencil question mark, desk lamp\" (5 s)\n[WIZ 6] (Card flips) PORÓWNANIE: quick cards MILITARY / SHIP / WINCH / SQUID / WHALE (6 s)\n\nFakty użyte: F1, F7\nPołączenie do N-1: NOAA's volcano-listening hydrophones recorded a sound with no name, and the guesses ranged from military exercises to giant squids and whales.\n"
+    },
+    {
+      "id": "B04",
+      "segment": "INVESTIGATION",
+      "scene_no": "3",
+      "scene_desc": "The monster theory",
+      "chapter": "3",
+      "subchapter": "3.1",
+      "action": "Show how the 'too loud for an animal' idea spread.",
+      "goal": "The viewer sees why people believed it was alive, labelled as speculation.",
+      "turn": "Trust [+] → Excitement [+]",
+      "typology": "RISING_ACTION",
+      "dynamic": "STORY",
+      "chaos": "NONE",
+      "facts": [
+        "F5"
+      ],
+      "seconds": 25,
+      "narration": "Then the story left the lab. Online, the Bloop grew teeth. The claim went like this: it was much louder than a blue whale, the loudest animal we know, so something bigger had to be down there. No one had a body. No one had a photo. But a sound with no name is easy to fill with a monster.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Close-up",
+          "asset": "AI_OBRAZ",
+          "desc": "CRT monitor glowing with an old forum page, text unreadable",
+          "prompt": "old CRT computer monitor glowing in a dark room, blurry web forum on screen",
+          "dur": 5.0
+        },
+        {
+          "n": 2,
+          "framing": "Medium",
+          "asset": "ARCHIWUM",
+          "desc": "blue whale underwater, slow pass",
+          "prompt": "",
+          "dur": 5.0
+        },
+        {
+          "n": 3,
+          "framing": "Split",
+          "asset": "PORÓWNANIE",
+          "desc": "left \"BLUE WHALE — loudest known animal\", right \"THE BLOOP — ?\"",
+          "prompt": "",
+          "dur": 6.0
+        },
+        {
+          "n": 4,
+          "framing": "Slow push / REKONSTRUKCJA",
+          "asset": "AI_OBRAZ",
+          "desc": "vast shadow beneath a tiny ship",
+          "prompt": "tiny ship silhouette on the surface far above a vast dark shape in deep water, underwater view",
+          "dur": 5.0
+        },
+        {
+          "n": 5,
+          "framing": "Insert",
+          "asset": "TYTUŁ",
+          "desc": "\"UNCONFIRMED\" stamped over the shadow",
+          "prompt": "",
+          "dur": 4.0
+        }
+      ],
+      "facts_used": [
+        "F5"
+      ],
+      "link": "Without evidence, the internet turned the unnamed sound into a monster, claiming it was far louder than a blue whale.",
+      "raw": "Narracja:\nThen the story left the lab. Online, the Bloop grew teeth. The claim went like this: it was much louder than a blue whale, the loudest animal we know, so something bigger had to be down there. No one had a body. No one had a photo. But a sound with no name is easy to fill with a monster.\n\nShot List:\n[WIZ 1] (Close-up) AI_OBRAZ: CRT monitor glowing with an old forum page, text unreadable PROMPT: \"old CRT computer monitor glowing in a dark room, blurry web forum on screen\" (5 s)\n[WIZ 2] (Medium) ARCHIWUM: blue whale underwater, slow pass (5 s)\n[WIZ 3] (Split) PORÓWNANIE: left \"BLUE WHALE — loudest known animal\", right \"THE BLOOP — ?\" (6 s)\n[WIZ 4] (Slow push / REKONSTRUKCJA) AI_OBRAZ: vast shadow beneath a tiny ship PROMPT: \"tiny ship silhouette on the surface far above a vast dark shape in deep water, underwater view\" (5 s)\n[WIZ 5] (Insert) TYTUŁ: \"UNCONFIRMED\" stamped over the shadow (4 s)\n\nFakty użyte: F5\nPołączenie do N-1: Without evidence, the internet turned the unnamed sound into a monster, claiming it was far louder than a blue whale.\n"
+    },
+    {
+      "id": "B05",
+      "segment": "INVESTIGATION",
+      "scene_no": "3",
+      "scene_desc": "The location",
+      "chapter": "3",
+      "subchapter": "3.2",
+      "action": "Place the source: the arrival direction points not to the open sea but toward Antarctica. A NOAA scientist already suspects ice.",
+      "goal": "The viewer understands how remote the source was.",
+      "turn": "Excitement [+] → Doubt [-]",
+      "typology": "EVIDENCE",
+      "dynamic": "STATIC",
+      "chaos": "MINI",
+      "facts": [
+        "F3",
+        "F9"
+      ],
+      "seconds": 20,
+      "narration": "But the data pointed somewhere colder. Traced by the direction it arrived from, the sound came from the far south: between the Bransfield Strait and the Ross Sea, maybe Cape Adare. Antarctica. And in 2001, NOAA oceanographer Chris Fox said what the monster theory didn't want to hear. He suspected ice.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Static / slow Ken Burns",
+          "asset": "MAPA",
+          "desc": "Southern Ocean, arrival bearings converging between the Bransfield Strait and the Ross Sea, Cape Adare marked",
+          "prompt": "",
+          "dur": 12.0
+        },
+        {
+          "n": 2,
+          "framing": "Static",
+          "asset": "CYTAT",
+          "desc": "card \"ice off the coast of Antarctica\" — Chris Fox, NOAA, 2001",
+          "prompt": "",
+          "dur": 8.0
+        }
+      ],
+      "facts_used": [
+        "F3",
+        "F9"
+      ],
+      "link": "The arrival direction pointed toward Antarctica and a NOAA scientist already suspected ice, undercutting the monster theory.",
+      "raw": "Narracja:\nBut the data pointed somewhere colder. Traced by the direction it arrived from, the sound came from the far south: between the Bransfield Strait and the Ross Sea, maybe Cape Adare. Antarctica. And in 2001, NOAA oceanographer Chris Fox said what the monster theory didn't want to hear. He suspected ice.\n\nShot List:\n[WIZ 1] (Static / slow Ken Burns) MAPA: Southern Ocean, arrival bearings converging between the Bransfield Strait and the Ross Sea, Cape Adare marked (12 s)\n[WIZ 2] (Static) CYTAT: card \"ice off the coast of Antarctica\" — Chris Fox, NOAA, 2001 (8 s)\n\nFakty użyte: F3, F9\nPołączenie do N-1: The arrival direction pointed toward Antarctica and a NOAA scientist already suspected ice, undercutting the monster theory.\n"
+    },
+    {
+      "id": "B06",
+      "segment": "TWIST",
+      "scene_no": "4",
+      "scene_desc": "The answer",
+      "chapter": "4",
+      "subchapter": "",
+      "action": "Reveal: 2005, hydrophones closer to Antarctica, the Bloop was an icequake.",
+      "goal": "The viewer learns the real explanation.",
+      "turn": "Doubt [-] → Revelation [+]",
+      "typology": "CLIMAX",
+      "dynamic": "",
+      "chaos": "NONE",
+      "facts": [
+        "F4",
+        "F11"
+      ],
+      "seconds": 30,
+      "narration": "To be sure, they had to get closer. NOAA placed hydrophones nearer to Antarctica and listened again. In 2005, the answer came back. Not a creature. Not a submarine. An icequake. An iceberg cracking and breaking away from an Antarctic glacier. Later recordings of breaking ice drew a very similar shape on paper. The monster was the sound of a glacier letting go.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Fast",
+          "asset": "ARCHIWUM",
+          "desc": "research ship pushing through pack ice",
+          "prompt": "",
+          "dur": 1.0
+        },
+        {
+          "n": 2,
+          "framing": "Fast",
+          "asset": "ARCHIWUM",
+          "desc": "instrument lowered into icy water",
+          "prompt": "",
+          "dur": 1.0
+        },
+        {
+          "n": 3,
+          "framing": "Fast / ECU",
+          "asset": "AI_OBRAZ",
+          "desc": "headphones beside a frosted porthole",
+          "prompt": "headphones on a metal desk beside a frosted ship porthole",
+          "dur": 1.0
+        },
+        {
+          "n": 4,
+          "framing": "Fast",
+          "asset": "DOKUMENT",
+          "desc": "icequake spectrogram printout beside the 1997 one",
+          "prompt": "",
+          "dur": 1.5
+        },
+        {
+          "n": 5,
+          "framing": "Fast",
+          "asset": "TYTUŁ",
+          "desc": "\"2005\" typed",
+          "prompt": "",
+          "dur": 1.5
+        },
+        {
+          "n": 6,
+          "framing": "Match Cut",
+          "asset": "PORÓWNANIE",
+          "desc": "left \"THE BLOOP\", right \"ICEQUAKE\" with matching spectrogram curves",
+          "prompt": "",
+          "dur": 4.0
+        },
+        {
+          "n": 7,
+          "framing": "Wide",
+          "asset": "ARCHIWUM",
+          "desc": "glacier calving, ice wall collapsing into the sea",
+          "prompt": "",
+          "dur": 8.0
+        },
+        {
+          "n": 8,
+          "framing": "Long Ken Burns pull-out",
+          "asset": "AI_OBRAZ",
+          "desc": "vast Antarctic ice shelf edge at dusk",
+          "prompt": "vast Antarctic ice shelf edge at dusk, cracked ice cliff, calm sea",
+          "dur": 12.0
+        }
+      ],
+      "facts_used": [
+        "F4",
+        "F11"
+      ],
+      "link": "In 2005, hydrophones placed closer to Antarctica revealed the Bloop was an icequake, an iceberg breaking from a glacier.",
+      "raw": "Narracja:\nTo be sure, they had to get closer. NOAA placed hydrophones nearer to Antarctica and listened again. In 2005, the answer came back. Not a creature. Not a submarine. An icequake. An iceberg cracking and breaking away from an Antarctic glacier. Later recordings of breaking ice drew a very similar shape on paper. The monster was the sound of a glacier letting go.\n\nShot List:\n[WIZ 1] (Fast) ARCHIWUM: research ship pushing through pack ice (1 s)\n[WIZ 2] (Fast) ARCHIWUM: instrument lowered into icy water (1 s)\n[WIZ 3] (Fast / ECU) AI_OBRAZ: headphones beside a frosted porthole PROMPT: \"headphones on a metal desk beside a frosted ship porthole\" (1 s)\n[WIZ 4] (Fast) DOKUMENT: icequake spectrogram printout beside the 1997 one (1.5 s)\n[WIZ 5] (Fast) TYTUŁ: \"2005\" typed (1.5 s)\n[WIZ 6] (Match Cut) PORÓWNANIE: left \"THE BLOOP\", right \"ICEQUAKE\" with matching spectrogram curves (4 s)\n[WIZ 7] (Wide) ARCHIWUM: glacier calving, ice wall collapsing into the sea (8 s)\n[WIZ 8] (Long Ken Burns pull-out) AI_OBRAZ: vast Antarctic ice shelf edge at dusk PROMPT: \"vast Antarctic ice shelf edge at dusk, cracked ice cliff, calm sea\" (12 s)\n\nFakty użyte: F4, F11\nPołączenie do N-1: In 2005, hydrophones placed closer to Antarctica revealed the Bloop was an icequake, an iceberg breaking from a glacier.\n"
+    },
+    {
+      "id": "B07",
+      "segment": "OUTRO",
+      "scene_no": "5",
+      "scene_desc": "What we still don't hear",
+      "chapter": "5",
+      "subchapter": "",
+      "action": "Reflect: the same method now tracks icebergs breaking apart; how much of the ocean we only hear, never see.",
+      "goal": "The viewer leaves with a lingering question.",
+      "turn": "Revelation [+] → Wonder [-]",
+      "typology": "OPEN_QUESTION",
+      "dynamic": "",
+      "chaos": "NONE",
+      "facts": [
+        "F10",
+        "F11"
+      ],
+      "seconds": 30,
+      "narration": "The same ears are still listening. In early 2008, NOAA hydrophones followed an iceberg called A53a as it broke apart near South Georgia Island, one crack at a time. Icequakes like these can reach sensors over 5,000 km away. So the loudest mystery the ocean ever recorded was never hidden. It was simply far away. And somewhere out there, the ice is still talking.",
+      "shots": [
+        {
+          "n": 1,
+          "framing": "Static wide",
+          "asset": "ARCHIWUM",
+          "desc": "satellite image of a tabular iceberg near South Georgia — search \"NASA Earth Observatory iceberg A53a\"",
+          "prompt": "",
+          "dur": 10.0
+        },
+        {
+          "n": 2,
+          "framing": "Slow push-in",
+          "asset": "DOKUMENT",
+          "desc": "icequake spectrogram from the Scotia Sea",
+          "prompt": "",
+          "dur": 10.0
+        },
+        {
+          "n": 3,
+          "framing": "Hold, fade to black",
+          "asset": "AI_OBRAZ",
+          "desc": "lone cable descending into black water",
+          "prompt": "single cable descending into deep black water, faint light from above",
+          "dur": 10.0
+        }
+      ],
+      "facts_used": [
+        "F10",
+        "F11"
+      ],
+      "link": "The film ends on the ice still being heard from far away.",
+      "raw": "Narracja:\nThe same ears are still listening. In early 2008, NOAA hydrophones followed an iceberg called A53a as it broke apart near South Georgia Island, one crack at a time. Icequakes like these can reach sensors over 5,000 km away. So the loudest mystery the ocean ever recorded was never hidden. It was simply far away. And somewhere out there, the ice is still talking.\n\nShot List:\n[WIZ 1] (Static wide) ARCHIWUM: satellite image of a tabular iceberg near South Georgia — search \"NASA Earth Observatory iceberg A53a\" (10 s)\n[WIZ 2] (Slow push-in) DOKUMENT: icequake spectrogram from the Scotia Sea (10 s)\n[WIZ 3] (Hold, fade to black) AI_OBRAZ: lone cable descending into black water PROMPT: \"single cable descending into deep black water, faint light from above\" (10 s)\n\nFakty użyte: F10, F11\nPołączenie do N-1: The film ends on the ice still being heard from far away.\n"
+    }
+  ]
+}

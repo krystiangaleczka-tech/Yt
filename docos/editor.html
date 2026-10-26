@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DocOS Editor</title>
+<style>
+  :root { --bg:#111; --panel:#1a1a1a; --line:#2c2c2c; --txt:#e8e6df; --mute:#8d8a82; --red:#c8322f; --acc:#e0b84a; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--txt); font:13px/1.4 -apple-system, system-ui, sans-serif; height:100vh; display:flex; flex-direction:column }
+  header { display:flex; gap:10px; align-items:center; padding:8px 12px; border-bottom:1px solid var(--line); background:#0c0c0c }
+  header h1 { font-size:14px; margin:0 12px 0 0; font-weight:600 }
+  button { background:#262626; color:var(--txt); border:1px solid #3a3a3a; border-radius:6px; padding:5px 10px; cursor:pointer; font:inherit }
+  button:hover { border-color:#666 } button.primary { background:var(--red); border-color:var(--red) } button:disabled { opacity:.5 }
+  .dirty { color:var(--acc) } .mute { color:var(--mute) }
+  main { flex:1; display:grid; grid-template-columns:210px 1fr 330px; min-height:0 }
+  aside, section { overflow:auto; border-right:1px solid var(--line) }
+  .beat { padding:8px 10px; border-bottom:1px solid var(--line); cursor:pointer; display:flex; gap:8px; align-items:center }
+  .beat.sel { background:#232323 } .beat .dyn { width:8px; height:30px; border-radius:2px; flex:none }
+  .beat b { font-size:13px } .beat small { display:block; color:var(--mute) }
+  .dyn-ACTION{background:#e74c3c}.dyn-STORY{background:#f5b041}.dyn-CHILL{background:#5dade2}.dyn-EUREKA{background:#af7ac5}.dyn-STATIC{background:#48c9b0}
+  section { padding:12px 16px }
+  textarea, input, select { background:#0f0f0f; color:var(--txt); border:1px solid #333; border-radius:5px; padding:5px 6px; font:inherit; width:100% }
+  textarea { resize:vertical }
+  .row { display:flex; gap:8px; align-items:center; margin:6px 0 }
+  .row > * { flex:1 }
+  .shot { display:grid; grid-template-columns:240px 1fr; gap:12px; padding:10px; border:1px solid var(--line); border-radius:8px; margin:10px 0; background:var(--panel) }
+  .shot.sel { border-color:var(--acc) }
+  .shot img { width:240px; height:135px; object-fit:cover; background:#000; border-radius:4px; display:block }
+  .shot .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px }
+  .shot label { font-size:11px; color:var(--mute); display:block }
+  .tools { display:flex; gap:4px; margin-top:6px } .tools button { padding:2px 8px }
+  .media { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:8px }
+  .m { position:relative; cursor:pointer; border:1px solid var(--line); border-radius:4px; overflow:hidden; background:#000 }
+  .m img { width:100%; height:80px; object-fit:cover; display:block }
+  .m span { position:absolute; left:0; right:0; bottom:0; background:#000a; font-size:10px; padding:2px 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .m i { position:absolute; top:3px; right:3px; background:var(--red); font-style:normal; font-size:10px; border-radius:8px; padding:0 5px }
+  .m .k { position:absolute; top:3px; left:3px; background:#000b; font-size:10px; padding:0 4px; border-radius:3px }
+  .issues { padding:6px 12px; background:#1d1410; border-bottom:1px solid var(--line); max-height:90px; overflow:auto; display:none }
+  .issues div { cursor:pointer } .issues div:hover { color:var(--acc) }
+  #player { width:100%; background:#000 } #log { font:11px ui-monospace, monospace; color:var(--mute); white-space:pre-wrap; padding:6px 8px; max-height:120px; overflow:auto }
+  h3 { margin:14px 0 6px; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mute) }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">DocOS Editor</h1>
+  <button id="save" class="primary">Zapisz</button>
+  <button id="prev">▶ Podgląd (szybki)</button>
+  <button id="final">Render finalny</button>
+  <span id="status" class="mute"></span>
+  <span style="flex:1"></span>
+  <span id="total" class="mute"></span>
+</header>
+<div class="issues" id="issues"></div>
+<main>
+  <aside id="beats"></aside>
+  <section id="editor"></section>
+  <aside style="border-right:0; display:flex; flex-direction:column">
+    <video id="player" controls playsinline></video>
+    <div id="log"></div>
+    <div style="padding:8px; border-top:1px solid var(--line)">
+      <div class="row"><input id="q" placeholder="szukaj materiału…"><select id="kind" style="flex:0 0 90px"><option value="">wszystko</option><option>image</option><option>video</option><option>audio</option></select></div>
+      <div class="mute" style="font-size:11px">Klik = ustaw plik w zaznaczonym ujęciu · Shift+klik = dodaj do FILES (porównania, stos)</div>
+    </div>
+    <div class="media" id="media" style="overflow:auto; flex:1"></div>
+  </aside>
+</main>
+<script>
+let S = null, P = null, cur = null, selShot = null, dirty = false;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = t => `${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
+const hash = o => { let s = JSON.stringify(o), h = 0; for (const c of s) h = (h*31 + c.charCodeAt(0)) | 0; return (h>>>0).toString(36); };
+
+async function load() {
+  S = await (await fetch('/api/state')).json();
+  P = S.project; if (!cur) cur = P.beats[0].id;
+  render();
+}
+function setDirty(v=true) { dirty = v; $('#status').textContent = v ? '● niezapisane zmiany' : ''; $('#status').className = v ? 'dirty' : 'mute'; }
+function beat() { return P.beats.find(b => b.id === cur); }
+
+function render() {
+  $('#title').textContent = 'DocOS · ' + (P.meta.title || '').slice(0, 60);
+  $('#total').textContent = `film: ${fmt(S.total)} · ${P.beats.reduce((a,b)=>a+(b.shots||[]).length,0)} ujęć · ${Object.keys(S.uses).length} różnych plików`;
+  $('#beats').innerHTML = P.beats.map(b => {
+    const t = S.timing[b.id] || {start:0, dur:0};
+    return `<div class="beat ${b.id===cur?'sel':''}" data-b="${b.id}"><div class="dyn dyn-${b.dynamic||'STORY'}"></div>
+      <div><b>${b.id}</b> <span class="mute">${fmt(t.start)} · ${t.dur.toFixed(0)}s</span><small>${esc(b.scene_desc||b.action||'').slice(0,40)}</small></div></div>`;
+  }).join('');
+  document.querySelectorAll('.beat').forEach(e => e.onclick = () => { cur = e.dataset.b; selShot = null; render(); jump(); });
+  const iss = S.check || [];
+  $('#issues').style.display = iss.length ? 'block' : 'none';
+  $('#issues').innerHTML = iss.map(([c,m]) => `<div data-b="${(m.match(/^B\d+/)||[''])[0]}">⚠ [${c}] ${esc(m)}</div>`).join('');
+  document.querySelectorAll('#issues div').forEach(e => e.onclick = () => { if (e.dataset.b) { cur = e.dataset.b; render(); } });
+  renderBeat(); renderMedia(); renderJob(S.job);
+}
+
+function sel(opts, v) { return opts.map(o => `<option ${o===v?'selected':''}>${o}</option>`).join(''); }
+
+function renderBeat() {
+  const b = beat(), t = S.timing[b.id] || {start:0,dur:0};
+  const words = (b.narration||'').split(/\s+/).filter(Boolean).length;
+  let h = `<div class="row"><h2 style="margin:0;flex:0 0 auto">${b.id}</h2><span class="mute">${esc(b.segment)} · start ${fmt(t.start)} · ${t.dur.toFixed(1)}s · Turn: ${esc(b.turn)}</span></div>
+  <div class="row"><div><label class="mute">Dynamika</label><select data-f="dynamic">${sel(['','ACTION','STORY','CHILL','EUREKA','STATIC'], b.dynamic||'')}</select></div>
+  <div><label class="mute">Chaos</label><select data-f="chaos">${sel(['NONE','MICRO','MINI','MACRO'], b.chaos||'NONE')}</select></div>
+  <div style="flex:3"><label class="mute">Akcja</label><input data-f="action" value="${esc(b.action)}"></div></div>
+  <h3>Narracja <span class="mute">(${words} słów)</span></h3>
+  <textarea id="narr" rows="4">${esc(b.narration)}</textarea>
+  <div class="row" style="justify-content:flex-start"><button id="voice" style="flex:0 0 auto">🎙 Nagraj głos beatu (tylko zmienione zdania)</button></div>
+  <h3>Ujęcia</h3>`;
+  (b.shots||[]).forEach((s, i) => {
+    const st = S.shots[`${b.id}_${s.n}`] || {};
+    h += `<div class="shot ${selShot===i?'sel':''}" data-i="${i}">
+      <div><img loading="lazy" src="/thumb?beat=${b.id}&n=${s.n}&v=${hash([s, i])}"><div class="mute" style="font-size:11px;margin-top:4px">WIZ ${s.n} · ${st.st!=null?fmt(st.st):''} · ${(st.d||s.dur).toFixed(1)}s na ekranie</div>
+        <div class="tools"><button data-a="up">↑</button><button data-a="down">↓</button><button data-a="dup">⧉</button><button data-a="del">✕</button></div></div>
+      <div><div class="grid">
+        <div><label>Typ</label><select data-s="asset">${sel(Object.keys(S.assets), s.asset)}</select></div>
+        <div><label>Przejście</label><select data-s="transition">${sel(['', ...S.transitions], s.transition||'')}</select></div>
+        <div><label>Styl napisu</label><select data-s="style">${sel(S.styles, s.style||'auto')}</select></div>
+        <div><label>Czas (s)</label><input type="number" step="0.5" min="0.5" data-s="dur" value="${s.dur}"></div>
+      </div>
+      <label style="margin-top:6px">Kadr / ruch</label><input data-s="framing" value="${esc(s.framing)}">
+      <label style="margin-top:6px">Opis (tekst w "cudzysłowie", FILE: plik, CAPTION: "…")</label>
+      <textarea rows="3" data-s="desc">${esc(s.desc)}</textarea>
+      <div class="mute" style="font-size:11px">${esc(S.assets[s.asset]||'')}</div></div></div>`;
+  });
+  h += `<button id="add">+ Dodaj ujęcie</button>`;
+  $('#editor').innerHTML = h;
+  document.querySelectorAll('[data-f]').forEach(e => e.onchange = () => { b[e.dataset.f] = e.value; setDirty(); });
+  $('#narr').oninput = e => { b.narration = e.target.value; setDirty(); };
+  $('#voice').onclick = async () => { if (dirty) await save(); post('/api/voice', {beat: b.id}); };
+  document.querySelectorAll('.shot').forEach(card => {
+    const i = +card.dataset.i, s = b.shots[i];
+    card.onclick = e => { if (selShot !== i) { selShot = i; document.querySelectorAll('.shot').forEach(c => c.classList.toggle('sel', +c.dataset.i===i)); } };
+    card.querySelectorAll('[data-s]').forEach(e => e.onchange = () => { s[e.dataset.s] = e.dataset.s==='dur' ? +e.value : e.value; if (e.dataset.s==='transition' && !e.value) delete s.transition; setDirty(); });
+    card.querySelectorAll('[data-a]').forEach(e => e.onclick = ev => { ev.stopPropagation(); const a = e.dataset.a, L = b.shots;
+      if (a==='up' && i>0) [L[i-1],L[i]] = [L[i],L[i-1]];
+      if (a==='down' && i<L.length-1) [L[i+1],L[i]] = [L[i],L[i+1]];
+      if (a==='dup') L.splice(i+1, 0, JSON.parse(JSON.stringify(L[i])));
+      if (a==='del' && confirm('Usunąć ujęcie?')) L.splice(i,1);
+      renumber(b); setDirty(); renderBeat(); });
+  });
+  $('#add').onclick = () => { b.shots.push({n:0, framing:'', asset:'ARCHIWUM', desc:'opis FILE: ', prompt:'', dur:5}); renumber(b); selShot = b.shots.length-1; setDirty(); renderBeat(); };
+}
+function renumber(b) { b.shots.forEach((s,i) => s.n = i+1); }
+
+function renderMedia() {
+  const q = $('#q').value.toLowerCase(), k = $('#kind').value;
+  $('#media').innerHTML = S.media.filter(m => (!k || m.kind===k) && (!q || (m.name+m.folder+m.license).toLowerCase().includes(q)))
+    .map(m => `<div class="m" data-n="${esc(m.name)}" title="${esc(m.name)}\n${esc(m.license)}"><img loading="lazy" src="/mthumb/${encodeURIComponent(m.name)}">
+      <span>${esc(m.name)}</span><b class="k">${m.kind}</b>${S.uses[m.name]?`<i>${S.uses[m.name]}×</i>`:''}</div>`).join('');
+  document.querySelectorAll('.m').forEach(e => e.onclick = ev => {
+    const b = beat(); if (selShot == null || !b.shots[selShot]) return alert('Najpierw kliknij ujęcie.');
+    const s = b.shots[selShot], n = e.dataset.n;
+    if (ev.shiftKey) s.desc = /FILES:/.test(s.desc) ? s.desc.replace(/FILES:\s*([^(]*?)(\s*(?=[A-Z]+:|\(|$))/, (m, a) => `FILES: ${a.trim()} | ${n} `) : s.desc + ` FILES: ${n}`;
+    else s.desc = /FILE:/.test(s.desc) && !/FILES:/.test(s.desc) ? s.desc.replace(/FILE:\s*\S*/, `FILE: ${n}`) : s.desc + ` FILE: ${n}`;
+    setDirty(); renderBeat();
+  });
+}
+$('#q').oninput = renderMedia; $('#kind').onchange = renderMedia;
+
+async function save() {
+  const r = await fetch('/api/save', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({project: P})});
+  const j = await r.json(); if (j.error) { alert(j.error); return; }
+  S = j; P = S.project; setDirty(false); render();
+}
+async function post(url, body) {
+  const j = await (await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})).json();
+  if (!j.ok) alert('Coś już się renderuje — poczekaj.'); poll();
+}
+let polling = null;
+function poll() { clearInterval(polling); polling = setInterval(async () => {
+  const j = await (await fetch('/api/job')).json(); renderJob(j);
+  if (!j.running) { clearInterval(polling); if (j.url) { $('#player').src = j.url + '?t=' + Date.now(); jump(); } if (j.kind==='voice') load(); }
+}, 1000); }
+function renderJob(j) {
+  if (!j) return; $('#log').textContent = (j.log||[]).slice(-8).join('\n');
+  ['#prev','#final','#voice'].forEach(s => { const e = $(s); if (e) e.disabled = !!j.running; });
+}
+function jump() { const t = S && S.timing[cur]; const v = $('#player'); if (t && v.src) { const go = () => { v.currentTime = t.start; }; v.readyState ? go() : v.addEventListener('loadedmetadata', go, {once:true}); } }
+$('#save').onclick = save;
+$('#prev').onclick = async () => { if (dirty) await save(); post('/api/render', {quality:'preview'}); };
+$('#final').onclick = async () => { if (dirty) await save(); if (confirm('Render finalny 1080p trwa kilkanaście minut. Start?')) post('/api/render', {quality:'final'}); };
+document.addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='s') { e.preventDefault(); save(); } });
+window.onbeforeunload = () => dirty ? 'Masz niezapisane zmiany' : undefined;
+load();
+</script>
+</body>
+</html>

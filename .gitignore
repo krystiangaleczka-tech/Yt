@@ -1,0 +1,39 @@
+# ── prywatne: głos autora i wszystko, co z niego powstało ──
+pilot/my_voice.m4a
+pilot/assets/
+**/voice/
+**/voice_*/
+*.wav
+*.m4a
+*.mp3
+
+# ── duże: modele, środowiska, media, rendery, cache ──
+.venv/
+.venv-tts/
+pilot/models/
+*.mp4
+*.webm
+*.ogv
+*.mov
+**/.render_cache/
+**/.editor_cache/
+__pycache__/
+*.pyc
+.DS_Store
+
+# media pobierane skryptami (zostają tylko rejestry licencji)
+projekty/**/raw/**
+!projekty/**/raw/**/
+!projekty/**/raw/**/licenses.json
+docos/examples/bloop/
+projekty/bloop_v3/bloop_v3/
+projekty/bloop_v3/bloop_v4/
+projekty/**/*.bak.json
+projekty/**/*.before_*.json
+
+# ── nie moje / spoza zakresu ──
+pilot/narrate.py
+pilot/check_voice.py
+pilot/video.py
+pilot/script_60s.json
+.claude/

@@ -1,0 +1,13 @@
+# środowisko montażu i obrazów (pilot/.venv) — Python 3.12
+numpy
+pillow
+soundfile
+openpyxl
+# tylko generowanie kadrów AI (make_assets.py, gen_images.py)
+torch
+diffusers
+transformers
+accelerate
+safetensors
+# szybki lektor zastępczy (gen_voice.py)
+kokoro-onnx

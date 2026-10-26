@@ -1,0 +1,3 @@
+# klon głosu (pilot/.venv-tts) — Python 3.11, osobne środowisko (inny torch)
+chatterbox-tts
+setuptools<81   # wymagane przez watermarker Perth
