@@ -17,6 +17,8 @@ editor.py (HTTP, stdlib) ── editor.html (storyboard) ── /api/state, /api
 ```
 
 ## Model danych projektu (`*.json`)
+- Opcjonalne `channel` i `story_lock` — kopia profilu Documentary oraz zatwierdzana karta historii z bankiem ID faktów.
+  `editorial.py` obsługuje prompty tematów, historię tytułów i kontrolę zmian karty; szczegóły w [EDITORIAL.md](EDITORIAL.md).
 - `meta` — tytuł, logline, teza, curiosity gap, narrator, relacja z widzem, słownik, zakazy, język, target_minutes, wpm,
   visual_style, master_outline, min_unique_visuals
 - `chapters[]` — `id, title, description, segment, default_dynamic`; `subchapters[]`

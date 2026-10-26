@@ -3,6 +3,24 @@
 Przeróbka koncepcji „AI Scriptwriting OS” (arkusz + złota formuła) pod faceless dokumenty.
 Działa lokalnie, bez kluczy API. Silnikiem piszącym jest Claude (skill `dokument-scenariusz`).
 
+## Tematy i Story Lock
+
+Pakiet Documentary dodaje profil kanału, dziesięć propozycji z pamięcią tytułów i zatwierdzaną kartę historii.
+`topics` i `story` przygotowują prompty dla Claude; walidacja i zapis działają lokalnie.
+Pełny przebieg i pola karty: [docs/EDITORIAL.md](../docs/EDITORIAL.md).
+
+```bash
+python3 docos.py channel kanal.json --name "Mój kanał"
+python3 docos.py topics kanal.json
+# Claude zapisuje tablicę propozycji w tematy.json.
+python3 docos.py save-topics kanal.json tematy.json
+python3 docos.py new odcinek.json "Wybrany tytuł" --channel kanal.json
+python3 docos.py story odcinek.json
+# Research i uzupełnienie facts oraz story_lock w projekcie.
+python3 docos.py lock odcinek.json
+python3 docos.py next odcinek.json
+```
+
 ## Szybki start
 ```bash
 uv run -q docos.py new projekty/moj_odcinek.json "Tytuł odcinka"

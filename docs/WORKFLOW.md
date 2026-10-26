@@ -3,6 +3,13 @@
 Najprościej w Claude Code: *„napisz scenariusz dokumentu o …”* — skill `dokument-scenariusz` prowadzi przez wszystkie kroki.
 Poniżej to samo ręcznie.
 
+## 0. Tematy i Story Lock (Documentary)
+
+Przy nowym kanale lub odcinku skorzystaj z [etapu redakcyjnego](EDITORIAL.md):
+`channel` → `topics` → `save-topics` → `new --channel` → research → `story` → `lock`.
+Claude generuje propozycje z promptu, a DocOS pamięta ich tytuły i przekazuje zatwierdzoną kartę do każdego beatu.
+Starsze projekty bez karty zachowują dotychczasowy przebieg.
+
 ## 1. Projekt i research
 ```bash
 cd docos
