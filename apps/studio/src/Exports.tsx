@@ -195,7 +195,7 @@ export function Exports() {
     <div className="page-content export-page">
       <SectionHead
         eyebrow="07 / GOTOWY FILM"
-        title="Twoja historia jest blisko finału."
+        title="Eksport filmu"
         description="Sprawdź materiały i przygotuj plik do obejrzenia lub publikacji."
       >
         <a

@@ -64,10 +64,15 @@ def complete(connectors: Connectors, prompt: str) -> str:
         # Empty tool set: CLI only produces a proposal, never edits the filesystem.
         with tempfile.TemporaryDirectory(prefix="docos-assistant-") as folder:
             result = subprocess.run(["claude", "-p", "--output-format", "json", "--tools", ""], input=prompt, capture_output=True,
-                                    text=True, timeout=150, cwd=folder, check=True)
-        data = json.loads(result.stdout)
-        if data.get("is_error"):
-            raise ValueError("Claude nie zwrócił propozycji. Sprawdź logowanie CLI.")
+                                    text=True, timeout=150, cwd=folder, check=False)
+        try:
+            data = json.loads(result.stdout)
+        except json.JSONDecodeError as error:
+            raise ValueError("Claude CLI nie zwrócił poprawnej odpowiedzi. Sprawdź logowanie i dostępność usługi.") from error
+        if data.get("is_error") or result.returncode:
+            if data.get("api_error") == "usage_limit_reached":
+                raise ValueError("Osiągnięto limit Claude. " + str(data.get("result", "Spróbuj po odnowieniu limitu."))[:800])
+            raise ValueError("Claude: " + str(data.get("result") or "Nie udało się przygotować propozycji. Sprawdź logowanie CLI.")[:800])
         return data.get("result", "")
     raise ValueError("Połącz model w Ustawieniach albo skopiuj prompt do swojego AI i wklej odpowiedź JSON")
 

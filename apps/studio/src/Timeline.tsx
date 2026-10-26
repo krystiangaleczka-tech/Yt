@@ -29,7 +29,7 @@ import {
   ListMinus,
 } from "lucide-react";
 import { useStudio } from "./context";
-import { api, id } from "./api";
+import { api, id, mediaUrl } from "./api";
 import {
   AssetThumb,
   Button,
@@ -276,7 +276,7 @@ export default function Timeline() {
     <div className="editing-page">
       <div className="editor-topbar">
         <div className="editor-heading">
-          <h1>Twój montaż</h1>
+          <h1>Montaż</h1>
           <span className="badge quiet">Sekwencja główna</span>
         </div>
         <div className="editor-top-actions">
@@ -795,6 +795,15 @@ export default function Timeline() {
                         tabIndex={0}
                         aria-label={c.title + " od " + time(c.start, rate)}
                       >
+                        {track.kind === "video" && c.asset_id && (
+                          <img
+                            className="clip-thumbnail"
+                            src={mediaUrl(p.id, c.asset_id, true)}
+                            alt=""
+                            draggable={false}
+                            loading="lazy"
+                          />
+                        )}
                         <span
                           className="clip-trim left"
                           onPointerDown={(e) => startDrag(e, c, "left")}

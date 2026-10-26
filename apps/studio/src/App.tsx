@@ -42,7 +42,7 @@ const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "facts", label: "Fakty i research", icon: BookOpen },
   { id: "story", label: "Historia", icon: GitBranch },
   { id: "script", label: "Scenariusz", icon: FileText },
-  { id: "generation", label: "Generowanie filmu", icon: Clapperboard },
+  { id: "generation", label: "Generowanie", icon: Clapperboard },
   { id: "editing", label: "Montaż", icon: SlidersHorizontal },
   { id: "export", label: "Eksport", icon: ArrowUpRight },
 ];
@@ -130,10 +130,10 @@ function Shell() {
           }}
         >
           <span className="brand-mark">
-            <Aperture size={25} />
+            <Aperture size={21} />
           </span>
           <span className="brand-name">
-            DocOS<span>STUDIO</span>
+            DocOS<span>Studio</span>
           </span>
         </a>
         <Button
@@ -151,12 +151,13 @@ function Shell() {
           <FolderOpen size={18} />
           <span>Projekty</span>
         </button>
-        <div className="nav-label">PRODUKCJA</div>
+        <div className="nav-label">TWÓJ FILM</div>
         <nav aria-label="Etapy produkcji">
           {steps.map((item, index) => (
             <button
               key={item.id}
               className={`nav-item ${s.page === item.id ? "active" : ""}`}
+              aria-current={s.page === item.id ? "page" : undefined}
               onClick={() => navigate(item.id)}
               title={item.label}
             >
@@ -205,7 +206,9 @@ function Shell() {
             <span>Ustawienia</span>
           </button>
           <div className="workspace-profile">
-            <span className="avatar">C</span>
+            <span className="avatar">
+              <Film size={15} />
+            </span>
             <div>
               <strong>Moje studio</strong>
               <span>Przestrzeń lokalna</span>
@@ -270,7 +273,7 @@ function Shell() {
               ) : (
                 <>
                   <Check size={13} />
-                  Zapisano lokalnie
+                  Zapisano
                 </>
               )}
             </span>

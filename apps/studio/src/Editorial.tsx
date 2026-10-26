@@ -152,8 +152,8 @@ export function Idea() {
     <div className="page-content editorial-page">
       <SectionHead
         eyebrow="01 / POMYSŁ"
-        title="Jakie pytanie dziś zadasz?"
-        description="Jedna obietnica. Jedna historia, którą warto opowiedzieć."
+        title="Pomysł na film"
+        description="Wybierz temat i pytanie, na które odpowie dokument."
       >
         <WriterTools kind="topics" />
       </SectionHead>
@@ -296,7 +296,7 @@ export function Facts() {
     <div className="page-content editorial-page">
       <SectionHead
         eyebrow="02 / DOWODY"
-        title="Każde twierdzenie ma swój ślad."
+        title="Fakty i źródła"
         description="Sprawdzenie źródła jest decyzją redakcyjną. AI nie nadaje statusu faktu."
       >
         <Button icon={Search} onClick={() => s.setPage("sources")}>
@@ -432,7 +432,7 @@ export function Story() {
     <div className="page-content editorial-page">
       <SectionHead
         eyebrow="03 / HISTORIA"
-        title="Ustal, dokąd prowadzi opowieść."
+        title="Karta historii"
         description="Zatwierdzona karta jest punktem odniesienia dla scenariusza."
       >
         <WriterTools kind="story" />
@@ -549,7 +549,7 @@ export function Script() {
     <div className="page-content editorial-page">
       <SectionHead
         eyebrow="04 / NARRACJA"
-        title="Napisz historię, której chce się słuchać."
+        title="Scenariusz"
         description="Słowa lektora i plan obrazu mają swoje osobne miejsca."
       >
         <WriterTools kind="script" />

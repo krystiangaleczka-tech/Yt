@@ -262,9 +262,9 @@ export default function Generation() {
       }}
     >
       <SectionHead
-        eyebrow="PRACOWNIA OBRAZU"
-        title="Nadaj historii obraz."
-        description="Każde ujęcie ma swój materiał, ruch i głos."
+        eyebrow="PRODUKCJA / 05"
+        title="Generowanie filmu"
+        description="Przygotuj materiał, ruch i narrację każdego ujęcia."
       >
         <Button icon={Plus} onClick={() => s.run(addScene)}>
           Dodaj ujęcie
