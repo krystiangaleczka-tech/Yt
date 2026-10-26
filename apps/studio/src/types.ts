@@ -1,3 +1,4 @@
+import type { MotionInsert } from "./motion/types";
 export type Fact = {
   id: string;
   claim: string;
@@ -118,6 +119,7 @@ export type Project = {
   sources: Source[];
   story: Record<string, string>;
   scenes: Scene[];
+  inserts: MotionInsert[];
   assets: Asset[];
   sequence: {
     fps_num: number;

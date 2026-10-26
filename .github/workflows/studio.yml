@@ -29,5 +29,8 @@ jobs:
       - run: npm --prefix apps/studio ci
       - run: npm run build
       - run: npm run test:frontend
+      - run: npm --prefix apps/studio run remotion:setup
       - run: python -m unittest discover -s studio_tests -v
+        env:
+          DOCOS_TEST_REMOTION: '1'
       - run: python -m unittest discover -s docos/tests -v

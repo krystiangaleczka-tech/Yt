@@ -280,6 +280,9 @@ export default function Timeline() {
           <span className="badge quiet">Sekwencja główna</span>
         </div>
         <div className="editor-top-actions">
+          <Button icon={Film} onClick={() => s.setPage("motion")}>
+            Dodaj wstawkę
+          </Button>
           <Button subtle icon={ImageIcon} onClick={() => setLibrary(!library)}>
             Materiały
           </Button>
@@ -406,6 +409,22 @@ export default function Timeline() {
           />
         ) : (
           <section className="clip-inspector surface">
+            {active &&
+              p.assets.find((a) => a.id === active.asset_id)?.provenance
+                .kind === "remotion" && (
+                <Button
+                  icon={Film}
+                  onClick={() => {
+                    const asset = p.assets.find(
+                      (a) => a.id === active.asset_id,
+                    );
+                    s.setTargetInsert(String(asset?.provenance.insert_id));
+                    s.setPage("motion");
+                  }}
+                >
+                  Edytuj źródło wstawki
+                </Button>
+              )}
             <div className="panel-heading">
               <h2>Inspektor</h2>
               {active && (
