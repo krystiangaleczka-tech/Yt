@@ -1,0 +1,211 @@
+export type Fact = {
+  id: string;
+  claim: string;
+  source: string;
+  url: string;
+  page: string;
+  status: "UNVERIFIED" | "VERIFIED" | "DISPUTED";
+  note: string;
+};
+export type Source = {
+  id: string;
+  title: string;
+  provider: string;
+  url: string;
+  author: string;
+  edition: string;
+  identifier: string;
+  text: string;
+  pages: { page: string; text: string }[];
+  asset_id: string | null;
+  accessed_at: string;
+};
+export type Asset = {
+  id: string;
+  name: string;
+  kind: "image" | "video" | "audio" | "document";
+  filename: string;
+  mime: string;
+  sha256: string;
+  duration: number;
+  width: number;
+  height: number;
+  thumbnail: string;
+  source_url: string;
+  author: string;
+  license: string;
+  license_url: string;
+  attribution: string;
+  prompt: string;
+  provenance: Record<string, unknown>;
+};
+export type Animation =
+  "static" | "zoom-in" | "zoom-out" | "pan-left" | "pan-right";
+export type Scene = {
+  id: string;
+  title: string;
+  narration: string;
+  start: number;
+  duration: number;
+  timing: "estimated" | "measured";
+  mode: "generate" | "search" | "upload" | "library";
+  prompt: string;
+  motion_prompt: string;
+  search_query: string;
+  animation: Animation;
+  asset_id: string | null;
+  voice_asset_id: string | null;
+  variants: string[];
+  fact_ids: string[];
+  role: "literal" | "illustration" | "reconstruction";
+  locked: boolean;
+  legacy: Record<string, unknown>;
+};
+export type Track = {
+  id: string;
+  name: string;
+  kind: "video" | "text" | "audio";
+  role: "picture" | "overlay" | "titles" | "narration" | "music" | "effects";
+  locked: boolean;
+  muted: boolean;
+};
+export type Keyframe = {
+  property: "x" | "y" | "scale" | "rotation" | "opacity" | "volume";
+  frame: number;
+  value: number;
+};
+export type Clip = {
+  id: string;
+  track_id: string;
+  asset_id: string | null;
+  scene_id: string | null;
+  title: string;
+  text: string;
+  start: number;
+  duration: number;
+  source_in: number;
+  speed: number;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  opacity: number;
+  volume: number;
+  animation: Animation;
+  fade_in: number;
+  fade_out: number;
+  locked: boolean;
+  keyframes: Keyframe[];
+};
+export type Project = {
+  schema_version: "docos-studio/1";
+  id: string;
+  revision: number;
+  title: string;
+  language: string;
+  channel: string;
+  niche: string;
+  updated_at: string;
+  demo: boolean;
+  topics: {
+    title: string;
+    central_question?: string;
+    subject?: string;
+    layers?: string[];
+  }[];
+  topic_history: string[];
+  facts: Fact[];
+  sources: Source[];
+  story: Record<string, string>;
+  scenes: Scene[];
+  assets: Asset[];
+  sequence: {
+    fps_num: number;
+    fps_den: number;
+    width: number;
+    height: number;
+    tracks: Track[];
+    clips: Clip[];
+  };
+  legacy: Record<string, unknown>;
+};
+export type ProjectSummary = {
+  id: string;
+  title: string;
+  revision: number;
+  updated_at: string;
+  scenes: number;
+  assets: number;
+  demo: boolean;
+  duration: number;
+  fps: number;
+};
+export type Job = {
+  id: string;
+  project_id: string;
+  revision: number;
+  kind: string;
+  status: string;
+  progress: number;
+  message: string;
+  result: null | {
+    url?: string;
+    asset_id?: string;
+    revision: number;
+    mode?: string;
+  };
+  created_at: string;
+};
+export type Connector = {
+  id: string;
+  name: string;
+  kinds: string[];
+  configured: boolean;
+  note: string;
+};
+export type SearchResult = {
+  id: string;
+  title: string;
+  kind: string;
+  provider: string;
+  thumbnail?: string;
+  download_url?: string;
+  url: string;
+  author?: string;
+  license?: string;
+  license_url?: string;
+  edition?: string;
+  identifier?: string;
+  description?: string;
+  preview_url?: string;
+  duration?: number;
+};
+export type Operation = {
+  type: string;
+  clip_id?: string;
+  track_id?: string;
+  frame?: number;
+  changes?: Record<string, unknown>;
+  clip?: Partial<Clip>;
+  track?: Track;
+};
+export type Proposal = {
+  description: string;
+  operations: Operation[];
+  base_revision: number;
+};
+export type Health = {
+  ok: boolean;
+  version: string;
+  ffmpeg: boolean;
+  ffprobe: boolean;
+  ai: boolean;
+  image: boolean;
+  voice: boolean;
+};
+export type Issue = {
+  type: string;
+  severity: string;
+  message: string;
+  scene_id?: string;
+};

@@ -37,3 +37,11 @@ pilot/check_voice.py
 pilot/video.py
 pilot/script_60s.json
 .claude/
+
+# DocOS Studio: local workspace, dependencies and build output
+.venv-studio/
+.docos-studio/
+node_modules/
+apps/studio/dist/
+*.tsbuildinfo
+.pytest_cache/

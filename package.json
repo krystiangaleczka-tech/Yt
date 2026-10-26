@@ -1,0 +1,11 @@
+{
+  "name": "docos-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/studio-dev.mjs",
+    "build": "npm --prefix apps/studio run build",
+    "start": "python -m studio_api",
+    "test": "python -m unittest discover -s studio_tests -v",
+    "test:frontend": "npm --prefix apps/studio test"
+  }
+}
