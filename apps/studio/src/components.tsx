@@ -125,6 +125,7 @@ export function CommitText({
   placeholder = "",
   className = "",
   disabled = false,
+  label,
 }: {
   value: string;
   onCommit: (v: string) => void;
@@ -133,13 +134,43 @@ export function CommitText({
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  label?: string;
 }) {
   const [v, setV] = useState(value);
   const focused = useRef(false);
+  const pending = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
+    raw = useRef(value),
+    sent = useRef(value),
+    commit = useRef(onCommit);
+  commit.current = onCommit;
+  function flush() {
+    clearTimeout(pending.current);
+    window.dispatchEvent(new CustomEvent("docos:dirty", { detail: false }));
+    if (raw.current !== sent.current) {
+      sent.current = raw.current;
+      commit.current(raw.current);
+    }
+  }
+  useEffect(
+    () => () => {
+      clearTimeout(pending.current);
+      window.dispatchEvent(new CustomEvent("docos:dirty", { detail: false }));
+      if (raw.current !== sent.current) {
+        sent.current = raw.current;
+        commit.current(raw.current);
+      }
+    },
+    [],
+  );
   useEffect(() => {
-    if (!focused.current) setV(value);
+    if (!focused.current) {
+      setV(value);
+      raw.current = value;
+      sent.current = value;
+    }
   }, [value]);
   const props = {
+    "aria-label": label,
     value: v,
     placeholder,
     className,
@@ -147,11 +178,18 @@ export function CommitText({
     onFocus: () => {
       focused.current = true;
     },
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      setV(e.target.value),
+    onChange: (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+      setV(e.target.value);
+      window.dispatchEvent(new CustomEvent("docos:dirty", { detail: true }));
+      raw.current = e.target.value;
+      clearTimeout(pending.current);
+      pending.current = setTimeout(flush, 900);
+    },
     onBlur: () => {
       focused.current = false;
-      if (v !== value) onCommit(v);
+      flush();
     },
   };
   return multiline ? <textarea {...props} rows={rows} /> : <input {...props} />;

@@ -16,16 +16,10 @@ import {
   LoaderCircle,
 } from "lucide-react";
 import { useStudio } from "./context";
-import { api, upload, safeUrl, id } from "./api";
+import { api, upload, safeUrl } from "./api";
+import SourceReader from "./SourceReader";
 import { Button, Empty, Field, Modal, SectionHead } from "./components";
-import type {
-  Connector,
-  SearchResult,
-  Asset,
-  Project,
-  Source,
-  Fact,
-} from "./types";
+import type { Connector, SearchResult, Project, Source } from "./types";
 
 const categories = [
   { id: "image", label: "Zdjęcia", icon: ImageIcon },
@@ -48,10 +42,28 @@ export default function Sources() {
     [urlOpen, setUrlOpen] = useState(false),
     [url, setUrl] = useState(""),
     [document, setDocument] = useState<Source | null>(null),
-    [docQuery, setDocQuery] = useState("");
+    [editions, setEditions] = useState<SearchResult[] | null>(null),
+    [searchJob, setSearchJob] = useState<string | null>(null),
+    [errors, setErrors] = useState<Record<string, string>>({}),
+    [orientation, setOrientation] = useState(""),
+    [license, setLicense] = useState("");
   useEffect(() => {
     s.run(async () => setProviders(await api<Connector[]>("/connectors")));
   }, [s.settingsOpen]);
+  useEffect(() => {
+    const job = s.jobs.find((j) => j.id === searchJob);
+    if (!job) return;
+    if (job.status === "SUCCEEDED") {
+      setResults(job.result?.results || []);
+      setErrors(job.result?.errors || {});
+      setSearching(false);
+      setSearchJob(null);
+    } else if (["FAILED", "CANCELLED", "INTERRUPTED"].includes(job.status)) {
+      setSearching(false);
+      setSearchJob(null);
+      s.notify(job.message, job.status === "FAILED");
+    }
+  }, [s.jobs, searchJob]);
   const available = providers.filter((c) => c.kinds.includes(kind));
   const target = p.scenes.find((x) => x.id === s.targetScene);
   function category(value: string) {
@@ -66,38 +78,40 @@ export default function Sources() {
     setSearching(true);
     setSearched(true);
     try {
-      const found = await api<SearchResult[]>(
-        `/search?provider=${encodeURIComponent(provider)}&q=${encodeURIComponent(query)}&kind=${kind}&page=${nextPage}`,
-      );
-      setResults(found);
+      const job = await api<{ id: string }>(`/projects/${p.id}/search`, {
+        query,
+        kind,
+        page: nextPage,
+        providers: provider === "all" ? undefined : [provider],
+        orientation: orientation || undefined,
+        license,
+      });
+      setSearchJob(job.id);
       setPage(nextPage);
-    } finally {
+    } catch (error) {
       setSearching(false);
+      throw error;
     }
   }
   async function add(result: SearchResult) {
     setFetching(result.id);
     try {
-      if (result.download_url) {
-        const response = await api<{ asset: Asset; project: Project }>(
-          "/projects/" + p.id + "/fetch",
-          { result },
+      if (
+        result.provider === "openlibrary" &&
+        result.id.startsWith("/works/")
+      ) {
+        setEditions(
+          await api<SearchResult[]>(
+            "/books/editions?work=" + encodeURIComponent(result.id),
+          ),
         );
-        s.accept(response.project);
-        if (target) {
-          await s.patch((current) => ({
-            scenes: current.scenes.map((x) =>
-              x.id === target.id
-                ? { ...x, asset_id: response.asset.id, mode: "search" }
-                : x,
-            ),
-          }));
-          s.setPage("generation");
-        }
+      } else if (result.download_url) {
+        await api(`/projects/${p.id}/fetch-queued`, {
+          result,
+          scene_id: target?.id,
+        });
         s.notify(
-          target
-            ? "Materiał przypisano do ujęcia"
-            : "Materiał dodano do biblioteki",
+          "Pobranie w kolejce. Materiał pojawi się w bibliotece i wariantach ujęcia.",
         );
       } else {
         await s.mutate((current) =>
@@ -134,21 +148,6 @@ export default function Sources() {
     );
     s.accept(response.project);
     s.notify("Dokument dodano ze wskazaniem stron lub rozdziałów");
-  }
-  async function cite(source: Source) {
-    const fact: Fact = {
-      id: id("fact_"),
-      claim: docQuery || "",
-      source: source.title,
-      url: source.url,
-      page: "",
-      status: "UNVERIFIED",
-      note: "",
-    };
-    await s.patch((current) => ({ facts: [...current.facts, fact] }));
-    setDocument(null);
-    s.setPage("facts");
-    s.notify("Dodano pozycję do sprawdzenia");
   }
   return (
     <div className="page-content sources-page">
@@ -237,6 +236,7 @@ export default function Sources() {
             setSearched(false);
           }}
         >
+          <option value="all">Wszystkie połączone źródła</option>
           {available.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -248,6 +248,44 @@ export default function Sources() {
           Szukaj
         </Button>
       </form>
+      {searchJob && (
+        <Button
+          onClick={() =>
+            s.run(async () => {
+              await api(`/jobs/${searchJob}/cancel`, {});
+              setSearching(false);
+            })
+          }
+        >
+          Anuluj wyszukiwanie
+        </Button>
+      )}
+      {Object.entries(errors).map(([provider, error]) => (
+        <p className="small muted" key={provider}>
+          {provider}: {error}
+        </p>
+      ))}
+      {["image", "video"].includes(kind) && (
+        <div className="two-fields source-extra-filters">
+          <Field label="Orientacja">
+            <select
+              value={orientation}
+              onChange={(e) => setOrientation(e.target.value)}
+            >
+              <option value="">Dowolna</option>
+              <option value="landscape">Pozioma</option>
+              <option value="portrait">Pionowa</option>
+            </select>
+          </Field>
+          <Field label="Szukaj w warunkach licencji">
+            <input
+              value={license}
+              onChange={(e) => setLicense(e.target.value)}
+              placeholder="np. CC BY lub public domain"
+            />
+          </Field>
+        </div>
+      )}
       <div className="source-caption">
         <span>{providers.find((c) => c.id === provider)?.note}</span>
         <a
@@ -353,10 +391,67 @@ export default function Sources() {
                       Wydanie / data: {result.edition}
                     </p>
                   )}
+                  {result.access && (
+                    <span className="badge quiet">
+                      {{
+                        catalog: "Opis katalogowy",
+                        preview: "Podgląd",
+                        fulltext: "Pełny tekst",
+                      }[result.access] || result.access}
+                    </span>
+                  )}
+                  {result.variants && result.variants.length > 1 && (
+                    <Field label="Wariant materiału">
+                      <select
+                        aria-label="Wariant materiału"
+                        value={result.download_url}
+                        onChange={(e) =>
+                          setResults((list) =>
+                            list.map((x) =>
+                              x === result
+                                ? { ...x, download_url: e.target.value }
+                                : x,
+                            ),
+                          )
+                        }
+                      >
+                        {result.variants.map((v, i) => (
+                          <option key={v.url + i} value={v.url}>
+                            {v.name}{" "}
+                            {v.width ? `${v.width}×${v.height || ""}` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  )}
+                  {safeUrl(result.preview_url) && (
+                    <a
+                      className="text-button"
+                      href={safeUrl(result.preview_url)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Otwórz dostępny podgląd
+                    </a>
+                  )}
                   {result.license && (
                     <span className="license-tag">{result.license}</span>
                   )}
                   <div className="result-actions">
+                    {result.kind === "information" && (
+                      <Button
+                        onClick={() =>
+                          s.run(async () => {
+                            await api(`/projects/${p.id}/fetch-queued`, {
+                              result: { ...result, download_url: result.url },
+                            });
+                            s.notify("Wczytanie oryginału w kolejce");
+                          })
+                        }
+                      >
+                        Wczytaj treść
+                      </Button>
+                    )}
                     <Button
                       primary={!!target}
                       busy={fetching === result.id}
@@ -416,7 +511,6 @@ export default function Sources() {
                 key={source.id}
                 onClick={() => {
                   setDocument(source);
-                  setDocQuery("");
                 }}
                 className="saved-source"
               >
@@ -444,6 +538,32 @@ export default function Sources() {
         )}
       </div>
       <Modal
+        open={editions !== null}
+        onClose={() => setEditions(null)}
+        title="Wybierz konkretne wydanie książki"
+        wide
+      >
+        {editions?.map((edition) => (
+          <article className="version-row" key={edition.id}>
+            <strong>{edition.title}</strong>
+            <p>
+              {edition.edition} · ISBN {edition.identifier || "brak"} ·{" "}
+              {edition.language}
+            </p>
+            <Button
+              onClick={() =>
+                s.run(async () => {
+                  await add(edition);
+                  setEditions(null);
+                })
+              }
+            >
+              Zapisz to wydanie
+            </Button>
+          </article>
+        ))}
+      </Modal>
+      <Modal
         open={urlOpen}
         onClose={() => setUrlOpen(false)}
         title="Dodaj źródło z internetu"
@@ -466,6 +586,18 @@ export default function Sources() {
         >
           Dodaj do projektu
         </Button>
+        <Button
+          onClick={() =>
+            s.run(async () => {
+              setResults(await api<SearchResult[]>("/feed", { url }));
+              setSearched(true);
+              setUrlOpen(false);
+            })
+          }
+          disabled={!url}
+        >
+          Wczytaj RSS / Atom
+        </Button>
         <p className="small muted">
           Katalog książek nie oznacza dostępu do pełnego tekstu. PDF lub EPUB
           możesz wgrać osobno.
@@ -482,61 +614,7 @@ export default function Sources() {
         }
         wide
       >
-        {document && (
-          <>
-            <div className="button-row">
-              {safeUrl(document.url) && (
-                <a
-                  className="button"
-                  href={safeUrl(document.url)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <ExternalLink size={15} />
-                  Otwórz oryginał
-                </a>
-              )}
-              <Button icon={Plus} onClick={() => s.run(() => cite(document))}>
-                Dodaj fakt do sprawdzenia
-              </Button>
-            </div>
-            <Field label="Szukaj fragmentu">
-              <input
-                value={docQuery}
-                onChange={(e) => setDocQuery(e.target.value)}
-                placeholder="Wpisz szukaną frazę"
-              />
-            </Field>
-            <div className="document-reader">
-              {document.pages.length ? (
-                document.pages
-                  .filter(
-                    (x) =>
-                      !docQuery ||
-                      x.text
-                        .toLocaleLowerCase()
-                        .includes(docQuery.toLocaleLowerCase()),
-                  )
-                  .map((x) => (
-                    <section key={x.page}>
-                      <div className="document-page">
-                        Strona / sekcja {x.page}
-                      </div>
-                      <p>
-                        {x.text ||
-                          "Brak warstwy tekstowej. Sprawdź oryginalny skan."}
-                      </p>
-                    </section>
-                  ))
-              ) : (
-                <p>
-                  {document.text ||
-                    "Zapisano opis katalogowy. Otwórz źródło albo wgraj dostępny dokument."}
-                </p>
-              )}
-            </div>
-          </>
-        )}
+        {document && <SourceReader sourceId={document.id} />}
       </Modal>
     </div>
   );

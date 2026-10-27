@@ -51,6 +51,7 @@ import type {
 import { fps, time, totalFrames, newClip, proposalPreview } from "./timing";
 import { animations } from "./Generation";
 import Preview from "./Preview";
+import { JSONField } from "./Production";
 
 type Drag = {
   id: string;
@@ -73,13 +74,21 @@ export default function Timeline() {
     [history, setHistory] = useState({ undo: 0, redo: 0 }),
     [large, setLarge] = useState(false),
     [proposed, setProposed] = useState<Proposal | null>(null);
+  const [marked, setMarked] = useState<string[]>([]),
+    [rangeStart, setRangeStart] = useState(0),
+    [rangeEnd, setRangeEnd] = useState(0),
+    [exact, setExact] = useState(false);
   const dragRef = useRef<Drag | null>(null),
     rulerRef = useRef<HTMLDivElement>(null);
   const rate = fps(p),
     total = totalFrames(p),
     active = p.sequence.clips.find((c) => c.id === selected),
     activeTrack = p.sequence.tracks.find((t) => t.id === active?.track_id),
-    locked = !!(active?.locked || activeTrack?.locked);
+    locked = !!(
+      active?.locked ||
+      activeTrack?.locked ||
+      p.scenes.find((scene) => scene.id === active?.scene_id)?.locked
+    );
   const renderProject = useMemo(
     () =>
       drag
@@ -88,7 +97,17 @@ export default function Timeline() {
             sequence: {
               ...p.sequence,
               clips: p.sequence.clips.map((c) =>
-                c.id === drag.id ? drag.changed : c,
+                c.id === drag.id
+                  ? drag.changed
+                  : drag.edge === "move" &&
+                      drag.original.group_id &&
+                      c.group_id === drag.original.group_id
+                    ? {
+                        ...c,
+                        start:
+                          c.start + drag.changed.start - drag.original.start,
+                      }
+                    : c,
               ),
             },
           }
@@ -104,6 +123,21 @@ export default function Timeline() {
     if (frame > total) setFrame(total);
   }, [total]);
   useEffect(() => setProposed(null), [p.revision]);
+  useEffect(() => {
+    if (s.targetScene) {
+      const c = p.sequence.clips.find(
+        (c) => c.scene_id === s.targetScene && c.track_id === "v1",
+      );
+      if (c) {
+        setSelected(c.id);
+        setMarked([c.id]);
+        setFrame(c.start);
+      }
+    }
+  }, []);
+  useEffect(() => {
+    if (active?.scene_id) s.setTargetScene(active.scene_id);
+  }, [active?.scene_id]);
   function change(changes: Partial<Clip>) {
     if (!active) return;
     s.run(() =>
@@ -162,6 +196,9 @@ export default function Timeline() {
       expected_revision: p.revision,
       quality: "preview",
       mode: "draft",
+      ...(proposed ? { operations: proposed.operations } : {}),
+      start_frame: rangeStart,
+      ...(rangeEnd > rangeStart ? { end_frame: rangeEnd } : {}),
     });
     s.notify("Dokładny podgląd jest w kolejce. Otworzysz go w Zadaniach.");
   }
@@ -173,10 +210,26 @@ export default function Timeline() {
     event.stopPropagation();
     if (event.button !== 0) return;
     setSelected(clip.id);
+    if (event.metaKey || event.ctrlKey || event.shiftKey) {
+      setMarked((ids) =>
+        ids.includes(clip.id)
+          ? ids.filter((x) => x !== clip.id)
+          : [...ids, clip.id],
+      );
+      return;
+    }
+    setMarked(
+      clip.group_id
+        ? p.sequence.clips
+            .filter((c) => c.group_id === clip.group_id)
+            .map((c) => c.id)
+        : [clip.id],
+    );
     setPlaying(false);
     if (
       clip.locked ||
-      p.sequence.tracks.find((t) => t.id === clip.track_id)?.locked
+      p.sequence.tracks.find((t) => t.id === clip.track_id)?.locked ||
+      p.scenes.find((s) => s.id === clip.scene_id)?.locked
     )
       return;
     event.preventDefault();
@@ -280,6 +333,25 @@ export default function Timeline() {
           <span className="badge quiet">Sekwencja główna</span>
         </div>
         <div className="editor-top-actions">
+          <Button subtle onClick={() => s.setPage("production")}>
+            Wersje i narzędzia
+          </Button>
+          <Button
+            onClick={() =>
+              s.run(async () => {
+                await api(`/projects/${p.id}/frame`, {
+                  frame: Math.min(frame, total - 1),
+                  expected_revision: p.revision,
+                  ...(proposed ? { operations: proposed.operations } : {}),
+                });
+                setExact(true);
+                s.notify("Dokładna klatka w kolejce");
+              })
+            }
+            disabled={!total}
+          >
+            Dokładna klatka
+          </Button>
           <Button subtle icon={ImageIcon} onClick={() => setLibrary(!library)}>
             Materiały
           </Button>
@@ -397,7 +469,7 @@ export default function Timeline() {
         </section>
         {assistant ? (
           <Assistant
-            selected={selected ? [selected] : []}
+            selected={marked.length ? marked : selected ? [selected] : []}
             onClose={() => {
               setAssistant(false);
               setProposed(null);
@@ -577,6 +649,118 @@ export default function Timeline() {
                   disabled={locked}
                   onChange={(keyframes) => change({ keyframes })}
                 />
+                {activeTrack?.kind === "video" && (
+                  <>
+                    <Field label="Przejście na wejściu">
+                      <select
+                        value={active.transition || "cut"}
+                        disabled={locked}
+                        onChange={(e) =>
+                          change({
+                            transition: e.target.value,
+                            transition_duration:
+                              e.target.value === "cut"
+                                ? 0
+                                : Math.min(
+                                    active.duration,
+                                    Math.round(rate * 0.5),
+                                  ),
+                          })
+                        }
+                      >
+                        {[
+                          ["cut", "Cięcie"],
+                          ["dissolve", "Przenikanie"],
+                          ["fade-black", "Z czerni"],
+                          ["wipe-left", "Wycieranie w lewo"],
+                          ["wipe-right", "Wycieranie w prawo"],
+                          ["slide-left", "Przesunięcie w lewo"],
+                          ["slide-right", "Przesunięcie w prawo"],
+                          ["zoom", "Zbliżenie"],
+                        ].map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <NumberField
+                      label="Długość przejścia (s)"
+                      value={(active.transition_duration || 0) / rate}
+                      max={active.duration / rate}
+                      onCommit={(v) =>
+                        change({ transition_duration: Math.round(v * rate) })
+                      }
+                    />
+                    <JSONField
+                      label="Kadrowanie {x,y,width,height} 0–1"
+                      value={active.crop || {}}
+                      onSave={(v) =>
+                        change({ crop: v as Record<string, number> })
+                      }
+                    />
+                  </>
+                )}
+                {active.asset_id &&
+                  p.assets.find((a) => a.id === active.asset_id)?.kind ===
+                    "video" && (
+                    <Button
+                      onClick={() =>
+                        s.run(async () => {
+                          await api(
+                            `/projects/${p.id}/assets/${active.asset_id}/proxy`,
+                            {},
+                          );
+                          s.notify("Proxy w kolejce");
+                        })
+                      }
+                    >
+                      Przygotuj lekki proxy
+                    </Button>
+                  )}
+                <details>
+                  <summary>Zaznacz klipy do grupy</summary>
+                  <div className="tool-options">
+                    {p.sequence.clips.map((c) => (
+                      <label key={c.id}>
+                        <input
+                          type="checkbox"
+                          checked={marked.includes(c.id)}
+                          onChange={(e) =>
+                            setMarked((ids) =>
+                              e.target.checked
+                                ? [...ids, c.id]
+                                : ids.filter((x) => x !== c.id),
+                            )
+                          }
+                        />
+                        {c.title} · {time(c.start, rate)}
+                      </label>
+                    ))}
+                  </div>
+                </details>
+                <div className="button-row">
+                  <Button
+                    disabled={marked.length < 2}
+                    onClick={() =>
+                      s.run(() =>
+                        s.edit([{ type: "group_clips", clip_ids: marked }]),
+                      )
+                    }
+                  >
+                    Grupuj {marked.length}
+                  </Button>
+                  <Button
+                    disabled={!marked.length}
+                    onClick={() =>
+                      s.run(() =>
+                        s.edit([{ type: "ungroup_clips", clip_ids: marked }]),
+                      )
+                    }
+                  >
+                    Rozgrupuj
+                  </Button>
+                </div>
               </>
             ) : (
               <div className="inspector-empty">
@@ -591,6 +775,12 @@ export default function Timeline() {
       <section className="timeline-panel surface">
         <div className="timeline-toolbar">
           <div className="timeline-tool-group">
+            <Button subtle onClick={() => setRangeStart(frame)}>
+              IN {time(rangeStart, rate)}
+            </Button>
+            <Button subtle onClick={() => setRangeEnd(frame + 1)}>
+              OUT {rangeEnd > rangeStart ? time(rangeEnd, rate) : "koniec"}
+            </Button>
             <IconButton
               icon={Undo2}
               label="Cofnij"
@@ -718,6 +908,14 @@ export default function Timeline() {
                 <div className="track-title">
                   <span>{track.name}</span>
                   <div>
+                    <button
+                      className={`icon-button ${track.solo ? "toggled" : ""}`}
+                      aria-label={`Solo ${track.name}`}
+                      aria-pressed={!!track.solo}
+                      onClick={() => trackChange(track, { solo: !track.solo })}
+                    >
+                      S
+                    </button>
                     <IconButton
                       icon={track.locked ? LockKeyhole : Unlock}
                       label={
@@ -760,7 +958,7 @@ export default function Timeline() {
                     .map((c) => (
                       <div
                         key={c.id}
-                        className={`timeline-clip ${selected === c.id ? "selected" : ""} ${track.role} ${c.locked ? "locked-clip" : ""}`}
+                        className={`timeline-clip ${marked.includes(c.id) || selected === c.id ? "selected" : ""} ${track.role} ${c.locked ? "locked-clip" : ""}`}
                         style={{
                           left: (c.start / rate) * zoom,
                           width: Math.max(4, (c.duration / rate) * zoom),
@@ -789,7 +987,10 @@ export default function Timeline() {
                               ]),
                             );
                           }
-                          if (e.key === "Enter") setSelected(c.id);
+                          if (e.key === "Enter") {
+                            setSelected(c.id);
+                            setMarked(e.shiftKey ? [...marked, c.id] : [c.id]);
+                          }
                         }}
                         role="button"
                         tabIndex={0}
@@ -803,6 +1004,9 @@ export default function Timeline() {
                             draggable={false}
                             loading="lazy"
                           />
+                        )}
+                        {track.kind === "audio" && c.asset_id && (
+                          <ClipWave projectId={p.id} assetId={c.asset_id} />
                         )}
                         <span
                           className="clip-trim left"
@@ -865,11 +1069,74 @@ export default function Timeline() {
           onEnded={() => {}}
         />
       </Modal>
+      <Modal
+        open={exact}
+        onClose={() => setExact(false)}
+        title="Dokładna klatka"
+        description="Wynik tego samego kompozytora co finalny film"
+      >
+        {(() => {
+          const job = s.jobs.find(
+            (j) => j.project_id === p.id && j.kind === "frame",
+          );
+          return job?.status === "SUCCEEDED" && job.result?.url ? (
+            <>
+              <img
+                className="full-preview"
+                src={job.result.url}
+                alt={`Klatka ${job.result.frame}`}
+              />
+              <p className="small muted">
+                Klatka {job.result.frame} · rewizja {job.revision}
+                {job.revision !== p.revision
+                  ? " · wynik poprzedniej rewizji"
+                  : ""}
+              </p>
+            </>
+          ) : (
+            <p>{job?.message || "Przygotowywanie klatki…"}</p>
+          );
+        })()}
+      </Modal>
     </div>
   );
 }
 function SlidersIcon() {
   return <Film size={27} />;
+}
+function ClipWave({
+  projectId,
+  assetId,
+}: {
+  projectId: string;
+  assetId: string;
+}) {
+  const [peaks, setPeaks] = useState<number[]>([]);
+  useEffect(() => {
+    let active = true;
+    api<{ peaks: number[] }>(
+      `/projects/${projectId}/assets/${assetId}/waveform?bins=90`,
+    )
+      .then((r) => {
+        if (active) setPeaks(r.peaks);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [projectId, assetId]);
+  return (
+    <svg
+      className="clip-wave"
+      viewBox="0 0 180 30"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      {peaks.map((v, i) => (
+        <line key={i} x1={i * 2} x2={i * 2} y1={15 - v * 14} y2={15 + v * 14} />
+      ))}
+    </svg>
+  );
 }
 function Keyframes({
   clip,
@@ -966,13 +1233,28 @@ function Assistant({
     [proposal, setProposal] = useState<Proposal | null>(null),
     [busy, setBusy] = useState(false),
     [prompt, setPrompt] = useState("");
+  const [base, setBase] = useState(-1),
+    [sceneId, setSceneId] = useState(s.targetScene || p.scenes[0]?.id || ""),
+    [from, setFrom] = useState(0),
+    [to, setTo] = useState(totalFrames(p) / fps(p));
   const selection = scope === "selection" ? selected : [];
+  const scopeData =
+    scope === "scene"
+      ? { type: scope, scene_id: sceneId }
+      : scope === "range"
+        ? {
+            type: scope,
+            start: Math.round(from * fps(p)),
+            end: Math.round(to * fps(p)),
+          }
+        : { type: scope };
   async function copy() {
-    const result = await api<{ prompt: string }>(
+    const result = await api<{ prompt: string; base_revision: number }>(
       "/projects/" + p.id + "/assistant/prompt",
-      { command, selection },
+      { command, selection, scope: scopeData },
     );
     setPrompt(result.prompt);
+    setBase(result.base_revision);
     try {
       await navigator.clipboard.writeText(result.prompt);
       s.notify("Prompt montażu skopiowany");
@@ -985,7 +1267,12 @@ function Assistant({
     try {
       const result = await api<Proposal>(
         "/projects/" + p.id + "/assistant/propose",
-        { command, selection, ...(manual ? { response } : {}) },
+        {
+          command,
+          selection,
+          scope: scopeData,
+          ...(manual ? { response, base_revision: base } : {}),
+        },
       );
       setProposal(result);
     } finally {
@@ -1028,8 +1315,27 @@ function Assistant({
             Zaznaczony klip {selected.length ? "" : "· brak"}
           </option>
           <option value="all">Cały film</option>
+          <option value="scene">Wybrane ujęcie</option>
+          <option value="range">Zakres czasu</option>
         </select>
       </Field>
+      {scope === "scene" && (
+        <Field label="Ujęcie w zakresie AI">
+          <select value={sceneId} onChange={(e) => setSceneId(e.target.value)}>
+            {p.scenes.map((scene) => (
+              <option key={scene.id} value={scene.id}>
+                {scene.title}
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
+      {scope === "range" && (
+        <div className="two-fields">
+          <NumberField label="Od (s)" value={from} onCommit={setFrom} />
+          <NumberField label="Do (s)" value={to} onCommit={setTo} />
+        </div>
+      )}
       <Button
         primary
         icon={Sparkles}
@@ -1059,7 +1365,7 @@ function Assistant({
         />
         <Button
           icon={Check}
-          disabled={!response.trim()}
+          disabled={!response.trim() || base !== p.revision}
           onClick={() => s.run(() => propose(true))}
         >
           Sprawdź propozycję

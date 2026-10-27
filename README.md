@@ -73,7 +73,7 @@ Lektor wymaga własnej próbki głosu (15–30 s czystej mowy) — patrz [docs/V
 ### DocOS Studio — aplikacja
 
 Lokalne studio: projekty, research i książki, przygotowanie ujęć, wielościeżkowy montaż
-ręczny/AI oraz eksport MP4. Wymaga Pythona 3.11+, Node.js 22.12+ i FFmpeg.
+ręczny/AI oraz eksport MP4. Wymaga Pythona 3.12+, Node.js 22.12+ i FFmpeg.
 
 ```bash
 python3 scripts/install_studio.py --run

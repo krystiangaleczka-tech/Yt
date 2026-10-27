@@ -14,7 +14,8 @@ export type Page =
   | "export"
   | "sources"
   | "library"
-  | "jobs";
+  | "jobs"
+  | "production";
 type Context = {
   project: Project | null;
   projects: ProjectSummary[];
@@ -24,6 +25,7 @@ type Context = {
   setPage: (p: Page) => void;
   loading: boolean;
   saving: boolean;
+  saveError: boolean;
   notice: { text: string; error: boolean } | null;
   notify: (s: string, error?: boolean) => void;
   load: (id: string) => Promise<void>;
@@ -62,6 +64,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     [page, setPage] = useState<Page>("generation"),
     [loading, setLoading] = useState(true),
     [saving, setSaving] = useState(false),
+    [saveError, setSaveError] = useState(false),
     [notice, setNotice] = useState<Context["notice"]>(null),
     [targetScene, setTargetScene] = useState<string | null>(null),
     [settingsOpen, setSettingsOpen] = useState(false),
@@ -97,6 +100,25 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       const p = await api<Project>("/projects/" + id);
       ref.current = null;
       accept(p);
+      const remembered = localStorage.getItem("docos:page:" + id);
+      const pages: Page[] = [
+        "idea",
+        "facts",
+        "story",
+        "script",
+        "generation",
+        "editing",
+        "export",
+        "sources",
+        "library",
+        "jobs",
+        "production",
+      ];
+      setPage(
+        pages.includes(remembered as Page)
+          ? (remembered as Page)
+          : "generation",
+      );
     } finally {
       setLoading(false);
     }
@@ -115,7 +137,13 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       try {
         const next = await fn(ref.current);
         accept(next);
+        setSaveError(false);
         return next;
+      } catch (error) {
+        setSaveError(true);
+        if ((error as { status?: number }).status === 409 && ref.current)
+          accept(await api<Project>("/projects/" + ref.current.id));
+        throw error;
       } finally {
         setSaving(false);
       }
@@ -170,6 +198,8 @@ export function StudioProvider({ children }: { children: ReactNode }) {
             "/projects/" + (list.find((x) => x.id === last)?.id || list[0].id),
           );
           if (active) accept(p);
+          const remembered = localStorage.getItem("docos:page:" + p.id);
+          if (active && remembered) setPage(remembered as Page);
         } else setPage("projects");
       } catch (error) {
         if (active)
@@ -187,6 +217,9 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       active = false;
     };
   }, []);
+  useEffect(() => {
+    if (project) localStorage.setItem("docos:page:" + project.id, page);
+  }, [page, project?.id]);
   useEffect(() => {
     let previous = "";
     const events = new EventSource("/api/events");
@@ -220,6 +253,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         setPage,
         loading,
         saving,
+        saveError,
         notice,
         notify,
         load,

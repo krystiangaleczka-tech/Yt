@@ -40,3 +40,12 @@ test('proposal preview can add and remove clips without changing assets', () => 
   assert.equal(preview.sequence.clips[0].asset_id, 'source');
   assert.equal(preview.sequence.clips[0].track_id, 'v2');
 });
+
+test('split proposal previews retain the interpolated animation boundary',()=>{
+ const clip=newClip('v1',null,0,60);clip.keyframes=[{property:'x',frame:0,value:-1},{property:'x',frame:60,value:1}];
+ const preview=proposalPreview({sequence:{clips:[clip]}},[{type:'split_clip',clip_id:clip.id,frame:30}]);
+ assert.equal(preview.sequence.clips[0].keyframes.at(-1).value,0);
+ assert.equal(preview.sequence.clips[1].keyframes[0].value,0);
+ assert.equal(preview.sequence.clips[1].keyframes.at(-1).frame,30);
+ assert.equal(clip.keyframes.at(-1).frame,60);
+});

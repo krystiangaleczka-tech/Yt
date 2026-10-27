@@ -6,6 +6,8 @@ import json
 import os
 import socket
 import time
+import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from urllib.parse import quote, urljoin, urlparse
 
@@ -34,10 +36,10 @@ def public_url(url: str) -> str:
 def get_bytes(url: str, *, params=None, limit=15 * 1024 * 1024, headers=None) -> tuple[bytes, str, str]:
     current = public_url(url)
     # Validate each redirect and never forward credentials to another origin.
-    original = urlparse(current).netloc
+    original = (urlparse(current).scheme,urlparse(current).netloc)
     with httpx.Client(timeout=35, follow_redirects=False, headers={"User-Agent": USER_AGENT}) as client:
         for _ in range(5):
-            safe_headers = headers if urlparse(current).netloc == original else None
+            safe_headers = headers if (urlparse(current).scheme,urlparse(current).netloc) == original else None
             with client.stream("GET", current, params=params, headers=safe_headers) as response:
                 params = None
                 if response.is_redirect:
@@ -69,17 +71,23 @@ class Connectors:
         return config
 
     def save(self, values: dict) -> None:
-        allowed = {"pixabay_key", "pexels_key", "ai_key", "ai_base_url", "ai_model", "custom"}
+        allowed = {"pixabay_key", "pexels_key", "ai_key", "ai_base_url", "ai_model", "ai_request_cost", "custom"}
         if not set(values) <= allowed:
             raise ValueError("Nieznane ustawienia połączeń")
         config = self.config()
+        if "ai_request_cost" in values and (not isinstance(values["ai_request_cost"],(int,float)) or not 0<=values["ai_request_cost"]<=10000):
+            raise ValueError("Niepoprawny szacowany koszt wywołania")
         for key, value in values.items():
             if value is not None:
                 config[key] = value
         for item in config.get("custom", []):
-            public_url(item["url"].replace("{query}", "test"))
+            public_url(item["url"].replace("{query}", "test").replace("{page}", "1"))
             if not item.get("id", "").startswith("custom_"):
                 raise ValueError("Identyfikator własnego źródła musi zaczynać się od custom_")
+            if any(not re.fullmatch(r"[A-Za-z0-9-]+",k) or "\n" in str(v) or "\r" in str(v) for k,v in item.get("headers",{}).items()):
+                raise ValueError("Niepoprawne nagłówki API")
+            old=next((x for x in self.config().get("custom",[]) if x["id"]==item["id"]),{})
+            if "headers" not in item and old.get("headers"): item["headers"]=old["headers"]
         atomic_json(self.config_path, config)
         self.config_path.chmod(0o600)
 
@@ -95,6 +103,8 @@ class Connectors:
         ]
         items += [{"id": x["id"], "name": x["name"], "kinds": [x.get("kind", "information")], "configured": True,
                    "note": "Własne źródło JSON"} for x in c.get("custom", [])]
+        for item in items:
+            item["capabilities"]={"search":True,"pagination":True,"download":bool(set(item["kinds"])&{"image","video"}),"editions":item["id"]=="openlibrary","preview":item["id"]=="googlebooks","fulltext":item["id"]=="googlebooks"}
         return items
 
     def json(self, url, params=None, headers=None):
@@ -110,7 +120,7 @@ class Connectors:
         if not query.strip() or len(query) > 200 or page < 1 or page > 20:
             raise ValueError("Podaj zapytanie do dwustu znaków")
         c = self.config()
-        identity = hashlib.sha256(json.dumps([provider, query, kind, page, c.get(provider + "_key", "")]).encode()).hexdigest()
+        identity = hashlib.sha256(json.dumps([provider, query, kind, page, c.get(provider + "_key", ""),c.get("custom",[])],sort_keys=True).encode()).hexdigest()
         cached = self.cache / (identity + ".json")
         if cached.exists() and time.time() - cached.stat().st_mtime < 86400:
             return json.loads(cached.read_text())
@@ -129,6 +139,7 @@ class Connectors:
                                     thumbnail=info.get("thumburl", ""), download_url=info.get("thumburl") if kind == "image" else info.get("url", ""),
                                     url=info.get("descriptionurl", ""), author=val("Artist"), license=val("LicenseShortName"),
                                     license_url=val("LicenseUrl"), width=info.get("width", 0), height=info.get("height", 0)))
+                results[-1]["variants"]=[{"name":"Podgląd","url":info.get("thumburl",""),"width":640},{"name":"Oryginał","url":info.get("url",""),"width":info.get("width",0),"height":info.get("height",0)}]
         elif provider == "pixabay":
             data = self.json("https://pixabay.com/api/" + ("videos/" if kind == "video" else ""),
                              {"key": c["pixabay_key"], "q": query[:100], "safesearch": "true", "per_page": 18, "page": page})
@@ -137,6 +148,8 @@ class Connectors:
                 results.append(dict(id=str(item["id"]), title=item.get("tags", "Pixabay"), kind=kind, thumbnail=item.get("webformatURL") or variant.get("thumbnail", ""),
                                     download_url=item.get("largeImageURL") or variant.get("url", ""), url=item.get("pageURL", ""), author=item.get("user", ""),
                                     license="Pixabay Content License", license_url="https://pixabay.com/service/license-summary/", duration=item.get("duration", 0)))
+                results[-1]["variants"]=[{"name":name,"url":v.get("url",""),"width":v.get("width",0),"height":v.get("height",0)} for name,v in item.get("videos",{}).items()] if kind=="video" else [{"name":"Duży obraz","url":item.get("largeImageURL","")}]
+                results[-1].update(width=variant.get("width",0) if kind=="video" else item.get("imageWidth",0),height=variant.get("height",0) if kind=="video" else item.get("imageHeight",0))
         elif provider == "pexels":
             url = "https://api.pexels.com/videos/search" if kind == "video" else "https://api.pexels.com/v1/search"
             data = self.json(url, {"query": query, "per_page": 18, "page": page}, {"Authorization": c["pexels_key"]})
@@ -147,6 +160,8 @@ class Connectors:
                                     download_url=item.get("src", {}).get("large2x") or (files[0]["link"] if files else ""),
                                     url=item.get("url", ""), author=item.get("photographer") or item.get("user", {}).get("name", ""),
                                     license="Pexels License", license_url="https://www.pexels.com/license/", duration=item.get("duration", 0)))
+                results[-1]["variants"]=[{"name":str(v.get("quality","mp4")),"url":v["link"],"width":v.get("width",0),"height":v.get("height",0)} for v in files] if kind=="video" else [{"name":name,"url":value} for name,value in item.get("src",{}).items()]
+                results[-1].update(width=item.get("width",0),height=item.get("height",0))
         elif provider == "openlibrary":
             data = self.json("https://openlibrary.org/search.json", {"q": query, "limit": 18, "page": page, "fields": "key,title,author_name,first_publish_year,cover_i,edition_key,isbn"})
             for item in data.get("docs", []):
@@ -162,6 +177,13 @@ class Connectors:
                                     identifier=(v.get("industryIdentifiers") or [{}])[0].get("identifier", ""),
                                     thumbnail=v.get("imageLinks", {}).get("thumbnail", "").replace("http:", "https:"),
                                     preview_url=v.get("previewLink", ""), description=PlainText.extract(v.get("description", ""))[:1000]))
+                access=item.get("accessInfo",{})
+                results[-1]["access"]="fulltext" if access.get("viewability")=="ALL_PAGES" else "preview" if access.get("viewability")=="PARTIAL" else "catalog"
+                results[-1]["language"]=v.get("language","")
+                results[-1]["edition"]=" · ".join(filter(None,[v.get("publishedDate",""),v.get("publisher","")]))
+                if access.get("publicDomain"):
+                    download=access.get("pdf",{}).get("downloadLink") or access.get("epub",{}).get("downloadLink")
+                    if download: results[-1]["download_url"]=download
         elif provider == "crossref":
             data = self.json("https://api.crossref.org/works", {"query": query, "rows": 18, "offset": (page - 1) * 18})
             for item in data.get("message", {}).get("items", []):
@@ -170,7 +192,7 @@ class Connectors:
                                     identifier=item.get("DOI", ""), description=PlainText.extract(item.get("abstract", ""))[:1000]))
         else:
             config = next(x for x in c.get("custom", []) if x["id"] == provider)
-            data = self.json(config["url"].replace("{query}", quote(query, safe="")))
+            data = self.json(config["url"].replace("{query}", quote(query, safe="")).replace("{page}",str(page)),headers=config.get("headers"))
             for part in config.get("results_path", "").split("."):
                 if part:
                     data = data[part]
@@ -185,3 +207,30 @@ class Connectors:
             result["provider"] = provider
         atomic_json(cached, results)
         return results
+
+    def editions(self,work,page=1):
+        if not re.fullmatch(r"/works/OL\d+W",work) or not 1<=page<=100: raise ValueError("Niepoprawny identyfikator dzieła")
+        data=self.json("https://openlibrary.org"+work+"/editions.json",{"limit":20,"offset":(page-1)*20})
+        results=[]
+        for entry in data.get("entries",[]):
+            key=entry.get("key","")
+            results.append({"id":key,"title":entry.get("title",""),"provider":"openlibrary","kind":"book","url":"https://openlibrary.org"+key,
+                            "edition":" · ".join(filter(None,[entry.get("publish_date",""),", ".join(entry.get("publishers",[]))])),"identifier":(entry.get("isbn_13") or entry.get("isbn_10") or [""])[0],
+                            "language":", ".join(x.get("key","").split("/")[-1] for x in entry.get("languages",[])),"pages":entry.get("number_of_pages"),"access":"catalog","description":"Konkretne wydanie. Pełny tekst wymaga osobnego, legalnie dostępnego pliku."})
+        return results
+
+    def feed(self,url):
+        raw,_,final=get_bytes(url,limit=4*1024*1024)
+        try:root=ET.fromstring(raw)
+        except ET.ParseError as error:raise ValueError("Adres nie zwrócił poprawnego kanału RSS/Atom") from error
+        if root.tag=="rss": entries=root.findall("./channel/item")
+        else: entries=root.findall("{http://www.w3.org/2005/Atom}entry")
+        result=[]
+        for entry in entries[:100]:
+            def field(name):
+                node=next((x for x in entry if x.tag.split("}")[-1]==name),None)
+                return "".join(node.itertext()) if node is not None else ""
+            link=next((x.attrib.get("href","") or x.text or "" for x in entry if x.tag.split("}")[-1]=="link"),"")
+            link=urljoin(final,link)
+            result.append({"id":hashlib.sha256(link.encode()).hexdigest()[:16],"title":field("title"),"description":PlainText.extract(field("description") or field("summary")),"url":link,"published_at":field("pubDate") or field("published") or field("updated"),"provider":"rss","kind":"information"})
+        return result

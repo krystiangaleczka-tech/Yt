@@ -1,11 +1,11 @@
 export async function api<T>(
   path: string,
   body?: unknown,
-  method = "POST",
+  method = body === undefined ? "GET" : "POST",
 ): Promise<T> {
   const response = await fetch(
     "/api" + path,
-    body === undefined
+    method === "GET"
       ? undefined
       : {
           method,
@@ -13,7 +13,7 @@ export async function api<T>(
             "Content-Type": "application/json",
             "X-Docos-Request": "1",
           },
-          body: JSON.stringify(body),
+          body: body === undefined ? undefined : JSON.stringify(body),
         },
   );
   if (!response.ok) {
@@ -27,9 +27,22 @@ export async function api<T>(
     } catch {
       /* non-JSON upstream */
     }
-    throw new Error(message);
+    throw Object.assign(new Error(message), { status: response.status });
   }
   return response.json();
+}
+export async function download(path: string, name: string) {
+  const response = await fetch("/api" + path);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Nie udało się przygotować pliku");
+  }
+  const url = URL.createObjectURL(await response.blob()),
+    a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export async function upload<T>(path: string, file: File): Promise<T> {
   const data = new FormData();

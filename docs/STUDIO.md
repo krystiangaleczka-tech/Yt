@@ -1,139 +1,121 @@
-# DocOS Studio
+# DocOS Studio 0.2
 
-Lokalna aplikacja do tworzenia narracyjnych dokumentów. React + TypeScript, FastAPI i kompozytor FFmpeg.
-Interfejs i dane projektu są lokalne. Research oraz polecenia do połączonego modelu korzystają z usług zewnętrznych.
+Lokalne studio dokumentalne: research → fakty → historia → scenariusz → ujęcia i głos → montaż → publikacja. Interfejs, pliki i modele działają lokalnie; research i połączony model tekstowy korzystają z wybranych usług.
 
-## Uruchomienie
+## Instalacja i start
 
-Wymagania: Python 3.11+ (zalecany 3.12), Node.js 22.12+ i `ffmpeg` oraz `ffprobe` w PATH.
-Kod i renderer sprawdzono w Linux x86_64. macOS/Windows i GPU wymagają testu na docelowym komputerze.
+Studio wymaga **Python 3.12+**, Node.js 22.12+ oraz FFmpeg/FFprobe w PATH. Sprawdzone środowisko: macOS 26.3.1, Apple Silicon, 8 GB RAM, Python Studio 3.13.5. Głos ma oddzielnego Pythona 3.11, obrazy i znaczniki słów — 3.12.
 
 ```bash
 python3 scripts/install_studio.py --run
-# Windows: python scripts/install_studio.py --run
+# Kolejne uruchomienia:
+npm start
+# Inny port:
+npm start -- --port 9000
 ```
 
-Otwórz **http://127.0.0.1:8876**. Instalator nie pobiera modeli TTS ani Stable Diffusion.
-Pierwszy start tworzy edytowalny przykład „Głos oceanu” z czterema lokalnymi ilustracjami.
-To przykład interfejsu, nie materiał badawczy. Nagranie lektora trzeba dodać lub wygenerować.
+Windows: użyj `python` zamiast `python3`. Domyślne ścieżki interpreterów uwzględniają `Scripts/python.exe`; tego wydania nie przetestowano na Windows. Otwórz http://127.0.0.1:8876. Serwer nasłuchuje wyłącznie lokalnie. `DOCOS_STUDIO_HOME` wybiera katalog danych; domyślnie `.docos-studio/`.
 
-Kolejny start: `.venv-studio/bin/python -m studio_api`.
-Windows: `.venv-studio\Scripts\python -m studio_api`.
-Serwer nasłuchuje wyłącznie na `127.0.0.1`; inny port: `--port 9000`.
-`DOCOS_STUDIO_HOME` zmienia katalog danych; domyślnie `.docos-studio/` w repozytorium.
+Podstawowy instalator przygotowuje Studio i frontend. Opcjonalne środowiska modeli instalujesz przez [uv](https://docs.astral.sh/uv/getting-started/installation/):
 
-## Przepływ pracy
+```bash
+python3 scripts/install_studio.py --with-models --run
+# Samo rozpoznawanie czasów słów:
+python3 scripts/install_studio.py --with-alignment
+```
 
-1. **Pomysł**: własny tytuł lub dziesięć propozycji AI. Historia tytułów w projekcie wyklucza powtórzenia.
-2. **Fakty**: twierdzenia, publikacja, URL, strona/sekcja, notatka i ręcznie ustalany status weryfikacji.
-3. **Historia**: pytanie, hook, teza, komplikacja, kontrargument i finał; zatwierdzenie przed scenariuszem AI.
-4. **Scenariusz**: narracja ujęć, audyt długości, orientacyjny czas i czysty tekst lektora.
-5. **Generowanie**: prompt lub wyszukanie, import/wklejenie, materiał, ruch, czas i narracja danego ujęcia.
-6. **Montaż**: wielościeżkowa sekwencja; ręczne zmiany i propozycje AI we wspólnym modelu.
-7. **Eksport**: lista braków, dokładny podgląd, MP4, JSON lub ZIP z mediami.
+Wagi modeli pobierają się przy pierwszym użyciu. Pliki lock dla serwera, obrazów, głosu i alignera zapisują sprawdzone wersje. Próbkę lektora wgraj w **Narzędzia produkcji → Lektor**. Bez modeli działają pliki własne, redakcja, montaż i eksport.
 
-Pola tekstowe zapisują się po opuszczeniu pola. Oś czasu zapisuje się po zakończeniu gestu lub zmianie parametru.
-Każdy zapis wymaga aktualnej rewizji. Konflikt nie nadpisuje nowszych danych; zachowaj własną niezapisaną treść
-i odśwież projekt. Zmiana tytułu, karty lub faktów cofa zatwierdzenie historii.
+## Praca nad filmem
 
-## Źródła
+1. **Pomysł** — tytuł własny albo 10 propozycji; historia tematów jest wspólna dla kanału, również między odcinkami i w archiwum.
+2. **Fakty i research** — twierdzenie, źródło, strona/rozdział, cytat, status i użycia. Zmiana twierdzenia lub źródła cofa jego weryfikację.
+3. **Historia** — pytanie, hook, teza i finał; zatwierdzenie wymaga sprawdzonego źródła. Widok różnic pokazuje zmiany od poprzedniego zatwierdzenia.
+4. **Scenariusz** — narracje ujęć i pełny tekst. W Narzędziach edytujesz rozdziały/fragmenty, ich cele, zwroty i energię 1–10. Krzywa energii jest planem redakcyjnym.
+5. **Generowanie** — obraz z promptu, wyszukanie, biblioteka, plik, schowek lub URL. Wygenerowany wynik staje się wariantem; sam nie zastępuje ręcznego wyboru.
+6. **Montaż** — wielościeżkowa oś z klatkami, source_in, trim, split, ripple, grupami, keyframes, przejściami i audio.
+7. **Eksport** — kontrola gotowości, podgląd lub MP4, materiały publikacyjne i pakiet projektu.
 
-| Połączenie | Dostępne działanie |
+Tekst zapisuje się po 900 ms bezczynności albo po opuszczeniu pola. Liczby po opuszczeniu pola, gesty po zakończeniu. Nagłówek pokazuje oczekiwanie, zapisywanie lub błąd. Konflikt rewizji chroni nowsze zmiany i wczytuje aktualny stan. Trwałe Cofnij/Ponów obejmuje 40 kroków w każdą stronę; nie usuwa plików z biblioteki.
+
+Zaznaczenie ujęcia jest wspólne dla scenariusza, generowania, montażu i narzędzi. Kolejny start pamięta ostatni projekt i ekran. Projekty można duplikować, archiwizować i otwierać z archiwum.
+
+## Ujęcia i styl
+
+**Narzędzia produkcji → Ujęcia** zawierają 20 formularzy: media, dokument, tytuł, cytat, prasa, podpis osoby, licznik, oś wydarzeń, mapa, diagram, waveform, spektrogram, lupa, split, porównanie, stos, QA, hasło, karty i parallax.
+
+Mapy mają edytowalne bounds, punkty i trasy; podkład Natural Earth działa offline. Diagramy przyjmują węzły i połączenia. Oscylogram i spektrogram wymagają rzeczywistego audio. Parallax wymaga tła i wyciętych warstw PNG z przezroczystością. Nie jest automatycznym wycinaniem obiektów.
+
+Profil kanału zapisuje styl narracji i obrazów, referencje, kolor oraz krój napisów. Wbudowane kroje to Montserrat i Courier Prime z dołączonymi licencjami OFL. Projekt zachowuje migawkę profilu; późniejsza zmiana kanału nie przepisuje wcześniejszych odcinków.
+
+Blokady obejmują całe ujęcie lub osobno narrację, czas i media. Są egzekwowane również dla powiązanych klipów i AI. Przekazanie do montażu jawnie zmienia medium/parametry; generowanie wariantu nie rusza ręcznych cięć i ruchu. Zmiana długości ręcznie pociętego ujęcia wymaga pracy na osi.
+
+## Źródła i książki
+
+| Dostawca | Zakres |
 |---|---|
-| Wikimedia Commons | Zdjęcia i filmy, podgląd, pobranie, autor i metadane licencji |
-| Pixabay | Zdjęcia i stockowe filmy po wpisaniu klucza API |
-| Pexels | Opcjonalne zdjęcia i filmy z posiadanym dostępem API |
-| Open Library | Katalog książek, autorzy, wydania, ISBN i link do źródła |
-| Google Books | Katalog, identyfikatory i dostępne podglądy |
-| Crossref | Publikacje, DOI, metadane i link do oryginału |
-| Własne | Publiczne API JSON, URL stron, PDF, EPUB, TXT i MD |
+| Wikimedia Commons | Zdjęcia/filmy, warianty, autor, licencja, kolejka pobierania |
+| Pixabay, Pexels | Opcjonalny stock po podaniu własnego klucza |
+| Open Library | Wyszukiwanie dzieł i wybór konkretnego wydania/ISBN |
+| Google Books | Metadane i oznaczenie: katalog, podgląd albo dostępny pełny tekst |
+| Crossref | Publikacje/DOI i metadane |
+| Własne źródła | PDF, EPUB, HTML, raporty, RSS/Atom, folder i API JSON |
 
-Wyniki są buforowane przez dobę. Katalog książek nie daje automatycznie pełnego tekstu ani praw do okładki.
-PDF zachowuje numery stron, EPUB ścieżki rozdziałów. Skany bez tekstu wymagają obejrzenia oryginału; OCR jest poza wydaniem.
-Pliki można wybierać wielokrotnie; aplikacja nie obserwuje automatycznie folderów na dysku.
+Możesz szukać równolegle w połączonych źródłach, filtrować typ/orientację/licencję i anulować zadanie. Awaria jednego dostawcy nie ukrywa pozostałych wyników. Katalog ani podgląd książki nie oznaczają automatycznie dostępnego pliku lub praw do ilustracji.
 
-Własny adapter przyjmuje publiczny URL z `{query}`, ścieżkę do tablicy, np. `data.results`,
-i mapowanie `{"title":"name","url":"source","download_url":"file","thumbnail":"preview"}`.
-Własne API w tej wersji nie otrzymują dodatkowych nagłówków autoryzacyjnych.
+Czytnik zachowuje strony PDF i rozdziały EPUB, oryginał oraz datę pobrania. Zaznaczony cytat można dodać do banku z lokalizacją. PDF ma podgląd skanu, OCR i prostokąt wyodrębnienia ilustracji; EPUB listę ilustracji z rozdziałem. OCR wymaga Popplera i Tesseract, najlepiej z językami pol+eng. Wynik OCR/ASR wymaga sprawdzenia.
 
-Klucze w Ustawieniach zapisują się osobno w `connections.json` (na Unix prawa `0600`),
-nie trafiają do eksportów projektu ani gita. Odczyt ustawień nie zwraca kluczy.
-Można też używać `DOCOS_PIXABAY_KEY`, `DOCOS_PEXELS_KEY`, `DOCOS_AI_KEY`, `DOCOS_AI_BASE_URL`, `DOCOS_AI_MODEL`.
-Zmienne środowiskowe mają pierwszeństwo przed ustawieniami aplikacji.
+Własne API obsługują publiczny URL z `{query}` i `{page}`, ścieżkę wyników, mapowanie pól i prywatny nagłówek autoryzacji. Nagłówki nie przechodzą na inny origin przy przekierowaniu. Klucze są w oddzielnym `connections.json` (0600 na Unix), nigdy w eksportach projektu. Test połączenia jest w Ustawieniach.
 
-## Generowanie i lektor
+**Pliki i diagnostyka** importują wskazany folder i opcjonalnie obserwują zmiany. Rejestry `licenses.json` zachowują podpisy. Relink dopasowuje FILE/FILES z DocOS do unikalnych nazw; przy kolizji wybierz materiał ręcznie. Brakujący plik pakietu można odzyskać z identycznej sumy SHA-256.
 
-Wybierz Prompt AI, Z internetu, Własny plik lub Biblioteka. Obraz można wkleić przez Ctrl+V/Cmd+V,
-gdy przeglądarka udostępnia plik. Wideo można wgrać lub pobrać z bezpośredniego URL; schowek filmów zależy od systemu.
-Link do strony jest importowany jako źródło tekstowe. Limity: materiał 300 MB, projekt JSON 8 MB, ZIP 2 GB.
+## Głos i napisy
 
-Presety: kadr statyczny, przybliżenie, oddalenie i panoramy. Notatka o ruchu pozostaje wskazówką w planie,
-nie jest programem animacji. Generowanie wideo z promptu wymaga dalszego adaptera; ten model tworzy obrazy.
-Dokładną animację ustawia się keyframes w Montażu.
+Profile przygotowują prywatną próbkę 3–120 s do mono 24 kHz i wyrównują głośność. Próbki nie trafiają do ZIP. Parametry, język i słownik wymowy uczestniczą w fingerprintach. Zmiana tych danych oznacza nagranie jako nieaktualne i blokuje finalny eksport do czasu poprawki.
 
-```bash
-export DOCOS_IMAGE_PYTHON="$PWD/pilot/.venv/bin/python"
-export DOCOS_TTS_PYTHON="$PWD/pilot/.venv-tts/bin/python"
-export DOCOS_VOICE_REF="$PWD/pilot/assets/ref_clean.wav"
-.venv-studio/bin/python -m studio_api
-```
+Zdania mają własne warianty i cache; można dograć jedno zdanie i złożyć wybrane nagrania. Wybór całego lektora jest atomową, jawną operacją na ścieżce narracji. Muzyka i efekty mają osobne ścieżki; dostępne są solo, mute, poziom, fades, keyframes i ducking.
 
-Środowisko obrazów: torch i diffusers. TTS: chatterbox-tts, torch, numpy i soundfile; patrz istniejące
-`requirements-render.txt` i `requirements-tts.txt`. Windows może wskazywać `Scripts/python.exe`.
-Workery wybierają CUDA, MPS albo CPU. Pierwsze wywołanie może pobierać modele i wymagać autoryzacji dostawcy.
-API nie ładuje modeli przy starcie. Jedno ciężkie zadanie działa naraz.
-Generowanie zapisuje wariant z promptem, językiem i rewizją wejścia; wyboru dokonuje użytkownik.
-Po wybraniu nagrania lektora czas ujęcia jest zmierzony. Zastosowanie w montażu jest jawne.
-Odsłuch tekstu w przeglądarce nie tworzy pliku audio do eksportu.
+Na Macu z pamięcią do 12 GB tryb Auto wybiera CPU dla Chatterbox. MPS na sprawdzonym Macu 8 GB powodował intensywny swap; CPU wygenerował próbę poprawnie, ale generowanie może trwać minuty. Możesz jawnie wybrać urządzenie w profilu lub ustawić `DOCOS_TTS_DEVICE`.
 
-## Montaż
+Napisy powstają z rozpoznanych czasów słów (faster-whisper) albo ze zmierzonych długości zdań. Ich granice nie są zgadywane proporcjonalnie do tekstu. Edytor pozwala poprawić pisownię, czas, łączenie i podział po odsłuchu. Mała pewność rozpoznania daje uwagę do sprawdzenia. SRT/VTT uwzględniają trim, speed i położenie nagrania na osi; mogą również trafić na ścieżkę tekstową.
 
-- Obraz, nakładki, tekst, lektor, muzyka i efekty na osobnych ścieżkach.
-- Przesuwanie, przycinanie, podział, duplikowanie, usuwanie i zamykanie luki na wybranej ścieżce.
-- Przyciąganie do kursora i krawędzi; strzałki przesuwają o klatkę, Shift+strzałka o sekundę.
-- Początek na osi i początek w pliku są niezależne. Czas jest liczbą całkowitych klatek.
-- Pozycja, skala, obrót, krycie, prędkość, głośność, wejścia/wyjścia i liniowe keyframes.
-- Blokady ścieżek i klipów, wyciszenia, cofanie/ponawianie ostatnich czterdziestu zmian także po restarcie.
+## Podgląd, AI i eksport
 
-Asystent korzysta z API zgodnego z Chat Completions lub zalogowanego `claude` CLI, uruchamianego bez narzędzi.
-Można też skopiować prompt, wkleić JSON z własnego AI, sprawdzić propozycję, pokazać ją na osi i zastosować.
-Seria jest jedną zmianą w historii. Propozycja jest związana z rewizją i zaznaczeniem oraz respektuje blokady.
-Bez timestampów słów asystent nie powinien zgadywać cięcia przy słowie — podaj konkretny zakres czasu.
+Canvas jest roboczym podglądem: używa ograniczonego okna mediów i proxy, a klatki szablonów pochodzą z renderera. **Dokładna klatka** i **Dokładny podgląd** korzystają z tego samego kompozytora co finalny film. IN/OUT wybierają zakres. Wynik ma własną rewizję; późniejsza edycja nie zmienia trwającego zadania. Cache zależy od zakresu, warstw, plików, fontów i ustawień.
 
-Canvas to podgląd roboczy. Dokładny podgląd i eksport korzystają z tego samego grafu FFmpeg.
-Font, synchronizacja, dekodowanie i miks przeglądarki mogą się różnić; oceniaj dokładny render przed publikacją.
-Audio filmu nie jest automatycznie mieszane ze ścieżką obrazu. API obsługuje wideo na ścieżce audio;
-interfejs biblioteki dodaje filmy jako obraz. Przy podziale klipu z keyframes usuń wcześniej punkty.
-Przesunięcia po usunięciu dotyczą wyłącznie wybranej ścieżki i respektują dalsze blokady.
-Katalog przejść, grupy, waveformy, ducking i wyrównanie słów pozostają rozszerzeniami.
+Claude CLI działa z pustym zestawem narzędzi; alternatywą jest API zgodne z Chat Completions. Model proponuje JSON. Możesz też skopiować prompt i wkleić JSON lub dawny format Narracja/Shot List. Przyjęcie wymaga zgodnej rewizji. Asystent montażu ma zakres: zaznaczenie, ujęcie, czas albo całość; propozycję można obejrzeć i cofnąć jako jedną serię. Wersje A/B zapisują, porównują, podglądają i przywracają montaż.
 
-## Dane i przenoszenie
+Planer przebitek korzysta z narracji fragmentu, banku faktów i profilu kanału, zachowując uzasadnienie. API ma zachowawczy budżet: wpisujesz szacowany koszt wywołania i limit projektu. Studio blokuje przekroczenie; rzeczywisty rachunek pozostaje u dostawcy. Lokalne modele i render nie naliczają opłat API.
 
-JSON jest źródłem prawdy, SQLite przechowuje kolejkę. Zapis jest atomowy z historią.
-Media identyfikuje hash treści i pochodzenia. Zadania używają migawki wejścia; późniejsza edycja jej nie zmienia.
-Restart oznacza niedokończone zadania jako INTERRUPTED; można zlecić je ponownie.
+Eksporty: MP4 H.264/AAC, JSON, MD, TXT, XLSX, SRT, VTT, opis filmu i użyte atrybucje. XLSX ma edytowalne tabele oraz ukryty manifest bez utraty danych; import odrzuca stare rewizje i formuły. Opis i JSON konkretnego renderu można pobrać z jego migawki, niezależnie od bieżących zmian.
 
-ZIP przenosi manifest i media, sprawdza sumy kontrolne, rozmiary i nazwy plików.
-Sam JSON przenosi treść, a import czyści niedostępne odwołania do mediów i cofa zatwierdzenie historii.
-Stary DocOS pozostaje w `legacy`, również z nieznanymi polami. Nowy renderer nie emuluje automatycznie
-wszystkich starych szablonów, np. map i spektrogramów. Dawne CLI i renderer nadal są dostępne.
+Pakiet ZIP zawiera projekt, warianty A/B, media i manifest sum. Prywatne, brakujące lub zbyt duże pliki są jawnie wymienione jako pominięte. Limit pakietu: 2 GB/2000 plików; pojedynczego przesyłanego medium: 300 MB; JSON/XLSX: 8 MB. JSON zachowuje układ i metadane, lecz nie przenosi plików. Import do nowego projektu nie daje dostępu do starych ścieżek i nie przenosi zatwierdzenia historii.
 
-## Development
+## Dane, aktualizacja i weryfikacja
+
+Schemat `docos-studio/2` automatycznie odczytuje /1. Stary DocOS/Bloop zachowuje pełne `legacy`, fragmenty, źródłowe opisy i powiązania faktów. Przybliżone mapy/diagramy starego renderera stają się edytowalnymi danymi; nowy wygląd nie jest kopią piksel w piksel.
+
+Instrukcja kopii, aktualizacji i odzyskiwania: [STUDIO_RELEASE.md](STUDIO_RELEASE.md).
+Kryteria APP-001–060 i dowody: [STUDIO_IMPLEMENTATION.md](STUDIO_IMPLEMENTATION.md).
 
 ```bash
-npm run dev
-# Po instalacji zależności; Vite localhost:3000, API 127.0.0.1:8876
 npm run build
 .venv-studio/bin/python -m unittest discover -s studio_tests -v
-python3 -m unittest discover -s docos/tests -v
+.venv-studio/bin/python -m unittest discover -s docos/tests -v
+npm run test:frontend
+.venv-studio/bin/python scripts/verify_studio_e2e.py --home /tmp/docos-qa
+# Rzeczywiste źródła oraz lokalne modele; bez płatnego modelu tekstowego:
+.venv-studio/bin/python scripts/verify_studio_e2e.py --home /tmp/docos-live-qa --live
+.venv-studio/bin/python scripts/benchmark_studio.py --output /tmp/docos-benchmark.json
 ```
 
-`DOCOS_API_PORT` wybiera port API w development; `PORT` lub `--port` port frontendu.
-Testy renderu potrzebują FFmpeg. Testy adapterów używają kontrolowanych odpowiedzi, nie realnych kluczy.
+CLI Studio korzysta z tego samego serwisu, blokady między procesami i rewizji:
 
-## Zakres wydania
+```bash
+.venv-studio/bin/python -m studio_core.cli list
+.venv-studio/bin/python -m studio_core.cli check PROJECT_ID
+.venv-studio/bin/python -m studio_core.cli edit PROJECT_ID operations.json --revision 12
+.venv-studio/bin/python -m studio_core.cli backup PROJECT_ID
+```
 
-Działający fundament lokalnego studia; nie obejmuje jeszcze wszystkich sześćdziesięciu zadań planu.
-Do dalszej pracy: kontrola UI i dostępności na docelowym komputerze, testy długich projektów,
-instalator desktopowy, stare szablony, OCR, wyrównanie słów, wspólne profile kanałów,
-wersje A/B oraz cache modeli i zakresów renderu. Konta źródeł i modele konfiguruje użytkownik.
+Zewnętrzne konta pozostają zależnością użytkownika. Podczas wdrożenia Claude zwracał limit konta do 28.10.2026; rzeczywistego modelu tekstowego i kluczy Pixabay/Pexels nie zastępowano udawanymi wywołaniami. Kontrakty tych integracji są testowane kontrolowanymi odpowiedziami.

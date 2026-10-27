@@ -22,14 +22,41 @@ Wszystkie czasy są całkowitymi KLATKAMI, nie sekundami. FPS podaje projekt.
 Nie wymyślaj identyfikatorów istniejących assetów. Nie zmieniaj blokad, scenariusza, faktów ani narracji.
 Klipów lub ścieżek locked=true nie wolno edytować. Przy zaznaczeniu wolno edytować tylko zaznaczone klipy.
 Nie dodawaj klipów, gdy zakres to zaznaczenie. Jeśli polecenie jest niewykonalne, wyjaśnij i zwróć operations: [].
-Nie masz timestampów pojedynczych słów. Nie zgaduj ich na podstawie proporcji tekstu.
-Jeśli polecenie wymaga cięcia dokładnie przy słowie, poproś o zakres czasu i zwróć operations: [].
+Znaczniki words w scenach są zmierzone względem nagrania. Używaj ich tylko gdy są dostępne i aktualne.
+Nie zgaduj czasu słów na podstawie proporcji tekstu. Bez pomiaru poproś o zakres i zwróć operations: [].
 Pola klipu: start,duration,source_in (klatki),speed .25–4,x/y -2–2,scale .05–5,rotation -360–360,
 opacity 0–1,volume 0–4,fade_in/fade_out (klatki),text,title,animation static/zoom-in/zoom-out/pan-left/pan-right.
 Nie skracaj dźwięku przy poleceniu dotyczącym wyłącznie obrazu. Nie usuwaj ważnego fragmentu narracji.
 ZAZNACZENIE: """ + json.dumps(selection) + "\nPOLECENIE: " + json.dumps(command, ensure_ascii=False) + "\nPROJEKT: " + json.dumps({
         "sequence": project.sequence.model_dump(), "assets": [{"id": a.id, "name": a.name, "kind": a.kind, "duration": a.duration} for a in project.assets],
-        "scenes": [{"id": s.id, "title": s.title, "narration": s.narration} for s in project.scenes]}, ensure_ascii=False)
+        "scenes": [{"id": s.id, "title": s.title, "narration": s.narration,"voice_asset_id":s.voice_asset_id,"words":s.words if s.alignment_hash else []} for s in project.scenes]}, ensure_ascii=False)
+
+
+def scope_selection(project,body):
+    scope=body.get("scope") or {"type":"selection" if body.get("selection") else "all"}
+    kind=scope.get("type")
+    if kind=="all": return []
+    if kind=="selection": selected=body.get("selection",[])
+    elif kind=="scene": selected=[c.id for c in project.sequence.clips if c.scene_id==scope.get("scene_id")]
+    elif kind=="range":
+        first,last=int(scope.get("start",0)),int(scope.get("end",0))
+        if last<=first or first<0: raise ValueError("Niepoprawny zakres montażu")
+        selected=[c.id for c in project.sequence.clips if c.start>=first and c.start+c.duration<=last]
+    else: raise ValueError("Nieznany zakres AI")
+    if not selected or not set(selected)<={c.id for c in project.sequence.clips}: raise ValueError("Zakres nie zawiera istniejących klipów. Dla zakresu czasu najpierw podziel klipy na jego granicach.")
+    return selected
+
+
+def enforce_range(project,proposal,body):
+    scope=body.get("scope") or {}
+    if scope.get("type")!="range": return proposal
+    draft=project.model_copy(deep=True)
+    if proposal["operations"]: apply_operations(draft,proposal["operations"],origin="ai")
+    ids={op.get("clip_id") for op in proposal["operations"]}
+    original={c.id for c in project.sequence.clips}
+    if any(c.start<int(scope["start"]) or c.start+c.duration>int(scope["end"]) for c in draft.sequence.clips if c.id in ids or c.id not in original):
+        raise ValueError("Propozycja przesuwa klipy poza wskazany zakres")
+    return proposal
 
 
 def parse_proposal(text: str, project: Project, selection: list[str]) -> dict:
@@ -50,7 +77,10 @@ def parse_proposal(text: str, project: Project, selection: list[str]) -> dict:
     return {"description": str(parsed.get("description", "Propozycja montażu")), "operations": operations, "base_revision": project.revision}
 
 
-def complete(connectors: Connectors, prompt: str) -> str:
+def complete(connectors: Connectors, prompt: str, *,store=None,project=None) -> str:
+    if store is not None and project is not None:
+        from .budget import reserve
+        reserve(store,project,connectors)
     c = connectors.config()
     if c.get("ai_base_url") and c.get("ai_model"):
         url = public_url(c["ai_base_url"].rstrip("/") + "/chat/completions")

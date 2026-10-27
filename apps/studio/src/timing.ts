@@ -95,9 +95,37 @@ export function proposalPreview(
         duration: clip.duration - offset,
         source_in: clip.source_in + Math.round(offset * clip.speed),
         fade_in: 0,
+        transition: "cut",
+        transition_duration: 0,
+        keyframes: [] as Clip["keyframes"],
       };
+      const leftKeys: Clip["keyframes"] = [],
+        rightKeys: Clip["keyframes"] = [];
+      for (const property of new Set(clip.keyframes.map((k) => k.property))) {
+        const value = interpolate(clip, property, offset);
+        leftKeys.push(
+          ...clip.keyframes.filter(
+            (k) => k.property === property && k.frame < offset,
+          ),
+          { property, frame: offset, value },
+        );
+        rightKeys.push(
+          { property, frame: 0, value },
+          ...clip.keyframes
+            .filter((k) => k.property === property && k.frame > offset)
+            .map((k) => ({ ...k, frame: k.frame - offset })),
+        );
+      }
+      clip.keyframes = leftKeys;
+      right.keyframes = rightKeys;
       clip.duration = offset;
       clip.fade_out = 0;
+      clip.fade_in = Math.min(clip.fade_in, clip.duration);
+      clip.transition_duration = Math.min(
+        clip.transition_duration || 0,
+        clip.duration,
+      );
+      right.fade_out = Math.min(right.fade_out, right.duration);
       p.sequence.clips.push(right);
     } else if (clip && op.changes) Object.assign(clip, op.changes);
   }

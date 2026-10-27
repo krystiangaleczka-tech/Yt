@@ -15,7 +15,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useStudio } from "./context";
-import { api, saveText } from "./api";
+import { api, saveText, download } from "./api";
 import { Button, Empty, Field, Modal, SectionHead } from "./components";
 import type { Issue, Job } from "./types";
 import { fps, time, totalFrames } from "./timing";
@@ -34,6 +34,14 @@ const kinds: Record<string, string> = {
   preview: "Dokładny podgląd",
   image: "Generowanie obrazu",
   voice: "Generowanie lektora",
+  fetch: "Pobieranie materiału",
+  search: "Wyszukiwanie źródeł",
+  alignment: "Znaczniki słów",
+  assemble: "Składanie zdań",
+  folder: "Import folderu",
+  ocr: "Rozpoznawanie skanu",
+  proxy: "Lekki plik proxy",
+  frame: "Dokładna klatka",
 };
 export function JobList({ all = false }: { all?: boolean }) {
   const s = useStudio();
@@ -101,6 +109,19 @@ export function JobList({ all = false }: { all?: boolean }) {
               )}
             </div>
             <div className="job-actions">
+              {["FAILED", "CANCELLED", "INTERRUPTED"].includes(job.status) && (
+                <Button
+                  icon={RotateCcw}
+                  onClick={() =>
+                    s.run(async () => {
+                      await api(`/jobs/${job.id}/retry`, {});
+                      s.notify("Ponowiono zadanie");
+                    })
+                  }
+                >
+                  Ponów
+                </Button>
+              )}
               {job.result?.url && job.status === "SUCCEEDED" && (
                 <>
                   <Button icon={Play} onClick={() => setPreview(job)}>
@@ -114,6 +135,21 @@ export function JobList({ all = false }: { all?: boolean }) {
                   >
                     <Download size={17} />
                   </a>
+                  {["render", "preview"].includes(job.kind) && (
+                    <Button
+                      subtle
+                      onClick={() =>
+                        s.run(() =>
+                          download(
+                            `/jobs/${job.id}/export/description`,
+                            `opis-r${job.revision}.txt`,
+                          ),
+                        )
+                      }
+                    >
+                      Opis r{job.revision}
+                    </Button>
+                  )}
                 </>
               )}
               {["RUNNING", "QUEUED"].includes(job.status) && (
@@ -141,13 +177,21 @@ export function JobList({ all = false }: { all?: boolean }) {
         description={"Wynik dla rewizji " + preview?.revision}
         wide
       >
-        {preview?.result?.url && (
-          <video
+        {preview?.kind === "frame" && preview.result?.url ? (
+          <img
             className="full-preview"
-            controls
-            autoPlay
             src={preview.result.url}
+            alt="Dokładna klatka"
           />
+        ) : (
+          preview?.result?.url && (
+            <video
+              className="full-preview"
+              controls
+              autoPlay
+              src={preview.result.url}
+            />
+          )
         )}
       </Modal>
     </>
@@ -257,6 +301,35 @@ export function Exports() {
               </option>
             </select>
           </Field>
+          <Field label="Klatkaż filmu">
+            <select
+              value={`${p.sequence.fps_num}/${p.sequence.fps_den}`}
+              onChange={(e) => {
+                const [fps_num, fps_den] = e.target.value
+                  .split("/")
+                  .map(Number);
+                s.run(() =>
+                  s.edit([
+                    { type: "set_sequence", changes: { fps_num, fps_den } },
+                  ]),
+                );
+              }}
+            >
+              {[
+                [24, 1],
+                [25, 1],
+                [30, 1],
+                [24000, 1001],
+                [30000, 1001],
+                [50, 1],
+                [60, 1],
+              ].map(([n, d]) => (
+                <option key={`${n}/${d}`} value={`${n}/${d}`}>
+                  {(n / d).toFixed(d === 1 ? 0 : 3)} fps
+                </option>
+              ))}
+            </select>
+          </Field>
           <Field label="Wersja">
             <select value={mode} onChange={(e) => setMode(e.target.value)}>
               <option value="draft">Robocza · dopuszcza uwagi</option>
@@ -281,7 +354,12 @@ export function Exports() {
             disabled={
               !p.sequence.clips.length ||
               hasRunning ||
-              (mode === "final" && issues.length > 0)
+              (mode === "final" &&
+                issues.some(
+                  (i) =>
+                    i.severity === "error" ||
+                    (i.severity === "warning" && !i.accepted),
+                ))
             }
             onClick={() => s.run(render)}
           >
@@ -308,24 +386,46 @@ export function Exports() {
           ) : (
             <div className="check-list">
               {issues.map((issue, index) => (
-                <button
-                  key={index}
-                  className={"check-item " + issue.severity}
-                  onClick={() => {
-                    if (issue.scene_id) s.setTargetScene(issue.scene_id);
-                    s.setPage(
-                      issue.type === "story"
-                        ? "story"
-                        : ["media", "voice", "file"].includes(issue.type)
-                          ? "generation"
-                          : "library",
-                    );
-                  }}
-                >
-                  <AlertCircle size={17} />
-                  <span>{issue.message}</span>
-                  <ChevronRight size={16} />
-                </button>
+                <div key={issue.code || index}>
+                  <button
+                    key={index}
+                    className={"check-item " + issue.severity}
+                    onClick={() => {
+                      if (issue.scene_id) s.setTargetScene(issue.scene_id);
+                      s.setPage(
+                        issue.type === "story"
+                          ? "story"
+                          : ["media", "voice", "file"].includes(issue.type)
+                            ? "generation"
+                            : "library",
+                      );
+                    }}
+                  >
+                    <AlertCircle size={17} />
+                    <span>{issue.message}</span>
+                    <ChevronRight size={16} />
+                  </button>
+                  {issue.severity === "warning" && issue.code && (
+                    <label className="checkbox small">
+                      <input
+                        type="checkbox"
+                        checked={!!issue.accepted}
+                        onChange={(e) =>
+                          s.run(() =>
+                            s.patch((c) => ({
+                              accepted_warnings: e.target.checked
+                                ? [...c.accepted_warnings, issue.code!]
+                                : c.accepted_warnings.filter(
+                                    (x) => x !== issue.code,
+                                  ),
+                            })),
+                          )
+                        }
+                      />
+                      Akceptuję tę uwagę dla projektu
+                    </label>
+                  )}
+                </div>
               ))}
             </div>
           )}
@@ -337,6 +437,71 @@ export function Exports() {
             </p>
           </div>
         </section>
+      </div>
+      <div className="export-downloads">
+        {[
+          ["md", "Scenariusz MD"],
+          ["txt", "Narracja TXT"],
+          ["xlsx", "Arkusz XLSX"],
+          ["description", "Opis filmu"],
+          ["credits", "Autorzy i licencje"],
+          ["srt", "Napisy SRT"],
+          ["vtt", "Napisy VTT"],
+        ].map(([format, label]) => (
+          <Button
+            key={format}
+            icon={Download}
+            onClick={() =>
+              s.run(() =>
+                download(
+                  `/projects/${p.id}/export/${format}`,
+                  `docos-r${p.revision}.${["description", "credits"].includes(format) ? "txt" : format}`,
+                ),
+              )
+            }
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+      <div className="surface tool-panel">
+        <h2>Miks dźwięku</h2>
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={p.sequence.ducking}
+            onChange={(e) =>
+              s.run(() =>
+                s.edit([
+                  {
+                    type: "set_sequence",
+                    changes: { ducking: e.target.checked },
+                  },
+                ]),
+              )
+            }
+          />
+          Przyciszaj muzykę podczas narracji
+        </label>
+        <Field label="Poziom muzyki pod lektorem">
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={p.sequence.ducking_gain}
+            onChange={(e) =>
+              s.run(() =>
+                s.edit([
+                  {
+                    type: "set_sequence",
+                    changes: { ducking_gain: Number(e.target.value) },
+                  },
+                ]),
+              )
+            }
+          />
+        </Field>
       </div>
       <div className="inline-heading section-divider">
         <h2>Przygotowane pliki i zadania</h2>

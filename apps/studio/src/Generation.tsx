@@ -32,7 +32,7 @@ import {
   SectionHead,
 } from "./components";
 import type { Asset, Scene, Project, Job, Animation } from "./types";
-import { fps, time, newClip } from "./timing";
+import { fps, time } from "./timing";
 
 export const animations: { id: Animation; name: string }[] = [
   { id: "zoom-in", name: "Powolne zbliżenie" },
@@ -84,10 +84,25 @@ export default function Generation() {
   const activeJobs = s.jobs.filter(
     (j) => j.project_id === p.id && ["QUEUED", "RUNNING"].includes(j.status),
   );
+  const [voiceStates, setVoiceStates] = useState<Record<string, string>>({});
+  useEffect(() => {
+    s.run(async () =>
+      setVoiceStates(
+        (
+          await api<{ voice: Record<string, string> }>(
+            `/projects/${p.id}/production`,
+          )
+        ).voice,
+      ),
+    );
+  }, [p.revision]);
   useEffect(() => {
     if (s.targetScene && p.scenes.some((x) => x.id === s.targetScene))
       setSelected(s.targetScene);
   }, [s.targetScene, p.scenes]);
+  useEffect(() => {
+    if (scene?.id) s.setTargetScene(scene.id);
+  }, [scene?.id]);
   function change(changes: Partial<Scene>) {
     if (!scene) return;
     const sceneId = scene.id;
@@ -161,10 +176,9 @@ export default function Generation() {
   }
   async function generate(kind: "image" | "voice") {
     if (!scene) return;
-    await api<Job>(
-      "/projects/" + p.id + "/generate/" + scene.id + "/" + kind,
-      {},
-    );
+    await api<Job>("/projects/" + p.id + "/generate/" + scene.id + "/" + kind, {
+      expected_revision: p.revision,
+    });
     s.notify(
       kind === "image"
         ? "Obraz trafił do kolejki generowania"
@@ -187,43 +201,11 @@ export default function Generation() {
     speechSynthesis.speak(u);
   }
   async function useVoice(a: Asset) {
-    await s.patch((current) => ({
-      scenes: current.scenes.map((x) =>
-        x.id === scene.id
-          ? {
-              ...x,
-              voice_asset_id: a.id,
-              duration: Math.max(1, Math.floor(a.duration * rate)),
-              timing: "measured",
-            }
-          : x,
-      ),
-    }));
-    const clip = newClip(
-      "a1",
-      a.id,
-      scene.start,
-      Math.floor(a.duration * rate),
-    );
-    clip.scene_id = scene.id;
-    clip.title = "Lektor · " + scene.title;
-    const existing = p.sequence.clips.find(
-      (c) => c.scene_id === scene.id && c.track_id === "a1",
-    );
-    await s.edit(
-      existing
-        ? [
-            {
-              type: "update_clip",
-              clip_id: existing.id,
-              changes: {
-                asset_id: a.id,
-                duration: clip.duration,
-                source_in: 0,
-              },
-            },
-          ]
-        : [{ type: "add_clip", clip }],
+    await s.mutate((current) =>
+      api<Project>(`/projects/${p.id}/scenes/${scene.id}/voice/select`, {
+        expected_revision: current.revision,
+        asset_id: a.id,
+      }),
     );
     setVoiceOpen(false);
     s.notify("Nagranie dodano na ścieżkę lektora");
@@ -272,10 +254,21 @@ export default function Generation() {
         <Button
           primary
           icon={ArrowRight}
-          disabled={!asset || s.saving}
+          disabled={
+            (!asset && (!scene.template || scene.template === "media")) ||
+            s.saving
+          }
           onClick={() => s.run(toTimeline)}
         >
           Dodaj do montażu
+        </Button>
+        <Button
+          onClick={() => {
+            s.setTargetScene(scene.id);
+            s.setPage("production");
+          }}
+        >
+          Szablony i głos
         </Button>
       </SectionHead>
       <div className="generation-workspace">
@@ -302,7 +295,7 @@ export default function Generation() {
                 key={x.mode}
                 className={scene.mode === x.mode ? "selected" : ""}
                 aria-pressed={scene.mode === x.mode}
-                disabled={scene.locked}
+                disabled={scene.locked || scene.lock_media}
                 onClick={() => change({ mode: x.mode })}
               >
                 <x.icon size={15} />
@@ -321,7 +314,7 @@ export default function Generation() {
                   rows={6}
                   value={scene.prompt}
                   onCommit={(v) => change({ prompt: v })}
-                  disabled={scene.locked}
+                  disabled={scene.locked || scene.lock_media}
                   placeholder="Jak powinien wyglądać ten kadr?"
                 />
               </Field>
@@ -370,7 +363,7 @@ export default function Generation() {
                   rows={5}
                   value={scene.search_query}
                   onCommit={(v) => change({ search_query: v })}
-                  disabled={scene.locked}
+                  disabled={scene.locked || scene.lock_media}
                   placeholder="Np. hydrofon zanurzony w oceanie, ujęcie poziome"
                 />
               </Field>
@@ -456,7 +449,7 @@ export default function Generation() {
           <Field label="Ruch i animacja">
             <select
               value={scene.animation}
-              disabled={scene.locked}
+              disabled={scene.locked || scene.lock_media}
               onChange={(e) =>
                 change({ animation: e.target.value as Animation })
               }
@@ -477,7 +470,7 @@ export default function Generation() {
               rows={2}
               value={scene.motion_prompt}
               onCommit={(v) => change({ motion_prompt: v })}
-              disabled={scene.locked}
+              disabled={scene.locked || scene.lock_media}
               placeholder="Na jakim szczególe skupić uwagę?"
             />
           </Field>
@@ -522,7 +515,12 @@ export default function Generation() {
                 }
               }}
             >
-              {asset?.kind === "image" ? (
+              {scene.template && scene.template !== "media" ? (
+                <img
+                  src={`/api/projects/${p.id}/scenes/${scene.id}/poster?revision=${p.revision}&frame=0`}
+                  alt={`Podgląd: ${scene.title}`}
+                />
+              ) : asset?.kind === "image" ? (
                 <img src={mediaUrl(p.id, asset.id)} alt={scene.title} />
               ) : asset?.kind === "video" ? (
                 <video
@@ -587,12 +585,23 @@ export default function Generation() {
               multiline
               rows={4}
               value={scene.narration}
+              label="Narracja ujęcia"
               onCommit={(v) => change({ narration: v })}
               className="narration-input"
-              disabled={scene.locked}
+              disabled={scene.locked || scene.lock_narration}
               placeholder="Co w tym momencie opowiada narrator?"
             />
             <div className="narration-footer">
+              <span
+                className={`badge ${voiceStates[scene.id] === "stale" ? "warning" : "quiet"}`}
+              >
+                {{
+                  current: "Nagranie aktualne",
+                  stale: "Nagranie wymaga odświeżenia",
+                  missing: "Brak nagrania",
+                  empty: "Bez narracji",
+                }[voiceStates[scene.id]] || ""}
+              </span>
               <span>
                 {scene.narration.trim().split(/\s+/).filter(Boolean).length}{" "}
                 słów <span>·</span>{" "}
@@ -632,14 +641,14 @@ export default function Generation() {
               label="Początek (s)"
               value={scene.start / rate}
               onCommit={(v) => change({ start: Math.round(v * rate) })}
-              disabled={scene.locked}
+              disabled={scene.locked || scene.lock_timing}
             />
             <NumberField
               label="Długość (s)"
               min={1 / rate}
               value={scene.duration / rate}
               onCommit={(v) => change({ duration: Math.round(v * rate) })}
-              disabled={scene.locked}
+              disabled={scene.locked || scene.lock_timing}
             />
           </div>
           <div className="timing-note">

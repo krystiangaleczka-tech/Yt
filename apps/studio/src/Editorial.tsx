@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Sparkles,
   Copy,
@@ -45,13 +45,15 @@ export function WriterTools({ kind }: { kind: "topics" | "story" | "script" }) {
   const [open, setOpen] = useState(false),
     [response, setResponse] = useState(""),
     [prompt, setPrompt] = useState(""),
+    [baseRevision, setBaseRevision] = useState<number | null>(null),
     [busy, setBusy] = useState(false);
   async function copy() {
-    const result = await api<{ prompt: string }>(
+    const result = await api<{ prompt: string; base_revision: number }>(
       `/projects/${p.id}/writer/${kind}/prompt`,
       {},
     );
     setPrompt(result.prompt);
+    setBaseRevision(result.base_revision);
     try {
       await navigator.clipboard.writeText(result.prompt);
       s.notify("Prompt skopiowano do schowka");
@@ -62,20 +64,23 @@ export function WriterTools({ kind }: { kind: "topics" | "story" | "script" }) {
   async function generate() {
     setBusy(true);
     try {
-      const result = await api<{ response: string }>(
+      const result = await api<{ response: string; base_revision: number }>(
         `/projects/${p.id}/writer/${kind}/generate`,
         {},
       );
       setResponse(result.response);
+      setBaseRevision(result.base_revision);
     } finally {
       setBusy(false);
     }
   }
   async function accept() {
-    JSON.parse(response.replace(/^```(?:json)?\s*/, "").replace(/```$/, ""));
+    if (kind !== "script")
+      JSON.parse(response.replace(/^```(?:json)?\s*/, "").replace(/```$/, ""));
     await s.mutate((current) =>
       api<Project>(`/projects/${current.id}/writer/${kind}/import`, {
         expected_revision: current.revision,
+        base_revision: baseRevision,
         response,
       }),
     );
@@ -84,7 +89,13 @@ export function WriterTools({ kind }: { kind: "topics" | "story" | "script" }) {
   }
   return (
     <>
-      <Button icon={Sparkles} onClick={() => setOpen(true)}>
+      <Button
+        icon={Sparkles}
+        onClick={() => {
+          setBaseRevision(p.revision);
+          setOpen(true);
+        }}
+      >
         Pracuj z AI
       </Button>
       <Modal
@@ -135,11 +146,17 @@ export function WriterTools({ kind }: { kind: "topics" | "story" | "script" }) {
         <Button
           primary
           icon={Check}
-          disabled={!response.trim()}
+          disabled={!response.trim() || baseRevision !== p.revision}
           onClick={() => s.run(accept)}
         >
           Przyjmij propozycję
         </Button>
+        {baseRevision !== p.revision && (
+          <p className="warning-text">
+            Projekt zmienił się od przygotowania promptu. Pobierz nowy prompt i
+            przygotuj aktualną odpowiedź.
+          </p>
+        )}
       </Modal>
     </>
   );
@@ -360,6 +377,7 @@ export function Facts() {
                   <option value="UNVERIFIED">Do sprawdzenia</option>
                   <option value="VERIFIED">Sprawdzony</option>
                   <option value="DISPUTED">Sporny</option>
+                  <option value="DRAMATIZATION">Dramatyzacja</option>
                 </select>
                 <IconButton
                   icon={Trash2}
@@ -408,6 +426,31 @@ export function Facts() {
                   />
                 </Field>
               </div>
+              <div className="fact-references">
+                {p.scenes
+                  .filter((sc) => sc.fact_ids.includes(fact.id))
+                  .map((sc) => (
+                    <button
+                      className="text-button"
+                      key={sc.id}
+                      onClick={() => {
+                        s.setTargetScene(sc.id);
+                        s.setPage("generation");
+                      }}
+                    >
+                      {sc.title}
+                    </button>
+                  ))}
+                {!p.scenes.some((sc) => sc.fact_ids.includes(fact.id)) && (
+                  <span className="small muted">Brak przypisanych ujęć</span>
+                )}
+              </div>
+              {fact.quote && (
+                <blockquote>
+                  {fact.quote}
+                  <small>Strona / sekcja: {fact.page}</small>
+                </blockquote>
+              )}
               <details className="advanced">
                 <summary>Notatka, spór i stanowiska</summary>
                 <CommitText
@@ -428,6 +471,15 @@ export function Facts() {
 export function Story() {
   const s = useStudio(),
     p = s.project!;
+  const [diff, setDiff] = useState<{
+    approved_revision: number | null;
+    changes: { field: string; before: unknown; after: unknown }[];
+  } | null>(null);
+  useEffect(() => {
+    s.run(async () =>
+      setDiff(await api<typeof diff>(`/projects/${p.id}/story/diff`)),
+    );
+  }, [p.revision]);
   return (
     <div className="page-content editorial-page">
       <SectionHead
@@ -473,6 +525,26 @@ export function Story() {
           sprawdzonych
         </span>
       </div>
+      {diff?.changes.length ? (
+        <details className="surface tool-panel">
+          <summary>
+            Zmiany od zatwierdzenia r{diff.approved_revision} ·{" "}
+            {diff.changes.length} obszarów
+          </summary>
+          {diff.changes.map((c) => (
+            <div key={c.field}>
+              <strong>{c.field}</strong>
+              <div className="diff-grid">
+                <pre>{JSON.stringify(c.before, null, 2)}</pre>
+                <pre>{JSON.stringify(c.after, null, 2)}</pre>
+              </div>
+            </div>
+          ))}
+          <p className="small muted">
+            Ponownie sprawdź scenariusz oparty na zmienionych dowodach.
+          </p>
+        </details>
+      ) : null}
       <div className="story-fields">
         {Object.entries(storyLabels).map(([key, label], index) => (
           <section

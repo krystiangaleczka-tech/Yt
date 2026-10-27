@@ -9,8 +9,16 @@ import {
   FileText,
 } from "lucide-react";
 import { useStudio } from "./context";
-import { upload, mediaUrl } from "./api";
-import { AssetThumb, Button, Empty, Modal, SectionHead } from "./components";
+import { api, upload, mediaUrl } from "./api";
+import {
+  AssetThumb,
+  Button,
+  CommitText,
+  Field,
+  Empty,
+  Modal,
+  SectionHead,
+} from "./components";
 import type { Asset, Project } from "./types";
 import { newClip, fps } from "./timing";
 
@@ -117,7 +125,8 @@ export default function LibraryView() {
                       : "Dokument źródłowy"}
                 </p>
                 <p className="small muted truncate">
-                  {a.license || "Własny materiał"}
+                  {a.license || "Warunki użycia do uzupełnienia"} ·{" "}
+                  {a.id.slice(-6)}
                 </p>
                 {a.kind !== "document" && (
                   <Button
@@ -158,6 +167,62 @@ export default function LibraryView() {
         )}
         {preview?.prompt && (
           <p className="small muted">Prompt: {preview.prompt}</p>
+        )}
+        {preview && (
+          <>
+            <div className="two-fields">
+              {(
+                [
+                  ["name", "Nazwa"],
+                  ["author", "Autor"],
+                  ["source_url", "Adres źródła"],
+                  ["license", "Licencja / warunki użycia"],
+                  ["license_url", "Warunki — adres"],
+                  ["attribution", "Podpis autora"],
+                ] as const
+              ).map(([key, label]) => (
+                <Field key={key} label={label}>
+                  <CommitText
+                    value={preview[key]}
+                    onCommit={(v) => {
+                      const aid = preview.id;
+                      setPreview((a) => (a ? { ...a, [key]: v } : null));
+                      s.run(() =>
+                        s.mutate((c) =>
+                          api<Project>(
+                            `/projects/${p.id}/assets/${aid}`,
+                            {
+                              expected_revision: c.revision,
+                              changes: { [key]: v },
+                            },
+                            "PATCH",
+                          ),
+                        ),
+                      );
+                    }}
+                  />
+                </Field>
+              ))}
+            </div>
+            <p className="small muted">SHA-256: {preview.sha256}</p>
+            <p className="small muted">
+              Użycia:{" "}
+              {p.sequence.clips
+                .filter(
+                  (c) =>
+                    c.asset_id === preview.id ||
+                    c.asset_ids?.includes(preview.id),
+                )
+                .map((c) => c.title)
+                .join(", ") || "brak na osi"}
+            </p>
+            <details>
+              <summary>Pochodzenie materiału</summary>
+              <pre className="provenance-json">
+                {JSON.stringify(preview.provenance, null, 2)}
+              </pre>
+            </details>
+          </>
         )}
       </Modal>
     </div>

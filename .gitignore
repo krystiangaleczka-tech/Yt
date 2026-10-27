@@ -40,6 +40,7 @@ pilot/script_60s.json
 
 # DocOS Studio: local workspace, dependencies and build output
 .venv-studio/
+.venv-align/
 .docos-studio/
 node_modules/
 apps/studio/dist/

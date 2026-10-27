@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Aperture,
   FolderOpen,
@@ -27,7 +27,7 @@ import type { LucideIcon } from "lucide-react";
 import { StudioProvider, useStudio } from "./context";
 import type { Page } from "./context";
 import { api, upload } from "./api";
-import type { Project } from "./types";
+import type { Project, ProjectSummary } from "./types";
 import { Button, Modal, Field, SectionHead, Empty } from "./components";
 import Generation from "./Generation";
 import Sources from "./Sources";
@@ -36,6 +36,7 @@ import { Idea, Facts, Story, Script } from "./Editorial";
 import { Exports, JobList } from "./Exports";
 import Settings from "./Settings";
 import LibraryView from "./Library";
+import Production from "./Production";
 
 const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "idea", label: "Pomysł", icon: Compass },
@@ -54,6 +55,19 @@ function Shell() {
     [title, setTitle] = useState(""),
     [language, setLanguage] = useState("pl");
   const step = steps.find((x) => x.id === s.page);
+  const [dirty, setDirty] = useState(false);
+  useEffect(() => {
+    const changed = (e: Event) => setDirty(Boolean((e as CustomEvent).detail));
+    window.addEventListener("docos:dirty", changed);
+    return () => window.removeEventListener("docos:dirty", changed);
+  }, []);
+  const [theme, setTheme] = useState(
+    localStorage.getItem("docos-theme") || "dark",
+  );
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("docos-theme", theme);
+  }, [theme]);
   const running = s.jobs.filter((j) =>
     ["RUNNING", "QUEUED", "CANCEL_REQUESTED"].includes(j.status),
   ).length;
@@ -98,6 +112,8 @@ function Shell() {
       <Script />
     ) : s.page === "idea" ? (
       <Idea />
+    ) : s.page === "production" ? (
+      <Production />
     ) : s.page === "jobs" ? (
       <div className="page-content">
         <SectionHead
@@ -198,6 +214,22 @@ function Shell() {
         </button>
         <div className="sidebar-bottom">
           <button
+            className={`nav-item ${s.page === "production" ? "active" : ""}`}
+            title="Narzędzia produkcji"
+            onClick={() => navigate("production")}
+          >
+            <SlidersHorizontal size={18} />
+            <span>Narzędzia produkcji</span>
+          </button>
+          <button
+            className="nav-item"
+            title="Zmień motyw"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            <Aperture size={18} />
+            <span>{theme === "dark" ? "Jasny motyw" : "Ciemny motyw"}</span>
+          </button>
+          <button
             className="nav-item"
             onClick={() => s.setSettingsOpen(true)}
             title="Ustawienia"
@@ -246,6 +278,11 @@ function Shell() {
               {s.projects.length === 0 && (
                 <option value="">Moje projekty</option>
               )}
+              {s.project && !s.projects.some((p) => p.id === s.project?.id) && (
+                <option value={s.project.id}>
+                  {s.project.title} · archiwum
+                </option>
+              )}
               {s.projects.map((p) => (
                 <option value={p.id} key={p.id}>
                   {p.title}
@@ -260,6 +297,7 @@ function Shell() {
                   projects: "Projekty",
                   library: "Biblioteka",
                   jobs: "Zadania",
+                  production: "Narzędzia produkcji",
                 }[s.page as "sources"]}
             </strong>
           </div>
@@ -273,7 +311,11 @@ function Shell() {
               ) : (
                 <>
                   <Check size={13} />
-                  Zapisano
+                  {s.saveError
+                    ? "Błąd zapisu"
+                    : dirty
+                      ? "Oczekuje zapisu"
+                      : "Zapisano"}
                 </>
               )}
             </span>
@@ -358,6 +400,17 @@ function Shell() {
 }
 function Projects({ onNew }: { onNew: () => void }) {
   const s = useStudio();
+  const [archived, setArchived] = useState(false),
+    [projectList, setProjectList] = useState<ProjectSummary[]>(s.projects);
+  useEffect(() => {
+    if (archived)
+      s.run(async () =>
+        setProjectList(
+          await api<ProjectSummary[]>("/projects?include_archived=true"),
+        ),
+      );
+    else setProjectList(s.projects);
+  }, [archived, s.projects]);
   return (
     <div className="page-content">
       <SectionHead
@@ -399,14 +452,13 @@ function Projects({ onNew }: { onNew: () => void }) {
         </Button>
       </SectionHead>
       <div className="project-grid">
-        {s.projects.map((p) => (
+        {projectList.map((p) => (
           <button
             className="project-card"
             key={p.id}
             onClick={() =>
               s.run(async () => {
                 await s.load(p.id);
-                s.setPage("generation");
               })
             }
           >
@@ -419,6 +471,10 @@ function Projects({ onNew }: { onNew: () => void }) {
               <p>
                 {p.scenes} ujęć <span>·</span> {p.assets} materiałów
               </p>
+              <p className="small muted">
+                {p.archived ? "Archiwum · " : ""}
+                {p.next_step}
+              </p>
               <div className="project-meta">
                 <span>
                   {new Date(p.updated_at).toLocaleDateString("pl-PL")}
@@ -429,6 +485,14 @@ function Projects({ onNew }: { onNew: () => void }) {
           </button>
         ))}
       </div>
+      <label className="checkbox">
+        <input
+          type="checkbox"
+          checked={archived}
+          onChange={(e) => setArchived(e.target.checked)}
+        />
+        Pokaż archiwalne projekty
+      </label>
     </div>
   );
 }

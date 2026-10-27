@@ -8,15 +8,17 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from studio_core.models import uid
-from studio_core.store import now
+from studio_core.store import now,atomic_json
 
 
 class Jobs:
     def __init__(self, root: Path):
+        self.root=root
         self.path = root / "jobs.sqlite3"
-        self.pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="docos")
+        self.pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="docos")
+        self.heavy_pool=ThreadPoolExecutor(max_workers=1,thread_name_prefix="docos-model")
         self.heavy = threading.Semaphore(1)
-        self.cancel_events = {}
+        self.cancel_events = {}; self.tasks = {}
         with self.db() as db:
             db.execute("CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, data TEXT NOT NULL)")
             for job_id, data in db.execute("SELECT id,data FROM jobs").fetchall():
@@ -57,16 +59,19 @@ class Jobs:
             job.update(changes, updated_at=now())
             db.execute("UPDATE jobs SET data=? WHERE id=?", (json.dumps(job), job_id))
 
-    def submit(self, project_id, revision, kind, task):
+    def submit(self, project_id, revision, kind, task, *, request=None, heavy=True,snapshot=None):
         job_id = uid("job_")
+        if snapshot is not None:atomic_json(self.root/"job-inputs"/(job_id+".json"),snapshot)
         job = dict(id=job_id, project_id=project_id, revision=revision, kind=kind, status="QUEUED", progress=0,
-                   message="W kolejce", result=None, created_at=now(), updated_at=now())
+                   message="W kolejce", result=None, request=request, created_at=now(), updated_at=now())
         with self.db() as db:
             db.execute("INSERT INTO jobs VALUES (?,?)", (job_id, json.dumps(job)))
         cancel = threading.Event(); self.cancel_events[job_id] = cancel
+        self.tasks[job_id]=(task,heavy)
         def run():
             try:
-                with self.heavy:
+                from contextlib import nullcontext
+                with self.heavy if heavy else nullcontext():
                     if cancel.is_set():
                         raise InterruptedError()
                     self.update(job_id, status="RUNNING", message="Uruchamianie")
@@ -80,8 +85,18 @@ class Jobs:
                 self.update(job_id, status="FAILED", message=str(error)[-2500:])
             finally:
                 self.cancel_events.pop(job_id, None)
-        self.pool.submit(run)
+        (self.heavy_pool if heavy else self.pool).submit(run)
         return job
+
+    def retry(self,job_id):
+        job=self.get(job_id)
+        if job["status"] not in ("FAILED","CANCELLED","INTERRUPTED"):
+            raise ValueError("Możesz ponowić nieudane lub przerwane zadanie")
+        if job_id not in self.tasks: return None
+        task,heavy=self.tasks[job_id]
+        path=self.root/"job-inputs"/(job_id+".json")
+        snapshot=json.loads(path.read_text()) if path.is_file() else None
+        return self.submit(job["project_id"],job["revision"],job["kind"],task,request=job.get("request"),heavy=heavy,snapshot=snapshot)
 
     def cancel(self, job_id):
         event = self.cancel_events.get(job_id)
@@ -96,3 +111,4 @@ class Jobs:
         for event in list(self.cancel_events.values()):
             event.set()
         self.pool.shutdown(wait=False, cancel_futures=True)
+        self.heavy_pool.shutdown(wait=False,cancel_futures=True)

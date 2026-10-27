@@ -4,8 +4,11 @@ export type Fact = {
   source: string;
   url: string;
   page: string;
-  status: "UNVERIFIED" | "VERIFIED" | "DISPUTED";
+  status: "UNVERIFIED" | "VERIFIED" | "DISPUTED" | "DRAMATIZATION";
   note: string;
+  source_id?: string | null;
+  quote?: string;
+  checked_at?: string;
 };
 export type Source = {
   id: string;
@@ -19,6 +22,8 @@ export type Source = {
   pages: { page: string; text: string }[];
   asset_id: string | null;
   accessed_at: string;
+  metadata?: Record<string, unknown>;
+  original_asset_id?: string | null;
 };
 export type Asset = {
   id: string;
@@ -38,6 +43,7 @@ export type Asset = {
   attribution: string;
   prompt: string;
   provenance: Record<string, unknown>;
+  private?: boolean;
 };
 export type Animation =
   "static" | "zoom-in" | "zoom-out" | "pan-left" | "pan-right";
@@ -60,6 +66,62 @@ export type Scene = {
   role: "literal" | "illustration" | "reconstruction";
   locked: boolean;
   legacy: Record<string, unknown>;
+  beat_id?: string | null;
+  lock_narration?: boolean;
+  lock_timing?: boolean;
+  lock_media?: boolean;
+  voice_input_hash?: string;
+  voice_profile?: Record<string, unknown>;
+  sentences?: VoiceSentence[];
+  words?: Word[];
+  alignment_hash?: string;
+  template?: string;
+  parameters?: Record<string, unknown>;
+  asset_ids?: string[];
+  generation?: Record<string, unknown>;
+};
+export type Word = {
+  word: string;
+  start: number;
+  end: number;
+  probability?: number;
+  break_after?: boolean;
+  reviewed?: boolean;
+};
+export type VoiceSentence = {
+  id: string;
+  text: string;
+  spoken_text: string;
+  asset_id: string | null;
+  variants: string[];
+  input_hash: string;
+  duration: number;
+};
+export type Beat = {
+  id: string;
+  title: string;
+  chapter: string;
+  goal: string;
+  narration: string;
+  turn: string;
+  energy: number;
+  dynamics: string;
+  typology: string;
+  chaos: string;
+  fact_ids: string[];
+};
+export type Template = {
+  id: string;
+  name: string;
+  note?: string;
+  fields: {
+    key: string;
+    label: string;
+    type: string;
+    default: unknown;
+    min?: number;
+    max?: number;
+  }[];
 };
 export type Track = {
   id: string;
@@ -68,6 +130,7 @@ export type Track = {
   role: "picture" | "overlay" | "titles" | "narration" | "music" | "effects";
   locked: boolean;
   muted: boolean;
+  solo?: boolean;
 };
 export type Keyframe = {
   property: "x" | "y" | "scale" | "rotation" | "opacity" | "volume";
@@ -96,14 +159,31 @@ export type Clip = {
   fade_out: number;
   locked: boolean;
   keyframes: Keyframe[];
+  group_id?: string;
+  template?: string;
+  parameters?: Record<string, unknown>;
+  asset_ids?: string[];
+  fact_ids?: string[];
+  transition?: string;
+  transition_duration?: number;
+  crop?: Record<string, number>;
 };
 export type Project = {
-  schema_version: "docos-studio/1";
+  schema_version: "docos-studio/1" | "docos-studio/2";
   id: string;
   revision: number;
   title: string;
   language: string;
   channel: string;
+  channel_id: string;
+  channel_profile: Record<string, unknown>;
+  archived: boolean;
+  published: boolean;
+  beats: Beat[];
+  voice_profile: Record<string, unknown>;
+  pronunciation: Record<string, string>;
+  budget: Record<string, number>;
+  accepted_warnings: string[];
   niche: string;
   updated_at: string;
   demo: boolean;
@@ -124,6 +204,8 @@ export type Project = {
     fps_den: number;
     width: number;
     height: number;
+    ducking: boolean;
+    ducking_gain: number;
     tracks: Track[];
     clips: Clip[];
   };
@@ -139,6 +221,9 @@ export type ProjectSummary = {
   demo: boolean;
   duration: number;
   fps: number;
+  archived?: boolean;
+  channel?: string;
+  next_step?: string;
 };
 export type Job = {
   id: string;
@@ -153,6 +238,10 @@ export type Job = {
     asset_id?: string;
     revision: number;
     mode?: string;
+    frame?: number;
+    results?: SearchResult[];
+    errors?: Record<string, string>;
+    asset_ids?: string[];
   };
   created_at: string;
 };
@@ -179,10 +268,15 @@ export type SearchResult = {
   description?: string;
   preview_url?: string;
   duration?: number;
+  access?: string;
+  language?: string;
+  variants?: { name: string; url: string; width?: number; height?: number }[];
 };
 export type Operation = {
   type: string;
   clip_id?: string;
+  clip_ids?: string[];
+  move_group?: boolean;
   track_id?: string;
   frame?: number;
   changes?: Record<string, unknown>;
@@ -204,6 +298,8 @@ export type Health = {
   voice: boolean;
 };
 export type Issue = {
+  code?: string;
+  accepted?: boolean;
   type: string;
   severity: string;
   message: string;

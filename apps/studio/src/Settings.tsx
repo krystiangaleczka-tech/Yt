@@ -17,6 +17,7 @@ type Settings = {
   ai_configured: boolean;
   ai_base_url: string;
   ai_model: string;
+  ai_request_cost: number;
   custom: Custom[];
 };
 export default function SettingsPanel() {
@@ -27,6 +28,9 @@ export default function SettingsPanel() {
     [key, setKey] = useState(""),
     [base, setBase] = useState(""),
     [model, setModel] = useState(""),
+    [cost, setCost] = useState("0"),
+    [authorization, setAuthorization] = useState(""),
+    [header, setHeader] = useState("Authorization"),
     [name, setName] = useState(""),
     [url, setUrl] = useState(""),
     [path, setPath] = useState("results"),
@@ -42,6 +46,7 @@ export default function SettingsPanel() {
         setSettings(data);
         setBase(data.ai_base_url);
         setModel(data.ai_model);
+        setCost(String(data.ai_request_cost || 0));
       });
   }, [s.settingsOpen]);
   async function save() {
@@ -50,6 +55,7 @@ export default function SettingsPanel() {
       const changes: Record<string, unknown> = {
         ai_base_url: base,
         ai_model: model,
+        ai_request_cost: Number(cost),
       };
       if (pixabay) changes.pixabay_key = pixabay;
       if (pexels) changes.pexels_key = pexels;
@@ -81,6 +87,7 @@ export default function SettingsPanel() {
             kind,
             results_path: path,
             mapping: parsed,
+            ...(authorization ? { headers: { [header]: authorization } } : {}),
           },
         ],
       },
@@ -89,6 +96,7 @@ export default function SettingsPanel() {
     setSettings(next);
     setName("");
     setUrl("");
+    setAuthorization("");
     s.notify("Dodano własne źródło");
   }
   return (
@@ -164,6 +172,15 @@ export default function SettingsPanel() {
               value={key}
               onChange={(e) => setKey(e.target.value)}
               placeholder="Klucz pozostaje na Twoim komputerze"
+            />
+          </Field>
+          <Field label="Szacowany koszt jednego wywołania API">
+            <input
+              type="number"
+              min="0"
+              step="0.001"
+              value={cost}
+              onChange={(e) => setCost(e.target.value)}
             />
           </Field>
           <p className="small muted">
@@ -266,6 +283,51 @@ export default function SettingsPanel() {
               onChange={(e) => setMapping(e.target.value)}
             />
           </Field>
+        </div>
+        <div className="two-fields">
+          <Field label="Nazwa nagłówka uwierzytelnienia">
+            <input value={header} onChange={(e) => setHeader(e.target.value)} />
+          </Field>
+          <Field label="Prywatna wartość nagłówka">
+            <input
+              type="password"
+              autoComplete="off"
+              value={authorization}
+              onChange={(e) => setAuthorization(e.target.value)}
+              placeholder="Bearer …"
+            />
+          </Field>
+        </div>
+        <p className="small muted">
+          Użyj {"{query}"} i opcjonalnie {"{page}"} w adresie API. Nagłówki nie
+          są zwracane do przeglądarki ani eksportowane.
+        </p>
+        <div className="button-row">
+          {[
+            "commons",
+            "pixabay",
+            "pexels",
+            "openlibrary",
+            "googlebooks",
+            "crossref",
+            ...(settings?.custom.map((c) => c.id) || []),
+          ].map((provider) => (
+            <Button
+              subtle
+              key={provider}
+              onClick={() =>
+                s.run(async () => {
+                  const r = await api<{ ok: boolean; message: string }>(
+                    `/connectors/${provider}/test`,
+                    {},
+                  );
+                  s.notify(r.message, !r.ok);
+                })
+              }
+            >
+              Test {provider}
+            </Button>
+          ))}
         </div>
         <Button icon={Plus} onClick={() => s.run(addCustom)}>
           Dodaj źródło

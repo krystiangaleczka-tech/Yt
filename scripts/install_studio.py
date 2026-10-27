@@ -11,10 +11,12 @@ import venv
 def main():
     parser = argparse.ArgumentParser(description="Instalacja DocOS Studio")
     parser.add_argument("--run", action="store_true", help="uruchom aplikację po instalacji")
+    parser.add_argument("--with-models",action="store_true",help="zainstaluj również środowiska obrazu, głosu i znaczników słów (wymaga uv)")
+    parser.add_argument("--with-alignment",action="store_true",help="zainstaluj lokalne znaczniki słów (wymaga uv)")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    if sys.version_info < (3, 11):
-        raise SystemExit("Wymagany Python 3.11 lub nowszy; zalecany 3.12.")
+    if sys.version_info < (3, 12):
+        raise SystemExit("Studio wymaga Pythona 3.12 lub nowszego (zamknięte zależności NumPy). Lektor działa w osobnym środowisku Python 3.11.")
     npm = shutil.which("npm.cmd" if os.name == "nt" else "npm")
     if not npm:
         raise SystemExit("Zainstaluj Node.js 22 LTS (co najmniej 22.12) i ponów instalację.")
@@ -28,6 +30,16 @@ def main():
     for command in ([str(python), "-m", "pip", "install", "-r", "requirements-studio.lock"],
                     [npm, "--prefix", "apps/studio", "ci"], [npm, "--prefix", "apps/studio", "run", "build"]):
         subprocess.run(command, cwd=root, check=True)
+    if args.with_models or args.with_alignment:
+        uv=shutil.which("uv")
+        if not uv:raise SystemExit("Do oddzielnych środowisk modeli zainstaluj uv: https://docs.astral.sh/uv/getting-started/installation/ i ponów polecenie.")
+        runtimes=[(".venv-align","3.12","requirements-align-studio.lock")]
+        if args.with_models:runtimes=[("pilot/.venv","3.12","requirements-image-studio.lock"),("pilot/.venv-tts","3.11","requirements-voice-studio.lock"),*runtimes]
+        for folder,version,requirements in runtimes:
+            target=root/folder;interpreter=target/("Scripts/python.exe" if os.name=="nt" else "bin/python")
+            if not interpreter.exists():subprocess.run([uv,"venv","--python",version,str(target)],cwd=root,check=True)
+            subprocess.run([uv,"pip","install","--python",str(interpreter),"-r",requirements],cwd=root,check=True)
+        print("Środowiska modeli gotowe. Wagi są pobierane przy pierwszym użyciu. Własną próbkę głosu dodaj w Narzędziach produkcji.",flush=True)
     print("Studio gotowe. Adres: http://127.0.0.1:8876", flush=True)
     if args.run:
         subprocess.run([str(python), "-m", "studio_api"], cwd=root, check=True)
