@@ -16,7 +16,7 @@ from studio_timeline.operations import apply_operations
 
 class ProjectService(ProjectStore):
     def patch(self, project_id, revision, changes):
-        allowed = {"title", "language", "channel", "niche", "facts", "sources", "story", "scenes", "beats", "voice_profile", "pronunciation", "channel_id", "channel_profile", "budget", "archived", "published", "accepted_warnings"}
+        allowed = {"title", "language", "channel", "niche", "facts", "sources", "story", "scenes", "beats", "voice_profile", "pronunciation", "channel_id", "channel_profile", "budget", "archived", "published", "accepted_warnings", "development"}
         if not isinstance(changes, dict) or not set(changes) <= allowed:
             raise ValueError("Oś czasu i materiały mają osobne operacje")
         def update(project):
@@ -127,7 +127,7 @@ class ProjectService(ProjectStore):
         def restore(project):
             assets = {a.id: a for a in project.assets}
             assets.update({a.id: a for a in variant.assets})
-            for key in ("sequence", "scenes", "beats", "facts", "sources", "story", "title", "language", "voice_profile", "pronunciation"):
+            for key in ("sequence", "scenes", "beats", "facts", "sources", "story", "title", "language", "voice_profile", "pronunciation", "development"):
                 setattr(project, key, copy.deepcopy(getattr(variant, key)))
             project.assets = list(assets.values())
         return self.mutate(project_id, revision, restore)
@@ -158,6 +158,7 @@ class ProjectService(ProjectStore):
             p = self.get(item["id"])
             if (p.channel_id == project.channel_id) if project.channel_id else (p.channel == project.channel):
                 titles.extend(p.topic_history)
+                titles.extend(i.title for i in p.development.ideas)
                 if p.published or p.id != project.id:
                     titles.append(p.title)
         return list(dict.fromkeys(titles))

@@ -25,6 +25,7 @@ import {
 } from "./components";
 import type { Fact, Project } from "./types";
 import { makeScene } from "./Generation";
+import { ScriptStructure } from "./Ideation";
 import { fps, time } from "./timing";
 
 const storyLabels: Record<string, string> = {
@@ -162,120 +163,7 @@ export function WriterTools({ kind }: { kind: "topics" | "story" | "script" }) {
   );
 }
 
-export function Idea() {
-  const s = useStudio(),
-    p = s.project!;
-  return (
-    <div className="page-content editorial-page">
-      <SectionHead
-        eyebrow="01 / POMYSŁ"
-        title="Pomysł na film"
-        description="Wybierz temat i pytanie, na które odpowie dokument."
-      >
-        <WriterTools kind="topics" />
-      </SectionHead>
-      <div className="editorial-two-columns">
-        <section className="surface padded">
-          <Field label="Tytuł filmu">
-            <CommitText
-              value={p.title}
-              onCommit={(v) => s.run(() => s.patch({ title: v }))}
-              placeholder="Tytuł Twojego dokumentu"
-            />
-          </Field>
-          <Field label="Pytanie, na które odpowie film">
-            <CommitText
-              multiline
-              rows={4}
-              value={p.story.central_question || ""}
-              onCommit={(v) =>
-                s.run(() =>
-                  s.patch((current) => ({
-                    story: { ...current.story, central_question: v },
-                  })),
-                )
-              }
-            />
-          </Field>
-          <div className="two-fields">
-            <Field label="Kanał">
-              <CommitText
-                value={p.channel}
-                onCommit={(v) => s.run(() => s.patch({ channel: v }))}
-              />
-            </Field>
-            <Field label="Język">
-              <select
-                value={p.language}
-                onChange={(e) =>
-                  s.run(() => s.patch({ language: e.target.value }))
-                }
-              >
-                <option value="pl">Polski</option>
-                <option value="en">English</option>
-              </select>
-            </Field>
-          </div>
-          <Button primary icon={ArrowRight} onClick={() => s.setPage("facts")}>
-            Zacznij research
-          </Button>
-        </section>
-        <section className="editorial-note">
-          <div className="eyebrow">PAKIET DOCUMENTARY</div>
-          <h2>
-            Najpierw ciekawość.
-            <br />
-            Potem dowody.
-          </h2>
-          <p>
-            Wyjaśnij jedno rzeczywiste zjawisko. Pokaż, jak działa, co je
-            komplikuje i dlaczego dotyczy widza.
-          </p>
-          <div className="note-rule">
-            Tytuł obiecuje odpowiedź.
-            <br />
-            Finał ją dostarcza.
-          </div>
-          <p className="small muted">
-            Historia wcześniejszych propozycji: {p.topic_history.length}{" "}
-            tytułów. Kolejny prompt wykluczy je z nowej listy.
-          </p>
-        </section>
-      </div>
-      {p.topics.length > 0 && (
-        <div className="topic-grid">
-          {p.topics.map((topic, index) => (
-            <button
-              className="topic-card surface"
-              key={topic.title}
-              onClick={() =>
-                s.run(async () => {
-                  await s.patch((current) => ({
-                    title: topic.title,
-                    story: {
-                      ...current.story,
-                      central_question: topic.central_question || "",
-                    },
-                  }));
-                  s.notify("Wybrano temat");
-                })
-              }
-            >
-              <span className="eyebrow">
-                {String(index + 1).padStart(2, "0")} / {topic.subject}
-              </span>
-              <h3>{topic.title}</h3>
-              <p>{topic.central_question}</p>
-              <span className="text-link">
-                Wybierz temat <ArrowRight size={14} />
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+export { default as Idea } from "./Ideation";
 
 export function Facts() {
   const s = useStudio(),
@@ -382,9 +270,19 @@ export function Facts() {
                 <IconButton
                   icon={Trash2}
                   label="Usuń fakt"
-                  disabled={p.scenes.some((sc) =>
-                    sc.fact_ids.includes(fact.id),
-                  )}
+                  disabled={
+                    p.scenes.some((sc) => sc.fact_ids.includes(fact.id)) ||
+                    p.beats.some((beat) => beat.fact_ids.includes(fact.id)) ||
+                    p.development.ideas.some((idea) =>
+                      idea.stories.some((story) =>
+                        story.chapters.some((chapter) =>
+                          chapter.sections.some((section) =>
+                            section.fact_ids.includes(fact.id),
+                          ),
+                        ),
+                      ),
+                    )
+                  }
                   onClick={() =>
                     s.run(() =>
                       s.patch((current) => ({
@@ -660,6 +558,7 @@ export function Script() {
           TXT
         </Button>
       </div>
+      <ScriptStructure />
       {!p.scenes.length ? (
         <Empty
           icon={FileText}

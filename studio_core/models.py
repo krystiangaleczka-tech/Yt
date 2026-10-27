@@ -6,6 +6,7 @@ from typing import Any, Literal
 from pydantic import Field, model_validator
 from .models_base import Model, uid
 from .inserts import MotionInsert
+from .development import Development, migrate_ideas
 
 
 class Fact(Model):
@@ -86,6 +87,12 @@ class VoiceSentence(Model):
 class Beat(Model):
     id: str = Field(default_factory=lambda: uid("beat_"))
     title: str = "Nowy fragment"
+    planning_ref: str = ""
+    planning_chapter_id: str = ""
+    planning_seconds: int = Field(default=0, ge=0, le=3600)
+    planning_question: str = ""
+    retention_plan: str = ""
+    evidence_needed: str = ""
     chapter: str = "Historia"
     goal: str = ""
     narration: str = ""
@@ -209,6 +216,7 @@ class Project(Model):
     updated_at: str = ""
     demo: bool = False
     topics: list[dict[str, Any]] = Field(default_factory=list)
+    development: Development = Field(default_factory=Development)
     topic_history: list[str] = Field(default_factory=list)
     facts: list[Fact] = Field(default_factory=list)
     sources: list[Source] = Field(default_factory=list)
@@ -235,7 +243,9 @@ class Project(Model):
     @model_validator(mode="before")
     @classmethod
     def migrate_version_one(cls,value):
-        if isinstance(value,dict) and value.get("schema_version")=="docos-studio/1":return {**value,"schema_version":"docos-studio/2"}
+        if isinstance(value,dict):
+            value=migrate_ideas(value)
+            if value.get("schema_version")=="docos-studio/1":return {**value,"schema_version":"docos-studio/2"}
         return value
 
     @model_validator(mode="after")
@@ -261,6 +271,8 @@ class Project(Model):
             if insert.rendered_asset_id and (insert.rendered_asset_id not in assets or assets[insert.rendered_asset_id].kind != "video"):
                 raise ValueError("Wstawka wymaga istniejącego renderu wideo")
         facts = {f.id for f in self.facts}
+        if any(not set(section.fact_ids)<=facts for idea in self.development.ideas for story in idea.stories for chapter in story.chapters for section in chapter.sections):
+            raise ValueError("Plan rozdziałów wskazuje nieistniejący fakt")
         beats = {b.id for b in self.beats}
         sources={s.id for s in self.sources}
         if any(not set(b.fact_ids)<=facts for b in self.beats): raise ValueError("Fragment odwołuje się do nieistniejącego faktu")

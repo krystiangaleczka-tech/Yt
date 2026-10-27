@@ -28,7 +28,7 @@ Wagi modeli pobierają się przy pierwszym użyciu. Pliki lock dla serwera, obra
 
 ## Praca nad filmem
 
-1. **Pomysł** — tytuł własny albo 10 propozycji; historia tematów jest wspólna dla kanału, również między odcinkami i w archiwum.
+1. **Pomysł** — brief i kafelki tematów własnych/AI; w każdym temacie kilka wariantów historii, porównanie potencjału oraz rozdziały i podrozdziały. Historia tematów jest wspólna dla kanału. [Warsztat pomysłów i metryki](STUDIO_IDEAS.md).
 2. **Fakty i research** — twierdzenie, źródło, strona/rozdział, cytat, status i użycia. Zmiana twierdzenia lub źródła cofa jego weryfikację.
 3. **Historia** — pytanie, hook, teza i finał; zatwierdzenie wymaga sprawdzonego źródła. Widok różnic pokazuje zmiany od poprzedniego zatwierdzenia.
 4. **Scenariusz** — narracje ujęć i pełny tekst. W Narzędziach edytujesz rozdziały/fragmenty, ich cele, zwroty i energię 1–10. Krzywa energii jest planem redakcyjnym.

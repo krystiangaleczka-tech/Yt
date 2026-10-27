@@ -469,6 +469,8 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
         return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     from .production import register
+    from .development import register_development
+    register_development(app,store,connectors)
     register(app,store,jobs,connectors,REPO,{"render":start_render,"generate":generate,"writer":writing,"fetch":fetch_medium,"motion":motion_render})
     dist = REPO / "apps" / "studio" / "dist"
     if dist.exists():

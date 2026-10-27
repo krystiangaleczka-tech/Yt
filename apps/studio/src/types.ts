@@ -1,4 +1,5 @@
 import type { MotionInsert } from "./motion/types";
+import type { Development } from "./developmentTypes";
 export type Fact = {
   id: string;
   claim: string;
@@ -100,6 +101,12 @@ export type VoiceSentence = {
 };
 export type Beat = {
   id: string;
+  planning_ref?: string;
+  planning_chapter_id?: string;
+  planning_seconds?: number;
+  planning_question?: string;
+  retention_plan?: string;
+  evidence_needed?: string;
   title: string;
   chapter: string;
   goal: string;
@@ -170,6 +177,7 @@ export type Clip = {
   crop?: Record<string, number>;
 };
 export type Project = {
+  development: Development;
   schema_version: "docos-studio/1" | "docos-studio/2";
   id: string;
   revision: number;

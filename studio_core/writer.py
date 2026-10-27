@@ -22,9 +22,9 @@ def prompt(project: Project, kind: str) -> str:
     if kind == "script":
         if project.story.get("status") != "APPROVED" or project.story.get("approved_hash") != story_hash(project):
             raise ValueError("Przed generowaniem scenariusza zatwierdź Historię")
-        return base + "\nZATWIERDZONA HISTORIA: " + json.dumps(project.story, ensure_ascii=False) + """
+        return base + "\nROZDZIAŁY I PODROZDZIAŁY DO ROZWINIĘCIA (planning_seconds określa planowany czas; pytania i evidence_needed nie są dowodami): " + json.dumps([b.model_dump() for b in project.beats],ensure_ascii=False) + "\nZATWIERDZONA HISTORIA: " + json.dumps(project.story, ensure_ascii=False) + """
 Zwróć wyłącznie tablicę JSON ujęć: [{"title":"...","narration":"tekst lektora","prompt":"opis obrazu",
-"search_query":"czego szukać w archiwum","seconds":6,"fact_ids":["ID faktu"]}].
+"search_query":"czego szukać w archiwum","seconds":6,"fact_ids":["ID faktu"],"beat_id":"ID podrozdziału z powyższego planu"}]. Jeśli istnieje plan, zachowaj jego kolejność, przypisz ujęcia do istniejących beat_id i rozwiń każdy podrozdział. Bez planu pomiń beat_id.
 Narracja to tekst do przeczytania, bez wskazówek wizualnych, markdown i zmyślonych cytatów.
 Każde twierdzenie opiera się na podanym banku. Nie używaj UNVERIFIED jako ustalonego faktu.
 DISPUTED przedstaw z uczciwym opisem sporu. Jeśli brak dowodów, wyjaśnij brak zamiast pisać fikcję.
@@ -57,6 +57,11 @@ def import_response(project: Project, kind: str, response: str):
         result = editorial.save_topics(profile, data)
         project.topics = result["topic_candidates"]
         project.topic_history = result["suggested_titles"]
+        from .development import FilmIdea
+        existing={i.title.casefold() for i in project.development.ideas}
+        for item in project.topics:
+            if item["title"].casefold() not in existing:
+                project.development.ideas.append(FilmIdea(title=item["title"],question=item.get("central_question", ""),angle=item.get("subject", ""),origin="ai"));existing.add(item["title"].casefold())
     elif kind == "story":
         if not isinstance(data, dict) or any(not isinstance(v, str) for v in data.values()):
             raise ValueError("Karta historii wymaga pól tekstowych")

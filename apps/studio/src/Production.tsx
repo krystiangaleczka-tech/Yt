@@ -799,7 +799,7 @@ export function VoiceTools() {
   );
 }
 
-function BeatTools() {
+export function BeatTools() {
   const s = useStudio(),
     p = s.project!;
   const [selected, setSelected] = useState(p.beats[0]?.id || ""),

@@ -301,7 +301,7 @@ function Shell() {
               )}
               {s.projects.map((p) => (
                 <option value={p.id} key={p.id}>
-                  {p.title}
+                  {p.id === s.project?.id ? s.project.title : p.title}
                 </option>
               ))}
             </select>
