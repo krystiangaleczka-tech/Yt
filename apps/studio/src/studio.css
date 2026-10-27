@@ -5444,6 +5444,66 @@ textarea::placeholder {
   flex-wrap: wrap;
 }
 
+/* Excel-style inventory tables for Ideation */
+.excel-table-panel {
+  margin-bottom: 24px;
+}
+.excel-table-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  margin-top: 14px;
+}
+.excel-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+.excel-table th,
+.excel-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.excel-table th {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.excel-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.excel-table tr.row-chosen {
+  background: rgba(46, 204, 113, 0.05);
+}
+.excel-table tr.chapter-header-row {
+  background: rgba(255, 255, 255, 0.03);
+}
+.excel-table tr.chapter-header-row td {
+  border-top: 2px solid var(--line);
+}
+.excel-table tr.subchapter-row td {
+  font-size: 12px;
+}
+.excel-table td.cell-wrap {
+  min-width: 160px;
+  max-width: 280px;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+}
+.excel-table td.actions-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
 @media (max-width: 1100px) {
   .bank-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

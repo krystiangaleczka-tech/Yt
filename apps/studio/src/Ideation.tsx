@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -14,6 +14,7 @@ import {
   Redo2,
   TrendingUp,
   BookOpen,
+  Pencil,
 } from "lucide-react";
 import { useStudio } from "./context";
 import { api } from "./api";
@@ -150,7 +151,26 @@ export default function IdeaWorkspace() {
       title: string;
       description: string;
       action: () => Promise<unknown>;
-    }>(null);
+    }>(null),
+    [storyModal, setStoryModal] = useState<{
+      open: boolean;
+      story?: StoryOption | null;
+    } | null>(null),
+    [chapterModal, setChapterModal] = useState<{
+      open: boolean;
+      chapter?: Chapter | null;
+      chapterIndex?: number;
+    } | null>(null),
+    [subchapterModal, setSubchapterModal] = useState<{
+      open: boolean;
+      chapterIndex: number;
+      section?: Subchapter | null;
+      sectionIndex?: number;
+    } | null>(null),
+    [assumptionsModal, setAssumptionsModal] = useState<{
+      open: boolean;
+      story: StoryOption;
+    } | null>(null);
   useEffect(() => {
     let active = true;
     Promise.all([
@@ -253,6 +273,56 @@ export default function IdeaWorkspace() {
       },
     });
   }
+  function confirmDeleteStory(targetStory: StoryOption) {
+    setConfirm({
+      title: "Usunąć wariant historii?",
+      description: `„${targetStory.title}” zniknie z kolekcji.`,
+      action: async () => {
+        changeIdea((current) => ({
+          stories: current.stories.filter((x) => x.id !== targetStory.id),
+        }));
+        if (storyId === targetStory.id) setStoryId(null);
+      },
+    });
+  }
+
+  function confirmDeleteChapter(ci: number) {
+    setConfirm({
+      title: "Usunąć rozdział?",
+      description:
+        "Ten rozdział oraz wszystkie jego podrozdziały zostaną usunięte.",
+      action: async () => {
+        changeStory((current) => ({
+          chapters: current.chapters.filter((_, i) => i !== ci),
+        }));
+      },
+    });
+  }
+
+  function confirmDeleteSection(ci: number, si: number) {
+    changeStory((current) => ({
+      chapters: current.chapters.map((c, i) =>
+        i === ci
+          ? { ...c, sections: c.sections.filter((_, idx) => idx !== si) }
+          : c,
+      ),
+    }));
+  }
+
+  function moveChapterItem(ci: number, dir: number) {
+    changeStory((current) => ({
+      chapters: move(current.chapters, ci, dir),
+    }));
+  }
+
+  function moveSectionItem(ci: number, si: number, dir: number) {
+    changeStory((current) => ({
+      chapters: current.chapters.map((c, i) =>
+        i === ci ? { ...c, sections: move(c.sections, si, dir) } : c,
+      ),
+    }));
+  }
+
   const launch = (kind: AITarget["kind"]) =>
     setAI({ kind, idea_id: idea?.id, story_id: story?.id });
   return (
@@ -586,14 +656,7 @@ export default function IdeaWorkspace() {
               </Button>
               <Button
                 icon={Plus}
-                onClick={() => {
-                  const value = blankStory();
-                  changeIdea((current) => ({
-                    stories: [...current.stories, value],
-                  }));
-                  setStoryId(value.id);
-                  setTab("story");
-                }}
+                onClick={() => setStoryModal({ open: true })}
               >
                 Dodaj własną historię
               </Button>
@@ -604,10 +667,35 @@ export default function IdeaWorkspace() {
               <span className="eyebrow">ALTERNATYWNE KONSTRUKCJE</span>
               <h2>Jak opowiedzieć ten film?</h2>
             </div>
-            <span className="muted">{idea.stories.length} wariantów</span>
+            <div className="button-row">
+              <span className="muted">{idea.stories.length} wariantów</span>
+              <Button
+                primary
+                icon={Plus}
+                onClick={() => setStoryModal({ open: true })}
+              >
+                Nowy wariant historii
+              </Button>
+            </div>
           </div>
           {idea.stories.length ? (
             <>
+              <StoryTable
+                stories={idea.stories}
+                forecasts={forecasts}
+                selectedId={d.selected_story_id}
+                onOpen={(item) => {
+                  setStoryId(item.id);
+                  setTab("story");
+                }}
+                onEdit={(item) => setStoryModal({ open: true, story: item })}
+                onChapters={(item) => {
+                  setStoryId(item.id);
+                  setTab("chapters");
+                }}
+                onChoose={(item) => askChoose(idea, item)}
+                onDelete={(item) => confirmDeleteStory(item)}
+              />
               <div className="idea-card-grid">
                 {idea.stories.map((item, index) => (
                   <article
@@ -701,6 +789,13 @@ export default function IdeaWorkspace() {
             ))}
           </div>
           <div className="idea-story-status">
+            <Button
+              subtle
+              icon={ArrowLeft}
+              onClick={() => setStoryId(null)}
+            >
+              Lista wariantów
+            </Button>
             <span
               className={`badge ${forecasts[story.id]?.selected_current ? "success" : "quiet"}`}
             >
@@ -714,6 +809,13 @@ export default function IdeaWorkspace() {
               {d.target_minutes} min
             </span>
             <div className="player-spacer" />
+            <Button
+              subtle
+              icon={Pencil}
+              onClick={() => setStoryModal({ open: true, story })}
+            >
+              Edytuj w modalu
+            </Button>
             <Button
               subtle
               icon={Copy}
@@ -730,28 +832,7 @@ export default function IdeaWorkspace() {
             <IconButton
               icon={Trash2}
               label="Usuń wariant historii"
-              onClick={() =>
-                setConfirm({
-                  title: "Usunąć wariant historii?",
-                  description:
-                    "Wariant zniknie z tej kolekcji. Już przeniesiony scenariusz i montaż pozostaną w projekcie.",
-                  action: async () => {
-                    await s.patch((current) => {
-                      const value = structuredClone(current.development);
-                      const target = value.ideas.find((i) => i.id === idea.id)!;
-                      target.stories = target.stories.filter(
-                        (x) => x.id !== story.id,
-                      );
-                      if (value.selected_story_id === story.id) {
-                        value.selected_story_id = null;
-                        value.selected_story_hash = "";
-                      }
-                      return { development: value };
-                    });
-                    setStoryId(null);
-                  },
-                })
-              }
+              onClick={() => confirmDeleteStory(story)}
             />
           </div>
           {tab === "story" ? (
@@ -866,17 +947,35 @@ export default function IdeaWorkspace() {
                     label="Zapisz układ jako szablon"
                   />
                   <Button
+                    primary
                     icon={Plus}
-                    onClick={() =>
-                      changeStory((current) => ({
-                        chapters: [...current.chapters, blankChapter()],
-                      }))
-                    }
+                    onClick={() => setChapterModal({ open: true })}
                   >
-                    Dodaj rozdział
+                    Nowy rozdział
                   </Button>
                 </div>
               </div>
+              <ChapterTable
+                chapters={story.chapters}
+                onEditChapter={(c, ci) =>
+                  setChapterModal({ open: true, chapter: c, chapterIndex: ci })
+                }
+                onEditSection={(_c, ci, s, si) =>
+                  setSubchapterModal({
+                    open: true,
+                    chapterIndex: ci,
+                    section: s,
+                    sectionIndex: si,
+                  })
+                }
+                onDeleteChapter={(ci) => confirmDeleteChapter(ci)}
+                onDeleteSection={(ci, si) => confirmDeleteSection(ci, si)}
+                onMoveChapter={(ci, dir) => moveChapterItem(ci, dir)}
+                onMoveSection={(ci, si, dir) => moveSectionItem(ci, si, dir)}
+                onAddSubchapter={(ci) =>
+                  setSubchapterModal({ open: true, chapterIndex: ci })
+                }
+              />
               <ChapterEditor
                 chapters={story.chapters}
                 save={(update) =>
@@ -938,6 +1037,17 @@ export default function IdeaWorkspace() {
             </>
           ) : (
             <>
+              {idea && (
+                <EvaluationTable
+                  stories={idea.stories}
+                  forecasts={forecasts}
+                  activeStoryId={story.id}
+                  onOpen={(s) => setStoryId(s.id)}
+                  onEditAssumptions={(s) =>
+                    setAssumptionsModal({ open: true, story: s })
+                  }
+                />
+              )}
               <ForecastPanel
                 value={forecasts[story.id]}
                 baseline={d.baseline}
@@ -1110,6 +1220,116 @@ export default function IdeaWorkspace() {
         </Button>
       </Modal>
       {ai && <IdeaAssistant target={ai} close={() => setAI(null)} />}
+      {storyModal?.open && idea && (
+        <StoryModal
+          story={storyModal.story}
+          open={storyModal.open}
+          onClose={() => setStoryModal(null)}
+          onSave={(data) => {
+            if (storyModal.story) {
+              const sid = storyModal.story.id;
+              changeIdea((current) => ({
+                stories: current.stories.map((st) =>
+                  st.id === sid ? { ...st, ...data } : st,
+                ),
+              }));
+              s.notify("Zaktualizowano wariant historii");
+            } else {
+              const newStory = { ...blankStory(), ...data };
+              changeIdea((current) => ({
+                stories: [...current.stories, newStory],
+              }));
+              s.notify("Dodano nowy wariant historii");
+            }
+          }}
+        />
+      )}
+      {chapterModal?.open && story && (
+        <ChapterModal
+          chapter={chapterModal.chapter}
+          open={chapterModal.open}
+          onClose={() => setChapterModal(null)}
+          onSave={(data) => {
+            if (
+              chapterModal.chapterIndex !== undefined &&
+              chapterModal.chapterIndex >= 0
+            ) {
+              const ci = chapterModal.chapterIndex;
+              changeStory((curr) => ({
+                chapters: curr.chapters.map((c, i) =>
+                  i === ci ? { ...c, ...data } : c,
+                ),
+              }));
+              s.notify("Zaktualizowano rozdział");
+            } else {
+              const newChapter = { ...blankChapter(), ...data };
+              changeStory((curr) => ({
+                chapters: [...curr.chapters, newChapter],
+              }));
+              s.notify("Dodano nowy rozdział");
+            }
+          }}
+        />
+      )}
+      {subchapterModal?.open && story && (
+        <SubchapterModal
+          section={subchapterModal.section}
+          open={subchapterModal.open}
+          onClose={() => setSubchapterModal(null)}
+          onSave={(data) => {
+            const ci = subchapterModal.chapterIndex;
+            if (
+              subchapterModal.sectionIndex !== undefined &&
+              subchapterModal.sectionIndex >= 0
+            ) {
+              const si = subchapterModal.sectionIndex;
+              changeStory((curr) => ({
+                chapters: curr.chapters.map((c, i) =>
+                  i === ci
+                    ? {
+                        ...c,
+                        sections: c.sections.map((sec, idx) =>
+                          idx === si ? { ...sec, ...data } : sec,
+                        ),
+                      }
+                    : c,
+                ),
+              }));
+              s.notify("Zaktualizowano podrozdział");
+            } else {
+              const newSec = { ...blankSection(), ...data };
+              changeStory((curr) => ({
+                chapters: curr.chapters.map((c, i) =>
+                  i === ci ? { ...c, sections: [...c.sections, newSec] } : c,
+                ),
+              }));
+              s.notify("Dodano nowy podrozdział");
+            }
+          }}
+        />
+      )}
+      {assumptionsModal?.open && (
+        <AssumptionsModal
+          story={assumptionsModal.story}
+          open={assumptionsModal.open}
+          onClose={() => setAssumptionsModal(null)}
+          onSave={(scores, assumptions) => {
+            const sid = assumptionsModal.story.id;
+            changeIdea((current) => ({
+              stories: current.stories.map((st) =>
+                st.id === sid
+                  ? {
+                      ...st,
+                      scores: { ...st.scores, ...scores },
+                      assumptions: { ...st.assumptions, ...assumptions },
+                    }
+                  : st,
+              ),
+            }));
+            s.notify("Zaktualizowano założenia i oceny");
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1295,6 +1515,955 @@ function ForecastPanel({
         określonego zasięgu.
       </p>
     </section>
+  );
+}
+
+function StoryTable({
+  stories,
+  forecasts,
+  selectedId,
+  onOpen,
+  onEdit,
+  onChapters,
+  onChoose,
+  onDelete,
+}: {
+  stories: StoryOption[];
+  forecasts: Record<string, Forecast>;
+  selectedId: string | null;
+  onOpen: (item: StoryOption) => void;
+  onEdit: (item: StoryOption) => void;
+  onChapters: (item: StoryOption) => void;
+  onChoose: (item: StoryOption) => void;
+  onDelete: (item: StoryOption) => void;
+}) {
+  return (
+    <div className="surface tool-panel excel-table-panel">
+      <div className="inline-heading">
+        <div>
+          <span className="eyebrow">STAN MAGAZYNU / ZESTAWIENIE</span>
+          <h2>Warianty historii w tym temacie</h2>
+        </div>
+        <div className="player-spacer" />
+        <span className="badge quiet">{stories.length} pozycji</span>
+      </div>
+      <div className="excel-table-wrapper">
+        <table className="excel-table">
+          <thead>
+            <tr>
+              <th style={{ width: 60 }}>#</th>
+              <th>Tytuł wariantu & Pitch</th>
+              <th>Główne pytanie / Hak</th>
+              <th>Rozdziały & Czas</th>
+              <th>Ocena / Evergreen</th>
+              <th>Status</th>
+              <th style={{ width: 280, textAlign: "right" }}>Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stories.map((item, index) => {
+              const isChosen = selectedId === item.id;
+              const fc = forecasts[item.id];
+              const scoreKeys = Object.keys(item.scores) as (keyof Scores)[];
+              const avgScore = scoreKeys.length
+                ? Math.round(
+                    scoreKeys.reduce((acc, k) => acc + item.scores[k], 0) /
+                      scoreKeys.length,
+                  )
+                : 0;
+              return (
+                <tr key={item.id} className={isChosen ? "row-chosen" : ""}>
+                  <td>
+                    <strong>W{String(index + 1).padStart(2, "0")}</strong>
+                  </td>
+                  <td className="cell-wrap">
+                    <strong
+                      style={{ cursor: "pointer", color: "var(--accent)" }}
+                      onClick={() => onOpen(item)}
+                    >
+                      {item.title}
+                    </strong>
+                    {item.title_pitch && (
+                      <div className="small muted" style={{ marginTop: 2 }}>
+                        Pitch: {item.title_pitch}
+                      </div>
+                    )}
+                  </td>
+                  <td className="cell-wrap">
+                    <div style={{ fontWeight: 500 }}>
+                      {item.central_question || item.synopsis || "—"}
+                    </div>
+                    {item.hook && (
+                      <div className="small muted" style={{ marginTop: 2 }}>
+                        Hak: {item.hook}
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <span>{item.chapters.length} rozdz.</span>
+                    <div className="small muted">
+                      {number(duration(item.chapters) / 60)} min
+                      {fc?.views_30d ? ` · ~${number(fc.views_30d.base)} wyśw.` : ""}
+                    </div>
+                  </td>
+                  <td>
+                    <span className="badge">{avgScore}/100</span>
+                    {item.evergreen_reason && (
+                      <div className="small muted" style={{ marginTop: 2 }}>
+                        {item.evergreen_reason}
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <span className={`badge ${isChosen ? "success" : "quiet"}`}>
+                      {isChosen
+                        ? "Wybrany"
+                        : item.origin === "ai"
+                          ? "AI"
+                          : "Własny"}
+                    </span>
+                  </td>
+                  <td className="actions-cell">
+                    <div
+                      className="button-row"
+                      style={{ justifyContent: "flex-end" }}
+                    >
+                      <Button subtle icon={Pencil} onClick={() => onEdit(item)}>
+                        Edytuj
+                      </Button>
+                      <Button
+                        subtle
+                        icon={BookOpen}
+                        onClick={() => onChapters(item)}
+                      >
+                        Rozdziały
+                      </Button>
+                      <Button subtle icon={Check} onClick={() => onChoose(item)}>
+                        {isChosen ? "Wybrany" : "Wybierz"}
+                      </Button>
+                      <IconButton
+                        icon={Trash2}
+                        label="Usuń wariant"
+                        onClick={() => onDelete(item)}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function ChapterTable({
+  chapters,
+  onEditChapter,
+  onEditSection,
+  onDeleteChapter,
+  onDeleteSection,
+  onMoveChapter,
+  onMoveSection,
+  onAddSubchapter,
+}: {
+  chapters: Chapter[];
+  onEditChapter: (chapter: Chapter, chapterIndex: number) => void;
+  onEditSection: (
+    chapter: Chapter,
+    chapterIndex: number,
+    section: Subchapter,
+    sectionIndex: number,
+  ) => void;
+  onDeleteChapter: (chapterIndex: number) => void;
+  onDeleteSection: (chapterIndex: number, sectionIndex: number) => void;
+  onMoveChapter: (chapterIndex: number, dir: number) => void;
+  onMoveSection: (
+    chapterIndex: number,
+    sectionIndex: number,
+    dir: number,
+  ) => void;
+  onAddSubchapter: (chapterIndex: number) => void;
+}) {
+  return (
+    <div className="surface tool-panel excel-table-panel">
+      <div className="inline-heading">
+        <div>
+          <span className="eyebrow">ZESTAWIENIE STRUKTURY / STAN PLANU</span>
+          <h2>Rozdziały i podrozdziały (Widok tabelaryczny)</h2>
+        </div>
+        <div className="player-spacer" />
+        <span className="badge quiet">{chapters.length} rozdziałów</span>
+      </div>
+      <div className="excel-table-wrapper">
+        <table className="excel-table">
+          <thead>
+            <tr>
+              <th style={{ width: 60 }}>Poz.</th>
+              <th>Tytuł rozdziału / podrozdziału</th>
+              <th>Cel & Główne pytanie</th>
+              <th>Punkt zwrotny & Retencja</th>
+              <th>Dowody / Źródła</th>
+              <th style={{ width: 80 }}>Czas</th>
+              <th style={{ width: 80 }}>Energia</th>
+              <th style={{ width: 220, textAlign: "right" }}>Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {chapters.map((chapter, cIndex) => {
+              const chapterDuration = chapter.sections.reduce(
+                (sum, s) => sum + s.seconds,
+                0,
+              );
+              return (
+                <Fragment key={chapter.id}>
+                  <tr className="chapter-header-row">
+                    <td>
+                      <strong>{cIndex + 1}.0</strong>
+                    </td>
+                    <td className="cell-wrap">
+                      <strong style={{ fontSize: 14 }}>{chapter.title}</strong>
+                    </td>
+                    <td className="cell-wrap" colSpan={3}>
+                      <span className="muted">
+                        {chapter.purpose || "Brak opisanego celu rozdziału"}
+                      </span>
+                    </td>
+                    <td>
+                      <strong>{number(chapterDuration / 60)} min</strong>
+                    </td>
+                    <td>
+                      <span className="badge quiet">
+                        {chapter.sections.length} sekcji
+                      </span>
+                    </td>
+                    <td className="actions-cell">
+                      <div
+                        className="button-row"
+                        style={{ justifyContent: "flex-end" }}
+                      >
+                        <Button
+                          subtle
+                          icon={Plus}
+                          onClick={() => onAddSubchapter(cIndex)}
+                        >
+                          Podrozdział
+                        </Button>
+                        <IconButton
+                          icon={Pencil}
+                          label="Edytuj rozdział"
+                          onClick={() => onEditChapter(chapter, cIndex)}
+                        />
+                        <IconButton
+                          icon={ChevronUp}
+                          label="Przesuń rozdział w górę"
+                          disabled={cIndex === 0}
+                          onClick={() => onMoveChapter(cIndex, -1)}
+                        />
+                        <IconButton
+                          icon={ChevronDown}
+                          label="Przesuń rozdział w dół"
+                          disabled={cIndex === chapters.length - 1}
+                          onClick={() => onMoveChapter(cIndex, 1)}
+                        />
+                        <IconButton
+                          icon={Trash2}
+                          label="Usuń rozdział"
+                          onClick={() => onDeleteChapter(cIndex)}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                  {chapter.sections.map((sec, sIndex) => (
+                    <tr key={sec.id} className="subchapter-row">
+                      <td style={{ paddingLeft: 22, color: "var(--muted)" }}>
+                        {cIndex + 1}.{sIndex + 1}
+                      </td>
+                      <td className="cell-wrap">
+                        <span style={{ fontWeight: 500 }}>{sec.title}</span>
+                      </td>
+                      <td className="cell-wrap">
+                        <div>{sec.purpose}</div>
+                        {sec.question && (
+                          <div className="small muted" style={{ marginTop: 2 }}>
+                            Pytanie: {sec.question}
+                          </div>
+                        )}
+                      </td>
+                      <td className="cell-wrap">
+                        {sec.turn && <div>Zwrot: {sec.turn}</div>}
+                        {sec.retention_plan && (
+                          <div className="small muted" style={{ marginTop: 2 }}>
+                            Retencja: {sec.retention_plan}
+                          </div>
+                        )}
+                        {!sec.turn && !sec.retention_plan && "—"}
+                      </td>
+                      <td className="cell-wrap">
+                        <span className="small muted">
+                          {sec.evidence_needed || "—"}
+                        </span>
+                      </td>
+                      <td>{sec.seconds} s</td>
+                      <td>
+                        <span className="badge">{sec.energy}/10</span>
+                      </td>
+                      <td className="actions-cell">
+                        <div
+                          className="button-row"
+                          style={{ justifyContent: "flex-end" }}
+                        >
+                          <IconButton
+                            icon={Pencil}
+                            label="Edytuj podrozdział"
+                            onClick={() =>
+                              onEditSection(chapter, cIndex, sec, sIndex)
+                            }
+                          />
+                          <IconButton
+                            icon={ChevronUp}
+                            label="Przesuń w górę"
+                            disabled={sIndex === 0}
+                            onClick={() => onMoveSection(cIndex, sIndex, -1)}
+                          />
+                          <IconButton
+                            icon={ChevronDown}
+                            label="Przesuń w dół"
+                            disabled={sIndex === chapter.sections.length - 1}
+                            onClick={() => onMoveSection(cIndex, sIndex, 1)}
+                          />
+                          <IconButton
+                            icon={Trash2}
+                            label="Usuń podrozdział"
+                            onClick={() => onDeleteSection(cIndex, sIndex)}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function EvaluationTable({
+  stories,
+  forecasts,
+  activeStoryId,
+  onOpen,
+  onEditAssumptions,
+}: {
+  stories: StoryOption[];
+  forecasts: Record<string, Forecast>;
+  activeStoryId: string;
+  onOpen: (story: StoryOption) => void;
+  onEditAssumptions: (story: StoryOption) => void;
+}) {
+  return (
+    <div className="surface tool-panel excel-table-panel">
+      <div className="inline-heading">
+        <div>
+          <span className="eyebrow">ZESTAWIENIE POTENCJAŁÓW I METRYK</span>
+          <h2>Porównanie ocen redakcyjnych i założeń</h2>
+        </div>
+        <div className="player-spacer" />
+        <span className="badge quiet">{stories.length} wariantów</span>
+      </div>
+      <div className="excel-table-wrapper">
+        <table className="excel-table">
+          <thead>
+            <tr>
+              <th style={{ width: 50 }}>#</th>
+              <th>Wariant historii</th>
+              <th>Średnia ocena</th>
+              <th>Składowe (H / W / O / Wiz / R / E)</th>
+              <th>Mnożniki zasięgu</th>
+              <th>Δ CTR / Δ Retencja</th>
+              <th>Uzasadnienie założeń</th>
+              <th style={{ width: 170, textAlign: "right" }}>Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stories.map((item, index) => {
+              const isActive = item.id === activeStoryId;
+              const sc = item.scores;
+              const asm = item.assumptions;
+              const scoreKeys = Object.keys(sc) as (keyof Scores)[];
+              const avgScore = scoreKeys.length
+                ? Math.round(
+                    scoreKeys.reduce((acc, k) => acc + sc[k], 0) /
+                      scoreKeys.length,
+                  )
+                : 0;
+              return (
+                <tr key={item.id} className={isActive ? "row-chosen" : ""}>
+                  <td>
+                    <strong>W{String(index + 1).padStart(2, "0")}</strong>
+                  </td>
+                  <td className="cell-wrap">
+                    <strong
+                      style={{ cursor: "pointer", color: "var(--accent)" }}
+                      onClick={() => onOpen(item)}
+                    >
+                      {item.title}
+                    </strong>
+                    <div className="small muted">
+                      {isActive
+                        ? "Aktualnie przeglądany"
+                        : "Kliknij, aby otworzyć"}
+                    </div>
+                  </td>
+                  <td>
+                    <span className="badge">{avgScore}/100</span>
+                    {forecasts[item.id]?.views_30d && (
+                      <div className="small muted" style={{ marginTop: 2 }}>
+                        ~{number(forecasts[item.id].views_30d!.base)} wyśw.
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <span className="small">
+                      {sc.hook} / {sc.audience_fit} / {sc.originality} /{" "}
+                      {sc.visuals} / {sc.retention} / {sc.evergreen}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="small">
+                      {asm.reach_low}× / <strong>{asm.reach_base}×</strong> /{" "}
+                      {asm.reach_high}×
+                    </span>
+                  </td>
+                  <td>
+                    <span className="small">
+                      {asm.ctr_delta >= 0
+                        ? `+${asm.ctr_delta}`
+                        : asm.ctr_delta}{" "}
+                      pp /{" "}
+                      {asm.retention_delta >= 0
+                        ? `+${asm.retention_delta}`
+                        : asm.retention_delta}{" "}
+                      pp
+                    </span>
+                  </td>
+                  <td className="cell-wrap">
+                    <span className="small muted">{asm.reason || "—"}</span>
+                  </td>
+                  <td className="actions-cell">
+                    <div
+                      className="button-row"
+                      style={{ justifyContent: "flex-end" }}
+                    >
+                      <Button
+                        subtle
+                        icon={Pencil}
+                        onClick={() => onEditAssumptions(item)}
+                      >
+                        Edytuj
+                      </Button>
+                      {!isActive && (
+                        <Button subtle onClick={() => onOpen(item)}>
+                          Pokaż
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function StoryModal({
+  story,
+  open,
+  onClose,
+  onSave,
+}: {
+  story?: StoryOption | null;
+  open: boolean;
+  onClose: () => void;
+  onSave: (data: Partial<StoryOption>) => void;
+}) {
+  const [title, setTitle] = useState(story?.title || "");
+  const [pitch, setPitch] = useState(story?.title_pitch || "");
+  const [centralQuestion, setCentralQuestion] = useState(
+    story?.central_question || "",
+  );
+  const [hook, setHook] = useState(story?.hook || "");
+  const [synopsis, setSynopsis] = useState(story?.synopsis || "");
+  const [stakes, setStakes] = useState(story?.stakes || "");
+  const [payoff, setPayoff] = useState(story?.payoff || "");
+  const [thumbnail, setThumbnail] = useState(story?.thumbnail || "");
+  const [evergreenReason, setEvergreenReason] = useState(
+    story?.evergreen_reason || "",
+  );
+
+  useEffect(() => {
+    setTitle(story?.title || "");
+    setPitch(story?.title_pitch || "");
+    setCentralQuestion(story?.central_question || "");
+    setHook(story?.hook || "");
+    setSynopsis(story?.synopsis || "");
+    setStakes(story?.stakes || "");
+    setPayoff(story?.payoff || "");
+    setThumbnail(story?.thumbnail || "");
+    setEvergreenReason(story?.evergreen_reason || "");
+  }, [story]);
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={story ? `Edytuj wariant: ${story.title}` : "Nowy wariant historii"}
+      description="Zdefiniuj konstrukcję, obietnicę, hak oraz stawkę dla tego wariantu filmu."
+    >
+      <div className="two-fields">
+        <Field label="Nazwa wariantu historii">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="np. Format śledczy: Anatomia katastrofy"
+            autoFocus
+          />
+        </Field>
+        <Field label="Roboczy tytuł filmu (pitch na YouTube)">
+          <input
+            value={pitch}
+            onChange={(e) => setPitch(e.target.value)}
+            placeholder="np. Jak jednostki specjalne niszczą ego po każdej misji?"
+          />
+        </Field>
+      </div>
+      <Field label="Główne pytanie, które trzyma widza">
+        <textarea
+          rows={2}
+          value={centralQuestion}
+          onChange={(e) => setCentralQuestion(e.target.value)}
+          placeholder="Na jakie pytanie film odpowiada i dlaczego widz musi poznać finał?"
+        />
+      </Field>
+      <Field label="Hak otwarcia (pierwsze 30–60 sekund)">
+        <textarea
+          rows={2}
+          value={hook}
+          onChange={(e) => setHook(e.target.value)}
+          placeholder="Czym otwieramy film, by widz nie kliknął dalej?"
+        />
+      </Field>
+      <Field label="Ogólny zarys historii (synopsis)">
+        <textarea
+          rows={4}
+          value={synopsis}
+          onChange={(e) => setSynopsis(e.target.value)}
+          placeholder="Trzyaktowa konstrukcja: punkt wejścia, konflikt/śledztwo, konkluzja."
+        />
+      </Field>
+      <div className="two-fields">
+        <Field label="O co toczy się gra? (stawka widza)">
+          <textarea
+            rows={2}
+            value={stakes}
+            onChange={(e) => setStakes(e.target.value)}
+            placeholder="Co widz straci lub zyska oglądając ten materiał?"
+          />
+        </Field>
+        <Field label="Finałowa puenta / nagroda (payoff)">
+          <textarea
+            rows={2}
+            value={payoff}
+            onChange={(e) => setPayoff(e.target.value)}
+            placeholder="Co widz zabiera ze sobą po zakończeniu filmu?"
+          />
+        </Field>
+      </div>
+      <div className="two-fields">
+        <Field label="Pomysł na miniaturę (Thumbnail concept)">
+          <input
+            value={thumbnail}
+            onChange={(e) => setThumbnail(e.target.value)}
+            placeholder="Wizualny kontrast, postać, rekwizyt"
+          />
+        </Field>
+        <Field label="Dlaczego temat może działać evergreen?">
+          <input
+            value={evergreenReason}
+            onChange={(e) => setEvergreenReason(e.target.value)}
+            placeholder="Psychologia ludzka, uniwersalny mechanizm"
+          />
+        </Field>
+      </div>
+      <div className="button-row" style={{ marginTop: 16 }}>
+        <Button
+          primary
+          icon={Check}
+          disabled={!title.trim()}
+          onClick={() => {
+            onSave({
+              title: title.trim(),
+              title_pitch: pitch.trim(),
+              central_question: centralQuestion,
+              hook,
+              synopsis,
+              stakes,
+              payoff,
+              thumbnail,
+              evergreen_reason: evergreenReason,
+            });
+            onClose();
+          }}
+        >
+          {story ? "Zapisz zmiany" : "Utwórz wariant"}
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
+function ChapterModal({
+  chapter,
+  open,
+  onClose,
+  onSave,
+}: {
+  chapter?: Chapter | null;
+  open: boolean;
+  onClose: () => void;
+  onSave: (data: Partial<Chapter>) => void;
+}) {
+  const [title, setTitle] = useState(chapter?.title || "");
+  const [purpose, setPurpose] = useState(chapter?.purpose || "");
+
+  useEffect(() => {
+    setTitle(chapter?.title || "");
+    setPurpose(chapter?.purpose || "");
+  }, [chapter]);
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={chapter ? `Edytuj rozdział: ${chapter.title}` : "Nowy rozdział"}
+      description="Rozdział grupuje logiczne podrozdziały i prowadzi widza przez dany akt historii."
+    >
+      <Field label="Tytuł rozdziału">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="np. Akt I: Iluzja nieomylności"
+          autoFocus
+        />
+      </Field>
+      <Field label="Cel dramatyczny / redakcyjny rozdziału">
+        <textarea
+          rows={3}
+          value={purpose}
+          onChange={(e) => setPurpose(e.target.value)}
+          placeholder="Co ten rozdział zmienia w percepcji widza?"
+        />
+      </Field>
+      <div className="button-row" style={{ marginTop: 16 }}>
+        <Button
+          primary
+          icon={Check}
+          disabled={!title.trim()}
+          onClick={() => {
+            onSave({
+              title: title.trim(),
+              purpose,
+            });
+            onClose();
+          }}
+        >
+          {chapter ? "Zapisz rozdział" : "Dodaj rozdział"}
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
+function SubchapterModal({
+  section,
+  open,
+  onClose,
+  onSave,
+}: {
+  section?: Subchapter | null;
+  open: boolean;
+  onClose: () => void;
+  onSave: (data: Partial<Subchapter>) => void;
+}) {
+  const [title, setTitle] = useState(section?.title || "");
+  const [purpose, setPurpose] = useState(section?.purpose || "");
+  const [question, setQuestion] = useState(section?.question || "");
+  const [turn, setTurn] = useState(section?.turn || "");
+  const [retentionPlan, setRetentionPlan] = useState(
+    section?.retention_plan || "",
+  );
+  const [evidenceNeeded, setEvidenceNeeded] = useState(
+    section?.evidence_needed || "",
+  );
+  const [seconds, setSeconds] = useState(section?.seconds || 120);
+  const [energy, setEnergy] = useState(section?.energy || 5);
+
+  useEffect(() => {
+    setTitle(section?.title || "");
+    setPurpose(section?.purpose || "");
+    setQuestion(section?.question || "");
+    setTurn(section?.turn || "");
+    setRetentionPlan(section?.retention_plan || "");
+    setEvidenceNeeded(section?.evidence_needed || "");
+    setSeconds(section?.seconds || 120);
+    setEnergy(section?.energy || 5);
+  }, [section]);
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={
+        section ? `Edytuj podrozdział: ${section.title}` : "Nowy podrozdział"
+      }
+      description="Podrozdział stanie się konkretną sceną / sekwencją w scenariuszu montażowym."
+    >
+      <Field label="Tytuł podrozdziału">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="np. Paradoks Tenerife: Dlaczego drugi pilot milczał?"
+          autoFocus
+        />
+      </Field>
+      <div className="two-fields">
+        <Field label="Cel dramaturgiczny sekwencji">
+          <textarea
+            rows={2}
+            value={purpose}
+            onChange={(e) => setPurpose(e.target.value)}
+            placeholder="Co widz dowiaduje się w tej sekwencji?"
+          />
+        </Field>
+        <Field label="Pytanie otwierające / zawieszenie">
+          <textarea
+            rows={2}
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Pytanie podtrzymujące ciekawość"
+          />
+        </Field>
+      </div>
+      <div className="two-fields">
+        <Field label="Punkt zwrotny (turn)">
+          <input
+            value={turn}
+            onChange={(e) => setTurn(e.target.value)}
+            placeholder="Niespodziewany fakt, obalenie intuicji"
+          />
+        </Field>
+        <Field label="Plan utrzymania uwagi (retention plan)">
+          <input
+            value={retentionPlan}
+            onChange={(e) => setRetentionPlan(e.target.value)}
+            placeholder="np. Nagranie z czarnej skrzynki, animacja 3D"
+          />
+        </Field>
+      </div>
+      <Field label="Dowody i materiały źródłowe (evidence)">
+        <textarea
+          rows={2}
+          value={evidenceNeeded}
+          onChange={(e) => setEvidenceNeeded(e.target.value)}
+          placeholder="Raporty NTSB, cytaty z procedur AAR, archiwalia"
+        />
+      </Field>
+      <div className="two-fields">
+        <Field label="Szacowany czas trwania (sekundy)">
+          <input
+            type="number"
+            min={10}
+            max={3600}
+            step={10}
+            value={seconds}
+            onChange={(e) =>
+              setSeconds(Math.max(10, Number(e.target.value) || 60))
+            }
+          />
+        </Field>
+        <Field label="Poziom energii i tempa (1–10)">
+          <input
+            type="number"
+            min={1}
+            max={10}
+            step={1}
+            value={energy}
+            onChange={(e) =>
+              setEnergy(Math.min(10, Math.max(1, Number(e.target.value) || 5)))
+            }
+          />
+        </Field>
+      </div>
+      <div className="button-row" style={{ marginTop: 16 }}>
+        <Button
+          primary
+          icon={Check}
+          disabled={!title.trim()}
+          onClick={() => {
+            onSave({
+              title: title.trim(),
+              purpose,
+              question,
+              turn,
+              retention_plan: retentionPlan,
+              evidence_needed: evidenceNeeded,
+              seconds,
+              energy,
+            });
+            onClose();
+          }}
+        >
+          {section ? "Zapisz podrozdział" : "Dodaj podrozdział"}
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
+function AssumptionsModal({
+  story,
+  open,
+  onClose,
+  onSave,
+}: {
+  story: StoryOption;
+  open: boolean;
+  onClose: () => void;
+  onSave: (scores: Partial<Scores>, assumptions: Partial<Assumptions>) => void;
+}) {
+  const [scores, setScores] = useState<Scores>({ ...story.scores });
+  const [reachLow, setReachLow] = useState(story.assumptions.reach_low);
+  const [reachBase, setReachBase] = useState(story.assumptions.reach_base);
+  const [reachHigh, setReachHigh] = useState(story.assumptions.reach_high);
+  const [ctrDelta, setCtrDelta] = useState(story.assumptions.ctr_delta);
+  const [retentionDelta, setRetentionDelta] = useState(
+    story.assumptions.retention_delta,
+  );
+  const [reason, setReason] = useState(story.assumptions.reason || "");
+
+  useEffect(() => {
+    setScores({ ...story.scores });
+    setReachLow(story.assumptions.reach_low);
+    setReachBase(story.assumptions.reach_base);
+    setReachHigh(story.assumptions.reach_high);
+    setCtrDelta(story.assumptions.ctr_delta);
+    setRetentionDelta(story.assumptions.retention_delta);
+    setReason(story.assumptions.reason || "");
+  }, [story]);
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={`Oceny i założenia: ${story.title}`}
+      description="Dostosuj hipotezy redakcyjne, mnożniki wyświetleń i delty CTR / retencji."
+    >
+      <div className="inline-heading" style={{ marginTop: 8 }}>
+        <span className="eyebrow">OCENY REDAKCYJNE (0–100)</span>
+      </div>
+      <div className="score-grid" style={{ marginBottom: 16 }}>
+        {(Object.keys(scoreLabels) as (keyof Scores)[]).map((key) => (
+          <NumberField
+            key={key}
+            label={scoreLabels[key]}
+            value={scores[key]}
+            min={0}
+            max={100}
+            step={1}
+            onCommit={(v) => setScores((curr) => ({ ...curr, [key]: v }))}
+          />
+        ))}
+      </div>
+      <div className="inline-heading">
+        <span className="eyebrow">ZAŁOŻENIA SCENARIUSZY ZASIĘGU</span>
+      </div>
+      <div className="score-grid" style={{ marginBottom: 16 }}>
+        <NumberField
+          label="Ostrożny ×"
+          value={reachLow}
+          min={0.1}
+          max={50}
+          step={0.1}
+          onCommit={(v) => setReachLow(v)}
+        />
+        <NumberField
+          label="Bazowy ×"
+          value={reachBase}
+          min={0.1}
+          max={50}
+          step={0.1}
+          onCommit={(v) => setReachBase(v)}
+        />
+        <NumberField
+          label="Optymistyczny ×"
+          value={reachHigh}
+          min={0.1}
+          max={100}
+          step={0.1}
+          onCommit={(v) => setReachHigh(v)}
+        />
+        <NumberField
+          label="Δ CTR (pp)"
+          value={ctrDelta}
+          min={-20}
+          max={20}
+          step={0.1}
+          onCommit={(v) => setCtrDelta(v)}
+        />
+        <NumberField
+          label="Δ Retencja (pp)"
+          value={retentionDelta}
+          min={-50}
+          max={50}
+          step={0.1}
+          onCommit={(v) => setRetentionDelta(v)}
+        />
+      </div>
+      <Field label="Uzasadnienie hipotez redakcyjnych">
+        <textarea
+          rows={3}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Na jakich benchmarkach, case studies lub danych opierasz te szacunki?"
+        />
+      </Field>
+      <div className="button-row" style={{ marginTop: 16 }}>
+        <Button
+          primary
+          icon={Check}
+          onClick={() => {
+            onSave(scores, {
+              reach_low: reachLow,
+              reach_base: reachBase,
+              reach_high: reachHigh,
+              ctr_delta: ctrDelta,
+              retention_delta: retentionDelta,
+              reason,
+            });
+            onClose();
+          }}
+        >
+          Zapisz założenia i oceny
+        </Button>
+      </div>
+    </Modal>
   );
 }
 
