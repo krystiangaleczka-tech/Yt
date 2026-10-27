@@ -127,7 +127,7 @@ class ProjectService(ProjectStore):
         def restore(project):
             assets = {a.id: a for a in project.assets}
             assets.update({a.id: a for a in variant.assets})
-            for key in ("sequence", "scenes", "beats", "facts", "sources", "story", "title", "language", "voice_profile", "pronunciation", "development"):
+            for key in ("sequence", "scenes", "beats", "facts", "sources", "story", "title", "language", "voice_profile", "pronunciation", "development", "resource_links", "workspace_snapshot", "category_id", "category_profile", "film_format", "channel_id", "channel_profile", "channel"):
                 setattr(project, key, copy.deepcopy(getattr(variant, key)))
             project.assets = list(assets.values())
         return self.mutate(project_id, revision, restore)
@@ -139,9 +139,12 @@ class ProjectService(ProjectStore):
         channel_id = str(values.get("id") or uid("channel_"))
         if not re.fullmatch(r"channel_[a-f0-9]{16}", channel_id):
             raise ValueError("Niepoprawny kanał")
-        allowed = {"id", "name", "language", "font", "color", "motion", "narrative_style", "visual_style", "references", "rules", "revision"}
+        from .workspace_models import Preset
+        allowed = {"id", "name", "motion", "rules", "revision"} | set(Preset.model_fields)
         if not set(values) <= allowed or not str(values.get("name", "")).strip():
             raise ValueError("Podaj nazwę i poprawne ustawienia kanału")
+        settings = Preset.model_validate({k: v for k, v in values.items() if k in Preset.model_fields}).model_dump(exclude_none=True)
+        values = {k: v for k, v in values.items() if k not in Preset.model_fields} | settings
         path = self.root / "channels" / (channel_id+".json")
         with self.lock:
             previous = json.loads(path.read_text()) if path.exists() else {}
@@ -156,7 +159,7 @@ class ProjectService(ProjectStore):
         titles = []
         for item in self.list(include_archived=True):
             p = self.get(item["id"])
-            if (p.channel_id == project.channel_id) if project.channel_id else (p.channel == project.channel):
+            if (p.channel_id == project.channel_id or not p.channel_id and p.channel == project.channel) if project.channel_id else (p.channel == project.channel):
                 titles.extend(p.topic_history)
                 titles.extend(i.title for i in p.development.ideas)
                 if p.published or p.id != project.id:

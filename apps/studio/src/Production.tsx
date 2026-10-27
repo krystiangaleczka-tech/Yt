@@ -73,6 +73,8 @@ export function JSONField({
   );
 }
 
+import { FilmResources } from "./Workspace";
+
 export default function Production() {
   const [tab, setTab] = useState("shots");
   return (
@@ -89,6 +91,7 @@ export default function Production() {
           ["beats", "Fragmenty"],
           ["versions", "Wersje A/B"],
           ["channel", "Kanał i limity"],
+          ["resources", "Kontekst i zasoby filmu"],
           ["system", "Pliki i diagnostyka"],
         ].map(([key, label]) => (
           <button
@@ -110,6 +113,8 @@ export default function Production() {
         <VersionTools />
       ) : tab === "channel" ? (
         <ChannelTools />
+      ) : tab === "resources" ? (
+        <FilmResources />
       ) : (
         <SystemTools />
       )}
@@ -1413,7 +1418,7 @@ function ChannelTools() {
               })
             }
           >
-            Duplikuj projekt
+            Kopia robocza tego filmu
           </Button>
           <Button
             onClick={() =>

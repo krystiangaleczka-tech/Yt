@@ -16,7 +16,12 @@ export type Page =
   | "sources"
   | "library"
   | "jobs"
-  | "production";
+  | "production"
+  | "bank"
+  | "bank-media"
+  | "templates"
+  | "workspace-settings"
+  | "idea-pool";
 type Context = {
   project: Project | null;
   projects: ProjectSummary[];
@@ -118,6 +123,11 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         "library",
         "jobs",
         "production",
+        "bank",
+        "bank-media",
+        "templates",
+        "workspace-settings",
+        "idea-pool",
       ];
       setPage(
         pages.includes(remembered as Page)
@@ -198,12 +208,17 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         setProjects(list);
         setHealth(status);
         if (list.length) {
+          const requested = new URLSearchParams(window.location.search);
           const last = localStorage.getItem("docos:last-project");
           const p = await api<Project>(
-            "/projects/" + (list.find((x) => x.id === last)?.id || list[0].id),
+            "/projects/" +
+              (list.find((x) => x.id === requested.get("project"))?.id ||
+                list.find((x) => x.id === last)?.id ||
+                list[0].id),
           );
           if (active) accept(p);
-          const remembered = localStorage.getItem("docos:page:" + p.id);
+          const remembered =
+            requested.get("page") || localStorage.getItem("docos:page:" + p.id);
           if (active && remembered) setPage(remembered as Page);
         } else setPage("projects");
       } catch (error) {
@@ -223,7 +238,14 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     };
   }, []);
   useEffect(() => {
-    if (project) localStorage.setItem("docos:page:" + project.id, page);
+    if (project) {
+      localStorage.setItem("docos:page:" + project.id, page);
+      window.history.replaceState(
+        null,
+        "",
+        `?project=${encodeURIComponent(project.id)}&page=${encodeURIComponent(page)}`,
+      );
+    }
   }, [page, project?.id]);
   useEffect(() => {
     let previous: string | null = null;

@@ -26,6 +26,7 @@ import {
 import type { Fact, Project } from "./types";
 import { makeScene } from "./Generation";
 import { ScriptStructure } from "./Ideation";
+import { BankPicker, PublishToBank } from "./Workspace";
 import { fps, time } from "./timing";
 
 const storyLabels: Record<string, string> = {
@@ -207,13 +208,14 @@ export function Facts() {
         <Button icon={Search} onClick={() => s.setPage("sources")}>
           Szukaj źródeł
         </Button>
+        <BankPicker kinds={["fact", "source", "note"]} />
         <Button primary icon={Plus} onClick={() => s.run(add)}>
           Dodaj fakt
         </Button>
       </SectionHead>
       <div className="inline-summary">
         <span>
-          <strong>{p.facts.length}</strong> faktów w banku
+          <strong>{p.facts.length}</strong> faktów w tym filmie
         </span>
         <span>
           <Check size={14} />
@@ -235,7 +237,7 @@ export function Facts() {
       {!p.facts.length ? (
         <Empty
           icon={BookOpen}
-          title="Zbuduj bank faktów"
+          title="Zbierz fakty do tego filmu"
           action={
             <Button icon={Plus} onClick={() => s.run(add)}>
               Dodaj pierwsze twierdzenie
@@ -325,6 +327,19 @@ export function Facts() {
                 </Field>
               </div>
               <div className="fact-references">
+                <PublishToBank
+                  kind="fact"
+                  itemId={fact.id}
+                  title={fact.claim.slice(0, 200)}
+                />
+                {fact.status === "UNVERIFIED" &&
+                  !!fact.provenance?.bank_resource_id && (
+                    <p className="small warning-text">
+                      Z banku, wersja {String(fact.provenance.bank_revision)}.
+                      Sprawdź zastosowanie w tym filmie; poprzednia weryfikacja
+                      pozostaje w pochodzeniu.
+                    </p>
+                  )}
                 {p.scenes
                   .filter((sc) => sc.fact_ids.includes(fact.id))
                   .map((sc) => (

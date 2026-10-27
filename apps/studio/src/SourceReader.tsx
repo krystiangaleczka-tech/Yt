@@ -3,6 +3,7 @@ import { useStudio } from "./context";
 import { api, mediaUrl, safeUrl } from "./api";
 import { Button, CommitText, Field, NumberField } from "./components";
 import type { Project, Source } from "./types";
+import { PublishToBank } from "./Workspace";
 
 export default function SourceReader({ sourceId }: { sourceId: string }) {
   const s = useStudio(),
@@ -61,6 +62,7 @@ export default function SourceReader({ sourceId }: { sourceId: string }) {
   return (
     <>
       <div className="button-row">
+        <PublishToBank kind="source" itemId={source.id} title={source.title} />
         {asset && (
           <a className="button" href={mediaUrl(p.id, asset.id)} download>
             Pobierz oryginalny dokument

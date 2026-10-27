@@ -21,6 +21,7 @@ import {
 } from "./components";
 import type { Asset, Project } from "./types";
 import { newClip, fps } from "./timing";
+import { BankPicker, PublishToBank } from "./Workspace";
 
 export default function LibraryView() {
   const s = useStudio(),
@@ -62,9 +63,10 @@ export default function LibraryView() {
     <div className="page-content">
       <SectionHead
         eyebrow="TWOJE MATERIAŁY"
-        title="Biblioteka"
+        title="Materiały tego filmu"
         description="Wybrane, wgrane i wygenerowane pliki w jednym miejscu."
       >
+        <BankPicker kinds={["media", "source"]} label="Dodaj z banku mediów" />
         <label className="button primary">
           <Upload size={16} />
           {busy ? "Wczytywanie…" : "Dodaj materiały"}
@@ -116,6 +118,7 @@ export default function LibraryView() {
                 <AssetThumb asset={a} project={p} />
               </button>
               <div className="library-card-body">
+                <PublishToBank kind="media" itemId={a.id} title={a.name} />
                 <h3>{a.name}</h3>
                 <p className="small muted">
                   {a.kind === "audio" || a.kind === "video"

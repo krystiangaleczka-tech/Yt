@@ -7,6 +7,7 @@ from pydantic import Field, model_validator
 from .models_base import Model, uid
 from .inserts import MotionInsert
 from .development import Development, migrate_ideas
+from .workspace_models import ResourceLink
 
 
 class Fact(Model):
@@ -20,6 +21,7 @@ class Fact(Model):
     source_id: str | None = None
     quote: str = ""
     checked_at: str = ""
+    provenance: dict[str, Any] = Field(default_factory=dict)
 
 
 class Source(Model):
@@ -232,6 +234,11 @@ class Project(Model):
     legacy: dict[str, Any] = Field(default_factory=dict)
     channel_id: str = ""
     channel_profile: dict[str, Any] = Field(default_factory=dict)
+    category_id: str = ""
+    category_profile: dict[str, Any] = Field(default_factory=dict)
+    film_format: str = ""
+    workspace_snapshot: dict[str, Any] = Field(default_factory=dict)
+    resource_links: list[ResourceLink] = Field(default_factory=list)
     archived: bool = False
     published: bool = False
     beats: list[Beat] = Field(default_factory=list)

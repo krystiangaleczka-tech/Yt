@@ -48,6 +48,7 @@ import {
   scoreLabels,
 } from "./developmentTypes";
 import { BeatTools } from "./Production";
+import { BankPicker, PublishToBank } from "./Workspace";
 
 type AITarget = {
   kind: "ideas" | "stories" | "chapters" | "review";
@@ -351,6 +352,13 @@ export default function IdeaWorkspace() {
       </SectionHead>
       {!idea ? (
         <>
+          <div className="workspace-film-target">
+            <span>
+              <strong>{p.channel}</strong> ·{" "}
+              {String(p.category_profile.name || "Bez kategorii")}
+              {p.film_format ? ` · ${p.film_format}` : ""}
+            </span>
+          </div>
           <div className="idea-intake-grid">
             <section className="surface tool-panel">
               <div className="inline-heading">
@@ -441,6 +449,7 @@ export default function IdeaWorkspace() {
               <Button primary icon={Plus} onClick={() => setOwn(true)}>
                 Dodaj własny pomysł
               </Button>
+              <BankPicker kinds={["idea"]} label="Dobierz temat z poczekalni" />
               <div className="idea-current">
                 <small>Film w produkcji</small>
                 <strong>{p.title}</strong>
@@ -566,6 +575,12 @@ export default function IdeaWorkspace() {
               save={(v) => changeIdea({ notes: v })}
             />
             <div className="button-row">
+              <PublishToBank
+                kind="idea"
+                itemId={idea.id}
+                title={idea.title}
+                label="Zachowaj temat w poczekalni"
+              />
               <Button icon={Check} onClick={() => askChoose(idea)}>
                 Ustaw temat filmu
               </Button>
@@ -844,6 +859,12 @@ export default function IdeaWorkspace() {
                   <Button icon={Sparkles} onClick={() => launch("chapters")}>
                     Zaproponuj strukturę
                   </Button>
+                  <PublishToBank
+                    kind="template"
+                    itemId={story.id}
+                    title={"Układ: " + story.title}
+                    label="Zapisz układ jako szablon"
+                  />
                   <Button
                     icon={Plus}
                     onClick={() =>
@@ -920,6 +941,10 @@ export default function IdeaWorkspace() {
               <ForecastPanel
                 value={forecasts[story.id]}
                 baseline={d.baseline}
+              />
+              <BankPicker
+                kinds={["baseline"]}
+                label="Dobierz dane kanału / kategorii"
               />
               <section className="surface tool-panel">
                 <div className="inline-heading">

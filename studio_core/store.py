@@ -121,6 +121,10 @@ class ProjectStore:
                 source_changed=source and source.id in old_sources and source!=old_sources[source.id]
                 if old and (evidence_changed or source_changed): fact.status="UNVERIFIED";fact.checked_at=""
                 elif fact.status=="VERIFIED" and (not old or old.status!="VERIFIED"): fact.checked_at=now()
+                if fact.provenance.get("bank_resource_id"):
+                    fact.provenance["review_required"] = fact.status == "UNVERIFIED"
+                    if fact.status == "VERIFIED" and (not old or old.status != "VERIFIED"):
+                        fact.provenance["context_reviewed_at"] = now()
             validate_scene_locks(original, current)
             reconcile(original, current)
             if story_hash(current) != previous_story:

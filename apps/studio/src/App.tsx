@@ -19,7 +19,6 @@ import {
   LoaderCircle,
   Film,
   Search,
-  ArrowRight,
   Upload,
   Menu,
 } from "lucide-react";
@@ -28,7 +27,7 @@ import { StudioProvider, useStudio } from "./context";
 import type { Page } from "./context";
 import { api, upload } from "./api";
 import type { Project, ProjectSummary } from "./types";
-import { Button, Modal, Field, SectionHead, Empty } from "./components";
+import { Button, SectionHead, Empty } from "./components";
 import Generation from "./Generation";
 import Sources from "./Sources";
 import Timeline from "./Timeline";
@@ -37,8 +36,11 @@ import { Exports, JobList } from "./Exports";
 import Settings from "./Settings";
 import LibraryView from "./Library";
 import Production from "./Production";
+import { NewFilmModal } from "./Workspace";
+import { workspacePages, workspaceTitles } from "./workspaceTypes";
 
 const MotionEditor = lazy(() => import("./MotionEditor"));
+const WorkspaceView = lazy(() => import("./WorkspacePage"));
 
 const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "idea", label: "Pomysł", icon: Compass },
@@ -53,9 +55,7 @@ function Shell() {
   const s = useStudio();
   const [collapsed, setCollapsed] = useState(false),
     [mobileNav, setMobileNav] = useState(false),
-    [newOpen, setNewOpen] = useState(false),
-    [title, setTitle] = useState(""),
-    [language, setLanguage] = useState("pl");
+    [newOpen, setNewOpen] = useState(false);
   const step = steps.find((x) => x.id === s.page);
   const [dirty, setDirty] = useState(false);
   useEffect(() => {
@@ -77,18 +77,22 @@ function Shell() {
     s.setPage(page);
     setMobileNav(false);
   };
-  async function create() {
-    const p = await api<Project>("/projects", { title, language });
+  async function openCreated(p: Project) {
     await s.load(p.id);
     await s.reloadList();
     s.setPage("idea");
-    setNewOpen(false);
-    setTitle("");
-    s.notify("Utworzono nowy film");
+    s.notify("Utworzono osobny film");
   }
+  const globalPage = (workspacePages as readonly string[]).includes(s.page);
   const content =
     s.page === "projects" ? (
       <Projects onNew={() => setNewOpen(true)} />
+    ) : globalPage ? (
+      <Suspense
+        fallback={<div className="page-content">Ładowanie pracowni…</div>}
+      >
+        <WorkspaceView section={s.page} />
+      </Suspense>
     ) : !s.project ? (
       <Empty
         title="Utwórz pierwszy film"
@@ -175,7 +179,19 @@ function Shell() {
           <FolderOpen size={18} />
           <span>Projekty</span>
         </button>
-        <div className="nav-label">TWÓJ FILM</div>
+        <div className="nav-label">PRACOWNIA</div>
+        {workspacePages.map((page) => (
+          <button
+            key={page}
+            className={`nav-item ${s.page === page ? "active" : ""}`}
+            title={workspaceTitles[page]}
+            onClick={() => navigate(page)}
+          >
+            <Library size={18} />
+            <span>{workspaceTitles[page]}</span>
+          </button>
+        ))}
+        <div className="nav-label">OTWARTY FILM</div>
         <nav aria-label="Etapy produkcji">
           {steps.map((item, index) => (
             <button
@@ -201,7 +217,7 @@ function Shell() {
           <Film size={18} />
           <span>Wstawki animowane</span>
         </button>
-        <div className="nav-label resources-label">ZASOBY</div>
+        <div className="nav-label resources-label">ZASOBY TEGO FILMU</div>
         <button
           className={`nav-item ${s.page === "sources" ? "active" : ""}`}
           onClick={() => navigate("sources")}
@@ -216,7 +232,7 @@ function Shell() {
           title="Biblioteka mediów"
         >
           <Library size={18} />
-          <span>Biblioteka</span>
+          <span>Materiały filmu</span>
           {!collapsed && <small>{s.project?.assets.length || 0}</small>}
         </button>
         <button
@@ -309,6 +325,7 @@ function Shell() {
             <strong>
               {step?.label ||
                 {
+                  ...workspaceTitles,
                   sources: "Centrum źródeł",
                   projects: "Projekty",
                   library: "Biblioteka",
@@ -375,42 +392,11 @@ function Shell() {
           <span>{s.notice.text}</span>
         </div>
       )}
-      <Modal
+      <NewFilmModal
         open={newOpen}
-        onClose={() => setNewOpen(false)}
-        title="Zacznij nową historię"
-        description="Od pierwszego pytania do gotowego filmu."
-      >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            s.run(create);
-          }}
-        >
-          <Field label="Tytuł roboczy">
-            <input
-              autoFocus
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="O czym będzie Twój film?"
-              maxLength={200}
-            />
-          </Field>
-          <Field label="Język narracji">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-            >
-              <option value="pl">Polski</option>
-              <option value="en">English</option>
-            </select>
-          </Field>
-          <Button primary type="submit" icon={ArrowRight}>
-            Utwórz projekt
-          </Button>
-        </form>
-      </Modal>
+        close={() => setNewOpen(false)}
+        onCreated={openCreated}
+      />
       <Settings />
     </div>
   );

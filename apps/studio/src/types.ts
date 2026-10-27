@@ -1,5 +1,6 @@
 import type { MotionInsert } from "./motion/types";
 import type { Development } from "./developmentTypes";
+import type { ResourceLink } from "./workspaceTypes";
 export type Fact = {
   id: string;
   claim: string;
@@ -11,6 +12,7 @@ export type Fact = {
   source_id?: string | null;
   quote?: string;
   checked_at?: string;
+  provenance?: Record<string, unknown>;
 };
 export type Source = {
   id: string;
@@ -186,6 +188,11 @@ export type Project = {
   channel: string;
   channel_id: string;
   channel_profile: Record<string, unknown>;
+  category_id: string;
+  category_profile: Record<string, unknown>;
+  film_format: string;
+  workspace_snapshot: Record<string, unknown>;
+  resource_links: ResourceLink[];
   archived: boolean;
   published: boolean;
   beats: Beat[];

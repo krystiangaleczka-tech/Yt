@@ -38,6 +38,8 @@ from studio_timeline.operations import apply_operations
 from studio_timeline.render import render
 from studio_workers.jobs import Jobs
 from studio_api.inserts import register_inserts
+from studio_core.workspace import Workspace
+from studio_api.workspace import register_workspace
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -59,6 +61,9 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     app = FastAPI(title="DocOS Studio", version="0.2.0", lifespan=lifespan)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "[::1]", "testserver"])
     app.state.store = store; app.state.jobs = jobs; app.state.connectors = connectors
+    workspace = Workspace(store)
+    app.state.workspace = workspace
+    register_workspace(app, workspace)
     motion_render=register_inserts(app, store, jobs, connectors)
 
     @app.middleware("http")
@@ -108,8 +113,7 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
 
     @app.post("/api/projects")
     def new_project(body: dict):
-        title = str(body.get("title") or "Nowy dokument").strip()
-        return store.create(Project(title=title, language=str(body.get("language") or "pl")))
+        return workspace.new_project(body)
 
     @app.get("/api/projects/{project_id}")
     def get_project(project_id: str):
