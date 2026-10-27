@@ -1,18 +1,11 @@
 from __future__ import annotations
 
 import math
-import uuid
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, ConfigDict, model_validator
-
-
-def uid(prefix: str = "") -> str:
-    return prefix + uuid.uuid4().hex[:16]
-
-
-class Model(BaseModel):
-    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+from pydantic import Field, model_validator
+from .models_base import Model, uid
+from .inserts import MotionInsert
 
 
 class Fact(Model):
@@ -225,6 +218,7 @@ class Project(Model):
         "open_question": "", "sting": "", "status": "DRAFT", "approved_hash": "",
     })
     scenes: list[Scene] = Field(default_factory=list)
+    inserts: list[MotionInsert] = Field(default_factory=list, max_length=200)
     assets: list[Asset] = Field(default_factory=list)
     sequence: Sequence = Field(default_factory=Sequence)
     legacy: dict[str, Any] = Field(default_factory=dict)
@@ -252,7 +246,7 @@ class Project(Model):
                 raise ValueError("Limity budżetu muszą być nieujemnymi liczbami")
         if not 1<=self.budget.get("max_jobs",20)<=100 or not 1<=self.budget.get("max_seconds",3600)<=21600:
             raise ValueError("Limit zadań: 1–100; limit czasu: 1–21600 sekund")
-        for name in ("facts", "sources", "scenes", "assets", "beats"):
+        for name in ("facts", "sources", "scenes", "assets", "beats", "inserts"):
             ids = [x.id for x in getattr(self, name)]
             if len(ids) != len(set(ids)):
                 raise ValueError(f"Powtórzone identyfikatory: {name}")
@@ -261,6 +255,11 @@ class Project(Model):
         if len(set(track_ids)) != len(track_ids) or len(set(clip_ids)) != len(clip_ids):
             raise ValueError("Powtórzone identyfikatory na osi czasu")
         assets = {a.id: a for a in self.assets}
+        for insert in self.inserts:
+            if any(i not in assets or assets[i].kind != "image" for i in insert.image_ids):
+                raise ValueError("Wstawka wymaga zdjęć z biblioteki projektu")
+            if insert.rendered_asset_id and (insert.rendered_asset_id not in assets or assets[insert.rendered_asset_id].kind != "video"):
+                raise ValueError("Wstawka wymaga istniejącego renderu wideo")
         facts = {f.id for f in self.facts}
         beats = {b.id for b in self.beats}
         sources={s.id for s in self.sources}
@@ -386,6 +385,8 @@ def import_content(data: dict) -> Project:
         # the NEW project directory. Invalid/untrusted path records are dropped.
         data["assets"]=[a for a in data.get("assets",[]) if re.fullmatch(r"asset_[a-f0-9]{20}",str(a.get("id",""))) and re.fullmatch(r"[a-f0-9]{64}",str(a.get("sha256",""))) and str(a.get("filename","")) not in ("",".","..") and "/" not in str(a.get("filename","")) and "\\" not in str(a.get("filename",""))]
         known={a["id"] for a in data["assets"]}
+        for item in data.get("inserts",[]):
+            item["image_ids"]=[];item["rendered_asset_id"]=None;item["rendered_signature"]=""
         for asset in data["assets"]: asset["thumbnail"]=""
         for scene in data.get("scenes",[]):
             for key in ("asset_id","voice_asset_id"): scene[key]=scene.get(key) if scene.get(key) in known else None

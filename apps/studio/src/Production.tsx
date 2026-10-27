@@ -1166,10 +1166,32 @@ function VersionTools() {
                 current = p[key as keyof Project];
               return JSON.stringify(old) !== JSON.stringify(current) ? (
                 <details key={key} open={key === "title"}>
-                  <summary>Zmieniono: {key}</summary>
+                  <summary>
+                    Zmieniono:{" "}
+                    {
+                      (
+                        {
+                          title: "Tytuł filmu",
+                          story: "Karta historii",
+                          facts: "Bank faktów",
+                          beats: "Fragmenty",
+                          scenes: "Ujęcia",
+                          sequence: "Montaż",
+                        } as Record<string, string>
+                      )[key]
+                    }
+                  </summary>
                   <div className="diff-grid">
-                    <pre>{JSON.stringify(old, null, 2)}</pre>
-                    <pre>{JSON.stringify(current, null, 2)}</pre>
+                    <pre>
+                      {typeof old === "string"
+                        ? old
+                        : JSON.stringify(old, null, 2)}
+                    </pre>
+                    <pre>
+                      {typeof current === "string"
+                        ? current
+                        : JSON.stringify(current, null, 2)}
+                    </pre>
                   </div>
                 </details>
               ) : null;

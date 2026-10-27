@@ -17,8 +17,8 @@ def check_project(store, project):
         add("timeline", "Oś czasu jest pusta", "error")
     assets = {a.id: a for a in project.assets}
     tracks = {t.id: t for t in project.sequence.tracks}
-    used = {c.asset_id for c in project.sequence.clips if c.asset_id}
-    used |= {a for c in project.sequence.clips for a in c.asset_ids}
+    from .exports import used_asset_ids
+    used=used_asset_ids(project)
     for scene in project.scenes:
         if not scene.asset_id and scene.template in MEDIA_TEMPLATES:
             add("media:"+scene.id, scene.title+": brak wybranego materiału", scene_id=scene.id)
@@ -57,7 +57,7 @@ def check_project(store, project):
             continue
         if not (store.folder(project.id)/"media"/asset.filename).is_file():
             add("file:"+asset.id, "Brak pliku: "+asset.name, "error")
-        if asset.kind in ("image", "video", "audio") and not asset.license and asset.provenance.get("kind") not in ("voice","voice_sentence","image"):
+        if asset.kind in ("image", "video", "audio") and not asset.license and asset.provenance.get("kind") not in ("voice","voice_sentence","image","remotion"):
             add("license:"+asset.id, "Uzupełnij warunki użycia materiału: "+asset.name)
         if asset.kind == "image" and asset.width < project.sequence.width // 2:
             add("resolution:"+asset.id, "Mała rozdzielczość obrazu: "+asset.name)

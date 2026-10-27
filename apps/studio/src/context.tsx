@@ -10,6 +10,7 @@ export type Page =
   | "story"
   | "script"
   | "generation"
+  | "motion"
   | "editing"
   | "export"
   | "sources"
@@ -42,6 +43,8 @@ type Context = {
   ) => Promise<Project>;
   mutate: (fn: (p: Project) => Promise<Project>) => Promise<Project>;
   run: (task: () => Promise<unknown>) => void;
+  targetInsert: string | null;
+  setTargetInsert: (id: string | null) => void;
   targetScene: string | null;
   setTargetScene: (id: string | null) => void;
   settingsOpen: boolean;
@@ -66,6 +69,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     [saving, setSaving] = useState(false),
     [saveError, setSaveError] = useState(false),
     [notice, setNotice] = useState<Context["notice"]>(null),
+    [targetInsert, setTargetInsert] = useState<string | null>(null),
     [targetScene, setTargetScene] = useState<string | null>(null),
     [settingsOpen, setSettingsOpen] = useState(false),
     [searchInitial, setSearchInitial] = useState("");
@@ -107,6 +111,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         "story",
         "script",
         "generation",
+        "motion",
         "editing",
         "export",
         "sources",
@@ -221,7 +226,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     if (project) localStorage.setItem("docos:page:" + project.id, page);
   }, [page, project?.id]);
   useEffect(() => {
-    let previous = "";
+    let previous: string | null = null;
     const events = new EventSource("/api/events");
     events.addEventListener("jobs", (event) => {
       const next = JSON.parse((event as MessageEvent).data) as Job[];
@@ -230,8 +235,8 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         .filter((j) => j.status === "SUCCEEDED")
         .map((j) => j.id)
         .join(",");
-      if (previous && completed !== previous) run(reload);
-      previous = completed || "none";
+      if (previous !== null && completed !== previous) run(reload);
+      previous = completed;
     });
     const timer = setInterval(() => {
       if (events.readyState === EventSource.CLOSED)
@@ -264,6 +269,8 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         edit,
         mutate,
         run,
+        targetInsert,
+        setTargetInsert,
         targetScene,
         setTargetScene,
         settingsOpen,

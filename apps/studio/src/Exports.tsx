@@ -42,6 +42,7 @@ const kinds: Record<string, string> = {
   ocr: "Rozpoznawanie skanu",
   proxy: "Lekki plik proxy",
   frame: "Dokładna klatka",
+  motion: "Renderowanie wstawki",
 };
 export function JobList({ all = false }: { all?: boolean }) {
   const s = useStudio();

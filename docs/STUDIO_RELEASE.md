@@ -20,7 +20,7 @@ python3 scripts/install_studio.py
 npm start
 ```
 
-Windows: `python` zamiast `python3`. Instalator nie zmienia materiałów projektu. Jeśli korzystasz z modeli i aktualizujesz ich środowiska, użyj `--with-models`; wymaga to uv i może pobrać zależności. Uruchomienie po aktualizacji: http://127.0.0.1:8876.
+Windows: `python` zamiast `python3`. Instalator nie zmienia materiałów projektu. Jeśli korzystasz z modeli i aktualizujesz ich środowiska, użyj `--with-models`; wymaga to uv i może pobrać zależności. Uruchomienie po aktualizacji: http://127.0.0.1:8876. Odśwież otwartą kartę przeglądarki, aby wczytać nowy frontend.
 
 Schemat `docos-studio/2` odczytuje starszy `/1`. Pierwszy zapis utrwala nowy schemat i przenosi dawne wewnętrzne migawki cofania do katalogu `history`. Powrót do starego kodu wymaga przywrócenia odpowiadającej mu kopii danych, nie tylko przełączenia commita.
 
@@ -36,7 +36,7 @@ Schemat `docos-studio/2` odczytuje starszy `/1`. Pierwszy zapis utrwala nowy sch
 
 Po ponownym uruchomieniu zadania QUEUED/RUNNING/CANCEL_REQUESTED dostają status INTERRUPTED. Nie są automatycznie wykonywane ani naliczane ponownie. Przycisk **Ponów** tworzy nowe zadanie i zachowuje poprzedni wpis.
 
-Render, generowanie, klatka, proxy, OCR, składanie zdań i rozpoznawanie czasów zachowują wejściową migawkę. Ponowienie wyszukiwania, pobrania lub importu folderu odczytuje zapisane żądanie; zewnętrzny serwis lub folder może już zawierać inne dane. Render nie przestawia się sam na aktualny montaż. Wyniki generowania trafiają do wariantów, a nie samowolnie na oś.
+Render, generowanie, wstawka Remotion, klatka, proxy, OCR, składanie zdań i rozpoznawanie czasów zachowują wejściową migawkę. Ponowienie wyszukiwania, pobrania lub importu folderu odczytuje zapisane żądanie; zewnętrzny serwis lub folder może już zawierać inne dane. Render nie przestawia się sam na aktualny montaż. Wyniki generowania trafiają do wariantów, a nie samowolnie na oś.
 
 Jeśli tekst, nagranie lub źródło zmieniło się podczas zadania, kontrola rewizji/fingerprintu odrzuca nieaktualne przypisanie. Wtedy uruchom narzędzie ponownie dla aktualnej wersji. Stare zadania z wydania bez zapisanego żądania mogą wymagać ponownego uruchomienia z właściwego ekranu.
 
@@ -56,6 +56,7 @@ Anulowanie zatrzymuje worker i pozostawia zakończone, zaimportowane media w bib
 | Nieaktualny głos | Wygeneruj/wybierz wariant zgodny z tekstem, językiem, profilem i wymową; potem ponów napisy. |
 | HTTP 409 | Wczytaj aktualną rewizję, przejrzyj zmiany i przygotuj nową propozycję. |
 | Limit Claude lub błąd klucza | Sprawdź konto w Ustawieniach. Można nadal korzystać z ręcznie wklejanego, walidowanego JSON. |
+| Timeout Remotion na macOS | Przy pierwszej instalacji wykonaj remotion:setup; jeśli pulpit jest zablokowany/niedostępny, odblokuj sesję i ponów. Na tym Macu po przywróceniu pulpitu pięć szablonów przeszło poprawnie. |
 | Port 8876 zajęty | Zakończ poprzedni serwer albo uruchom `npm start -- --port 9000`. |
 
 Serwer, frontend i modele sprawdzono na macOS z Apple Silicon 8 GB. Ścieżki Windows są obsłużone w kodzie, lecz nie przeprowadzono instalacji na osobnym komputerze Windows. To lokalna aplikacja uruchamiana instalatorem/skryptem; wydanie nie zawiera podpisanego instalatora desktopowego.

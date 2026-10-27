@@ -37,6 +37,7 @@ from studio_connectors.sources import Connectors, get_bytes
 from studio_timeline.operations import apply_operations
 from studio_timeline.render import render
 from studio_workers.jobs import Jobs
+from studio_api.inserts import register_inserts
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -58,6 +59,7 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     app = FastAPI(title="DocOS Studio", version="0.2.0", lifespan=lifespan)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "[::1]", "testserver"])
     app.state.store = store; app.state.jobs = jobs; app.state.connectors = connectors
+    motion_render=register_inserts(app, store, jobs, connectors)
 
     @app.middleware("http")
     async def local_mutations(request: Request, call_next):
@@ -467,7 +469,7 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
         return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     from .production import register
-    register(app,store,jobs,connectors,REPO,{"render":start_render,"generate":generate,"writer":writing,"fetch":fetch_medium})
+    register(app,store,jobs,connectors,REPO,{"render":start_render,"generate":generate,"writer":writing,"fetch":fetch_medium,"motion":motion_render})
     dist = REPO / "apps" / "studio" / "dist"
     if dist.exists():
         app.mount("/", StaticFiles(directory=dist, html=True), name="studio")

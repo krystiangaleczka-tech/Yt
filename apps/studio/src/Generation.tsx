@@ -248,6 +248,9 @@ export default function Generation() {
         title="Generowanie filmu"
         description="Przygotuj materiał, ruch i narrację każdego ujęcia."
       >
+        <Button icon={Sparkles} onClick={() => s.setPage("motion")}>
+          Dodaj wstawkę
+        </Button>
         <Button icon={Plus} onClick={() => s.run(addScene)}>
           Dodaj ujęcie
         </Button>

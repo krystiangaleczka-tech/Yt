@@ -24,10 +24,18 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: requirements-studio.lock
-      - run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - name: Ensure FFmpeg
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y ffmpeg
+          fi
       - run: python -m pip install -r requirements-studio.lock openpyxl
       - run: npm --prefix apps/studio ci
       - run: npm run build
       - run: npm run test:frontend
+      - run: npm --prefix apps/studio run remotion:setup
       - run: python -m unittest discover -s studio_tests -v
+        env:
+          DOCOS_TEST_REMOTION: '1'
       - run: python -m unittest discover -s docos/tests -v

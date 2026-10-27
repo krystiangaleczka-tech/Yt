@@ -119,3 +119,63 @@ CLI Studio korzysta z tego samego serwisu, blokady między procesami i rewizji:
 ```
 
 Zewnętrzne konta pozostają zależnością użytkownika. Podczas wdrożenia Claude zwracał limit konta do 28.10.2026; rzeczywistego modelu tekstowego i kluczy Pixabay/Pexels nie zastępowano udawanymi wywołaniami. Kontrakty tych integracji są testowane kontrolowanymi odpowiedziami.
+
+## Wstawki Remotion
+
+W panelu bocznym otwórz **Wstawki animowane** lub kliknij **Dodaj wstawkę** w generowaniu filmu albo montażu.
+Moduł zawiera pięć oryginalnych szablonów: animowane zdjęcie, porównanie dwóch zdjęć, wykres słupkowy,
+cytat ze źródłem i planszę rozdziału. Wstawki nie wymagają generowania obrazów przez AI.
+
+1. Wybierz szablon. Dla zdjęć najpierw dodaj materiały do biblioteki filmu.
+2. Uzupełnij treść, źródło, czas i kolory. Dla zdjęć ustaw przybliżenie, przesunięcie,
+   obrót, jasność, nasycenie i rozmycie. W wykresie wpisz własne, sprawdzone dane (do ośmiu słupków).
+3. Obejrzyj animację w odtwarzaczu. Zapisz i kliknij **Renderuj klip**.
+4. Po ukończeniu zadania wybierz początek na osi czasu i **Dodaj do montażu**.
+   Zwykły montaż, miks audio i eksport całego filmu nadal obsługuje FFmpeg.
+
+Podgląd i render używają tego samego komponentu React i animacji liczonych z numeru klatki.
+Wyrenderowany MP4 jest osobnym, niezmiennym materiałem. Edycja wstawki nie podmienia samodzielnie
+istniejących klipów: wyrenderuj nową wersję i dodaj ją jawnie. Przycisk **Edytuj źródło wstawki**
+w inspektorze klipu wraca do edytowalnej definicji. Definicje, źródłowe zdjęcia i rendery są zachowywane
+w pakiecie ZIP. Import samego JSON usuwa odniesienia do plików.
+
+### Instalacja silnika renderującego
+
+Wymagany jest Node.js co najmniej 22.12 oraz zależności aplikacji. Pakiety Remotion mają jedną
+przypiętą wersję: `4.0.539`. Po aktualizacji aplikacji uruchom:
+
+```bash
+npm --prefix apps/studio ci
+npm --prefix apps/studio run build
+npm --prefix apps/studio run remotion:setup
+```
+
+Ostatnia komenda przygotowuje Chrome Headless Shell używany przez renderer; wymaga internetu
+przy pierwszym pobraniu i odpowiednich bibliotek systemowych Chromium. Sam podgląd Player działa
+w przeglądarce użytkownika. Można wskazać własny zgodny plik wykonywalny przez
+`DOCOS_REMOTION_BROWSER` (również dla komendy setup). Renderowanie pozostaje lokalne, bez chmury Remotion.
+Pełny instalator `python3 scripts/install_studio.py --run` instaluje podstawowe zależności;
+przygotowanie przeglądarki jest osobnym, opcjonalnym krokiem potrzebnym tylko dla wstawek.
+
+**Zmień z AI** przygotowuje propozycję parametrów istniejącej wstawki przez skonfigurowany model
+lub prompt do skopiowania i import odpowiedzi JSON. Propozycja trafia do podglądu i wymaga zapisu.
+AI nie uruchamia kodu React/JavaScript i może użyć wyłącznie identyfikatorów zdjęć z danego projektu.
+Nie ma automatycznej weryfikacji prawdziwości cytatów ani danych liczbowych — sprawdź je ze źródłem.
+
+Czas pojedynczej wstawki: maksymalnie sześćdziesiąt sekund. Szablony są pełnoklatkowe, renderowane
+jako H.264 bez przezroczystości i bez ścieżki dźwiękowej; lektor i muzyka są dodawane w montażu.
+Nie jest to rigging postaci, rekonstrukcja głębi ani generowanie ruchu twarzy. Animacja zdjęcia
+zmienia kompozycję i filtry istniejących pikseli. Dla uzyskania identycznego kroju pisma na różnych
+komputerach należy używać tego samego zestawu fontów systemowych.
+
+Remotion podlega własnej licencji: [warunki](https://www.remotion.dev/docs/license)
+i [cennik](https://www.remotion.dev/docs/license/pricing). Przed użyciem w większej organizacji lub
+udostępnieniem usługi sprawdź uprawnienia licencyjne. Instalacja nie kupuje subskrypcji.
+
+Test integracyjny wszystkich pięciu szablonów oraz eksportu z FFmpeg:
+
+```bash
+DOCOS_TEST_REMOTION=1 .venv-studio/bin/python -m unittest studio_tests.test_motion_render -v
+```
+
+Wymaga przygotowanego renderera i przeglądarki. CI wykonuje go z Node 22 i Pythonem 3.12.

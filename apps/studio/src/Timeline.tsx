@@ -352,6 +352,9 @@ export default function Timeline() {
           >
             Dokładna klatka
           </Button>
+          <Button icon={Film} onClick={() => s.setPage("motion")}>
+            Dodaj wstawkę
+          </Button>
           <Button subtle icon={ImageIcon} onClick={() => setLibrary(!library)}>
             Materiały
           </Button>
@@ -478,6 +481,28 @@ export default function Timeline() {
           />
         ) : (
           <section className="clip-inspector surface">
+            {active &&
+              p.assets.find((a) => a.id === active.asset_id)?.provenance
+                .kind === "remotion" &&
+              p.inserts.some(
+                (i) =>
+                  i.id ===
+                  p.assets.find((a) => a.id === active.asset_id)?.provenance
+                    .insert_id,
+              ) && (
+                <Button
+                  icon={Film}
+                  onClick={() => {
+                    const asset = p.assets.find(
+                      (a) => a.id === active.asset_id,
+                    );
+                    s.setTargetInsert(String(asset?.provenance.insert_id));
+                    s.setPage("motion");
+                  }}
+                >
+                  Edytuj źródło wstawki
+                </Button>
+              )}
             <div className="panel-heading">
               <h2>Inspektor</h2>
               {active && (

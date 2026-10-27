@@ -8,8 +8,16 @@ from .freshness import voice_state
 from .voices import alignment_hash
 
 
-def attribution(project):
+def used_asset_ids(project):
     ids={c.asset_id for c in project.sequence.clips if c.asset_id}|{a for c in project.sequence.clips for a in c.asset_ids}
+    for asset in project.assets:
+        if asset.id in ids and asset.provenance.get("kind")=="remotion":
+            ids.update(asset.provenance.get("definition",{}).get("image_ids",[]))
+    return ids
+
+
+def attribution(project):
+    ids=used_asset_ids(project)
     return [{"id":a.id,"name":a.name,"author":a.author,"source":a.source_url,"license":a.license,"license_url":a.license_url,"attribution":a.attribution} for a in project.assets if a.id in ids and not a.private]
 
 

@@ -436,6 +436,7 @@ def register(app, store, jobs, connectors, repo, callbacks):
                 return {"url":f"/api/jobs/{new_id}/output","revision":project.revision,"mode":body.get("mode","draft")}
             return jobs.submit(pid,project.revision,old["kind"],task,request=request,snapshot=project.model_dump())
         if request.get("action")=="generate": return callbacks["generate"](pid,request["scene_id"],request["kind"],{**request["body"],"_retry_job":old["id"]})
+        if request.get("action")=="motion": return callbacks["motion"](pid,request["insert_id"],{**request["body"],"_retry_job":old["id"]})
         if request.get("action")=="fetch": return queued_fetch(pid,request["body"])
         if request.get("action")=="search": return multisearch(pid,request["body"])
         body={**request.get("body",{}),"_retry_job":old["id"]}

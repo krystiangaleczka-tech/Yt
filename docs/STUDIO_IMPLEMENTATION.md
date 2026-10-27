@@ -2,13 +2,13 @@
 
 Stan: 27.10.2026, gałąź `codex/docos-studio-20261026`. Podstawa: plan v2 z [rozmowy Projects/Yt](https://chatgpt.com/g/g-p-6adf28f1a0448191bc6f743c798b95df-yt/c/6adf293e-3f38-83ed-be04-ce446ec13b4d). [Audyt z 26.10](audits/2026-10-26-studio-review.md) opisuje historyczny stan pierwszej wersji.
 
-Wszystkie 60 pozycji mają implementację w kodzie i interfejsie. Nie oznacza to 60 osobnych testów z rzeczywistymi usługami ani pełnej certyfikacji dostępności. Ograniczenia weryfikacji pozostają jawne: limit konta Claude, brak kluczy stockowych, brak komputera Windows i niedostępne okno Safari przy ostatniej kontroli.
+Wszystkie 60 pozycji mają implementację w kodzie i interfejsie. Nie oznacza to 60 osobnych testów z rzeczywistymi usługami ani pełnej certyfikacji dostępności. Ograniczenia weryfikacji pozostają jawne: limit konta Claude, brak kluczy stockowych, brak komputera Windows i ograniczony zakres ręcznego audytu dostępności.
 
 ## Wyniki
 
 | Kontrola | Wynik |
 |---|---|
-| Backend Studio | **67/67**, 14,045 s; rzeczywisty FFmpeg, OCR, eksporty i odtworzenie danych. |
+| Backend Studio | **83 potwierdzone testy**: 82 szybkie (15,922 s; osobny render pominięty) + 1 rzeczywisty test pięciu szablonów Remotion i końcowego eksportu (17,483 s). |
 | Stare DocOS | **18/18**, 1,276 s; również XLSX, bez pominiętych testów. |
 | Frontend | **7/7**: czas, keyframes, propozycje, podział animacji i kontrast palet. |
 | Build | TypeScript i Vite przechodzą; frontend 0.2.0. |
@@ -17,7 +17,7 @@ Wszystkie 60 pozycji mają implementację w kodzie i interfejsie. Nie oznacza to
 | Rzeczywisty E2E | EPUB Gutenberg, wydanie Open Library, obraz Commons, lokalne SD 1.5, Chatterbox i faster-whisper; H.264/AAC 640×360, **10,266 s**, eksporty i ponowny import ZIP. |
 | Napisy referencji | 10 słów; pisownia poprawiona względem narracji, zmierzone czasy zachowane. Drugi eksport i ZIP z 2 wersjami A/B; kontrola bez uwag. Nie wykonano niezależnej oceny jakości głosu odsłuchem. |
 | 500 ujęć/500 klipów/40 kroków cofania | Odczyt p95 **27,73 ms**, zapis p95 **247,36 ms** na Macu 8 GB. Pomiar serwisu i dysku, bez przeglądarki i modeli. |
-| UI | Poprzedni etap: Safari 1440/1024/390. Nowe ekrany produkcji obejrzano na desktopie i poprawiono kontrast. Ostatni przegląd wszystkich nowych ekranów przy 1440/1024/768/390 nie został wykonany: narzędzie nie miało dostępnego okna Safari. |
+| UI | Safari: wybrane nowe ekrany przy **390/768/1024/1440×900**. Sprawdzono produkcję, lektora, A/B, czytnik EPUB, pola napisów i widoczny focus, mobilny montaż oraz edytor wstawek w obu motywach. Utworzono, zapisano i wyrenderowano wstawkę z UI. Przywrócono ciemny motyw. To nie jest pełna certyfikacja WCAG ani test każdej kombinacji ekran/szerokość. |
 
 [Pomiar wydajności](benchmarks/2026-10-27-studio-mac8gb.json) · [Raport produkcyjny](audits/2026-10-27-studio-production-check.md) · [Uruchamianie i polecenia testów](STUDIO.md) · [Aktualizacja i odzyskiwanie](STUDIO_RELEASE.md).
 
@@ -32,7 +32,7 @@ Wszystkie 60 pozycji mają implementację w kodzie i interfejsie. Nie oznacza to
 | APP-003 | Wspólny ProjectService dla GUI/CLI, blokada między procesami, atomowa kontrola rewizji. | service/locking/cli; testy konfliktów i trwałości. |
 | APP-004 | Kolejka SQLite, postęp/anulowanie/INTERRUPTED, żądania i migawki ponowień; oddzielne kolejki sieci/modeli. | Test restartu i ponowienia klatki starej rewizji; test researchu podczas zajętego modelu. |
 | APP-005 | Grafitowy i jasny motyw, focus, etykiety, klawiatura, stany zapisu i błędów. | Pomiar palet: tekst ≥4,5:1, focus ≥3:1. Ograniczenie audytu UI opisane wyżej. |
-| APP-006 | Siedem etapów, połączone Źródła/Generowanie/Montaż, wspólne ujęcie i zapamiętany ekran. | App/context i responsywne CSS. Pełny nowy przegląd szerokości pozostał niepotwierdzony. |
+| APP-006 | Siedem etapów, połączone Źródła/Generowanie/Montaż, wspólne ujęcie i zapamiętany ekran. | App/context i responsywne CSS; ręczny przegląd wybranych ekranów 390/768/1024/1440 px oraz reset przewijania po zmianie strony. |
 | APP-007 | Projekty/kanały: tworzenie, import, duplikacja, archiwum i migawka profilu odcinka. | service, Projekty, Production → Kanał. |
 | APP-008 | Autosave tekstu po 900 ms/blur, kolejka CAS, błędy i trwałe Cofnij/Ponów do 40 kroków. | Test starej historii i cofania po restarcie; store/context/components. |
 | APP-009 | 10 propozycji tematów i historia tytułów całego kanału, także archiwum. | writer i service.channel_titles; generowanie zależy od konta AI. |
@@ -59,7 +59,7 @@ Wszystkie 60 pozycji mają implementację w kodzie i interfejsie. Nie oznacza to
 | APP-030 | MP4/JSON/MD/TXT/XLSX/opis/atrybucje oraz eksport konkretnej migawki renderu. | Test bezstratnej edycji XLSX i kompletny E2E eksportów. |
 | APP-031 | Zmierzone słowa/zdania, edytor pisowni/czasu, split/merge, SRT/VTT i tekst na osi. | Rzeczywiste ASR; test trim/speed i starego głosu; Captions/align_worker/exports. |
 | APP-032 | ZIP: manifest sum, media i A/B; jawne pominięcia prywatnych/dużych/brakujących plików. | Test prywatności, sum i historycznych mediów; rzeczywisty ZIP/reopen. |
-| APP-033 | Powtarzalny E2E, pomiary kontrastu i wydajności, regresje API/renderu. | verify_studio_e2e/benchmark_studio i testy. Pełny ręczny audyt nowych ekranów nie jest zakończony. |
+| APP-033 | Powtarzalny E2E, pomiary kontrastu i wydajności, regresje API/renderu. | verify_studio_e2e/benchmark_studio, testy i ręczny przegląd nowych ekranów. Zakres kontroli UI opisany powyżej; bez pełnej certyfikacji WCAG. |
 | APP-034 | Instalator/start, osobne locki modeli i diagnostyka narzędzi/importów. | install_studio/studio-start/diagnostics; rzeczywiste środowiska działają na tym Macu. |
 | APP-035 | Claude CLI bez narzędzi albo zgodne API, test połączenia i błędy konta. | Testy auth/limitu, ręczny JSON. Live: usage_limit_reached do 28.10.2026 10:00. |
 | APP-036 | Kopia, aktualizacja, rollback i odzyskiwanie projektów/zadań. | STUDIO_RELEASE.md; ZIP/reopen, trwała historia i ponowienie po restarcie w testach. |
@@ -85,7 +85,7 @@ Wszystkie 60 pozycji mają implementację w kodzie i interfejsie. Nie oznacza to
 | APP-056 | Cache zakresów zależny od źródeł/klipów/warstw/ustawień/fontów/kodu. | Test zmiany jednego zakresu i wykrycia zmiany oryginału mimo cache. |
 | APP-057 | Gotowość, stare/brakujące dane, jawne uwagi, szacunki i limity kosztu/zadań/czasu. | Test blokady przed API; quality/budget/Exports. Koszt jest rezerwacją szacunku. |
 | APP-058 | Profil stylu/font/kolor/referencje i planer przebitek z faktami/uzasadnieniem. | Kanały, planner i provenance; obrazy uwzględniają styl w promptach/hashach. |
-| APP-059 | Regresje dostawców, książek, rewizji, blokad, czasu, animacji, cache, anulowania i portabilności. | 67 Studio + 18 DocOS + 7 frontend; bez płatnych usług. |
+| APP-059 | Regresje dostawców, książek, rewizji, blokad, czasu, animacji, cache, anulowania i portabilności. | 83 Studio (w tym rzeczywisty Remotion) + 18 DocOS + 7 frontend; bez płatnych usług. |
 | APP-060 | Książka/stock → dowód → lokalne media/głos/ASR → montaż → eksporty → ZIP/reopen. | Rzeczywisty E2E. Operacje AI z jawnego JSON; limit uniemożliwił odpowiedź modelu tekstowego. |
 
 ## Ograniczenia rzeczywistego sprawdzenia
@@ -93,5 +93,9 @@ Wszystkie 60 pozycji mają implementację w kodzie i interfejsie. Nie oznacza to
 - Claude było zalogowane, lecz zwracało limit do 28.10.2026 10:00 Europe/Warsaw. Fixture nie jest opisywane jako odpowiedź działającego modelu.
 - Pixabay/Pexels sprawdzono kontraktami; bez kluczy nie ma potwierdzenia działania konta użytkownika.
 - MPS przy 8 GB powodował silny swap. Auto wybiera CPU. Około 202 s to wznowiony etap głosu; 224 s dotyczy wznowionego E2E z istniejącym obrazem i źródłami, bez pierwszej instalacji/pobierania wag.
-- Nie przeprowadzono pełnego audytu WCAG, wszystkich szerokości nowych ekranów, instalacji Windows ani każdej kombinacji szablonów/warstw/kodeków. Pomiar palet nie zastępuje audytu całego UI.
+- Nie przeprowadzono pełnego audytu WCAG, każdej kombinacji ekran/szerokość, instalacji Windows ani każdej kombinacji szablonów/warstw/kodeków. Pomiar palet nie zastępuje audytu całego UI.
 - Próbki głosu, nagrania i klucze nie są commitowane. Media i ZIP pozostają w lokalnym katalogu QA lub danych aplikacji.
+
+## Scalenie aktualnej gałęzi
+
+Zachowano zdalne commity Remotion bb931f9 i 3b429f5. Nowy moduł korzysta z budżetu AI i wejściowych rewizji; ponowienia mają migawkę, a atrybucje filmu uwzględniają zdjęcia wewnątrz wyrenderowanych wstawek. Dodano regresje tych połączeń. W pierwszej próbie bez dostępnego okna/sesji pulpitu macOS renderer zgłaszał timeout. Po udostępnieniu pulpitu ta sama domyślna konfiguracja przeszła wszystkie pięć szablonów i eksport końcowy; dodano wskazówkę diagnostyczną dla tego błędu. Nie zmieniano zablokowanej sesji ani zabezpieczeń komputera.

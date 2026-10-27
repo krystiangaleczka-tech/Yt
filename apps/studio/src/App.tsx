@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   Aperture,
   FolderOpen,
@@ -37,6 +37,8 @@ import { Exports, JobList } from "./Exports";
 import Settings from "./Settings";
 import LibraryView from "./Library";
 import Production from "./Production";
+
+const MotionEditor = lazy(() => import("./MotionEditor"));
 
 const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "idea", label: "Pomysł", icon: Compass },
@@ -98,6 +100,12 @@ function Shell() {
       />
     ) : s.page === "generation" ? (
       <Generation />
+    ) : s.page === "motion" ? (
+      <Suspense
+        fallback={<div className="page-content">Ładowanie wstawek…</div>}
+      >
+        <MotionEditor />
+      </Suspense>
     ) : s.page === "editing" ? (
       <Timeline />
     ) : s.page === "sources" ? (
@@ -185,6 +193,14 @@ function Shell() {
             </button>
           ))}
         </nav>
+        <button
+          className={`nav-item ${s.page === "motion" ? "active" : ""}`}
+          onClick={() => navigate("motion")}
+          title="Wstawki animowane"
+        >
+          <Film size={18} />
+          <span>Wstawki animowane</span>
+        </button>
         <div className="nav-label resources-label">ZASOBY</div>
         <button
           className={`nav-item ${s.page === "sources" ? "active" : ""}`}
@@ -298,6 +314,7 @@ function Shell() {
                   library: "Biblioteka",
                   jobs: "Zadania",
                   production: "Narzędzia produkcji",
+                  motion: "Wstawki animowane",
                 }[s.page as "sources"]}
             </strong>
           </div>
@@ -333,7 +350,7 @@ function Shell() {
         </header>
         <main
           className={`main-content page-${s.page}`}
-          key={s.project?.id || "none"}
+          key={`${s.project?.id || "none"}:${s.page}`}
         >
           {s.loading ? (
             <div className="loading">

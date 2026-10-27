@@ -154,9 +154,12 @@ export default function SourceReader({ sourceId }: { sourceId: string }) {
               setQuote("");
             }}
           >
-            {pages.map((x) => (
+            {pages.map((x, index) => (
               <option key={x.page} value={x.page}>
-                {x.page} · {x.text.slice(0, 65)}
+                {/^[0-9]+$/.test(String(x.page))
+                  ? `Strona ${x.page}`
+                  : `Sekcja ${index + 1}`}{" "}
+                · {x.text.slice(0, 65)}
               </option>
             ))}
           </select>
