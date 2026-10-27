@@ -969,6 +969,7 @@ export default function Timeline() {
                   className={`track-lane ${track.muted ? "muted-track" : ""}`}
                   style={{ width }}
                   onDoubleClick={(e) => {
+                    setPlaying(false);
                     const rect = e.currentTarget.getBoundingClientRect();
                     setFrame(
                       Math.max(

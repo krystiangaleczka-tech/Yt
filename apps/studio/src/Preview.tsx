@@ -3,6 +3,12 @@ import type { Project } from "./types";
 import { api, mediaUrl } from "./api";
 import { useStudio } from "./context";
 import { fps, interpolate, totalFrames } from "./timing";
+import {
+  audioFrame,
+  primaryAudioClip,
+  syncMedia,
+  pauseMedia,
+} from "./playback";
 
 export default function Preview({
   project,
@@ -26,8 +32,19 @@ export default function Preview({
     audios = useRef(new Map<string, HTMLAudioElement>()),
     current = useRef({ project, frame, playing, onFrame, onEnded });
   current.current = { project, frame, playing, onFrame, onEnded };
-  function draw() {
-    const { project: p, frame: at, playing: play } = current.current;
+  function playbackError(error: unknown) {
+    current.current.onEnded();
+    const blocked =
+      error instanceof DOMException && error.name === "NotAllowedError";
+    studio.notify(
+      blocked
+        ? "Przeglądarka zablokowała dźwięk. Zezwól na odtwarzanie audio dla Studio i ponów Play."
+        : "Nie udało się odtworzyć medium. Sprawdź nagranie w bibliotece i ponów Play.",
+      true,
+    );
+  }
+  function draw(at = current.current.frame) {
+    const { project: p, playing: play } = current.current;
     const node = canvas.current;
     if (!node) return;
     const ctx = node.getContext("2d");
@@ -38,6 +55,11 @@ export default function Preview({
     ctx.fillRect(0, 0, W, H);
     const rate = fps(p),
       assets = new Map(p.assets.map((a) => [a.id, a]));
+    const primary = primaryAudioClip(p, at),
+      clock = primary ? audios.current.get(primary.id) : undefined,
+      waiting =
+        !!primary &&
+        (!clock || clock.paused || clock.seeking || clock.readyState < 2);
     const activeAudio = new Set<string>(),
       activeVideos = new Set<string>();
     const transitions = new Map(
@@ -85,7 +107,7 @@ export default function Preview({
           const a = audios.current.get(c.id);
           if (a) {
             activeAudio.add(c.id);
-            a.volume = Math.min(
+            const volume = Math.min(
               1,
               interpolate(c, "volume", local) *
                 fade *
@@ -93,11 +115,15 @@ export default function Preview({
                   ? p.sequence.ducking_gain
                   : 1),
             );
-            a.playbackRate = c.speed;
-            if (Math.abs(a.currentTime - seconds) > 0.15)
-              a.currentTime = seconds;
-            if (play && a.paused) void a.play().catch(() => {});
-            if (!play && !a.paused) a.pause();
+            if (Math.abs(a.volume - volume) > 0.0001) a.volume = volume;
+            syncMedia(
+              a,
+              seconds,
+              play && (!waiting || primary?.id === c.id),
+              c.speed,
+              `${p.id}:${a.src}:${c.start}:${c.source_in}:${c.speed}`,
+              playbackError,
+            );
           }
           continue;
         }
@@ -129,11 +155,14 @@ export default function Preview({
           const v = videos.current.get(c.id);
           if (v) {
             activeVideos.add(c.id);
-            v.playbackRate = c.speed;
-            if (Math.abs(v.currentTime - seconds) > (play ? 0.15 : 0.025))
-              v.currentTime = seconds;
-            if (play && v.paused) void v.play().catch(() => {});
-            if (!play && !v.paused) v.pause();
+            syncMedia(
+              v,
+              seconds,
+              play && !waiting,
+              c.speed,
+              `${p.id}:${v.src}:${c.start}:${c.source_in}:${c.speed}`,
+              playbackError,
+            );
             if (v.readyState >= 2) {
               image = v;
               iw = v.videoWidth;
@@ -239,9 +268,9 @@ export default function Preview({
       }
     }
     for (const [cid, a] of audios.current)
-      if (!activeAudio.has(cid) && !a.paused) a.pause();
+      if (!activeAudio.has(cid)) pauseMedia(a);
     for (const [cid, v] of videos.current)
-      if (!activeVideos.has(cid) && !v.paused) v.pause();
+      if (!activeVideos.has(cid)) pauseMedia(v);
   }
   const redraw = useRef(draw);
   redraw.current = draw;
@@ -299,6 +328,7 @@ export default function Preview({
         let a = audios.current.get(c.id);
         if (!a) {
           a = new Audio();
+          a.preload = "auto";
           audios.current.set(c.id, a);
         }
         if (a.dataset.asset !== asset.id) {
@@ -371,7 +401,7 @@ export default function Preview({
     for (const collection of [videos.current, audios.current])
       for (const [id, media] of collection)
         if (!ids.has(id)) {
-          media.pause();
+          pauseMedia(media);
           media.src = "";
           collection.delete(id);
         }
@@ -380,24 +410,40 @@ export default function Preview({
   useEffect(() => {
     if (!playing) {
       draw();
-      for (const a of audios.current.values()) a.pause();
-      for (const v of videos.current.values()) v.pause();
+      for (const a of audios.current.values()) pauseMedia(a);
+      for (const v of videos.current.values()) pauseMedia(v);
       return;
     }
-    let handle = 0;
-    const start = performance.now(),
-      first = frame;
+    let handle = 0,
+      cursor = frame,
+      anchorFrame = frame,
+      anchorTime = performance.now();
+    redraw.current(frame);
     function tick(now: number) {
       const state = current.current;
-      const next =
-        first + Math.floor(((now - start) / 1000) * fps(state.project));
+      const primary = primaryAudioClip(state.project, cursor);
+      let next: number;
+      if (primary) {
+        next = audioFrame(
+          primary,
+          audios.current.get(primary.id),
+          fps(state.project),
+          cursor,
+        );
+        anchorFrame = next;
+        anchorTime = now;
+      } else
+        next =
+          anchorFrame +
+          Math.floor(((now - anchorTime) / 1000) * fps(state.project));
       if (next >= totalFrames(state.project)) {
         state.onFrame(0);
         state.onEnded();
         return;
       }
-      state.onFrame(next);
-      redraw.current();
+      if (next !== cursor) state.onFrame(next);
+      cursor = next;
+      redraw.current(next);
       handle = requestAnimationFrame(tick);
     }
     handle = requestAnimationFrame(tick);
@@ -406,11 +452,11 @@ export default function Preview({
   useEffect(
     () => () => {
       for (const a of audios.current.values()) {
-        a.pause();
+        pauseMedia(a);
         a.src = "";
       }
       for (const v of videos.current.values()) {
-        v.pause();
+        pauseMedia(v);
         v.src = "";
       }
       for (const image of images.current.values()) image.src = "";
