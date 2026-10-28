@@ -46,6 +46,7 @@ export type LocationState = {
   description: string;
   time_of_day: "" | "day" | "dusk" | "night";
   image: CastImage | null;
+  foreground?: CastImage | null;
 };
 export type Location = {
   id: string;
@@ -65,6 +66,37 @@ export type StageCharacter = {
   y: number;
   scale: number;
   flip: boolean;
+  motion?: ActorMotion;
+};
+export type ActorMotion =
+  | "idle"
+  | "still"
+  | "enter_left"
+  | "enter_right"
+  | "exit_left"
+  | "exit_right";
+export const actorMotionLabels: Record<ActorMotion, string> = {
+  idle: "Oddycha",
+  still: "Bez ruchu",
+  enter_left: "Wchodzi z lewej",
+  enter_right: "Wchodzi z prawej",
+  exit_left: "Wychodzi w lewo",
+  exit_right: "Wychodzi w prawo",
+};
+export type CameraMove =
+  | "static"
+  | "push_in"
+  | "pull_out"
+  | "pan_left"
+  | "pan_right"
+  | "shake";
+export const cameraLabels: Record<CameraMove, string> = {
+  static: "Statyczna",
+  push_in: "Najazd",
+  pull_out: "Odjazd",
+  pan_left: "Panorama w lewo",
+  pan_right: "Panorama w prawo",
+  shake: "Drgania",
 };
 export type DialogueLine = {
   id?: string;
@@ -86,6 +118,7 @@ export type StageScene = {
   camera: string;
   dialogue: DialogueLine[];
   sound: { ambience: string; music: string; sfx: string[] };
+  motion?: { camera: CameraMove; strength: number };
   seconds: number;
   status: SceneStatus;
   reviews: {

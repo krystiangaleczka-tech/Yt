@@ -1,15 +1,35 @@
 """2D animation endpoints: channel-scoped cast/location banks and the scene review board."""
+import os
+from pathlib import Path
+
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
 
-from studio_core.animation import (Cast, MAX_IMAGE, apply_scene_operation, breakdown_prompt, channel_bank,
-                                   parse_breakdown, parse_regeneration, regeneration_prompt)
+from studio_core.animation import (Cast, DRAFT_VOICES, DraftVoices, MAX_IMAGE, apply_scene_operation, breakdown_prompt,
+                                   channel_bank, default_draft_voice, parse_breakdown, parse_regeneration, regeneration_prompt)
 from studio_core.assistant import complete
+
+
+REPO = Path(__file__).resolve().parents[1]
 
 
 def register_animation(app, store, connectors):
     cast = Cast(store)
     app.state.cast = cast
+    python = os.environ.get("DOCOS_DRAFT_TTS_PYTHON") or os.environ.get("DOCOS_IMAGE_PYTHON") or REPO / "pilot" / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    drafts = DraftVoices(store.root, Path(python), Path(os.environ.get("DOCOS_KOKORO_DIR", REPO / "pilot" / "models")))
+    app.state.draft_voices = drafts
+
+    @app.get('/api/draft-voices')
+    def draft_voices():
+        return {'available': drafts.available(), 'voices': list(DRAFT_VOICES)}
+
+    @app.get('/api/draft-voices/{key}.wav')
+    def draft_voice_file(key: str):
+        path = drafts.path(key)
+        if not path.is_file():
+            raise FileNotFoundError(key)
+        return FileResponse(path, media_type='audio/wav', headers={'Cache-Control': 'private, max-age=31536000, immutable'})
 
     @app.get('/api/channels/{cid}/cast')
     def bank(cid: str):
@@ -87,3 +107,19 @@ def register_animation(app, store, connectors):
         if not text:
             text = complete(connectors, breakdown_prompt(project, beat, characters, locations, str(body.get('instruction', ''))[:2000]), store=store, project=project)
         return parse_breakdown(str(text), beat, characters, locations) | {'base_revision': project.revision}
+
+    @app.post('/api/projects/{pid}/stage-scenes/{sid}/draft-voice')
+    def draft_voice(pid: str, sid: str, body: dict):
+        project = store.get(pid)
+        characters, _ = channel_bank(cast, project, archived=True)
+        scene = scene_of(project, sid)
+        chosen = body.get('voices') or {}
+        speed = min(1.5, max(0.6, float(body.get('speed', 1))))
+        lines = [{'id': line.id, 'text': line.text.strip(), 'voice': chosen.get(line.speaker) or default_draft_voice(line.speaker, characters), 'speed': speed}
+                 for line in scene.dialogue if line.text.strip()]
+        durations = drafts.render([{k: v for k, v in line.items() if k != 'id'} for line in lines])
+        result = []
+        for line in lines:
+            key = drafts.key(line['text'], line['voice'], speed)
+            result.append({'line_id': line['id'], 'voice': line['voice'], 'url': f'/api/draft-voices/{key}.wav', 'duration': durations[key]})
+        return result

@@ -33,21 +33,35 @@ const newBeat = (title: string) =>
     turn: "",
   }) as Beat;
 
-/** Rough voices for the animatic only: the browser's built-in speech, one per speaker. */
+type DraftLine = { line_id: string; voice: string; url: string; duration: number };
+type Engine = "kokoro" | "browser";
+const kokoroName = (id: string) =>
+  `${id.split("_")[1].replace(/^./, (c) => c.toUpperCase())} · ${id[0] === "b" ? "UK" : "US"} ${id[1] === "f" ? "♀" : "♂"}`;
+
+/** Draft voices for the animatic: local Kokoro (natural, fast) or the browser's speech as a fallback. */
 function useDraftVoices(channelId: string, language: string) {
-  const key = "docos:animatic-voices:" + channelId;
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [cast, setCast] = useState<Record<string, string>>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(key) || "{}");
-    } catch {
-      return {};
-    }
+  const [engine, setEngineState] = useState<Engine>(
+    (localStorage.getItem("docos:animatic-engine") as Engine) || "kokoro",
+  );
+  const key = `docos:animatic-voices:${engine}:${channelId}`;
+  const [kokoro, setKokoro] = useState<{ available: boolean; voices: string[] }>({
+    available: false,
+    voices: [],
   });
+  const [browserVoices, setBrowserVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [cast, setCast] = useState<Record<string, string>>({});
   useEffect(() => {
+    try {
+      setCast(JSON.parse(localStorage.getItem(key) || "{}"));
+    } catch {
+      setCast({});
+    }
+  }, [key]);
+  useEffect(() => {
+    api<{ available: boolean; voices: string[] }>("/draft-voices").then(setKokoro, () => undefined);
     if (!("speechSynthesis" in window)) return;
     const load = () =>
-      setVoices(
+      setBrowserVoices(
         speechSynthesis
           .getVoices()
           .filter((v) => v.lang.toLowerCase().startsWith(language.slice(0, 2).toLowerCase())),
@@ -56,14 +70,24 @@ function useDraftVoices(channelId: string, language: string) {
     speechSynthesis.addEventListener("voiceschanged", load);
     return () => speechSynthesis.removeEventListener("voiceschanged", load);
   }, [language]);
+  function setEngine(next: Engine) {
+    setEngineState(next);
+    localStorage.setItem("docos:animatic-engine", next);
+  }
   function assign(speaker: string, voice: string) {
     const next = { ...cast, [speaker]: voice };
+    if (!voice) delete next[speaker];
     setCast(next);
     localStorage.setItem(key, JSON.stringify(next));
   }
-  const voiceFor = (speaker: string) =>
-    voices.find((v) => v.name === cast[speaker]) || voices[0];
-  return { voices, cast, assign, voiceFor };
+  const active: Engine = engine === "kokoro" && kokoro.available ? "kokoro" : "browser";
+  const options =
+    active === "kokoro"
+      ? kokoro.voices.map((v) => ({ id: v, label: kokoroName(v) }))
+      : browserVoices.map((v) => ({ id: v.name, label: v.name }));
+  const browserVoice = (speaker: string) =>
+    browserVoices.find((v) => v.name === cast[speaker]) || browserVoices[0];
+  return { engine, setEngine, active, kokoro, cast, assign, options, browserVoice };
 }
 
 export default function Storyboard() {
@@ -97,33 +121,86 @@ export default function Storyboard() {
   const current = ordered[Math.min(index, ordered.length - 1)];
   const elapsed = ordered.slice(0, index).reduce((sum, x) => sum + x.seconds, 0);
 
+  // Kokoro lines are generated on the server and cached, so a replay is instant.
+  const drafts = useRef(new Map<string, Promise<DraftLine[]>>());
+  const [preparing, setPreparing] = useState(false),
+    [batch, setBatch] = useState<{ done: number; total: number } | null>(null);
+  function draftsFor(scene: StageScene) {
+    const id = JSON.stringify([scene.id, scene.dialogue.map((d) => [d.speaker, d.text]), voices.cast, rate]);
+    if (!drafts.current.has(id)) {
+      const request = api<DraftLine[]>(`/projects/${p.id}/stage-scenes/${scene.id}/draft-voice`, {
+        voices: voices.cast,
+        speed: rate,
+      });
+      request.catch(() => drafts.current.delete(id));
+      drafts.current.set(id, request);
+    }
+    return drafts.current.get(id)!;
+  }
+
   // Playback: a scene ends when both its planned duration and its spoken lines are over.
   const token = useRef(0);
   useEffect(() => {
     if (!playing || !current) return;
     const mine = ++token.current;
     const lines = current.dialogue.filter((d) => d.text.trim());
+    const engine = speak && lines.length ? voices.active : null;
     let timeDone = false,
-      speechDone = !(speak && lines.length && "speechSynthesis" in window);
+      speechDone = !engine,
+      timer: ReturnType<typeof setTimeout> | undefined;
+    const audio = new Audio();
+    const captions: ReturnType<typeof setTimeout>[] = [];
+    const live = () => token.current === mine;
     const advance = () => {
-      if (token.current !== mine || !timeDone || !speechDone) return;
+      if (!live() || !timeDone || !speechDone) return;
       if (index >= ordered.length - 1) setPlaying(false);
       else setIndex(index + 1);
     };
+    const startClock = () => {
+      timer = setTimeout(() => {
+        timeDone = true;
+        advance();
+      }, current.seconds * 1000);
+    };
     setLineIndex(0);
-    const timer = setTimeout(() => {
-      timeDone = true;
-      advance();
-    }, current.seconds * 1000);
-    const captions: ReturnType<typeof setTimeout>[] = [];
-    if (!speechDone) {
+    if (engine === "kokoro") {
+      setPreparing(true);
+      const next = ordered[index + 1];
+      draftsFor(current)
+        .then((rows) => {
+          if (!live()) return;
+          setPreparing(false);
+          if (next) draftsFor(next).catch(() => undefined);
+          startClock();
+          const play = (i: number) => {
+            if (!live()) return;
+            if (i >= rows.length) {
+              speechDone = true;
+              return advance();
+            }
+            setLineIndex(current.dialogue.findIndex((d) => d.id === rows[i].line_id));
+            audio.src = rows[i].url;
+            audio.onended = () => play(i + 1);
+            audio.play().catch(() => play(i + 1));
+          };
+          play(0);
+        })
+        .catch((error) => {
+          if (!live()) return;
+          setPreparing(false);
+          s.notify(String(error.message || error), true);
+          speechDone = true;
+          startClock();
+        });
+    } else if (engine === "browser") {
+      startClock();
       speechSynthesis.cancel();
       lines.forEach((line, i) => {
         const u = new SpeechSynthesisUtterance(line.text);
-        const voice = voices.voiceFor(line.speaker);
+        const voice = voices.browserVoice(line.speaker);
         if (voice) u.voice = voice;
         u.rate = rate;
-        u.onstart = () => token.current === mine && setLineIndex(current.dialogue.indexOf(line));
+        u.onstart = () => live() && setLineIndex(current.dialogue.indexOf(line));
         if (i === lines.length - 1)
           u.onend = u.onerror = () => {
             speechDone = true;
@@ -131,7 +208,8 @@ export default function Storyboard() {
           };
         speechSynthesis.speak(u);
       });
-    } else
+    } else {
+      startClock();
       lines.forEach((line, i) =>
         captions.push(
           setTimeout(
@@ -140,12 +218,31 @@ export default function Storyboard() {
           ),
         ),
       );
+    }
     return () => {
       clearTimeout(timer);
       captions.forEach(clearTimeout);
+      audio.pause();
+      audio.removeAttribute("src");
+      setPreparing(false);
       if ("speechSynthesis" in window) speechSynthesis.cancel();
     };
   }, [playing, index, current?.id, speak]);
+  function prepareAll() {
+    s.run(async () => {
+      const spoken = ordered.filter((x) => x.dialogue.some((d) => d.text.trim()));
+      setBatch({ done: 0, total: spoken.length });
+      try {
+        for (let i = 0; i < spoken.length; i++) {
+          await draftsFor(spoken[i]);
+          setBatch({ done: i + 1, total: spoken.length });
+        }
+        s.notify("Głosy robocze całego animatiku są gotowe");
+      } finally {
+        setBatch(null);
+      }
+    });
+  }
   useEffect(() => () => void ("speechSynthesis" in window && speechSynthesis.cancel()), []);
 
   function seek(i: number) {
@@ -201,7 +298,14 @@ export default function Storyboard() {
       <section className="animatic">
         <div className="animatic-stage">
           {current ? (
-            <Stage scene={current} bank={bank} channelId={p.channel_id} lineIndex={lineIndex} />
+            <Stage
+              key={current.id + (playing ? ":play" : "")}
+              scene={current}
+              bank={bank}
+              channelId={p.channel_id}
+              lineIndex={lineIndex}
+              animate={playing && !preparing}
+            />
           ) : (
             <Empty title="Animatik jest pusty" children="Dodaj beaty i sceny poniżej." />
           )}
@@ -223,6 +327,7 @@ export default function Storyboard() {
           {current && (
             <span className="muted small">
               Scena {current.number} · {current.title}
+              {preparing && " · przygotowuję głos…"}
             </span>
           )}
           <span className="animatic-spacer" />
@@ -258,11 +363,40 @@ export default function Storyboard() {
           ))}
         </div>
         {speak && (
-          <details className="animatic-voices">
-            <summary>Głosy robocze (tylko do animatiku)</summary>
-            <p className="muted small">
-              Systemowy syntezator przeglądarki — szybki szkic tempa i dialogów. Finalne głosy wybierzesz później.
-            </p>
+          <details className="animatic-voices" open={!voices.kokoro.available && voices.engine === "kokoro"}>
+            <summary>
+              Głosy robocze: {voices.active === "kokoro" ? "Kokoro (lokalnie)" : "przeglądarka"} — tylko do animatiku
+            </summary>
+            <div className="voice-engine">
+              <label className="checkbox small">
+                <input
+                  type="radio"
+                  checked={voices.engine === "kokoro"}
+                  onChange={() => voices.setEngine("kokoro")}
+                />
+                Kokoro — naturalny, generuje się na tym Macu w kilka sekund na scenę
+              </label>
+              <label className="checkbox small">
+                <input
+                  type="radio"
+                  checked={voices.engine === "browser"}
+                  onChange={() => voices.setEngine("browser")}
+                />
+                Przeglądarka — natychmiast, brzmi sztucznie
+              </label>
+              {voices.engine === "kokoro" && !voices.kokoro.available && (
+                <p className="manual-error small">
+                  Kokoro nie jest dostępny: potrzebne środowisko z kokoro-onnx (DOCOS_DRAFT_TTS_PYTHON) i pliki modelu (DOCOS_KOKORO_DIR). Do tego czasu gra przeglądarka.
+                </p>
+              )}
+              {voices.active === "kokoro" && (
+                <Button subtle busy={!!batch} onClick={prepareAll}>
+                  {batch
+                    ? `Przygotowuję ${batch.done}/${batch.total}`
+                    : "Przygotuj głosy całego animatiku"}
+                </Button>
+              )}
+            </div>
             <div className="voice-grid">
               {speakers.map((sp) => (
                 <label key={sp.id} className="field">
@@ -271,10 +405,10 @@ export default function Storyboard() {
                     value={voices.cast[sp.id] || ""}
                     onChange={(e) => voices.assign(sp.id, e.target.value)}
                   >
-                    <option value="">Domyślny</option>
-                    {voices.voices.map((v) => (
-                      <option key={v.name} value={v.name}>
-                        {v.name}
+                    <option value="">Automatyczny</option>
+                    {voices.options.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.label}
                       </option>
                     ))}
                   </select>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import {
   Check,
   ChevronDown,
@@ -9,6 +9,7 @@ import {
   LayoutGrid,
   MapPinned,
   Music2,
+  Play,
   Plus,
   RotateCcw,
   Sparkles,
@@ -20,8 +21,16 @@ import {
 import { useStudio } from "./context";
 import { api } from "./api";
 import { Button, CommitText, Empty, Field, IconButton, NumberField } from "./components";
-import { castImage, reviewTags, statusLabels } from "./animationTypes";
+import {
+  actorMotionLabels,
+  cameraLabels,
+  castImage,
+  reviewTags,
+  statusLabels,
+} from "./animationTypes";
 import type {
+  ActorMotion,
+  CameraMove,
   CastBank,
   Character,
   DialogueLine,
@@ -62,6 +71,8 @@ export default function SceneBoard() {
     [manual, setManual] = useState<{ prompt: string; response: string; error: string } | null>(null),
     [busy, setBusy] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
+  const [previewRun, setPreviewRun] = useState(0);
+  const previewTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
     if (p.channel_id)
       s.run(async () => setBank(await api<CastBank>(`/channels/${p.channel_id}/cast`)));
@@ -273,11 +284,26 @@ export default function SceneBoard() {
             </div>
             <h2 className="scene-heading">{scene.title}</h2>
             <Stage
+              key={scene.id + previewRun}
               scene={scene}
               bank={bank}
               channelId={p.channel_id}
-              onPlace={(placed) => update({ characters: placed })}
+              animate={previewRun > 0}
+              onPlace={previewRun ? undefined : (placed) => update({ characters: placed })}
             />
+            <div className="scene-preview-row">
+              <Button
+                icon={Play}
+                subtle
+                onClick={() => {
+                  setPreviewRun((n) => n + 1);
+                  clearTimeout(previewTimer.current);
+                  previewTimer.current = setTimeout(() => setPreviewRun(0), scene.seconds * 1000 + 400);
+                }}
+              >
+                Podgląd ruchu ({scene.seconds} s)
+              </Button>
+            </div>
             <div className="scene-facts">
               {scene.action && <p>{scene.action}</p>}
               {scene.camera && (
@@ -457,6 +483,7 @@ export function Stage({
   onPlace,
   lineIndex = 0,
   compact = false,
+  animate = false,
 }: {
   scene: StageScene;
   bank: CastBank;
@@ -464,6 +491,8 @@ export function Stage({
   onPlace?: (placed: StageCharacter[]) => void;
   lineIndex?: number;
   compact?: boolean;
+  /** Play camera and character motion over the scene's duration (animatic / preview). */
+  animate?: boolean;
 }) {
   const frame = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{
@@ -478,6 +507,11 @@ export function Stage({
     location?.states.find((st) => st.id === scene.location_state_id) ||
     location?.states.find((st) => st.image);
   const line = compact ? undefined : scene.dialogue[lineIndex];
+  const camera = scene.motion?.camera || "static";
+  const motionStyle = {
+    "--dur": `${scene.seconds}s`,
+    "--s": scene.motion?.strength ?? 0.5,
+  } as CSSProperties;
   const speaker =
     line && line.speaker !== "narrator"
       ? bank.characters.find((c) => c.id === line.speaker)?.name
@@ -492,7 +526,8 @@ export function Stage({
   return (
     <div
       ref={frame}
-      className={`stage-frame ${state?.time_of_day === "night" ? "night" : ""} ${compact ? "compact" : ""}`}
+      className={`stage-frame ${state?.time_of_day === "night" ? "night" : ""} ${compact ? "compact" : ""} ${animate ? "animate" : ""}`}
+      style={motionStyle}
       onPointerMove={(e) => {
         if (!drag) return;
         const at = position(e);
@@ -514,6 +549,7 @@ export function Stage({
         setDrag(null);
       }}
     >
+      <div className={`stage-world cam-${camera}`}>
       {state?.image ? (
         <img className="stage-bg" src={castImage(channelId, state.image.file)} alt="" />
       ) : (
@@ -530,17 +566,13 @@ export function Stage({
           character?.poses[0];
         const at = drag?.index === index ? drag : placed;
         return pose ? (
-          <img
+          <span
             key={index}
-            className="stage-actor"
-            src={castImage(channelId, pose.image.file)}
-            alt={`${character?.name} — ${pose.name}`}
-            draggable={false}
+            className={`stage-actor motion-${placed.motion || "idle"}`}
             style={{
               left: `${at.x * 100}%`,
               top: `${at.y * 100}%`,
               height: `${placed.scale * 100}%`,
-              transform: `translate(-50%, -100%) scaleX(${placed.flip ? -1 : 1})`,
             }}
             onPointerDown={(e) => {
               if (!onPlace) return;
@@ -549,7 +581,14 @@ export function Stage({
               const at = position(e);
               setDrag({ index, x: placed.x, y: placed.y, dx: at.x - placed.x, dy: at.y - placed.y });
             }}
-          />
+          >
+            <img
+              src={castImage(channelId, pose.image.file)}
+              alt={`${character?.name} — ${pose.name}`}
+              draggable={false}
+              style={{ transform: `scaleX(${placed.flip ? -1 : 1})` }}
+            />
+          </span>
         ) : (
           <span
             key={index}
@@ -560,6 +599,10 @@ export function Stage({
           </span>
         );
       })}
+      {state?.foreground && (
+        <img className="stage-fg" src={castImage(channelId, state.foreground.file)} alt="" />
+      )}
+      </div>
       {line?.text && (
         <div className="stage-caption">
           {speaker && <strong>{speaker}: </strong>}
@@ -776,6 +819,18 @@ function SceneInspector({
                   </option>
                 ))}
               </select>
+              <select
+                aria-label="Ruch postaci"
+                className="placed-motion"
+                value={placed.motion || "idle"}
+                onChange={(e) => setPlaced(index, { motion: e.target.value as ActorMotion })}
+              >
+                {Object.entries(actorMotionLabels).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
               <input
                 type="range"
                 aria-label="Wielkość"
@@ -834,13 +889,51 @@ function SceneInspector({
           onCommit={(action) => update({ action })}
         />
       </Field>
-      <Field label="Kamera">
+      <Field label="Kamera — opis kadru">
         <CommitText
           value={scene.camera}
           placeholder="plan średni, powolny najazd"
           onCommit={(camera) => update({ camera })}
         />
       </Field>
+      <div className="two-fields">
+        <Field label="Ruch kamery">
+          <select
+            value={scene.motion?.camera || "static"}
+            onChange={(e) =>
+              update({
+                motion: {
+                  strength: scene.motion?.strength ?? 0.5,
+                  camera: e.target.value as CameraMove,
+                },
+              })
+            }
+          >
+            {Object.entries(cameraLabels).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Siła ruchu">
+          <input
+            type="range"
+            min={0.1}
+            max={1}
+            step={0.1}
+            defaultValue={scene.motion?.strength ?? 0.5}
+            onPointerUp={(e) =>
+              update({
+                motion: {
+                  camera: scene.motion?.camera || "static",
+                  strength: Number(e.currentTarget.value),
+                },
+              })
+            }
+          />
+        </Field>
+      </div>
       <div className="inspector-section">
         <strong>Narracja i dialog</strong>
         {scene.dialogue.map((line, index) => (

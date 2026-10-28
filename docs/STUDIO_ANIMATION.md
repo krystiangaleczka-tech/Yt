@@ -34,9 +34,21 @@ Proces jak w studiu animacji: **scenariusz → beaty → sceny (storyboard) → 
 - **Beaty:** dodajesz je na ekranie Storyboard i animatik, wpisujesz tytuł oraz co się dzieje i po co.
 - **Rozpisz na sceny:** AI (Story Director) proponuje 2–8 scen beatu, używając wyłącznie postaci, póz, lokacji i stanów z banku kanału. Propozycję widzisz jako listę i dodajesz jednym kliknięciem; nowe sceny trafiają do oceny. Gdy model nie odpowie poprawnie, aplikacja pokazuje powód, prompt do skopiowania i pole na odpowiedź JSON.
 - **Storyboard:** siatka kadrów pogrupowana po beatach, ze statusem, długością i pierwszą kwestią. Klik ustawia animatik na scenie, podwójny klik (albo ikona) otwiera scenę do oceny. Scenę można przypisać do beatu w inspektorze sceny; przeniesienie nie zmienia jej oceny.
-- **Animatik:** odtwarza wszystkie sceny po kolei (najpierw beaty, potem sceny bez beatu) według ich długości, z napisami i **roboczym głosem** z syntezatora przeglądarki. Każdemu mówcy (narrator, postacie) przypisujesz inny głos systemowy; tempo reguluje suwak. Scena kończy się, gdy minie jej czas i padną wszystkie kwestie. Pasek pod kadrem pokazuje sceny proporcjonalnie do długości i kolorem statusu.
+- **Animatik:** odtwarza wszystkie sceny po kolei (najpierw beaty, potem sceny bez beatu) według ich długości, z ruchem kamery i postaci, napisami i **roboczym głosem**. Scena kończy się, gdy minie jej czas i padną wszystkie kwestie. Pasek pod kadrem pokazuje sceny proporcjonalnie do długości i kolorem statusu.
 
-Głos roboczy służy tylko do oceny tempa i dialogów. Nie trafia do eksportu; finalne głosy to osobna decyzja (lokalny model albo serwis zewnętrzny).
+### Głosy robocze
+
+Domyślnie animatik czyta kwestie lokalnym modelem **Kokoro-82M** (Apache 2.0): angielskie głosy US/UK, męskie i żeńskie. Narrator i każda postać dostają automatycznie różne głosy; w panelu „Głosy robocze” możesz przypisać własne i ustawić tempo. Nagrania są cache'owane po treści kwestii, głosie i tempie, więc powtórne odtworzenie jest natychmiastowe, a po zmianie jednej kwestii generuje się tylko ona. **Przygotuj głosy całego animatiku** generuje wszystko z góry (na Macu 8 GB: ok. 18 s dla 6 scen z dialogami). Podczas odtwarzania następna scena przygotowuje się w tle.
+
+Kokoro wymaga środowiska z `kokoro-onnx` (domyślnie `pilot/.venv`, inaczej `DOCOS_DRAFT_TTS_PYTHON`) i plików `kokoro-v1.0.onnx` oraz `voices-v1.0.bin` (domyślnie `pilot/models`, inaczej `DOCOS_KOKORO_DIR`). Bez nich animatik używa syntezatora przeglądarki. Głos roboczy nie trafia do eksportu; finalne głosy to osobna decyzja.
+
+### Ruch w scenie
+
+- **Kamera:** statyczna, najazd, odjazd, panorama w lewo/prawo, drgania; siła 0,1–1. Ruch trwa przez całą scenę.
+- **Postać:** oddycha (domyślnie), bez ruchu, wchodzi z lewej/prawej, wychodzi w lewo/prawo.
+- **Pierwszy plan:** stan lokacji może mieć osobną warstwę PNG z przezroczystością (framuga, liście, mebel), rysowaną przed postaciami. Przy panoramie i najeździe przesuwa się mocniej niż tło, co daje głębię 2.5D.
+
+Ruch widać w animatiku i po kliknięciu **Podgląd ruchu** na tablicy scen. AI ustawia te pola także w regeneracji i rozpisywaniu beatów.
 
 ## Tablica scen
 
@@ -65,8 +77,8 @@ Wszystkie operacje na scenach podlegają kontroli rewizji i trwałemu Cofnij/Pon
 
 ## Czego jeszcze nie ma
 
-Kadr jest podglądem składu sceny, a nie renderem: brak ruchu postaci, kamery i światła w czasie, brak finalnych głosów postaci, brak dźwięków z banku i brak przenoszenia animatiku na oś Montażu ani eksportu animatiku do MP4. Te elementy są kolejnymi etapami planu.
+Animatik działa w przeglądarce, a nie jako render: ruch to proste presety (bez rigu kości i mimiki), brak finalnych głosów postaci, brak dźwięków z banku i brak przenoszenia animatiku na oś Montażu ani eksportu animatiku do MP4. Te elementy są kolejnymi etapami planu.
 
 ## Weryfikacja
 
-`studio_tests/test_animation.py`: dziedziczenie trybu z kanału, wymóg kanału, przezroczystość i izolacja obrazów, konflikt rewizji, izolacja banku między kanałami, przebieg ocen i powrót do „Do oceny” po zmianie, kolejność, cofanie, blokada zmiany kanału oraz walidacja propozycji AI; beaty: przypisanie scen do istniejącego beatu, brak zmiany oceny przy przeniesieniu i walidacja scen proponowanych przez Story Director.
+`studio_tests/test_animation.py`: dziedziczenie trybu z kanału, wymóg kanału, przezroczystość i izolacja obrazów, konflikt rewizji, izolacja banku między kanałami, przebieg ocen i powrót do „Do oceny” po zmianie, kolejność, cofanie, blokada zmiany kanału oraz walidacja propozycji AI; głosy robocze: cache po kwestii, różne domyślne głosy, odrzucenie nieznanego głosu; beaty: przypisanie scen do istniejącego beatu, brak zmiany oceny przy przeniesieniu i walidacja scen proponowanych przez Story Director.

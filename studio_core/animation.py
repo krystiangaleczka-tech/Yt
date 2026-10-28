@@ -78,6 +78,8 @@ class LocationState(Model):
     description: str = Field(default="", max_length=1000)
     time_of_day: Literal["", "day", "dusk", "night"] = ""
     image: CastImage | None = None
+    # Optional transparent layer drawn in front of the characters (2.5D depth, parallax).
+    foreground: CastImage | None = None
 
 
 class Location(Model):
@@ -105,6 +107,7 @@ class StageCharacter(Model):
     y: float = Field(default=.92, ge=0, le=1)
     scale: float = Field(default=.6, ge=.05, le=2)
     flip: bool = False
+    motion: Literal["idle", "still", "enter_left", "enter_right", "exit_left", "exit_right"] = "idle"
 
 
 class DialogueLine(Model):
@@ -118,6 +121,11 @@ class SceneSound(Model):
     ambience: str = Field(default="", max_length=500)
     music: str = Field(default="", max_length=500)
     sfx: list[str] = Field(default_factory=list, max_length=30)
+
+
+class SceneMotion(Model):
+    camera: Literal["static", "push_in", "pull_out", "pan_left", "pan_right", "shake"] = "static"
+    strength: float = Field(default=.5, ge=0, le=1)
 
 
 class Review(Model):
@@ -143,6 +151,7 @@ class StageScene(Model):
     camera: str = Field(default="", max_length=300)
     dialogue: list[DialogueLine] = Field(default_factory=list, max_length=40)
     sound: SceneSound = Field(default_factory=SceneSound)
+    motion: SceneMotion = Field(default_factory=SceneMotion)
     seconds: float = Field(default=6, ge=.5, le=600)
     status: Literal["draft", "review", "approved", "rework"] = "draft"
     reviews: list[Review] = Field(default_factory=list, max_length=100)
@@ -155,7 +164,9 @@ class StageScene(Model):
         return self
 
 
-CONTENT_FIELDS = ("title", "story_time", "location_id", "location_state_id", "characters", "action", "camera", "dialogue", "sound", "seconds")
+CONTENT_FIELDS = ("title", "story_time", "location_id", "location_state_id", "characters", "action", "camera", "motion", "dialogue", "sound", "seconds")
+SCHEMA_HINT = """characters: [{"character_id","pose_id","x" 0-1,"y" 0-1 baseline,"scale","flip","motion": "idle"|"still"|"enter_left"|"enter_right"|"exit_left"|"exit_right"}];
+motion: {"camera": "static"|"push_in"|"pull_out"|"pan_left"|"pan_right"|"shake", "strength" 0-1}; dialogue: [{"speaker","text","direction"}]; sound: {"ambience","music","sfx":[]}."""
 # Organisation, not content: moving a scene between beats does not reopen its review.
 SCENE_FIELDS = CONTENT_FIELDS + ("beat_id",)
 
@@ -211,7 +222,7 @@ class Cast:
         from .store import atomic_json, now, Conflict
         folder = self.channel(channel_id)
         item = model.model_validate(body | {"channel_id": channel_id})
-        images = [p.image for p in getattr(item, "poses", [])] + [s.image for s in getattr(item, "states", []) if s.image]
+        images = [p.image for p in getattr(item, "poses", [])] + [i for s in getattr(item, "states", []) for i in (s.image, s.foreground) if i]
         for image in images:
             if not (folder / "media" / image.file).is_file():
                 raise ValueError("Obraz nie został wgrany do banku tego kanału")
@@ -354,7 +365,7 @@ CURRENT SCENE {scene.number}: {json.dumps(current, ensure_ascii=False)}
 DIRECTOR FEEDBACK: {feedback or "Make the scene clearer and more cinematic."}
 
 Return only JSON with keys: {", ".join(CONTENT_FIELDS)}, and "reason" (one sentence explaining the change).
-characters: [{{"character_id","pose_id","x" 0-1,"y" 0-1 baseline,"scale","flip"}}]; dialogue: [{{"speaker","text","direction"}}]; sound: {{"ambience","music","sfx":[]}}."""
+{SCHEMA_HINT}"""
 
 
 def parse_regeneration(text: str, scene: StageScene, characters, locations) -> dict:
@@ -401,7 +412,7 @@ SCENES ALREADY IN THIS BEAT: {json.dumps(existing, ensure_ascii=False)}
 DIRECTOR NOTES: {instruction or "none"}
 
 Return only JSON: {{"reason": "one sentence", "scenes": [{{{", ".join(f'"{k}"' for k in CONTENT_FIELDS)}}}]}}.
-characters: [{{"character_id","pose_id","x" 0-1,"y" 0-1 baseline,"scale","flip"}}]; dialogue: [{{"speaker","text","direction"}}]; sound: {{"ambience","music","sfx":[]}}."""
+{SCHEMA_HINT}"""
 
 
 def parse_breakdown(text: str, beat, characters, locations) -> dict:
@@ -427,3 +438,71 @@ def parse_breakdown(text: str, beat, characters, locations) -> dict:
         validate_scene(scene, characters, locations)
         scenes.append(scene.model_dump(include=set(CONTENT_FIELDS)) | {"beat_id": beat.id})
     return {"beat_id": beat.id, "scenes": scenes, "reason": str(data.get("reason", ""))[:500]}
+
+
+# Kokoro English voices: a = American, b = British; f = female, m = male.
+DRAFT_VOICES = ("am_michael", "am_adam", "am_eric", "am_liam", "am_onyx", "am_fenrir", "am_echo", "am_puck",
+                "af_heart", "af_bella", "af_nicole", "af_sarah", "af_sky", "af_nova", "af_river", "af_jessica", "af_alloy", "af_aoede", "af_kore",
+                "bm_george", "bm_daniel", "bm_lewis", "bm_fable", "bf_emma", "bf_isabella", "bf_alice", "bf_lily")
+DRAFT_MODEL = "kokoro-v1.0"
+
+
+class DraftVoices:
+    """Fast local draft voices for the animatic, cached by text, voice and speed."""
+
+    def __init__(self, root: Path, python: Path, model_dir: Path):
+        import threading
+        self.folder = root / "cache" / "draft-voice"
+        self.python, self.model_dir = python, model_dir
+        self.lock = threading.Lock()  # one model process at a time on small machines
+
+    def available(self):
+        return self.python.is_file() and (self.model_dir / "kokoro-v1.0.onnx").is_file() and (self.model_dir / "voices-v1.0.bin").is_file()
+
+    @staticmethod
+    def key(text, voice, speed):
+        return hashlib.sha256(json.dumps([DRAFT_MODEL, text, voice, round(speed, 2)]).encode()).hexdigest()[:32]
+
+    def path(self, key):
+        if not re.fullmatch(r"[a-f0-9]{32}", key or ""):
+            raise ValueError("Niepoprawny plik głosu roboczego")
+        return self.folder / (key + ".wav")
+
+    def render(self, lines: list[dict]) -> dict[str, float]:
+        """lines: [{"text", "voice", "speed"}] -> {key: duration}; generates only missing lines."""
+        import subprocess
+        if not self.available():
+            raise ValueError("Brak Kokoro: ustaw DOCOS_DRAFT_TTS_PYTHON (środowisko z kokoro-onnx) i DOCOS_KOKORO_DIR z plikami modelu")
+        self.folder.mkdir(parents=True, exist_ok=True)
+        result, missing = {}, []
+        for line in lines:
+            if line["voice"] not in DRAFT_VOICES:
+                raise ValueError("Nieznany głos roboczy")
+            key = self.key(line["text"], line["voice"], line["speed"])
+            meta = self.folder / (key + ".json")
+            if meta.is_file() and self.path(key).is_file():
+                result[key] = json.loads(meta.read_text())["duration"]
+            elif key not in {m["key"] for m in missing}:
+                missing.append(line | {"key": key, "out": str(self.path(key))})
+        if missing:
+            with self.lock:
+                run = subprocess.run([str(self.python), "-I", str(Path(__file__).resolve().parents[1] / "studio_workers" / "draft_voice_worker.py")],
+                                     input=json.dumps({"model_dir": str(self.model_dir), "lines": missing}), capture_output=True, text=True, timeout=600, check=False)
+            if run.returncode:
+                raise ValueError("Kokoro nie wygenerował głosu: " + (run.stderr.strip().splitlines() or ["nieznany błąd"])[-1][:300])
+            durations = {Path(row["out"]).stem: row["duration"] for row in map(json.loads, run.stdout.splitlines()) if row}
+            for line in missing:
+                if line["key"] not in durations:
+                    raise ValueError("Kokoro nie zwrócił wszystkich nagrań")
+                (self.folder / (line["key"] + ".json")).write_text(json.dumps({"duration": durations[line["key"]]}))
+                result[line["key"]] = durations[line["key"]]
+        return result
+
+
+def default_draft_voice(speaker: str, characters: dict) -> str:
+    """Narrator gets a calm male voice; characters get distinct voices in bank order."""
+    if speaker == "narrator":
+        return "am_michael"
+    pool = [v for v in DRAFT_VOICES if v != "am_michael"]
+    order = sorted(characters)
+    return pool[order.index(speaker) % len(pool)] if speaker in order else "am_adam"

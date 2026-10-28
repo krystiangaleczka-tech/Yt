@@ -1,5 +1,6 @@
 import io
 import json
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -164,6 +165,42 @@ class AnimationTests(unittest.TestCase):
         self.assertEqual(bad.status_code, 422)
         film = self.scenes(film, *[{'type': 'add', 'scene': s} for s in proposal['scenes']])
         self.assertEqual([s['title'] for s in film['stage_scenes']], ['Kran', 'Kran kaszle', 'Mara patrzy'])
+
+
+    def test_draft_voices_are_cached_per_line_and_use_distinct_defaults(self):
+        mara = self.character(self.channel['id'])
+        drafts = self.app.state.draft_voices
+        models = Path(self.temp.name) / 'kokoro'
+        models.mkdir()
+        for name in ('kokoro-v1.0.onnx', 'voices-v1.0.bin'):
+            (models / name).write_bytes(b'x')
+        drafts.python, drafts.model_dir = Path(sys.executable), models
+        calls = []
+
+        def fake_run(command, input, **kwargs):
+            job = json.loads(input)
+            calls.append(job['lines'])
+            out = []
+            for line in job['lines']:
+                Path(line['out']).write_bytes(b'RIFF')
+                out.append(json.dumps({'out': line['out'], 'duration': 1.5}))
+            return mock.Mock(returncode=0, stdout='\n'.join(out), stderr='')
+
+        film = self.scenes(self.film(), {'type': 'add', 'scene': {'title': 'Rozmowa', 'dialogue': [
+            {'speaker': 'narrator', 'text': 'Day two.'}, {'speaker': mara['id'], 'text': 'Water?'}, {'speaker': 'narrator', 'text': ' '}]}})
+        scene = film['stage_scenes'][0]
+        url = f"/api/projects/{film['id']}/stage-scenes/{scene['id']}/draft-voice"
+        with mock.patch('subprocess.run', side_effect=fake_run):
+            first = self.ok(self.client.post(url, json={}, headers=H))
+            again = self.ok(self.client.post(url, json={}, headers=H))
+        self.assertEqual(len(first), 2)
+        self.assertNotEqual(first[0]['voice'], first[1]['voice'])
+        self.assertEqual(first, again)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(self.client.get(first[0]['url']).status_code, 200)
+        bad = self.client.post(url, json={'voices': {'narrator': 'zz_unknown'}}, headers=H)
+        self.assertEqual(bad.status_code, 422)
+        self.assertTrue(self.ok(self.client.get('/api/draft-voices'))['available'])
 
 
 if __name__ == '__main__':

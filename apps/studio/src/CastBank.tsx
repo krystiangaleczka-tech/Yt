@@ -556,6 +556,7 @@ function LocationEditor({
       description: "",
       time_of_day: "" as const,
       image,
+      foreground: null,
     }));
     setL((v) => ({ ...v, states: [...v.states, ...added] }));
   }
@@ -564,7 +565,7 @@ function LocationEditor({
       <Field label="Nazwa">
         <input value={l.name} onChange={(e) => set({ name: e.target.value })} />
       </Field>
-      <Field label="Opis i układ miejsca" hint="Gdzie są drzwi, okno, zlew — pomaga zachować geografię między scenami.">
+      <Field label="Opis i układ miejsca" hint="Gdzie są drzwi, okno, zlew — pomaga zachować geografię między scenami. Pierwszy plan stanu (np. framuga, liście) daje głębię przy ruchu kamery.">
         <textarea
           rows={3}
           value={l.description}
@@ -613,6 +614,36 @@ function LocationEditor({
                 value={st.description}
                 onChange={(e) => setState(st.id, { description: e.target.value })}
               />
+              <div className="state-fg">
+                {st.foreground ? (
+                  <>
+                    <span className="state-fg-thumb checker">
+                      <img src={castImage(channelId, st.foreground.file)} alt="" />
+                    </span>
+                    <span className="small muted">Pierwszy plan (przed postaciami)</span>
+                    <Button subtle icon={Trash2} onClick={() => setState(st.id, { foreground: null })}>
+                      Usuń
+                    </Button>
+                  </>
+                ) : (
+                  <label className="button subtle">
+                    <ImagePlus size={16} />
+                    {busy ? "Wgrywanie…" : "Dodaj pierwszy plan (PNG z przezroczystością)"}
+                    <input
+                      type="file"
+                      accept="image/png,image/webp"
+                      className="visually-hidden"
+                      onChange={(e) =>
+                        e.target.files?.length &&
+                        s.run(async () => {
+                          const [first] = await send(e.target.files!);
+                          if (first) setState(st.id, { foreground: first[1] });
+                        })
+                      }
+                    />
+                  </label>
+                )}
+              </div>
             </div>
             <IconButton
               icon={Trash2}

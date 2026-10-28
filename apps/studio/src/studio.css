@@ -6004,9 +6004,15 @@ textarea::placeholder {
 }
 .stage-actor {
   position: absolute;
-  width: auto;
-  cursor: grab;
   z-index: 1;
+  transform: translate(-50%, -100%);
+  cursor: grab;
+}
+.stage-actor img {
+  display: block;
+  height: 100%;
+  width: auto;
+  transform-origin: 50% 100%;
 }
 .stage-actor:active {
   cursor: grabbing;
@@ -6378,4 +6384,191 @@ textarea::placeholder {
 .manual-error {
   margin: 0;
   color: var(--red);
+}
+
+/* Scene motion: camera on the whole world, parallax on the foreground, actors on their own */
+.stage-world {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 55%;
+}
+.stage-fg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  pointer-events: none;
+}
+.stage-frame .stage-caption {
+  z-index: 3;
+}
+.stage-frame.animate .stage-world {
+  animation-duration: var(--dur);
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+.stage-frame.animate .cam-push_in {
+  animation-name: cam-push-in;
+}
+.stage-frame.animate .cam-pull_out {
+  animation-name: cam-pull-out;
+}
+.stage-frame.animate .cam-pan_left {
+  animation-name: cam-pan-left;
+}
+.stage-frame.animate .cam-pan_right {
+  animation-name: cam-pan-right;
+}
+.stage-frame.animate .cam-shake {
+  animation: cam-shake 0.35s linear infinite;
+}
+.stage-frame.animate .cam-pan_left .stage-fg {
+  animation: fg-pan-left var(--dur) ease-in-out forwards;
+}
+.stage-frame.animate .cam-pan_right .stage-fg {
+  animation: fg-pan-right var(--dur) ease-in-out forwards;
+}
+.stage-frame.animate .cam-push_in .stage-fg {
+  animation: fg-push var(--dur) ease-in-out forwards;
+}
+@keyframes cam-push-in {
+  to {
+    transform: scale(calc(1 + 0.3 * var(--s)));
+  }
+}
+@keyframes cam-pull-out {
+  from {
+    transform: scale(calc(1 + 0.3 * var(--s)));
+  }
+}
+@keyframes cam-pan-left {
+  from {
+    transform: scale(1.12) translateX(calc(5% * var(--s)));
+  }
+  to {
+    transform: scale(1.12) translateX(calc(-5% * var(--s)));
+  }
+}
+@keyframes cam-pan-right {
+  from {
+    transform: scale(1.12) translateX(calc(-5% * var(--s)));
+  }
+  to {
+    transform: scale(1.12) translateX(calc(5% * var(--s)));
+  }
+}
+@keyframes fg-pan-left {
+  to {
+    translate: calc(-6% * var(--s)) 0;
+  }
+}
+@keyframes fg-pan-right {
+  to {
+    translate: calc(6% * var(--s)) 0;
+  }
+}
+@keyframes fg-push {
+  to {
+    scale: calc(1 + 0.12 * var(--s));
+  }
+}
+@keyframes cam-shake {
+  0%, 100% { translate: 0 0; }
+  25% { translate: calc(0.6% * var(--s)) calc(-0.4% * var(--s)); }
+  50% { translate: calc(-0.5% * var(--s)) calc(0.5% * var(--s)); }
+  75% { translate: calc(0.4% * var(--s)) calc(0.3% * var(--s)); }
+}
+.stage-frame.animate .motion-idle img {
+  animation: actor-breathe 3.2s ease-in-out infinite;
+}
+.stage-frame.animate .motion-enter_left {
+  animation: actor-enter-left min(2.4s, var(--dur)) ease-out both;
+}
+.stage-frame.animate .motion-enter_right {
+  animation: actor-enter-right min(2.4s, var(--dur)) ease-out both;
+}
+.stage-frame.animate .motion-exit_left {
+  animation: actor-exit-left min(2.4s, var(--dur)) ease-in calc(var(--dur) * 0.45) forwards;
+}
+.stage-frame.animate .motion-exit_right {
+  animation: actor-exit-right min(2.4s, var(--dur)) ease-in calc(var(--dur) * 0.45) forwards;
+}
+.stage-frame.animate :is(.motion-enter_left, .motion-enter_right, .motion-exit_left, .motion-exit_right) img {
+  animation: actor-step 0.45s ease-in-out infinite;
+}
+@keyframes actor-breathe {
+  50% {
+    scale: 1 1.018;
+  }
+}
+@keyframes actor-step {
+  50% {
+    translate: 0 -2.5%;
+  }
+}
+@keyframes actor-enter-left {
+  from {
+    left: -20%;
+  }
+}
+@keyframes actor-enter-right {
+  from {
+    left: 120%;
+  }
+}
+@keyframes actor-exit-left {
+  to {
+    left: -20%;
+  }
+}
+@keyframes actor-exit-right {
+  to {
+    left: 120%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-frame.animate * {
+    animation-duration: 0.01s !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+.scene-preview-row {
+  display: flex;
+  gap: 8px;
+}
+.placed-motion {
+  grid-column: 1 / 3;
+}
+.placed-row input[type="range"] {
+  grid-row: 3;
+}
+
+.state-fg {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.state-fg-thumb {
+  width: 64px;
+  height: 36px;
+  border-radius: 4px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.state-fg-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.voice-engine {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 10px;
+  justify-items: start;
 }
