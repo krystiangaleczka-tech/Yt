@@ -5444,6 +5444,31 @@ textarea::placeholder {
   flex-wrap: wrap;
 }
 
+/* Compact idea summary bar */
+.idea-summary-bar {
+  margin-bottom: 24px;
+}
+.idea-summary-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.idea-summary-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.idea-summary-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
 /* Excel-style inventory tables for Ideation */
 .excel-table-panel {
   margin-bottom: 24px;

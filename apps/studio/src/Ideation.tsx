@@ -142,9 +142,10 @@ export default function IdeaWorkspace() {
     [storyId, setStoryId] = useState<string | null>(null),
     [tab, setTab] = useState("story"),
     [ai, setAI] = useState<AITarget | null>(null),
-    [own, setOwn] = useState(false),
-    [title, setTitle] = useState(""),
-    [question, setQuestion] = useState(""),
+    [ideaModal, setIdeaModal] = useState<{
+      open: boolean;
+      idea?: FilmIdea | null;
+    } | null>(null),
     [forecasts, setForecasts] = useState<Record<string, Forecast>>({}),
     [history, setHistory] = useState({ undo: 0, redo: 0 }),
     [confirm, setConfirm] = useState<null | {
@@ -516,7 +517,7 @@ export default function IdeaWorkspace() {
                 Zapisz go jako osobny kafelek. Otwórz temat, przygotuj kilka
                 historii i porównaj je przed wyborem.
               </p>
-              <Button primary icon={Plus} onClick={() => setOwn(true)}>
+              <Button primary icon={Plus} onClick={() => setIdeaModal({ open: true })}>
                 Dodaj własny pomysł
               </Button>
               <BankPicker kinds={["idea"]} label="Dobierz temat z poczekalni" />
@@ -550,7 +551,7 @@ export default function IdeaWorkspace() {
                 <span className="badge quiet">{d.ideas.length}</span>
               </h2>
             </div>
-            <Button icon={Plus} onClick={() => setOwn(true)}>
+            <Button icon={Plus} onClick={() => setIdeaModal({ open: true })}>
               Własny pomysł
             </Button>
           </div>
@@ -619,32 +620,43 @@ export default function IdeaWorkspace() {
         </>
       ) : !story ? (
         <>
-          <section className="surface tool-panel">
-            <div className="two-fields">
-              <Field label="Temat / roboczy tytuł">
-                <CommitText
-                  value={idea.title}
-                  onCommit={(v) => changeIdea({ title: v })}
-                />
-              </Field>
-              <Field label="Główne pytanie">
-                <CommitText
-                  value={idea.question}
-                  onCommit={(v) => changeIdea({ question: v })}
-                />
-              </Field>
+          <section className="surface tool-panel idea-summary-bar">
+            <div className="idea-summary-content">
+              {idea.question ? (
+                <div className="idea-summary-block">
+                  <span className="eyebrow">GŁÓWNE PYTANIE</span>
+                  <p className="idea-summary-text">{idea.question}</p>
+                </div>
+              ) : null}
+              {idea.angle ? (
+                <div className="idea-summary-block">
+                  <span className="eyebrow">WŁASNY PUNKT WIDZENIA</span>
+                  <p className="idea-summary-text">{idea.angle}</p>
+                </div>
+              ) : null}
+              {idea.notes ? (
+                <div className="idea-summary-block">
+                  <span className="eyebrow">NOTATKI I TROPY</span>
+                  <p className="idea-summary-text muted">{idea.notes}</p>
+                </div>
+              ) : null}
+              {!idea.question && !idea.angle && !idea.notes ? (
+                <div className="idea-summary-block">
+                  <span className="eyebrow">ZARYS TEMATU</span>
+                  <p className="idea-summary-text muted">
+                    Brak opisanego pytania i punktu widzenia. Kliknij „Edytuj temat”, aby uzupełnić założenia.
+                  </p>
+                </div>
+              ) : null}
             </div>
-            <Text
-              label="Własny punkt widzenia"
-              value={idea.angle}
-              save={(v) => changeIdea({ angle: v })}
-            />
-            <Text
-              label="Notatki i tropy do sprawdzenia"
-              value={idea.notes}
-              save={(v) => changeIdea({ notes: v })}
-            />
             <div className="button-row">
+              <Button
+                subtle
+                icon={Pencil}
+                onClick={() => setIdeaModal({ open: true, idea })}
+              >
+                Edytuj temat
+              </Button>
               <PublishToBank
                 kind="idea"
                 itemId={idea.id}
@@ -653,12 +665,6 @@ export default function IdeaWorkspace() {
               />
               <Button icon={Check} onClick={() => askChoose(idea)}>
                 Ustaw temat filmu
-              </Button>
-              <Button
-                icon={Plus}
-                onClick={() => setStoryModal({ open: true })}
-              >
-                Dodaj własną historię
               </Button>
             </div>
           </section>
@@ -1158,49 +1164,29 @@ export default function IdeaWorkspace() {
           )}
         </>
       )}
-      <Modal
-        open={own}
-        onClose={() => setOwn(false)}
-        title="Własny pomysł na film"
-        description="Dodasz osobny temat do kolekcji, bez zmiany filmu w produkcji."
-      >
-        <Field label="Roboczy tytuł / temat">
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            autoFocus
-          />
-        </Field>
-        <Field label="Pytanie, które ma przyciągnąć widza">
-          <textarea
-            rows={3}
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-          />
-        </Field>
-        <Button
-          primary
-          icon={Plus}
-          disabled={!title.trim()}
-          onClick={() =>
-            s.run(async () => {
-              const value = { ...blankIdea(), title: title.trim(), question };
-              await s.patch((current) => ({
-                development: {
-                  ...current.development,
-                  ideas: [...current.development.ideas, value],
-                },
-              }));
-              setOwn(false);
-              setTitle("");
-              setQuestion("");
+      {ideaModal?.open && (
+        <IdeaModal
+          idea={ideaModal.idea}
+          open={ideaModal.open}
+          onClose={() => setIdeaModal(null)}
+          onSave={(data) => {
+            if (ideaModal.idea) {
+              const targetId = ideaModal.idea.id;
+              edit((value) => {
+                const item = value.ideas.find((x) => x.id === targetId);
+                if (item) Object.assign(item, data);
+              });
+              s.notify("Zaktualizowano temat filmu");
+            } else {
+              const value = { ...blankIdea(), ...data };
+              edit((current) => {
+                current.ideas.push(value);
+              });
               s.notify("Dodano pomysł do kolekcji");
-            })
-          }
-        >
-          Dodaj kafelek
-        </Button>
-      </Modal>
+            }
+          }}
+        />
+      )}
       <Modal
         open={!!confirm}
         onClose={() => setConfirm(null)}
@@ -1978,6 +1964,90 @@ function EvaluationTable({
         </table>
       </div>
     </div>
+  );
+}
+
+function IdeaModal({
+  idea,
+  open,
+  onClose,
+  onSave,
+}: {
+  idea?: FilmIdea | null;
+  open: boolean;
+  onClose: () => void;
+  onSave: (data: Partial<FilmIdea>) => void;
+}) {
+  const [title, setTitle] = useState(idea?.title || "");
+  const [question, setQuestion] = useState(idea?.question || "");
+  const [angle, setAngle] = useState(idea?.angle || "");
+  const [notes, setNotes] = useState(idea?.notes || "");
+
+  useEffect(() => {
+    setTitle(idea?.title || "");
+    setQuestion(idea?.question || "");
+    setAngle(idea?.angle || "");
+    setNotes(idea?.notes || "");
+  }, [idea]);
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={idea ? `Edytuj temat: ${idea.title}` : "Własny pomysł na film"}
+      description="Zdefiniuj roboczy temat, pytanie przyciągające widza, własny punkt widzenia i tropy badawcze."
+    >
+      <Field label="Temat / roboczy tytuł">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="np. Anatomia AAR: Jak jednostki specjalne niszczą ego po każdej misji?"
+          autoFocus
+        />
+      </Field>
+      <Field label="Główne pytanie">
+        <textarea
+          rows={2}
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Dlaczego komandosi po powrocie z misji zdejmują pagony i zakazują szukania winnych?"
+        />
+      </Field>
+      <Field label="Własny punkt widzenia">
+        <textarea
+          rows={3}
+          value={angle}
+          onChange={(e) => setAngle(e.target.value)}
+          placeholder="Prawdziwa siła elity to nie brak błędów, lecz instytucjonalne zniszczenie ego w procedurze AAR."
+        />
+      </Field>
+      <Field label="Notatki i tropy do sprawdzenia">
+        <textarea
+          rows={4}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="3 filary tematu do wykorzystania, źródła, wątki do weryfikacji..."
+        />
+      </Field>
+      <div className="button-row" style={{ marginTop: 16 }}>
+        <Button
+          primary
+          icon={Check}
+          disabled={!title.trim()}
+          onClick={() => {
+            onSave({
+              title: title.trim(),
+              question,
+              angle,
+              notes,
+            });
+            onClose();
+          }}
+        >
+          {idea ? "Zapisz zmiany" : "Dodaj pomysł"}
+        </Button>
+      </div>
+    </Modal>
   );
 }
 
