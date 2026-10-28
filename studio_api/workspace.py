@@ -102,6 +102,8 @@ def register_workspace(app, workspace):
         if category and (category.archived or category.channel_id and category.channel_id != body.get('channel_id')):
             raise ValueError('Kategoria nie pasuje do kanału')
         def change(p):
+            if p.stage_scenes and p.channel_id != body.get('channel_id', ''):
+                raise ValueError('Sceny korzystają z postaci i lokacji obecnego kanału. Zmiana kanału rozerwałaby ich powiązania.')
             p.channel_id = body.get('channel_id', '')
             p.channel = channel['name'] if channel else 'Mój kanał'
             p.category_id = category.id if category else ''

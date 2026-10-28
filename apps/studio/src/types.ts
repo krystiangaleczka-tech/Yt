@@ -1,3 +1,4 @@
+import type { ProductionMode, StageScene } from "./animationTypes";
 import type { MotionInsert } from "./motion/types";
 import type { Development } from "./developmentTypes";
 import type { ResourceLink } from "./workspaceTypes";
@@ -191,6 +192,8 @@ export type Project = {
   category_id: string;
   category_profile: Record<string, unknown>;
   film_format: string;
+  production_mode: ProductionMode;
+  stage_scenes: StageScene[];
   workspace_snapshot: Record<string, unknown>;
   resource_links: ResourceLink[];
   archived: boolean;
@@ -240,6 +243,9 @@ export type ProjectSummary = {
   fps: number;
   archived?: boolean;
   channel?: string;
+  channel_id?: string;
+  production_mode?: ProductionMode;
+  stage_scenes?: number;
   next_step?: string;
 };
 export type Job = {

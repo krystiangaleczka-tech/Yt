@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Archive, Check, FolderOpen, Plus, Upload } from "lucide-react";
 import { useStudio } from "./context";
+import { modeLabels } from "./animationTypes";
+import type { ProductionMode } from "./animationTypes";
 import { api, id, safeUrl, upload } from "./api";
 import { Button, Field, Modal, SectionHead } from "./components";
 import type { Project } from "./types";
@@ -675,6 +677,21 @@ function ChannelEditor({
       description="Profil wspólny. Jego zmiana nie nadpisuje migawek istniejących filmów."
     >
       {textField("Nazwa kanału", c.name, (v) => setC({ ...c, name: v }))}
+      <Field
+        label="Tryb produkcji kanału"
+        hint="Nowe filmy tego kanału startują w tym trybie. Postacie i lokacje należą tylko do tego kanału."
+      >
+        <select
+          value={c.production_mode || "documentary"}
+          onChange={(e) => setC({ ...c, production_mode: e.target.value })}
+        >
+          {(Object.keys(modeLabels) as ProductionMode[]).map((m) => (
+            <option key={m} value={m}>
+              {modeLabels[m]}
+            </option>
+          ))}
+        </select>
+      </Field>
       <PresetFields
         value={
           Object.fromEntries(

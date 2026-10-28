@@ -21,6 +21,11 @@ import {
   Search,
   Upload,
   Menu,
+  Users,
+  MapPinned,
+  LayoutGrid,
+  PersonStanding,
+  Video,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { StudioProvider, useStudio } from "./context";
@@ -38,9 +43,13 @@ import LibraryView from "./Library";
 import Production from "./Production";
 import { NewFilmModal } from "./Workspace";
 import { workspacePages, workspaceTitles } from "./workspaceTypes";
+import { modeLabels } from "./animationTypes";
+import type { ProductionMode } from "./animationTypes";
 
 const MotionEditor = lazy(() => import("./MotionEditor"));
 const WorkspaceView = lazy(() => import("./WorkspacePage"));
+const CastBankView = lazy(() => import("./CastBank"));
+const SceneBoard = lazy(() => import("./SceneBoard"));
 
 const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "idea", label: "Pomysł", icon: Compass },
@@ -51,12 +60,36 @@ const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "editing", label: "Montaż", icon: SlidersHorizontal },
   { id: "export", label: "Eksport", icon: ArrowUpRight },
 ];
+const animationSteps: { id: Page; label: string; icon: LucideIcon }[] = [
+  { id: "idea", label: "Pomysł", icon: Compass },
+  { id: "facts", label: "Research", icon: BookOpen },
+  { id: "script", label: "Scenariusz", icon: FileText },
+  { id: "scenes", label: "Sceny", icon: LayoutGrid },
+  { id: "editing", label: "Montaż", icon: SlidersHorizontal },
+  { id: "export", label: "Eksport", icon: ArrowUpRight },
+];
+const modes: { id: ProductionMode; icon: LucideIcon }[] = [
+  { id: "documentary", icon: FileText },
+  { id: "animation_2d", icon: PersonStanding },
+  { id: "broll", icon: Video },
+];
 function Shell() {
   const s = useStudio();
   const [collapsed, setCollapsed] = useState(false),
     [mobileNav, setMobileNav] = useState(false),
     [newOpen, setNewOpen] = useState(false);
-  const step = steps.find((x) => x.id === s.page);
+  const modeSteps = s.mode === "animation_2d" ? animationSteps : steps;
+  const step = [...modeSteps, ...animationSteps].find((x) => x.id === s.page);
+  function switchMode(next: ProductionMode) {
+    if (next === s.mode) return;
+    s.setMode(next);
+    if (s.project && s.project.production_mode !== next) {
+      // A film belongs to one mode; leave it so the next start opens the chosen mode.
+      s.close();
+      s.setPage("projects");
+    }
+    setMobileNav(false);
+  }
   const [dirty, setDirty] = useState(false);
   useEffect(() => {
     const changed = (e: Event) => setDirty(Boolean((e as CustomEvent).detail));
@@ -87,6 +120,10 @@ function Shell() {
   const content =
     s.page === "projects" ? (
       <Projects onNew={() => setNewOpen(true)} />
+    ) : s.page === "cast" || s.page === "locations" ? (
+      <Suspense fallback={<div className="page-content">Ładowanie banku…</div>}>
+        <CastBankView section={s.page} />
+      </Suspense>
     ) : globalPage ? (
       <Suspense
         fallback={<div className="page-content">Ładowanie pracowni…</div>}
@@ -102,6 +139,10 @@ function Shell() {
           </Button>
         }
       />
+    ) : s.page === "scenes" ? (
+      <Suspense fallback={<div className="page-content">Ładowanie scen…</div>}>
+        <SceneBoard />
+      </Suspense>
     ) : s.page === "generation" ? (
       <Generation />
     ) : s.page === "motion" ? (
@@ -164,6 +205,21 @@ function Shell() {
             DocOS<span>Studio</span>
           </span>
         </a>
+        <div className="mode-switch" role="radiogroup" aria-label="Tryb produkcji">
+          {modes.map((m) => (
+            <button
+              key={m.id}
+              role="radio"
+              aria-checked={s.mode === m.id}
+              className={s.mode === m.id ? "active" : ""}
+              title={`Tryb: ${modeLabels[m.id]}`}
+              onClick={() => switchMode(m.id)}
+            >
+              <m.icon size={15} />
+              <span>{modeLabels[m.id]}</span>
+            </button>
+          ))}
+        </div>
         <Button
           icon={Plus}
           className="new-project"
@@ -180,6 +236,26 @@ function Shell() {
           <span>Projekty</span>
         </button>
         <div className="nav-label">PRACOWNIA</div>
+        {s.mode === "animation_2d" && (
+          <>
+            <button
+              className={`nav-item ${s.page === "cast" ? "active" : ""}`}
+              title="Postacie kanału"
+              onClick={() => navigate("cast")}
+            >
+              <Users size={18} />
+              <span>Postacie</span>
+            </button>
+            <button
+              className={`nav-item ${s.page === "locations" ? "active" : ""}`}
+              title="Lokacje kanału"
+              onClick={() => navigate("locations")}
+            >
+              <MapPinned size={18} />
+              <span>Lokacje</span>
+            </button>
+          </>
+        )}
         {workspacePages.map((page) => (
           <button
             key={page}
@@ -193,7 +269,7 @@ function Shell() {
         ))}
         <div className="nav-label">OTWARTY FILM</div>
         <nav aria-label="Etapy produkcji">
-          {steps.map((item, index) => (
+          {modeSteps.map((item, index) => (
             <button
               key={item.id}
               className={`nav-item ${s.page === item.id ? "active" : ""}`}
@@ -332,6 +408,8 @@ function Shell() {
                   jobs: "Zadania",
                   production: "Narzędzia produkcji",
                   motion: "Wstawki animowane",
+                  cast: "Postacie",
+                  locations: "Lokacje",
                 }[s.page as "sources"]}
             </strong>
           </div>
@@ -455,7 +533,12 @@ function Projects({ onNew }: { onNew: () => void }) {
         </Button>
       </SectionHead>
       <div className="project-grid">
-        {projectList.map((p) => (
+        {projectList.filter((p) => (p.production_mode || "documentary") === s.mode).length === 0 && (
+          <p className="muted">
+            Brak filmów w trybie {modeLabels[s.mode]}. Utwórz nowy film albo zmień tryb w lewym górnym rogu.
+          </p>
+        )}
+        {projectList.filter((p) => (p.production_mode || "documentary") === s.mode).map((p) => (
           <button
             className="project-card"
             key={p.id}
@@ -467,12 +550,19 @@ function Projects({ onNew }: { onNew: () => void }) {
           >
             <div className="project-cover">
               <Film size={42} />
-              <span>{p.demo ? "PRZYKŁADOWA PRODUKCJA" : "TWÓJ DOKUMENT"}</span>
+              <span>
+                {p.demo
+                  ? "PRZYKŁADOWA PRODUKCJA"
+                  : modeLabels[p.production_mode || "documentary"].toUpperCase()}
+              </span>
             </div>
             <div className="project-card-body">
               <h3>{p.title}</h3>
               <p>
-                {p.scenes} ujęć <span>·</span> {p.assets} materiałów
+                {p.production_mode === "animation_2d"
+                  ? `${p.stage_scenes || 0} scen`
+                  : `${p.scenes} ujęć`}{" "}
+                <span>·</span> {p.assets} materiałów
               </p>
               <p className="small muted">
                 {p.archived ? "Archiwum · " : ""}

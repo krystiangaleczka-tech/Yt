@@ -40,6 +40,7 @@ from studio_workers.jobs import Jobs
 from studio_api.inserts import register_inserts
 from studio_core.workspace import Workspace
 from studio_api.workspace import register_workspace
+from studio_api.animation import register_animation
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -64,6 +65,7 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     workspace = Workspace(store)
     app.state.workspace = workspace
     register_workspace(app, workspace)
+    register_animation(app, store, connectors)
     motion_render=register_inserts(app, store, jobs, connectors)
 
     @app.middleware("http")

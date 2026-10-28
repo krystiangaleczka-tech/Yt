@@ -1,0 +1,142 @@
+import io
+import json
+from pathlib import Path
+import tempfile
+import unittest
+from unittest import mock
+
+from fastapi.testclient import TestClient
+from PIL import Image
+
+from studio_api.app import create_app
+from studio_core.models import Project
+
+H = {'X-Docos-Request': '1'}
+
+
+def png(color=(200, 40, 40, 255), size=(40, 80)):
+    data = io.BytesIO()
+    Image.new('RGBA', size, color).save(data, 'PNG')
+    return data.getvalue()
+
+
+class AnimationTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.app = create_app(Path(self.temp.name), seed_demo=False)
+        self.client = TestClient(self.app)
+        self.store = self.app.state.store
+        self.channel = self.store.save_channel({'name': 'Survival', 'language': 'en', 'production_mode': 'animation_2d'})
+        self.other = self.store.save_channel({'name': 'Dokumenty', 'language': 'pl'})
+
+    def tearDown(self):
+        self.app.state.jobs.close()
+        self.client.close()
+        self.temp.cleanup()
+
+    def ok(self, response):
+        self.assertEqual(response.status_code, 200, response.text)
+        return response.json()
+
+    def image(self, channel_id, content=None):
+        return self.ok(self.client.post(f'/api/channels/{channel_id}/cast-media', files={'file': ('pose.png', content or png(), 'image/png')}, headers=H))
+
+    def character(self, channel_id, name='Mara'):
+        pose = {'name': 'Stoi', 'view': 'front', 'image': self.image(channel_id)}
+        return self.ok(self.client.post(f'/api/channels/{channel_id}/characters', json={'name': name, 'role': 'Pielęgniarka', 'poses': [pose]}, headers=H))
+
+    def location(self, channel_id):
+        state = {'name': 'Dzień 1', 'time_of_day': 'day', 'image': self.image(channel_id, png((30, 60, 90, 255), (160, 90)))}
+        return self.ok(self.client.post(f'/api/channels/{channel_id}/locations', json={'name': 'Kuchnia', 'states': [state]}, headers=H))
+
+    def film(self, channel_id=None, **body):
+        return self.ok(self.client.post('/api/projects', json={'title': 'Day 1', 'channel_id': channel_id or self.channel['id']} | body, headers=H))
+
+    def scenes(self, project, *operations):
+        return self.ok(self.client.post(f"/api/projects/{project['id']}/stage-scenes", json={'expected_revision': project['revision'], 'operations': list(operations)}, headers=H))
+
+    def test_mode_is_inherited_from_channel_and_animation_requires_channel(self):
+        film = self.film()
+        self.assertEqual(film['production_mode'], 'animation_2d')
+        self.assertEqual(self.film(self.other['id'])['production_mode'], 'documentary')
+        response = self.client.post('/api/projects', json={'title': 'Bez kanału', 'production_mode': 'animation_2d'}, headers=H)
+        self.assertEqual(response.status_code, 422)
+        listed = self.ok(self.client.get('/api/projects'))
+        self.assertIn('production_mode', listed[0])
+        self.assertEqual(Project(development={}).production_mode, 'documentary')
+
+    def test_pose_image_keeps_transparency_and_is_scoped_to_channel(self):
+        image = self.image(self.channel['id'])
+        self.assertTrue(image['alpha'])
+        self.assertEqual(self.client.get(f"/api/channels/{self.channel['id']}/cast-media/{image['file']}").status_code, 200)
+        self.assertEqual(self.client.get(f"/api/channels/{self.other['id']}/cast-media/{image['file']}").status_code, 404)
+        response = self.client.post(f"/api/channels/{self.other['id']}/characters", json={'name': 'Obcy', 'poses': [{'name': 'Stoi', 'image': image}]}, headers=H)
+        self.assertEqual(response.status_code, 422)
+        bad = self.client.post(f"/api/channels/{self.channel['id']}/cast-media", files={'file': ('x.png', b'not an image', 'image/png')}, headers=H)
+        self.assertEqual(bad.status_code, 422)
+
+    def test_bank_revisions_conflict_and_channel_isolation(self):
+        mara = self.character(self.channel['id'])
+        self.assertEqual(mara['revision'], 1)
+        stale = self.client.post(f"/api/channels/{self.channel['id']}/characters", json=mara | {'revision': 0, 'name': 'Inna'}, headers=H)
+        self.assertEqual(stale.status_code, 409)
+        self.assertEqual(len(self.ok(self.client.get(f"/api/channels/{self.channel['id']}/cast"))['characters']), 1)
+        self.assertEqual(self.ok(self.client.get(f"/api/channels/{self.other['id']}/cast"))['characters'], [])
+        moved = self.client.post(f"/api/channels/{self.other['id']}/characters", json=mara, headers=H)
+        self.assertEqual(moved.status_code, 422)
+
+    def test_scene_board_review_flow(self):
+        mara, kitchen = self.character(self.channel['id']), self.location(self.channel['id'])
+        film = self.film()
+        placed = {'character_id': mara['id'], 'pose_id': mara['poses'][0]['id'], 'x': .4}
+        film = self.scenes(film, {'type': 'add', 'scene': {'title': 'Woda', 'location_id': kitchen['id'], 'location_state_id': kitchen['states'][0]['id'],
+                                                          'characters': [placed], 'action': 'Patrzy na wodę.',
+                                                          'dialogue': [{'speaker': mara['id'], 'text': 'Do we drink it?'}],
+                                                          'sound': {'ambience': 'quiet flat', 'sfx': ['drip']}}})
+        scene = film['stage_scenes'][0]
+        self.assertEqual((scene['number'], scene['status']), (1, 'draft'))
+        rework = self.client.post(f"/api/projects/{film['id']}/stage-scenes", json={'expected_revision': film['revision'], 'operations': [{'type': 'review', 'scene_id': scene['id'], 'status': 'rework'}]}, headers=H)
+        self.assertEqual(rework.status_code, 422)
+        film = self.scenes(film, {'type': 'review', 'scene_id': scene['id'], 'status': 'approved'})
+        self.assertEqual(film['stage_scenes'][0]['status'], 'approved')
+        film = self.scenes(film, {'type': 'update', 'scene_id': scene['id'], 'changes': {'camera': 'close-up'}})
+        self.assertEqual(film['stage_scenes'][0]['status'], 'review')
+        film = self.scenes(film, {'type': 'review', 'scene_id': scene['id'], 'status': 'rework', 'tags': ['Tło', 'nieznany'], 'note': 'ciemniej'})
+        self.assertEqual(film['stage_scenes'][0]['reviews'][-1]['tags'], ['Tło'])
+        film = self.scenes(film, {'type': 'add', 'scene': {'title': 'Druga'}}, {'type': 'move', 'scene_id': scene['id'], 'to': 1})
+        self.assertEqual([s['title'] for s in film['stage_scenes']], ['Druga', 'Woda'])
+        self.assertEqual([s['number'] for s in film['stage_scenes']], [1, 2])
+        undo = self.ok(self.client.post(f"/api/projects/{film['id']}/history/undo", json={'expected_revision': film['revision']}, headers=H))
+        self.assertEqual(len(undo['stage_scenes']), 1)
+
+    def test_scenes_reject_cast_of_another_channel(self):
+        stranger = self.character(self.other['id'], 'Obcy')
+        film = self.film()
+        response = self.client.post(f"/api/projects/{film['id']}/stage-scenes", json={'expected_revision': film['revision'], 'operations': [{'type': 'add', 'scene': {'characters': [{'character_id': stranger['id']}]}}]}, headers=H)
+        self.assertEqual(response.status_code, 422)
+        self.assertIn('banku kanału', response.json()['detail'])
+        film = self.scenes(film, {'type': 'add', 'scene': {'title': 'Pusta'}})
+        moved = self.client.post(f"/api/projects/{film['id']}/workspace/context", json={'expected_revision': film['revision'], 'channel_id': self.other['id']}, headers=H)
+        self.assertEqual(moved.status_code, 422)
+
+    def test_regeneration_is_a_validated_proposal(self):
+        mara, kitchen = self.character(self.channel['id']), self.location(self.channel['id'])
+        film = self.scenes(self.film(), {'type': 'add', 'scene': {'title': 'Woda', 'location_id': kitchen['id']}})
+        scene = film['stage_scenes'][0]
+        prompt = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/{scene['id']}/prompt", json={'instruction': 'more tension'}, headers=H))
+        self.assertIn(mara['poses'][0]['id'], prompt['prompt'])
+        answer = {'title': 'Woda w półmroku', 'characters': [{'character_id': mara['id'], 'pose_id': mara['poses'][0]['id'], 'x': .3}],
+                  'dialogue': [{'speaker': 'narrator', 'text': 'You count the bottles again.'}], 'reason': 'Więcej napięcia'}
+        with mock.patch('studio_api.animation.complete', return_value='```json\n' + json.dumps(answer) + '\n```'):
+            proposal = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/{scene['id']}/regenerate", json={'instruction': 'more tension'}, headers=H))
+        self.assertEqual(proposal['changes']['title'], 'Woda w półmroku')
+        self.assertEqual(self.store.get(film['id']).stage_scenes[0].title, 'Woda')
+        invented = json.dumps(answer | {'characters': [{'character_id': 'chr_0000000000000000'}]})
+        response = self.client.post(f"/api/projects/{film['id']}/stage-scenes/{scene['id']}/regenerate", json={'response': invented}, headers=H)
+        self.assertEqual(response.status_code, 422)
+        film = self.scenes(film, {'type': 'update', 'scene_id': scene['id'], 'changes': proposal['changes']})
+        self.assertEqual(film['stage_scenes'][0]['dialogue'][0]['speaker'], 'narrator')
+
+
+if __name__ == '__main__':
+    unittest.main()

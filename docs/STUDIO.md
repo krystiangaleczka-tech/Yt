@@ -42,6 +42,8 @@ Tekst zapisuje się po 900 ms bezczynności albo po opuszczeniu pola. Liczby po 
 
 Zaznaczenie ujęcia jest wspólne dla scenariusza, generowania, montażu i narzędzi. Kolejny start pamięta ostatni projekt i ekran. Projekty można duplikować, archiwizować i otwierać z archiwum.
 
+**Tryb produkcji** (lewy górny róg): Dokument, Animacja 2D albo B-roll. Animacja 2D dodaje bank postaci i lokacji przypisany do kanału oraz tablicę scen z szybką oceną i regeneracją AI — [instrukcja](STUDIO_ANIMATION.md).
+
 ## Ujęcia i styl
 
 **Narzędzia produkcji → Ujęcia** zawierają 20 formularzy: media, dokument, tytuł, cytat, prasa, podpis osoby, licznik, oś wydarzeń, mapa, diagram, waveform, spektrogram, lupa, split, porównanie, stos, QA, hasło, karty i parallax.

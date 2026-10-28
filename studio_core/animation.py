@@ -1,0 +1,370 @@
+"""2D animation production: channel-scoped cast/location banks and a reviewable scene board.
+
+Characters and locations belong to exactly one channel. A film may only reference the bank of
+its own channel, so the cast of one series never leaks into another.
+"""
+from __future__ import annotations
+
+import hashlib
+import io
+import json
+import re
+from pathlib import Path
+from typing import Literal
+
+from PIL import Image, ImageOps
+from pydantic import Field, model_validator
+
+from .models_base import Model, uid
+
+ProductionMode = Literal["documentary", "animation_2d", "broll"]
+CHANNEL_ID = re.compile(r"channel_[a-f0-9]{16}")
+MEDIA_FILE = re.compile(r"[a-f0-9]{64}\.(png|webp|jpg)")
+IMAGE_TYPES = {"PNG": ("png", "image/png"), "WEBP": ("webp", "image/webp"), "JPEG": ("jpg", "image/jpeg")}
+MAX_IMAGE = 40 * 1024 * 1024
+
+
+class CastImage(Model):
+    file: str = Field(pattern=MEDIA_FILE.pattern)
+    width: int = Field(ge=1, le=16384)
+    height: int = Field(ge=1, le=16384)
+    alpha: bool = False
+
+
+class Pose(Model):
+    id: str = Field(default_factory=lambda: uid("pose_"), pattern=r"^pose_[a-f0-9]{16}$")
+    name: str = Field(min_length=1, max_length=80)
+    view: Literal["front", "three_quarter", "side", "back"] = "front"
+    image: CastImage
+    tags: list[str] = Field(default_factory=list, max_length=20)
+
+
+class VoiceSettings(Model):
+    provider: Literal["", "elevenlabs", "local"] = ""
+    voice_id: str = Field(default="", max_length=200)
+    notes: str = Field(default="", max_length=1000)
+
+
+class Character(Model):
+    id: str = Field(default_factory=lambda: uid("chr_"), pattern=r"^chr_[a-f0-9]{16}$")
+    revision: int = 0
+    channel_id: str = Field(pattern=CHANNEL_ID.pattern)
+    name: str = Field(min_length=1, max_length=80)
+    role: str = Field(default="", max_length=200)
+    description: str = Field(default="", max_length=3000)
+    personality: str = Field(default="", max_length=2000)
+    goal: str = Field(default="", max_length=1000)
+    signature: str = Field(default="", max_length=500)
+    color: str = Field(default="#f2b866", pattern=r"^#[a-fA-F0-9]{6}$")
+    voice: VoiceSettings = Field(default_factory=VoiceSettings)
+    poses: list[Pose] = Field(default_factory=list, max_length=200)
+    default_pose_id: str = ""
+    archived: bool = False
+    updated_at: str = ""
+
+    @model_validator(mode="after")
+    def coherent(self):
+        ids = [p.id for p in self.poses]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Powtórzone pozy postaci")
+        if self.default_pose_id and self.default_pose_id not in ids:
+            raise ValueError("Domyślna poza nie należy do postaci")
+        return self
+
+
+class LocationState(Model):
+    id: str = Field(default_factory=lambda: uid("lst_"), pattern=r"^lst_[a-f0-9]{16}$")
+    name: str = Field(min_length=1, max_length=80)
+    description: str = Field(default="", max_length=1000)
+    time_of_day: Literal["", "day", "dusk", "night"] = ""
+    image: CastImage | None = None
+
+
+class Location(Model):
+    id: str = Field(default_factory=lambda: uid("loc_"), pattern=r"^loc_[a-f0-9]{16}$")
+    revision: int = 0
+    channel_id: str = Field(pattern=CHANNEL_ID.pattern)
+    name: str = Field(min_length=1, max_length=80)
+    description: str = Field(default="", max_length=3000)
+    states: list[LocationState] = Field(default_factory=list, max_length=50)
+    archived: bool = False
+    updated_at: str = ""
+
+    @model_validator(mode="after")
+    def coherent(self):
+        ids = [s.id for s in self.states]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Powtórzone stany lokacji")
+        return self
+
+
+class StageCharacter(Model):
+    character_id: str = Field(pattern=r"^chr_[a-f0-9]{16}$")
+    pose_id: str = ""
+    x: float = Field(default=.5, ge=0, le=1)
+    y: float = Field(default=.92, ge=0, le=1)
+    scale: float = Field(default=.6, ge=.05, le=2)
+    flip: bool = False
+
+
+class DialogueLine(Model):
+    id: str = Field(default_factory=lambda: uid("line_"), pattern=r"^line_[a-f0-9]{16}$")
+    speaker: str = Field(default="narrator", max_length=40)
+    text: str = Field(default="", max_length=2000)
+    direction: str = Field(default="", max_length=300)
+
+
+class SceneSound(Model):
+    ambience: str = Field(default="", max_length=500)
+    music: str = Field(default="", max_length=500)
+    sfx: list[str] = Field(default_factory=list, max_length=30)
+
+
+class Review(Model):
+    status: Literal["approved", "rework"]
+    note: str = Field(default="", max_length=2000)
+    tags: list[str] = Field(default_factory=list, max_length=10)
+    at: str = ""
+
+
+REVIEW_TAGS = ("Kadr", "Postać/poza", "Tło", "Dialog", "Dźwięk", "Tempo")
+
+
+class StageScene(Model):
+    id: str = Field(default_factory=lambda: uid("stage_"), pattern=r"^stage_[a-f0-9]{16}$")
+    number: int = Field(default=1, ge=1, le=9999)
+    title: str = Field(default="Nowa scena", min_length=1, max_length=200)
+    story_time: str = Field(default="", max_length=60)
+    location_id: str = ""
+    location_state_id: str = ""
+    characters: list[StageCharacter] = Field(default_factory=list, max_length=8)
+    action: str = Field(default="", max_length=3000)
+    camera: str = Field(default="", max_length=300)
+    dialogue: list[DialogueLine] = Field(default_factory=list, max_length=40)
+    sound: SceneSound = Field(default_factory=SceneSound)
+    seconds: float = Field(default=6, ge=.5, le=600)
+    status: Literal["draft", "review", "approved", "rework"] = "draft"
+    reviews: list[Review] = Field(default_factory=list, max_length=100)
+
+    @model_validator(mode="after")
+    def unique_lines(self):
+        ids = [line.id for line in self.dialogue]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Powtórzone kwestie w scenie")
+        return self
+
+
+CONTENT_FIELDS = ("title", "story_time", "location_id", "location_state_id", "characters", "action", "camera", "dialogue", "sound", "seconds")
+
+
+def read_image(content: bytes) -> tuple[bytes, CastImage, str]:
+    if len(content) > MAX_IMAGE:
+        raise ValueError("Obraz przekracza 40 MB")
+    try:
+        with Image.open(io.BytesIO(content)) as im:
+            im.verify()
+        with Image.open(io.BytesIO(content)) as im:
+            kind = im.format
+            im = ImageOps.exif_transpose(im)
+            width, height = im.size
+            alpha = im.mode in ("RGBA", "LA", "PA") or (im.mode == "P" and "transparency" in im.info)
+    except Exception as error:
+        raise ValueError("Wgraj obraz PNG, WEBP lub JPG") from error
+    if kind not in IMAGE_TYPES:
+        raise ValueError("Wgraj obraz PNG, WEBP lub JPG")
+    suffix, mime = IMAGE_TYPES[kind]
+    return content, CastImage(file=hashlib.sha256(content).hexdigest() + "." + suffix, width=width, height=height, alpha=alpha), mime
+
+
+class Cast:
+    """Channel-scoped banks stored beside the workspace; one folder per channel."""
+
+    def __init__(self, store):
+        self.store = store
+        self.root = store.root / "workspace" / "cast"
+
+    def channel(self, channel_id):
+        if not isinstance(channel_id, str) or not CHANNEL_ID.fullmatch(channel_id):
+            raise ValueError("Niepoprawny kanał")
+        if not any(c["id"] == channel_id for c in self.store.channels()):
+            raise ValueError("Nie ma takiego kanału")
+        return self.root / channel_id
+
+    def _rows(self, channel_id, group, model, archived):
+        folder = self.channel(channel_id) / group
+        rows = [model.model_validate_json(p.read_text()) for p in folder.glob("*.json")] if folder.exists() else []
+        return sorted([r for r in rows if archived or not r.archived], key=lambda r: r.name.lower())
+
+    def characters(self, channel_id, archived=False):
+        return self._rows(channel_id, "characters", Character, archived)
+
+    def locations(self, channel_id, archived=False):
+        return self._rows(channel_id, "locations", Location, archived)
+
+    def bank(self, channel_id):
+        return {"characters": self.characters(channel_id, True), "locations": self.locations(channel_id, True)}
+
+    def _save(self, channel_id, group, model, body):
+        from .store import atomic_json, now, Conflict
+        folder = self.channel(channel_id)
+        item = model.model_validate(body | {"channel_id": channel_id})
+        images = [p.image for p in getattr(item, "poses", [])] + [s.image for s in getattr(item, "states", []) if s.image]
+        for image in images:
+            if not (folder / "media" / image.file).is_file():
+                raise ValueError("Obraz nie został wgrany do banku tego kanału")
+        path = folder / group / (item.id + ".json")
+        with self.store.lock:
+            old = model.model_validate_json(path.read_text()) if path.exists() else None
+            if old and old.channel_id != channel_id:
+                raise ValueError("Wpis należy do innego kanału")
+            if item.revision != (old.revision if old else 0):
+                raise Conflict("Wpis zmienił się. Wczytaj aktualną wersję.")
+            item.revision += 1
+            item.updated_at = now()
+            atomic_json(path, item.model_dump())
+        return item
+
+    def save_character(self, channel_id, body):
+        return self._save(channel_id, "characters", Character, body)
+
+    def save_location(self, channel_id, body):
+        return self._save(channel_id, "locations", Location, body)
+
+    def add_image(self, channel_id, content: bytes):
+        data, image, _ = read_image(content)
+        folder = self.channel(channel_id) / "media"
+        folder.mkdir(parents=True, exist_ok=True)
+        target = folder / image.file
+        if not target.exists():
+            temporary = target.with_suffix(".part")
+            temporary.write_bytes(data)
+            temporary.replace(target)
+        return image
+
+    def image_path(self, channel_id, file):
+        if not MEDIA_FILE.fullmatch(file or ""):
+            raise ValueError("Niepoprawny plik banku")
+        path = self.channel(channel_id) / "media" / file
+        if not path.is_file():
+            raise FileNotFoundError(file)
+        return path, IMAGE_TYPES[{"png": "PNG", "webp": "WEBP", "jpg": "JPEG"}[file.rsplit(".", 1)[1]]][1]
+
+
+def validate_scene(scene: StageScene, characters: dict[str, Character], locations: dict[str, Location]):
+    """Scenes may reference only the active (non-archived) bank of the film's channel."""
+    if scene.location_id:
+        location = locations.get(scene.location_id)
+        if not location:
+            raise ValueError(f"Scena {scene.number}: lokacja nie należy do banku kanału tego filmu")
+        if scene.location_state_id and scene.location_state_id not in {s.id for s in location.states}:
+            raise ValueError(f"Scena {scene.number}: stan nie należy do wybranej lokacji")
+    elif scene.location_state_id:
+        raise ValueError(f"Scena {scene.number}: wybierz lokację stanu")
+    for placed in scene.characters:
+        character = characters.get(placed.character_id)
+        if not character:
+            raise ValueError(f"Scena {scene.number}: postać nie należy do banku kanału tego filmu")
+        if placed.pose_id and placed.pose_id not in {p.id for p in character.poses}:
+            raise ValueError(f"Scena {scene.number}: poza nie należy do postaci {character.name}")
+    speakers = {"narrator"} | set(characters)
+    for line in scene.dialogue:
+        if line.speaker not in speakers:
+            raise ValueError(f"Scena {scene.number}: nieznany mówca kwestii")
+
+
+def channel_bank(cast: Cast, project, *, archived=False):
+    if not project.channel_id:
+        raise ValueError("Przypisz film do kanału, aby korzystać z banku postaci i lokacji")
+    return ({c.id: c for c in cast.characters(project.channel_id, archived)},
+            {loc.id: loc for loc in cast.locations(project.channel_id, archived)})
+
+
+def apply_scene_operation(project, operation: dict, characters, locations):
+    """Single entry point for manual edits, reviews and accepted AI proposals."""
+    kind = operation.get("type")
+    scenes = project.stage_scenes
+    index = {s.id: i for i, s in enumerate(scenes)}
+    if kind == "add":
+        values = operation.get("scene", {})
+        scene = StageScene.model_validate({k: v for k, v in values.items() if k in CONTENT_FIELDS} | {"number": max((s.number for s in scenes), default=0) + 1})
+        validate_scene(scene, characters, locations)
+        position = index.get(operation.get("after", ""), len(scenes) - 1) + 1
+        scenes.insert(position, scene)
+        return scene
+    scene_id = operation.get("scene_id")
+    if scene_id not in index:
+        raise ValueError("Nie ma takiej sceny")
+    scene = scenes[index[scene_id]]
+    if kind == "update":
+        changes = operation.get("changes", {})
+        if not isinstance(changes, dict) or not set(changes) <= set(CONTENT_FIELDS) | {"number"}:
+            raise ValueError("Scena przyjmuje wyłącznie pola treści")
+        candidate = StageScene.model_validate(scene.model_dump() | changes)
+        validate_scene(candidate, characters, locations)
+        content_changed = any(getattr(candidate, k) != getattr(scene, k) for k in CONTENT_FIELDS)
+        if content_changed and candidate.status in ("approved", "rework"):
+            # Any change to an approved shot sends it back for the director's review.
+            candidate.status = "review"
+        scenes[index[scene_id]] = candidate
+        return candidate
+    if kind == "review":
+        from .store import now
+        status = operation.get("status")
+        tags = [t for t in operation.get("tags", []) if t in REVIEW_TAGS]
+        note = str(operation.get("note", ""))
+        if status == "rework" and not (tags or note.strip()):
+            raise ValueError("Napisz, co poprawić, albo wybierz obszar poprawki")
+        scene.reviews.append(Review(status=status, note=note, tags=tags, at=now()))
+        scene.status = status
+        return scene
+    if kind == "delete":
+        scenes.pop(index[scene_id])
+        return None
+    if kind == "move":
+        target = int(operation.get("to", index[scene_id]))
+        scenes.insert(max(0, min(len(scenes) - 1, target)), scenes.pop(index[scene_id]))
+        for number, item in enumerate(scenes, 1):
+            item.number = number
+        return scene
+    raise ValueError("Nieznana operacja sceny")
+
+
+def regeneration_prompt(project, scene: StageScene, characters, locations, instruction: str) -> str:
+    bank = {
+        "characters": [{"id": c.id, "name": c.name, "role": c.role, "description": c.description, "poses": [{"id": p.id, "name": p.name, "view": p.view} for p in c.poses]} for c in characters.values()],
+        "locations": [{"id": loc.id, "name": loc.name, "description": loc.description, "states": [{"id": s.id, "name": s.name, "time_of_day": s.time_of_day} for s in loc.states]} for loc in locations.values()],
+    }
+    neighbours = [s for s in project.stage_scenes if abs(s.number - scene.number) == 1]
+    last = scene.reviews[-1] if scene.reviews else None
+    feedback = "; ".join(filter(None, [", ".join(last.tags) if last else "", last.note if last else "", instruction]))
+    current = scene.model_dump(include=set(CONTENT_FIELDS))
+    return f"""You are the scene director of a 2D animated series. Rewrite ONE scene according to the director's feedback.
+Film: {project.title}. Language of narration and dialogue: {project.language}.
+Use only the character, pose, location and state ids from the bank below. Speakers are "narrator" or a character id.
+Keep the scene consistent with its neighbours (continuity of place, time, objects and injuries).
+
+BANK: {json.dumps(bank, ensure_ascii=False)}
+NEIGHBOUR SCENES: {json.dumps([s.model_dump(include={"number", "title", "story_time", "action"}) for s in neighbours], ensure_ascii=False)}
+CURRENT SCENE {scene.number}: {json.dumps(current, ensure_ascii=False)}
+DIRECTOR FEEDBACK: {feedback or "Make the scene clearer and more cinematic."}
+
+Return only JSON with keys: {", ".join(CONTENT_FIELDS)}, and "reason" (one sentence explaining the change).
+characters: [{{"character_id","pose_id","x" 0-1,"y" 0-1 baseline,"scale","flip"}}]; dialogue: [{{"speaker","text","direction"}}]; sound: {{"ambience","music","sfx":[]}}."""
+
+
+def parse_regeneration(text: str, scene: StageScene, characters, locations) -> dict:
+    match = re.search(r"\{.*\}", text or "", re.S)
+    if not match:
+        raise ValueError("Odpowiedź AI nie zawiera JSON sceny")
+    try:
+        data = json.loads(match.group(0))
+    except json.JSONDecodeError as error:
+        raise ValueError("Odpowiedź AI zawiera niepoprawny JSON") from error
+    reason = str(data.pop("reason", ""))[:500]
+    changes = {k: v for k, v in data.items() if k in CONTENT_FIELDS}
+    for line in changes.get("dialogue", []) if isinstance(changes.get("dialogue"), list) else []:
+        if isinstance(line, dict):
+            line.pop("id", None)
+    candidate = StageScene.model_validate(scene.model_dump() | changes)
+    validate_scene(candidate, characters, locations)
+    return {"scene_id": scene.id, "changes": candidate.model_dump(include=set(CONTENT_FIELDS)), "reason": reason}
