@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "archived_on": "2026-10-28",
+  "timezone": "Europe/Warsaw",
+  "repository": "https://github.com/krystiangaleczka-tech/Yt",
+  "target_branch": "main",
+  "archive_root": "docs/project-history",
+  "available_project_folder_files": 5,
+  "original_files_archived": 5,
+  "project_folder_inventory_complete": true,
+  "conversation_inventory_complete": false,
+  "full_conversation_export_available": false,
+  "conversation_summary": "Ustalenia_z_rozmow.md",
+  "repository_snapshot": "Stan_repozytorium.md",
+  "limitations": [
+    "Nie ma pełnej listy ani pełnych transkrypcji wszystkich rozmów projektu.",
+    "Bloki podsumowania nie potwierdzają granic ani liczby oryginalnych czatów.",
+    "Kod aplikacji jest już zapisany na gałęziach wskazanych w Stan_repozytorium.md.",
+    "Nie odzyskano lokalnych mediów ani prywatnych danych aplikacji."
+  ],
+  "original_files": [
+    {
+      "path": "files/Dlugie_opowiesci_YouTube_Analiza_WhyThat_i_plan_produkcji.md",
+      "original_name": "Dlugie_opowiesci_YouTube_Analiza_WhyThat_i_plan_produkcji.md",
+      "source_path": "/Yt/Dlugie_opowiesci_YouTube_Analiza_WhyThat_i_plan_produkcji.md",
+      "source_library_file_id": "libfile_5344dad1973c81919516e9e16607c477",
+      "source_version_id": null,
+      "size_bytes": 20152,
+      "sha256": "4cd2b001b4c2e1668d8bdbd333ef3c20c6d52db69be7e07c3ae7fcc311106b0e",
+      "content_preserved": true
+    },
+    {
+      "path": "files/Ranking_12_kanalow_YouTube_2026-10-27.md",
+      "original_name": "Ranking_12_kanalow_YouTube_2026-10-27.md",
+      "source_path": "/Yt/Ranking_12_kanalow_YouTube_2026-10-27.md",
+      "source_library_file_id": "libfile_7b8a6a20734881919ac21261122904b1",
+      "source_version_id": null,
+      "size_bytes": 37740,
+      "sha256": "9f77ca34901b98dac564395ea508ede395bb905c17232f379056f93ca1a084ce",
+      "content_preserved": true
+    },
+    {
+      "path": "files/AI_Film_Studio_Multi_Agent_Architecture.md",
+      "original_name": "AI_Film_Studio_Multi_Agent_Architecture.md",
+      "source_path": "/Yt/AI_Film_Studio_Multi_Agent_Architecture.md",
+      "source_library_file_id": "libfile_4518e04d0bb48191876b5ff3f0994b64",
+      "source_version_id": null,
+      "size_bytes": 10780,
+      "sha256": "03c7974b007371a3cb863b8377cbc2fa7abae5fea43dea8a2c6a6f6f02f6b38d",
+      "content_preserved": true
+    },
+    {
+      "path": "files/Log_rozmowy_DocOS_Studio.md",
+      "original_name": "Log_rozmowy_DocOS_Studio.md",
+      "source_path": "/Yt/Log_rozmowy_DocOS_Studio.md",
+      "source_library_file_id": "libfile_944482d5f0848191befa94b6f9237370",
+      "source_version_id": null,
+      "size_bytes": 10369,
+      "sha256": "5a27407ed0158c3c11f58fb954713997b97d3f4b1b63b824de990bcdfdb92d6b",
+      "content_preserved": true
+    },
+    {
+      "path": "files/Plan_aplikacji_DocOS_Studio.md",
+      "original_name": "Plan_aplikacji_DocOS_Studio.md",
+      "source_path": "/Yt/Plan_aplikacji_DocOS_Studio.md",
+      "source_library_file_id": "libfile_d955b2fdda2481919a3eb7717d9ec88c",
+      "source_version_id": "1",
+      "size_bytes": 61753,
+      "sha256": "fdd7b92e0ed3e105fe18e498cf25377db0da33f459d05d86f8fca5e1ec472e81",
+      "content_preserved": true
+    }
+  ]
+}
