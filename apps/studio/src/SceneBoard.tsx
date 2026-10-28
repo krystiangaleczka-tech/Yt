@@ -1202,7 +1202,13 @@ function SceneInspector({
               <select
                 aria-label="Dźwięk"
                 value={cue.sound_id}
-                onChange={(e) => setCue(index, { sound_id: e.target.value })}
+                onChange={(e) => {
+                  const next = sceneSounds.find((x) => x.id === e.target.value);
+                  setCue(index, {
+                    sound_id: e.target.value,
+                    ...(next && next.kind !== sound?.kind ? { volume: next.kind === "ambience" ? 0.15 : 1 } : {}),
+                  });
+                }}
               >
                 {sceneSounds.map((x) => (
                   <option key={x.id} value={x.id}>
@@ -1250,7 +1256,12 @@ function SceneInspector({
           icon={Plus}
           subtle
           disabled={!sceneSounds.length || cues.length >= 20}
-          onClick={() => update({ audio: [...cues, { sound_id: sceneSounds[0].id, at: 0, volume: 1 }] })}
+          onClick={() =>
+            update({
+              // Ambience sits far under the voices; the director turned the first ones down to ~5%.
+              audio: [...cues, { sound_id: sceneSounds[0].id, at: 0, volume: sceneSounds[0].kind === "ambience" ? 0.15 : 1 }],
+            })
+          }
         >
           {sceneSounds.length ? "Dodaj efekt lub atmosferę" : "Bank dźwięków kanału jest pusty"}
         </Button>

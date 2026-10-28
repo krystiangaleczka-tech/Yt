@@ -495,7 +495,7 @@ export default function Storyboard() {
                 sound_id: tracks[0].id,
                 from_scene_id: (current || ordered[0]).id,
                 to_scene_id: ordered[ordered.length - 1].id,
-                volume: 0.35,
+                volume: 0.15,
                 offset: 0,
               })
             }

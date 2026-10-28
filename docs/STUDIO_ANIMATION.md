@@ -42,7 +42,7 @@ W inspektorze sceny rekwizyt dodajesz z banku, wybierasz wariant, warstwę (za p
 Czwarty bank kanału przechowuje pliki dźwiękowe (WAV, MP3, OGG, M4A, FLAC, do 80 MB) z rodzajem, domyślną głośnością i pochodzeniem: licencja, autor, źródło i podpis do opisu filmu (wymagany przy CC BY). Bank nie pobiera dźwięków z internetu — wgrywasz własne nagrania albo pliki z legalnych źródeł, np. CC0.
 
 - **Efekt (SFX)** — w scenie ustawiasz moment (procent długości sceny) i głośność; jeden dźwięk można wstawić kilka razy, np. trzy stuknięcia.
-- **Atmosfera** — gra w pętli przez całą scenę, cicho pod głosem, z krótkim wejściem i wyjściem.
+- **Atmosfera** — gra w pętli przez całą scenę, cicho pod głosem, z krótkim wejściem i wyjściem. Nowa atmosfera startuje z głośnością 15%, nowa muzyka z 15% (po odsłuchu pilota atmosfera i muzyka były za głośne).
 - **Muzyka** — przypisujesz ją w Storyboardzie do **zakresu scen** (od sceny – do sceny) na ścieżce pod osią animatiku; gra ciągle przez te sceny, z wejściem i wyjściem na krańcach zakresu, i automatycznie cichnie pod dialogiem. Usunięcie sceny będącej początkiem lub końcem zakresu usuwa ten zakres.
 
 Pola tekstowe dźwięku (atmosfera, muzyka, efekty) zostają jako notatki dla AI i dźwiękowca. AI może dodawać do scen efekty i atmosfery z banku; muzykę ustawia reżyser.
