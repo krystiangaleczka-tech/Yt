@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Clipboard,
   ExternalLink,
+  Film,
   Mic,
   MicOff,
   Pause,
@@ -103,6 +104,9 @@ export default function Storyboard() {
     [manual, setManual] = useState<{ beat: string; prompt: string; response: string; error: string } | null>(null),
     [busyBeat, setBusyBeat] = useState("");
   const voices = useDraftVoices(p.channel_id, p.language);
+  const exportJob = s.jobs
+    .filter((j) => j.project_id === p.id && j.kind === "animatic")
+    .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0];
   useEffect(() => {
     if (p.channel_id)
       s.run(async () => setBank(await api<CastBank>(`/channels/${p.channel_id}/cast`)));
@@ -331,6 +335,32 @@ export default function Storyboard() {
             </span>
           )}
           <span className="animatic-spacer" />
+          <Button
+            icon={Film}
+            busy={exportJob?.status === "RUNNING" || exportJob?.status === "QUEUED"}
+            disabled={!ordered.length}
+            onClick={() =>
+              s.run(async () => {
+                try {
+                  await api(`/projects/${p.id}/animatic/render`, {
+                  expected_revision: p.revision,
+                  voices: voices.cast,
+                  speed: rate,
+                    voice: speak && voices.active === "kokoro",
+                  });
+                } catch (error) {
+                  if ((error as { status?: number }).status !== 409) throw error;
+                  await s.reload();
+                  throw new Error("Film zmienił się na serwerze — wczytałem najnowszą wersję. Sprawdź animatik i kliknij Eksport MP4 ponownie.");
+                }
+                s.notify("Renderuję animatik do MP4 — postęp w Zadaniach");
+              })
+            }
+          >
+            {exportJob?.status === "RUNNING"
+              ? `MP4 ${Math.round((exportJob.progress || 0) * 100)}%`
+              : "Eksport MP4"}
+          </Button>
           <IconButton
             icon={speak ? Mic : MicOff}
             label={speak ? "Głos roboczy włączony" : "Głos roboczy wyłączony"}
@@ -362,6 +392,23 @@ export default function Storyboard() {
             </button>
           ))}
         </div>
+        {exportJob?.status === "SUCCEEDED" && exportJob.result && (
+          <div className="animatic-export">
+            <span className="small">
+              Animatik MP4 gotowy (rewizja {String(exportJob.result.revision)}
+              {exportJob.result.revision !== p.revision ? " — od tamtej pory były zmiany" : ""})
+            </span>
+            <a className="button subtle" href={String(exportJob.result.url)} download={String(exportJob.result.filename)}>
+              Pobierz MP4
+            </a>
+            <a className="button subtle" href={String(exportJob.result.url)} target="_blank" rel="noreferrer">
+              Otwórz
+            </a>
+          </div>
+        )}
+        {exportJob?.status === "FAILED" && (
+          <p className="manual-error small">Eksport animatiku nie powiódł się: {exportJob.message}</p>
+        )}
         {speak && (
           <details className="animatic-voices" open={!voices.kokoro.available && voices.engine === "kokoro"}>
             <summary>

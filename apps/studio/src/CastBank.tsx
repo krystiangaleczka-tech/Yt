@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Archive,
+  Backpack,
   ImagePlus,
   MapPinned,
   Plus,
@@ -12,11 +13,13 @@ import {
 import { useStudio } from "./context";
 import { api, upload } from "./api";
 import { Button, Empty, Field, IconButton, SectionHead } from "./components";
-import { castImage, viewLabels } from "./animationTypes";
+import { castImage, itemCategoryLabels, viewLabels } from "./animationTypes";
 import type {
   CastBank as Bank,
   CastImage,
   Character,
+  Item,
+  ItemCategory,
   Location,
   LocationState,
   Pose,
@@ -48,6 +51,19 @@ const blankLocation = (channel_id: string): Location => ({
   name: "Nowa lokacja",
   description: "",
   states: [],
+  archived: false,
+  updated_at: "",
+});
+const blankItem = (channel_id: string): Item => ({
+  id: "",
+  revision: 0,
+  channel_id,
+  category: "prop",
+  name: "Nowy rekwizyt",
+  description: "",
+  character_ids: [],
+  variants: [],
+  tags: [],
   archived: false,
   updated_at: "",
 });
@@ -87,11 +103,11 @@ export function useCastChannel() {
 export default function CastBankView({
   section,
 }: {
-  section: "cast" | "locations";
+  section: "cast" | "locations" | "props";
 }) {
   const s = useStudio();
   const { channels, channelId, choose } = useCastChannel();
-  const [bank, setBank] = useState<Bank>({ characters: [], locations: [] }),
+  const [bank, setBank] = useState<Bank>({ characters: [], locations: [], items: [] }),
     [selected, setSelected] = useState(""),
     [archived, setArchived] = useState(false);
   async function reload() {
@@ -102,8 +118,18 @@ export default function CastBankView({
     s.run(reload);
   }, [channelId]);
   const characters = section === "cast";
-  const rows = (characters ? bank.characters : bank.locations).filter(
-    (r) => archived || !r.archived,
+  const props = section === "props";
+  const [category, setCategory] = useState<ItemCategory | "">("");
+  const rows = (
+    (characters ? bank.characters : props ? bank.items || [] : bank.locations) as (
+      | Character
+      | Location
+      | Item
+    )[]
+  ).filter(
+    (r) =>
+      (archived || !r.archived) &&
+      (!props || !category || (r as Item).category === category),
   );
   const current = rows.find((r) => r.id === selected) || null;
   const channelName = channels.find((c) => c.id === channelId)?.name || "";
@@ -111,13 +137,29 @@ export default function CastBankView({
     <div className="page-content cast-page">
       <SectionHead
         eyebrow={`Pracownia · bank kanału${channelName ? " " + channelName : ""}`}
-        title={characters ? "Postacie" : "Lokacje"}
+        title={characters ? "Postacie" : props ? "Rekwizyty i kostiumy" : "Lokacje"}
         description={
           characters
             ? "Stała obsada kanału: wygląd, pozy i głos. Ta sama postać w każdym odcinku — inne kanały jej nie widzą."
-            : "Miejsca akcji i ich stany (np. Dzień 1, zabarykadowane, noc). Tła wracają w kolejnych scenach i odcinkach."
+            : props
+              ? "Przedmioty, ubiory i nakładki (pęknięcia, plamy, światło). Rekwizyt umieszczasz w scenie i przenosisz do kolejnych — ciągłość zostaje."
+              : "Miejsca akcji i ich stany (np. Dzień 1, zabarykadowane, noc). Tła wracają w kolejnych scenach i odcinkach."
         }
       >
+        {props && (
+          <select
+            aria-label="Rodzaj"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as ItemCategory | "")}
+          >
+            <option value="">Wszystkie rodzaje</option>
+            {Object.entries(itemCategoryLabels).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        )}
         <select
           aria-label="Kanał banku"
           value={channelId}
@@ -135,7 +177,7 @@ export default function CastBankView({
           disabled={!channelId}
           onClick={() => setSelected("new")}
         >
-          {characters ? "Nowa postać" : "Nowa lokacja"}
+          {characters ? "Nowa postać" : props ? "Nowy element" : "Nowa lokacja"}
         </Button>
       </SectionHead>
       {!channelId ? (
@@ -151,7 +193,9 @@ export default function CastBankView({
               <p className="muted small">
                 {characters
                   ? "Brak postaci. Dodaj pierwszą i wgraj jej pozy (PNG z przezroczystym tłem)."
-                  : "Brak lokacji. Dodaj pierwszą i wgraj tło dla każdego stanu."}
+                  : props
+                    ? "Brak elementów. Dodaj rekwizyt, kostium albo nakładkę i wgraj warianty (PNG z przezroczystością)."
+                    : "Brak lokacji. Dodaj pierwszą i wgraj tło dla każdego stanu."}
               </p>
             )}
             {rows.map((r) => {
@@ -159,16 +203,20 @@ export default function CastBankView({
                 ? (r as Character).poses.find(
                     (p) => p.id === (r as Character).default_pose_id,
                   )?.image || (r as Character).poses[0]?.image
-                : (r as Location).states.find((st) => st.image)?.image;
+                : props
+                  ? (r as Item).variants[0]?.image
+                  : (r as Location).states.find((st) => st.image)?.image;
               return (
                 <button
                   key={r.id}
                   className={`cast-card ${selected === r.id ? "active" : ""} ${r.archived ? "archived" : ""}`}
                   onClick={() => setSelected(r.id)}
                 >
-                  <span className={`cast-thumb ${characters ? "checker" : ""}`}>
+                  <span className={`cast-thumb ${characters || props ? "checker" : ""}`}>
                     {image ? (
                       <img src={castImage(channelId, image.file)} alt="" />
+                    ) : props ? (
+                      <Backpack size={26} />
                     ) : characters ? (
                       <Users size={26} />
                     ) : (
@@ -179,7 +227,9 @@ export default function CastBankView({
                   <span className="muted small">
                     {characters
                       ? `${(r as Character).role || "bez roli"} · ${(r as Character).poses.length} póz`
-                      : `${(r as Location).states.length} stanów`}
+                      : props
+                        ? `${itemCategoryLabels[(r as Item).category]} · ${(r as Item).variants.length} wariantów`
+                        : `${(r as Location).states.length} stanów`}
                   </span>
                 </button>
               );
@@ -195,10 +245,22 @@ export default function CastBankView({
           </div>
           <div className="cast-editor">
             {selected === "new" || current ? (
-              characters ? (
+              props ? (
+                <ItemEditor
+                  key={selected + (current?.revision || 0)}
+                  channelId={channelId}
+                  characters={bank.characters}
+                  value={(current as Item) || blankItem(channelId)}
+                  saved={async (item) => {
+                    await reload();
+                    setSelected(item.id);
+                  }}
+                />
+              ) : characters ? (
                 <CharacterEditor
                   key={selected + (current?.revision || 0)}
                   channelId={channelId}
+                  costumes={(bank.items || []).filter((i) => i.category === "costume" && !i.archived)}
                   value={(current as Character) || blankCharacter(channelId)}
                   saved={async (c) => {
                     await reload();
@@ -218,8 +280,8 @@ export default function CastBankView({
               )
             ) : (
               <Empty
-                icon={characters ? Users : MapPinned}
-                title={characters ? "Wybierz postać" : "Wybierz lokację"}
+                icon={props ? Backpack : characters ? Users : MapPinned}
+                title={props ? "Wybierz element" : characters ? "Wybierz postać" : "Wybierz lokację"}
                 children="Kliknij kartę po lewej albo dodaj nowy wpis."
               />
             )}
@@ -320,10 +382,12 @@ function SaveBar({
 
 function CharacterEditor({
   channelId,
+  costumes,
   value,
   saved,
 }: {
   channelId: string;
+  costumes: Item[];
   value: Character;
   saved: (c: Character) => Promise<void>;
 }) {
@@ -486,6 +550,22 @@ function CharacterEditor({
                   </option>
                 ))}
               </select>
+              {costumes.some((x) => !x.character_ids.length || x.character_ids.includes(c.id)) && (
+                <select
+                  aria-label="Kostium"
+                  value={pose.costume_id || ""}
+                  onChange={(e) => setPose(pose.id, { costume_id: e.target.value })}
+                >
+                  <option value="">Strój bazowy</option>
+                  {costumes
+                    .filter((x) => !x.character_ids.length || x.character_ids.includes(c.id))
+                    .map((x) => (
+                      <option key={x.id} value={x.id}>
+                        {x.name}
+                      </option>
+                    ))}
+                </select>
+              )}
               <IconButton
                 icon={Star}
                 label={c.default_pose_id === pose.id ? "Domyślna poza" : "Ustaw jako domyślną"}
@@ -661,6 +741,150 @@ function LocationEditor({
         archived={l.archived}
         save={() => persist(l)}
         archive={() => persist({ ...l, archived: !l.archived })}
+      />
+    </div>
+  );
+}
+
+function ItemEditor({
+  channelId,
+  characters,
+  value,
+  saved,
+}: {
+  channelId: string;
+  characters: Character[];
+  value: Item;
+  saved: (i: Item) => Promise<void>;
+}) {
+  const s = useStudio();
+  const [item, setItem] = useState(value);
+  const { busy, send } = useImages(channelId);
+  const dirty = useMemo(
+    () => JSON.stringify(item) !== JSON.stringify(value) || !value.id,
+    [item, value],
+  );
+  const set = (patch: Partial<Item>) => setItem((v) => ({ ...v, ...patch }));
+  function persist(next: Item) {
+    s.run(async () => {
+      const result = await api<Item>(`/channels/${channelId}/items`, withoutBlankId(next));
+      s.notify(`Zapisano: ${result.name}`);
+      await saved(result);
+    });
+  }
+  async function addVariants(files: FileList) {
+    const added = (await send(files)).map(([file, image]) => ({
+      id: "var_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16),
+      name: label(file),
+      image,
+    }));
+    setItem((v) => ({ ...v, variants: [...v.variants, ...added] }));
+  }
+  return (
+    <div className="cast-form">
+      <div className="two-fields">
+        <Field label="Nazwa">
+          <input value={item.name} onChange={(e) => set({ name: e.target.value })} />
+        </Field>
+        <Field label="Rodzaj">
+          <select
+            value={item.category}
+            onChange={(e) =>
+              set({
+                category: e.target.value as ItemCategory,
+                character_ids: e.target.value === "costume" ? item.character_ids : [],
+              })
+            }
+          >
+            {Object.entries(itemCategoryLabels).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      <Field
+        label="Opis"
+        hint={
+          item.category === "costume"
+            ? "Kostium grupuje pozy postaci w danym stroju (oznaczasz to przy pozach postaci) i pilnuje, by strój nie zmieniał się przypadkiem."
+            : "Kiedy i jak używać, np. pęknięcie zostaje na szybie do końca odcinka."
+        }
+      >
+        <textarea
+          rows={2}
+          value={item.description}
+          onChange={(e) => set({ description: e.target.value })}
+        />
+      </Field>
+      {item.category === "costume" && (
+        <fieldset className="cast-fieldset">
+          <legend>Dla postaci</legend>
+          <div className="costume-cast">
+            {characters.map((c) => (
+              <label key={c.id} className="checkbox small">
+                <input
+                  type="checkbox"
+                  checked={item.character_ids.includes(c.id)}
+                  onChange={(e) =>
+                    set({
+                      character_ids: e.target.checked
+                        ? [...item.character_ids, c.id]
+                        : item.character_ids.filter((x) => x !== c.id),
+                    })
+                  }
+                />
+                {c.name}
+              </label>
+            ))}
+            {!characters.length && <span className="muted small">Brak postaci w banku.</span>}
+          </div>
+        </fieldset>
+      )}
+      <div className="cast-subhead">
+        <strong>{item.category === "costume" ? "Referencje stroju" : "Warianty"}</strong>
+        <span className="muted small">
+          {item.category === "costume"
+            ? "Obrazy wzorcowe stroju — do generowania póz w tym ubraniu."
+            : "PNG z przezroczystym tłem, np. butelka pełna / pusta, pęknięcie małe / duże."}
+        </span>
+      </div>
+      <div className="pose-grid">
+        {item.variants.map((v) => (
+          <div key={v.id} className="pose-card">
+            <div className="pose-image checker">
+              <img src={castImage(channelId, v.image.file)} alt={v.name} />
+            </div>
+            <div className="pose-row">
+              <input
+                aria-label="Nazwa wariantu"
+                value={v.name}
+                onChange={(e) =>
+                  set({
+                    variants: item.variants.map((x) =>
+                      x.id === v.id ? { ...x, name: e.target.value } : x,
+                    ),
+                  })
+                }
+              />
+              <IconButton
+                icon={Trash2}
+                label="Usuń wariant"
+                onClick={() => set({ variants: item.variants.filter((x) => x.id !== v.id) })}
+              />
+            </div>
+          </div>
+        ))}
+        <DropZone busy={busy} multiple onFiles={(f) => s.run(() => addVariants(f))}>
+          Przeciągnij obrazy lub kliknij
+        </DropZone>
+      </div>
+      <SaveBar
+        dirty={dirty}
+        archived={item.archived}
+        save={() => persist(item)}
+        archive={() => persist({ ...item, archived: !item.archived })}
       />
     </div>
   );

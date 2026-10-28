@@ -1,6 +1,8 @@
 import io
 import json
+import subprocess
 import sys
+import time
 from pathlib import Path
 import tempfile
 import unittest
@@ -201,6 +203,47 @@ class AnimationTests(unittest.TestCase):
         bad = self.client.post(url, json={'voices': {'narrator': 'zz_unknown'}}, headers=H)
         self.assertEqual(bad.status_code, 422)
         self.assertTrue(self.ok(self.client.get('/api/draft-voices'))['available'])
+
+
+    def test_items_bank_costumes_and_scene_props(self):
+        cid = self.channel['id']
+        mara, kitchen = self.character(cid), self.location(cid)
+        crack = self.ok(self.client.post(f'/api/channels/{cid}/items', json={'name': 'Pęknięta szyba', 'category': 'overlay',
+                                                                            'variants': [{'name': 'małe', 'image': self.image(cid)}]}, headers=H))
+        jacket = self.ok(self.client.post(f'/api/channels/{cid}/items', json={'name': 'Kurtka', 'category': 'costume', 'character_ids': [mara['id']]}, headers=H))
+        self.assertEqual(len(self.ok(self.client.get(f'/api/channels/{cid}/cast'))['items']), 2)
+        wrong = self.client.post(f'/api/channels/{cid}/items', json={'name': 'Kurtka', 'category': 'costume', 'character_ids': ['chr_' + '0' * 16]}, headers=H)
+        self.assertEqual(wrong.status_code, 422)
+        pose = mara['poses'][0] | {'costume_id': jacket['id']}
+        mara = self.ok(self.client.post(f'/api/channels/{cid}/characters', json=mara | {'poses': [pose]}, headers=H))
+        film = self.film()
+        stranger = self.client.post(f"/api/channels/{self.other['id']}/items", json={'name': 'Obcy', 'variants': []}, headers=H).json()
+        bad = self.client.post(f"/api/projects/{film['id']}/stage-scenes", json={'expected_revision': film['revision'], 'operations': [
+            {'type': 'add', 'scene': {'props': [{'item_id': stranger['id']}]}}]}, headers=H)
+        self.assertEqual(bad.status_code, 422)
+        film = self.scenes(film, {'type': 'add', 'scene': {'location_id': kitchen['id'], 'characters': [{'character_id': mara['id'], 'costume_id': jacket['id']}],
+                                                            'props': [{'item_id': crack['id'], 'motion': 'appear', 'at': .3, 'layer': 'behind'}], 'seconds': 1.2,
+                                                            'motion': {'camera': 'push_in', 'strength': .6}, 'dialogue': [{'speaker': mara['id'], 'text': 'Water?'}]}})
+        self.assertEqual(film['stage_scenes'][0]['props'][0]['item_id'], crack['id'])
+        costume_on_prop = self.client.post(f"/api/projects/{film['id']}/stage-scenes", json={'expected_revision': film['revision'], 'operations': [
+            {'type': 'update', 'scene_id': film['stage_scenes'][0]['id'], 'changes': {'props': [{'item_id': jacket['id']}]}}]}, headers=H)
+        self.assertEqual(costume_on_prop.status_code, 422)
+        self.app.state.draft_voices.model_dir = Path(self.temp.name) / 'missing'
+        job = self.ok(self.client.post(f"/api/projects/{film['id']}/animatic/render", json={'expected_revision': film['revision']}, headers=H))
+        for _ in range(200):
+            state = self.ok(self.client.get('/api/jobs/' + job['id']))
+            if state['status'] in ('SUCCEEDED', 'FAILED'):
+                break
+            time.sleep(.05)
+        self.assertEqual(state['status'], 'SUCCEEDED', state['message'])
+        self.assertFalse(state['result']['voiced'])
+        video = self.client.get(state['result']['url'])
+        self.assertEqual(video.status_code, 200)
+        path = Path(self.temp.name) / 'a.mp4'
+        path.write_bytes(video.content)
+        probe = json.loads(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_type,width:format=duration', '-of', 'json', str(path)], capture_output=True, text=True).stdout)
+        self.assertEqual({s['codec_type'] for s in probe['streams']}, {'video', 'audio'})
+        self.assertAlmostEqual(float(probe['format']['duration']), 1.5, delta=.3)
 
 
 if __name__ == '__main__':

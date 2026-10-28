@@ -6,7 +6,7 @@ Stan wdrożenia: 28.10.2026. Plan całości: [PLAN_ANIMACJA_SURVIVAL.md](PLAN_AN
 
 Przełącznik w lewym górnym rogu wybiera tryb: **Dokument**, **Animacja 2D** albo **B-roll**. Tryb zmienia nawigację, listę projektów i domyślne ustawienie nowego filmu. Film należy do jednego trybu; przełączenie na inny tryb zamyka otwarty film innego trybu, a kolejny start aplikacji otwiera film zgodny z wybranym trybem.
 
-- **Animacja 2D:** Pomysł → Research → Scenariusz → **Storyboard i animatik** → **Sceny** → Montaż → Eksport, a w Pracowni **Postacie** i **Lokacje**.
+- **Animacja 2D:** Pomysł → Research → Scenariusz → **Storyboard i animatik** → **Sceny** → Montaż → Eksport, a w Pracowni **Postacie**, **Lokacje** oraz **Rekwizyty i kostiumy**.
 - **Dokument** i **B-roll** zachowują dotychczasowy przebieg. B-roll nie ma jeszcze osobnych narzędzi.
 
 Kanał ma własny tryb produkcji (Pracownia → Kanały i kategorie → profil kanału). Nowy film dziedziczy go, chyba że wybierzesz inny w oknie **Nowy film**. Film animowany wymaga kanału.
@@ -26,6 +26,16 @@ Każda postać ma imię, rolę, znak rozpoznawczy, kolor akcentu, wygląd, chara
 Lokacja ma opis układu (gdzie drzwi, okno, zlew) i **stany**: to samo miejsce w różnych chwilach historii, np. „Dzień 1” i „Dzień 30 — barykada”, z własnym tłem i porą dnia.
 
 Zapis wpisu wymaga zgodnej rewizji. Gdy ktoś (albo inne okno) zmienił wpis wcześniej, aplikacja odrzuci zapis zamiast nadpisać zmiany. Archiwizacja ukrywa wpis z wyboru w nowych scenach.
+
+### Rekwizyty, kostiumy i nakładki
+
+Trzeci bank kanału ma trzy rodzaje elementów:
+
+- **Rekwizyt** — przedmiot z wariantami (np. butelka pełna / pusta).
+- **Nakładka / efekt** — pęknięcie szyby, plama, smuga światła; obraz PNG kładziony na kadr.
+- **Kostium / ubiór** — strój przypisany do jednej lub kilku postaci. Przy pozach postaci zaznaczasz, w jakim stroju jest narysowana; w scenie wybór kostiumu zawęża listę póz.
+
+W inspektorze sceny rekwizyt dodajesz z banku, wybierasz wariant, warstwę (za postaciami / przed nimi), wielkość i sposób pojawienia się (od początku, nagle, płynnie — w wybranym momencie sceny). Na kadrze przeciągasz go jak postać. **Przenieś rekwizyty z poprzedniej sceny** kopiuje to, co ma zostać w kadrze (np. pęknięcie). Tablica scen ostrzega, gdy w poprzedniej scenie w tej samej lokacji był rekwizyt, którego teraz brakuje, albo gdy postać zmienia strój. Scena może używać wyłącznie elementów banku kanału filmu.
 
 ## Storyboard i animatik
 
@@ -48,7 +58,15 @@ Kokoro wymaga środowiska z `kokoro-onnx` (domyślnie `pilot/.venv`, inaczej `DO
 - **Postać:** oddycha (domyślnie), bez ruchu, wchodzi z lewej/prawej, wychodzi w lewo/prawo.
 - **Pierwszy plan:** stan lokacji może mieć osobną warstwę PNG z przezroczystością (framuga, liście, mebel), rysowaną przed postaciami. Przy panoramie i najeździe przesuwa się mocniej niż tło, co daje głębię 2.5D.
 
-Ruch widać w animatiku i po kliknięciu **Podgląd ruchu** na tablicy scen. AI ustawia te pola także w regeneracji i rozpisywaniu beatów.
+Ruch widać w animatiku i po kliknięciu **Podgląd ruchu** na tablicy scen. AI ustawia te pola, rekwizyty i kostiumy także w regeneracji i rozpisywaniu beatów.
+
+### Eksport animatiku do MP4
+
+**Eksport MP4** w Storyboardzie renderuje cały animatik jako zadanie w kolejce: 1280×720, 25 kl./s, H.264/AAC, z ruchem kamery i postaci, rekwizytami, pierwszym planem, napisami i głosem Kokoro (gdy jest włączony i dostępny; inaczej bez dźwięku, z napisami w czasie). Scena trwa swoją długość albo dłużej, jeśli kwestie tego wymagają. Plik jest powiązany z rewizją filmu; gdy film zmienił się w międzyczasie, przycisk prosi o ponowne kliknięcie po wczytaniu najnowszej wersji. Na Macu 8 GB: 34 s animatiku (6 scen) ok. 15 s renderu. Renderer składa klatki w Pythonie (`studio_core/animatic.py`) i koduje FFmpeg; presety ruchu odpowiadają podglądowi w przeglądarce.
+
+### Odświeżanie
+
+Otwarty film co kilka sekund sprawdza, czy na serwerze nie ma nowszej rewizji (np. zmian wprowadzonych przez Claude przez API albo w innym oknie) i wczytuje ją z komunikatem.
 
 ## Tablica scen
 
@@ -77,8 +95,8 @@ Wszystkie operacje na scenach podlegają kontroli rewizji i trwałemu Cofnij/Pon
 
 ## Czego jeszcze nie ma
 
-Animatik działa w przeglądarce, a nie jako render: ruch to proste presety (bez rigu kości i mimiki), brak finalnych głosów postaci, brak dźwięków z banku i brak przenoszenia animatiku na oś Montażu ani eksportu animatiku do MP4. Te elementy są kolejnymi etapami planu.
+Animatik działa w przeglądarce, a nie jako render: ruch to proste presety (bez rigu kości i mimiki), brak finalnych głosów postaci, brak dźwięków i muzyki z banku (pola dźwięku są opisem), brak przenoszenia animatiku na oś Montażu, brak mimiki i trzymania rekwizytu w dłoni. Te elementy są kolejnymi etapami planu.
 
 ## Weryfikacja
 
-`studio_tests/test_animation.py`: dziedziczenie trybu z kanału, wymóg kanału, przezroczystość i izolacja obrazów, konflikt rewizji, izolacja banku między kanałami, przebieg ocen i powrót do „Do oceny” po zmianie, kolejność, cofanie, blokada zmiany kanału oraz walidacja propozycji AI; głosy robocze: cache po kwestii, różne domyślne głosy, odrzucenie nieznanego głosu; beaty: przypisanie scen do istniejącego beatu, brak zmiany oceny przy przeniesieniu i walidacja scen proponowanych przez Story Director.
+`studio_tests/test_animation.py`: dziedziczenie trybu z kanału, wymóg kanału, przezroczystość i izolacja obrazów, konflikt rewizji, izolacja banku między kanałami, przebieg ocen i powrót do „Do oceny” po zmianie, kolejność, cofanie, blokada zmiany kanału oraz walidacja propozycji AI; rekwizyty i kostiumy: izolacja kanału, kostium tylko dla przypisanych postaci, render MP4 sprawdzony ffprobe; głosy robocze: cache po kwestii, różne domyślne głosy, odrzucenie nieznanego głosu; beaty: przypisanie scen do istniejącego beatu, brak zmiany oceny przy przeniesieniu i walidacja scen proponowanych przez Story Director.

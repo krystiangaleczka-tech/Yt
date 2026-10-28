@@ -16,6 +16,7 @@ export type Pose = {
   view: "front" | "three_quarter" | "side" | "back";
   image: CastImage;
   tags: string[];
+  costume_id?: string;
 };
 export const viewLabels: Record<Pose["view"], string> = {
   front: "Przód",
@@ -58,7 +59,47 @@ export type Location = {
   archived: boolean;
   updated_at: string;
 };
-export type CastBank = { characters: Character[]; locations: Location[] };
+export type ItemCategory = "prop" | "costume" | "overlay";
+export const itemCategoryLabels: Record<ItemCategory, string> = {
+  prop: "Rekwizyt",
+  costume: "Kostium / ubiór",
+  overlay: "Nakładka / efekt",
+};
+export type ItemVariant = { id: string; name: string; image: CastImage };
+export type Item = {
+  id: string;
+  revision: number;
+  channel_id: string;
+  category: ItemCategory;
+  name: string;
+  description: string;
+  character_ids: string[];
+  variants: ItemVariant[];
+  tags: string[];
+  archived: boolean;
+  updated_at: string;
+};
+export type StageProp = {
+  item_id: string;
+  variant_id: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  layer: "behind" | "front";
+  motion: "none" | "appear" | "fade_in";
+  at: number;
+};
+export const propMotionLabels: Record<StageProp["motion"], string> = {
+  none: "Jest od początku",
+  appear: "Pojawia się nagle",
+  fade_in: "Pojawia się płynnie",
+};
+export type CastBank = {
+  characters: Character[];
+  locations: Location[];
+  items?: Item[];
+};
 export type StageCharacter = {
   character_id: string;
   pose_id: string;
@@ -67,6 +108,7 @@ export type StageCharacter = {
   scale: number;
   flip: boolean;
   motion?: ActorMotion;
+  costume_id?: string;
 };
 export type ActorMotion =
   | "idle"
@@ -114,6 +156,7 @@ export type StageScene = {
   location_id: string;
   location_state_id: string;
   characters: StageCharacter[];
+  props?: StageProp[];
   action: string;
   camera: string;
   dialogue: DialogueLine[];

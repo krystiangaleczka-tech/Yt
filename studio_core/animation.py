@@ -37,6 +37,8 @@ class Pose(Model):
     view: Literal["front", "three_quarter", "side", "back"] = "front"
     image: CastImage
     tags: list[str] = Field(default_factory=list, max_length=20)
+    # Outfit shown in this drawing; empty = the character's base look.
+    costume_id: str = Field(default="", pattern=r"^(item_[a-f0-9]{16})?$")
 
 
 class VoiceSettings(Model):
@@ -100,6 +102,48 @@ class Location(Model):
         return self
 
 
+class ItemVariant(Model):
+    id: str = Field(default_factory=lambda: uid("var_"), pattern=r"^var_[a-f0-9]{16}$")
+    name: str = Field(min_length=1, max_length=80)
+    image: CastImage
+
+
+class Item(Model):
+    """Reusable prop, costume or overlay (cracks, stains, light) of one channel."""
+    id: str = Field(default_factory=lambda: uid("item_"), pattern=r"^item_[a-f0-9]{16}$")
+    revision: int = 0
+    channel_id: str = Field(pattern=CHANNEL_ID.pattern)
+    category: Literal["prop", "costume", "overlay"] = "prop"
+    name: str = Field(min_length=1, max_length=80)
+    description: str = Field(default="", max_length=2000)
+    character_ids: list[str] = Field(default_factory=list, max_length=20)
+    variants: list[ItemVariant] = Field(default_factory=list, max_length=50)
+    tags: list[str] = Field(default_factory=list, max_length=20)
+    archived: bool = False
+    updated_at: str = ""
+
+    @model_validator(mode="after")
+    def coherent(self):
+        ids = [v.id for v in self.variants]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Powtórzone warianty")
+        if self.character_ids and self.category != "costume":
+            raise ValueError("Postacie przypisuje się tylko do kostiumów")
+        return self
+
+
+class StageProp(Model):
+    item_id: str = Field(pattern=r"^item_[a-f0-9]{16}$")
+    variant_id: str = ""
+    x: float = Field(default=.5, ge=0, le=1)
+    y: float = Field(default=.5, ge=0, le=1)
+    scale: float = Field(default=.2, ge=.02, le=2)
+    rotation: float = Field(default=0, ge=-180, le=180)
+    layer: Literal["behind", "front"] = "behind"
+    motion: Literal["none", "appear", "fade_in"] = "none"
+    at: float = Field(default=.5, ge=0, le=1)  # moment of appear / fade as a fraction of the scene
+
+
 class StageCharacter(Model):
     character_id: str = Field(pattern=r"^chr_[a-f0-9]{16}$")
     pose_id: str = ""
@@ -108,6 +152,7 @@ class StageCharacter(Model):
     scale: float = Field(default=.6, ge=.05, le=2)
     flip: bool = False
     motion: Literal["idle", "still", "enter_left", "enter_right", "exit_left", "exit_right"] = "idle"
+    costume_id: str = Field(default="", pattern=r"^(item_[a-f0-9]{16})?$")
 
 
 class DialogueLine(Model):
@@ -147,6 +192,7 @@ class StageScene(Model):
     location_id: str = ""
     location_state_id: str = ""
     characters: list[StageCharacter] = Field(default_factory=list, max_length=8)
+    props: list[StageProp] = Field(default_factory=list, max_length=20)
     action: str = Field(default="", max_length=3000)
     camera: str = Field(default="", max_length=300)
     dialogue: list[DialogueLine] = Field(default_factory=list, max_length=40)
@@ -164,8 +210,9 @@ class StageScene(Model):
         return self
 
 
-CONTENT_FIELDS = ("title", "story_time", "location_id", "location_state_id", "characters", "action", "camera", "motion", "dialogue", "sound", "seconds")
+CONTENT_FIELDS = ("title", "story_time", "location_id", "location_state_id", "characters", "props", "action", "camera", "motion", "dialogue", "sound", "seconds")
 SCHEMA_HINT = """characters: [{"character_id","pose_id","x" 0-1,"y" 0-1 baseline,"scale","flip","motion": "idle"|"still"|"enter_left"|"enter_right"|"exit_left"|"exit_right"}];
+props: [{"item_id","variant_id","x","y","scale","rotation","layer": "behind"|"front","motion": "none"|"appear"|"fade_in","at" 0-1}] — props and overlays persist between scenes until the story removes them;
 motion: {"camera": "static"|"push_in"|"pull_out"|"pan_left"|"pan_right"|"shake", "strength" 0-1}; dialogue: [{"speaker","text","direction"}]; sound: {"ambience","music","sfx":[]}."""
 # Organisation, not content: moving a scene between beats does not reopen its review.
 SCENE_FIELDS = CONTENT_FIELDS + ("beat_id",)
@@ -215,14 +262,18 @@ class Cast:
     def locations(self, channel_id, archived=False):
         return self._rows(channel_id, "locations", Location, archived)
 
+    def items(self, channel_id, archived=False):
+        return self._rows(channel_id, "items", Item, archived)
+
     def bank(self, channel_id):
-        return {"characters": self.characters(channel_id, True), "locations": self.locations(channel_id, True)}
+        return {"characters": self.characters(channel_id, True), "locations": self.locations(channel_id, True), "items": self.items(channel_id, True)}
 
     def _save(self, channel_id, group, model, body):
         from .store import atomic_json, now, Conflict
         folder = self.channel(channel_id)
         item = model.model_validate(body | {"channel_id": channel_id})
-        images = [p.image for p in getattr(item, "poses", [])] + [i for s in getattr(item, "states", []) for i in (s.image, s.foreground) if i]
+        images = ([p.image for p in getattr(item, "poses", [])] + [i for s in getattr(item, "states", []) for i in (s.image, s.foreground) if i]
+                  + [v.image for v in getattr(item, "variants", [])])
         for image in images:
             if not (folder / "media" / image.file).is_file():
                 raise ValueError("Obraz nie został wgrany do banku tego kanału")
@@ -239,10 +290,20 @@ class Cast:
         return item
 
     def save_character(self, channel_id, body):
+        costumes = {i.id for i in self.items(channel_id, True) if i.category == "costume"}
+        if any(p.get("costume_id") and p["costume_id"] not in costumes for p in body.get("poses", [])):
+            raise ValueError("Poza wskazuje kostium spoza banku kanału")
         return self._save(channel_id, "characters", Character, body)
 
     def save_location(self, channel_id, body):
         return self._save(channel_id, "locations", Location, body)
+
+    def save_item(self, channel_id, body):
+        item = Item.model_validate(body | {"channel_id": channel_id})
+        known = {c.id for c in self.characters(channel_id, True)}
+        if not set(item.character_ids) <= known:
+            raise ValueError("Kostium wskazuje postać spoza banku kanału")
+        return self._save(channel_id, "items", Item, body)
 
     def add_image(self, channel_id, content: bytes):
         data, image, _ = read_image(content)
@@ -264,8 +325,9 @@ class Cast:
         return path, IMAGE_TYPES[{"png": "PNG", "webp": "WEBP", "jpg": "JPEG"}[file.rsplit(".", 1)[1]]][1]
 
 
-def validate_scene(scene: StageScene, characters: dict[str, Character], locations: dict[str, Location]):
+def validate_scene(scene: StageScene, characters: dict[str, Character], locations: dict[str, Location], items: dict[str, Item] | None = None):
     """Scenes may reference only the active (non-archived) bank of the film's channel."""
+    items = items or {}
     if scene.location_id:
         location = locations.get(scene.location_id)
         if not location:
@@ -280,6 +342,16 @@ def validate_scene(scene: StageScene, characters: dict[str, Character], location
             raise ValueError(f"Scena {scene.number}: postać nie należy do banku kanału tego filmu")
         if placed.pose_id and placed.pose_id not in {p.id for p in character.poses}:
             raise ValueError(f"Scena {scene.number}: poza nie należy do postaci {character.name}")
+        if placed.costume_id:
+            costume = items.get(placed.costume_id)
+            if not costume or costume.category != "costume" or (costume.character_ids and character.id not in costume.character_ids):
+                raise ValueError(f"Scena {scene.number}: kostium nie pasuje do postaci {character.name}")
+    for placed in scene.props:
+        item = items.get(placed.item_id)
+        if not item or item.category == "costume":
+            raise ValueError(f"Scena {scene.number}: rekwizyt nie należy do banku kanału tego filmu")
+        if placed.variant_id and placed.variant_id not in {v.id for v in item.variants}:
+            raise ValueError(f"Scena {scene.number}: wariant nie należy do rekwizytu {item.name}")
     speakers = {"narrator"} | set(characters)
     for line in scene.dialogue:
         if line.speaker not in speakers:
@@ -290,10 +362,11 @@ def channel_bank(cast: Cast, project, *, archived=False):
     if not project.channel_id:
         raise ValueError("Przypisz film do kanału, aby korzystać z banku postaci i lokacji")
     return ({c.id: c for c in cast.characters(project.channel_id, archived)},
-            {loc.id: loc for loc in cast.locations(project.channel_id, archived)})
+            {loc.id: loc for loc in cast.locations(project.channel_id, archived)},
+            {i.id: i for i in cast.items(project.channel_id, archived)})
 
 
-def apply_scene_operation(project, operation: dict, characters, locations):
+def apply_scene_operation(project, operation: dict, characters, locations, items=None):
     """Single entry point for manual edits, reviews and accepted AI proposals."""
     kind = operation.get("type")
     scenes = project.stage_scenes
@@ -302,7 +375,7 @@ def apply_scene_operation(project, operation: dict, characters, locations):
     if kind == "add":
         values = operation.get("scene", {})
         scene = StageScene.model_validate({k: v for k, v in values.items() if k in SCENE_FIELDS} | {"number": max((s.number for s in scenes), default=0) + 1})
-        validate_scene(scene, characters, locations)
+        validate_scene(scene, characters, locations, items)
         if scene.beat_id and scene.beat_id not in beats:
             raise ValueError("Scena wskazuje nieistniejący beat")
         position = index.get(operation.get("after", ""), len(scenes) - 1) + 1
@@ -317,7 +390,7 @@ def apply_scene_operation(project, operation: dict, characters, locations):
         if not isinstance(changes, dict) or not set(changes) <= set(SCENE_FIELDS) | {"number"}:
             raise ValueError("Scena przyjmuje wyłącznie pola treści")
         candidate = StageScene.model_validate(scene.model_dump() | changes)
-        validate_scene(candidate, characters, locations)
+        validate_scene(candidate, characters, locations, items)
         if candidate.beat_id and candidate.beat_id not in beats:
             raise ValueError("Scena wskazuje nieistniejący beat")
         content_changed = any(getattr(candidate, k) != getattr(scene, k) for k in CONTENT_FIELDS)
@@ -348,15 +421,15 @@ def apply_scene_operation(project, operation: dict, characters, locations):
     raise ValueError("Nieznana operacja sceny")
 
 
-def regeneration_prompt(project, scene: StageScene, characters, locations, instruction: str) -> str:
-    bank = bank_summary(characters, locations)
+def regeneration_prompt(project, scene: StageScene, characters, locations, instruction: str, items=None) -> str:
+    bank = bank_summary(characters, locations, items)
     neighbours = [s for s in project.stage_scenes if abs(s.number - scene.number) == 1]
     last = scene.reviews[-1] if scene.reviews else None
     feedback = "; ".join(filter(None, [", ".join(last.tags) if last else "", last.note if last else "", instruction]))
     current = scene.model_dump(include=set(CONTENT_FIELDS))
     return f"""You are the scene director of a 2D animated series. Rewrite ONE scene according to the director's feedback.
 Film: {project.title}. Language of narration and dialogue: {project.language}.
-Use only the character, pose, location and state ids from the bank below. Speakers are "narrator" or a character id.
+Use only the character, pose, costume, item, location and state ids from the bank below. Speakers are "narrator" or a character id.
 Keep the scene consistent with its neighbours (continuity of place, time, objects and injuries).
 
 BANK: {json.dumps(bank, ensure_ascii=False)}
@@ -368,7 +441,7 @@ Return only JSON with keys: {", ".join(CONTENT_FIELDS)}, and "reason" (one sente
 {SCHEMA_HINT}"""
 
 
-def parse_regeneration(text: str, scene: StageScene, characters, locations) -> dict:
+def parse_regeneration(text: str, scene: StageScene, characters, locations, items=None) -> dict:
     match = re.search(r"\{.*\}", text or "", re.S)
     if not match:
         raise ValueError("Odpowiedź AI nie zawiera JSON sceny")
@@ -382,18 +455,20 @@ def parse_regeneration(text: str, scene: StageScene, characters, locations) -> d
         if isinstance(line, dict):
             line.pop("id", None)
     candidate = StageScene.model_validate(scene.model_dump() | changes)
-    validate_scene(candidate, characters, locations)
+    validate_scene(candidate, characters, locations, items)
     return {"scene_id": scene.id, "changes": candidate.model_dump(include=set(CONTENT_FIELDS)), "reason": reason}
 
 
-def bank_summary(characters, locations):
+def bank_summary(characters, locations, items=None):
     return {
+        "items": [{"id": i.id, "category": i.category, "name": i.name, "description": i.description, "for_characters": i.character_ids,
+                   "variants": [{"id": v.id, "name": v.name} for v in i.variants]} for i in (items or {}).values()],
         "characters": [{"id": c.id, "name": c.name, "role": c.role, "description": c.description, "poses": [{"id": p.id, "name": p.name, "view": p.view} for p in c.poses]} for c in characters.values()],
         "locations": [{"id": loc.id, "name": loc.name, "description": loc.description, "states": [{"id": s.id, "name": s.name, "time_of_day": s.time_of_day} for s in loc.states]} for loc in locations.values()],
     }
 
 
-def breakdown_prompt(project, beat, characters, locations, instruction: str) -> str:
+def breakdown_prompt(project, beat, characters, locations, instruction: str, items=None) -> str:
     """Story Director: split one story beat into storyboard scenes built only from the channel bank."""
     order = [b.id for b in project.beats]
     index = order.index(beat.id)
@@ -405,7 +480,7 @@ A beat is a unit of story; a scene is a unit of picture. Use 2-8 scenes, each 3-
 Build scenes ONLY from the character, pose, location and state ids in the bank. Speakers are "narrator" or a character id.
 Prefer reusing an existing location with a different camera over inventing new places.
 
-BANK: {json.dumps(bank_summary(characters, locations), ensure_ascii=False)}
+BANK: {json.dumps(bank_summary(characters, locations, items), ensure_ascii=False)}
 NEIGHBOUR BEATS: {json.dumps(around, ensure_ascii=False)}
 BEAT: {json.dumps(beat.model_dump(include={"title", "goal", "turn", "narration"}), ensure_ascii=False)}
 SCENES ALREADY IN THIS BEAT: {json.dumps(existing, ensure_ascii=False)}
@@ -415,7 +490,7 @@ Return only JSON: {{"reason": "one sentence", "scenes": [{{{", ".join(f'"{k}"' f
 {SCHEMA_HINT}"""
 
 
-def parse_breakdown(text: str, beat, characters, locations) -> dict:
+def parse_breakdown(text: str, beat, characters, locations, items=None) -> dict:
     match = re.search(r"\{.*\}", text or "", re.S)
     if not match:
         raise ValueError("Odpowiedź AI nie zawiera JSON scen")
@@ -435,7 +510,7 @@ def parse_breakdown(text: str, beat, characters, locations) -> dict:
             if isinstance(line, dict):
                 line.pop("id", None)
         scene = StageScene.model_validate(values | {"number": number})
-        validate_scene(scene, characters, locations)
+        validate_scene(scene, characters, locations, items)
         scenes.append(scene.model_dump(include=set(CONTENT_FIELDS)) | {"beat_id": beat.id})
     return {"beat_id": beat.id, "scenes": scenes, "reason": str(data.get("reason", ""))[:500]}
 

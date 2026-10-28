@@ -279,6 +279,18 @@ Pierwszy przyrost aplikacji jest gotowy — [instrukcja](STUDIO_ANIMATION.md): p
 
 Drugi przyrost (28.10.2026): ekran **Storyboard i animatik** — beaty nad scenami, AI rozpisujące beat na sceny z banku kanału, siatka kadrów i odtwarzacz animatiku z roboczymi głosami przeglądarki (osobny głos na postać). Ustalenia z autorem: Blender odpada (za ciężki na tego Maca, ruch 2.5D zrobi Remotion); rig na start prosty (podmiana póz + drobny ruch); model graficzny wybierzemy testem na tych samych postaciach i lokacjach; Google Flow uznany za słaby w trzymaniu spójności.
 
+Trzeci przyrost (28.10.2026): głosy robocze Kokoro, ruch kamery i postaci, pierwszy plan, bank rekwizytów / kostiumów / nakładek, ostrzeżenia o ciągłości rekwizytów i strojów, eksport animatiku do MP4, automatyczne odświeżanie filmu przy zmianach z API.
+
+### Czego jeszcze brakuje (przegląd z 28.10.2026, w kolejności wartości)
+
+1. **Dźwięk:** bank SFX, ambientów i muzyki z licencjami; przypisanie do scen i grup scen; słyszalne w animatiku i MP4. Teraz pola dźwięku są tylko opisem.
+2. **Ciągłość stanu świata:** dzień/godzina, zasoby (woda), rany i wiedza postaci liczone automatycznie (rozdz. 6.2). Dziś ostrzeżenia obejmują tylko rekwizyty i stroje między sąsiednimi scenami.
+3. **Generowanie grafik w aplikacji:** adapter API do wybranego modelu (po teście), karta postaci → pozy w tym samym stylu, stany lokacji z jednej bazy.
+4. **Mimika i usta przy kwestiach:** zestaw twarzy na postać i zmiana podczas mówienia; rekwizyt „w dłoni”.
+5. **Finalne głosy:** decyzja lokalny vs ElevenLabs, reżyseria kwestii, dogrywki.
+6. **Animatik → Montaż:** przeniesienie scen na oś czasu, finalny render 1080p z muzyką, napisy SRT/VTT z animatiku.
+7. **Seria i publikacja:** kompilacja „Full Movie”, miniatury z rigu i stanów lokacji, opis ze źródłami porad.
+
 ### Decyzje
 
 

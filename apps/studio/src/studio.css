@@ -6572,3 +6572,75 @@ textarea::placeholder {
   margin: 8px 0 10px;
   justify-items: start;
 }
+
+.costume-cast {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.stage-prop {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+  cursor: grab;
+}
+.stage-prop.layer-behind {
+  z-index: 0;
+}
+.stage-prop.layer-front {
+  z-index: 1;
+}
+.stage-prop img {
+  display: block;
+  height: 100%;
+  width: auto;
+}
+.stage-frame.animate .prop-appear {
+  animation: prop-appear 0.25s ease-out calc(var(--dur) * var(--at)) both;
+}
+.stage-frame.animate .prop-fade_in {
+  animation: prop-fade 0.8s ease-in calc(var(--dur) * var(--at)) both;
+}
+@keyframes prop-appear {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+  1% {
+    opacity: 1;
+  }
+}
+@keyframes prop-fade {
+  from {
+    opacity: 0;
+  }
+}
+.prop-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 4px;
+  align-items: center;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--line);
+}
+.prop-row input[type="range"],
+.prop-at {
+  grid-column: 1 / -1;
+}
+.prop-at {
+  display: grid;
+}
+
+.animatic-export {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.continuity-warning {
+  margin: 0;
+  padding: 6px 10px;
+  border-left: 3px solid var(--red);
+  background: var(--panel-2);
+}

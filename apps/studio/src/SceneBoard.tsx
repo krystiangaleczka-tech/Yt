@@ -24,6 +24,7 @@ import { Button, CommitText, Empty, Field, IconButton, NumberField } from "./com
 import {
   actorMotionLabels,
   cameraLabels,
+  propMotionLabels,
   castImage,
   reviewTags,
   statusLabels,
@@ -35,6 +36,7 @@ import type {
   Character,
   DialogueLine,
   StageCharacter,
+  StageProp,
   StageScene,
 } from "./animationTypes";
 import type { Project } from "./types";
@@ -283,6 +285,9 @@ export default function SceneBoard() {
               <span className="muted small">{scene.seconds} s</span>
             </div>
             <h2 className="scene-heading">{scene.title}</h2>
+            {continuity(scene, scenes[scenes.findIndex((x) => x.id === scene.id) - 1], bank).map((w) => (
+              <p key={w} className="continuity-warning small">Ciągłość: {w}</p>
+            ))}
             <Stage
               key={scene.id + previewRun}
               scene={scene}
@@ -290,6 +295,7 @@ export default function SceneBoard() {
               channelId={p.channel_id}
               animate={previewRun > 0}
               onPlace={previewRun ? undefined : (placed) => update({ characters: placed })}
+              onPlaceProps={previewRun ? undefined : (props) => update({ props })}
             />
             <div className="scene-preview-row">
               <Button
@@ -448,6 +454,7 @@ export default function SceneBoard() {
           <SceneInspector
             key={scene.id}
             scene={scene}
+            sceneBefore={scenes[scenes.findIndex((x) => x.id === scene.id) - 1]}
             bank={bank}
             beats={p.beats}
             update={update}
@@ -481,6 +488,7 @@ export function Stage({
   bank,
   channelId,
   onPlace,
+  onPlaceProps,
   lineIndex = 0,
   compact = false,
   animate = false,
@@ -489,6 +497,7 @@ export function Stage({
   bank: CastBank;
   channelId: string;
   onPlace?: (placed: StageCharacter[]) => void;
+  onPlaceProps?: (props: StageProp[]) => void;
   lineIndex?: number;
   compact?: boolean;
   /** Play camera and character motion over the scene's duration (animatic / preview). */
@@ -496,6 +505,7 @@ export function Stage({
 }) {
   const frame = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{
+    kind: "actor" | "prop";
     index: number;
     x: number;
     y: number;
@@ -516,6 +526,39 @@ export function Stage({
     line && line.speaker !== "narrator"
       ? bank.characters.find((c) => c.id === line.speaker)?.name
       : "";
+  function renderProps(layer: StageProp["layer"]) {
+    return (scene.props || []).map((placed, index) => {
+      if (placed.layer !== layer) return null;
+      const item = bank.items?.find((i) => i.id === placed.item_id);
+      const variant =
+        item?.variants.find((v) => v.id === placed.variant_id) || item?.variants[0];
+      if (!variant) return null;
+      const at = drag?.kind === "prop" && drag.index === index ? drag : placed;
+      return (
+        <span
+          key={"prop" + index}
+          className={`stage-prop layer-${layer} prop-${placed.motion}`}
+          style={
+            {
+              left: `${at.x * 100}%`,
+              top: `${at.y * 100}%`,
+              height: `${placed.scale * 100}%`,
+              "--at": placed.at,
+              "--rot": `${placed.rotation}deg`,
+            } as CSSProperties
+          }
+          onPointerDown={(e) => {
+            if (!onPlaceProps) return;
+            e.currentTarget.setPointerCapture(e.pointerId);
+            const p = position(e);
+            setDrag({ kind: "prop", index, x: placed.x, y: placed.y, dx: p.x - placed.x, dy: p.y - placed.y });
+          }}
+        >
+          <img src={castImage(channelId, variant.image.file)} alt={item?.name} draggable={false} />
+        </span>
+      );
+    });
+  }
   function position(e: ReactPointerEvent) {
     const r = frame.current!.getBoundingClientRect();
     return {
@@ -538,14 +581,12 @@ export function Stage({
         });
       }}
       onPointerUp={() => {
-        if (!drag || !onPlace) return;
-        onPlace(
-          scene.characters.map((c, i) =>
-            i === drag.index
-              ? { ...c, x: Math.round(drag.x * 1000) / 1000, y: Math.round(drag.y * 1000) / 1000 }
-              : c,
-          ),
-        );
+        if (!drag) return;
+        const moved = { x: Math.round(drag.x * 1000) / 1000, y: Math.round(drag.y * 1000) / 1000 };
+        if (drag.kind === "actor" && onPlace)
+          onPlace(scene.characters.map((c, i) => (i === drag.index ? { ...c, ...moved } : c)));
+        if (drag.kind === "prop" && onPlaceProps)
+          onPlaceProps((scene.props || []).map((c, i) => (i === drag.index ? { ...c, ...moved } : c)));
         setDrag(null);
       }}
     >
@@ -558,13 +599,14 @@ export function Stage({
           <span>{location ? `${location.name} — brak tła stanu` : "Wybierz lokację"}</span>
         </div>
       )}
+      {renderProps("behind")}
       {scene.characters.map((placed, index) => {
         const character = bank.characters.find((c) => c.id === placed.character_id);
         const pose =
           character?.poses.find((x) => x.id === placed.pose_id) ||
           character?.poses.find((x) => x.id === character.default_pose_id) ||
           character?.poses[0];
-        const at = drag?.index === index ? drag : placed;
+        const at = drag?.kind === "actor" && drag.index === index ? drag : placed;
         return pose ? (
           <span
             key={index}
@@ -579,7 +621,7 @@ export function Stage({
               e.currentTarget.setPointerCapture(e.pointerId);
               // Keep the grab point under the cursor instead of snapping the feet to it.
               const at = position(e);
-              setDrag({ index, x: placed.x, y: placed.y, dx: at.x - placed.x, dy: at.y - placed.y });
+              setDrag({ kind: "actor", index, x: placed.x, y: placed.y, dx: at.x - placed.x, dy: at.y - placed.y });
             }}
           >
             <img
@@ -599,6 +641,7 @@ export function Stage({
           </span>
         );
       })}
+      {renderProps("front")}
       {state?.foreground && (
         <img className="stage-fg" src={castImage(channelId, state.foreground.file)} alt="" />
       )}
@@ -690,6 +733,7 @@ function ProposalCard({
 
 function SceneInspector({
   scene,
+  sceneBefore,
   bank,
   beats,
   update,
@@ -697,6 +741,7 @@ function SceneInspector({
   move,
 }: {
   scene: StageScene;
+  sceneBefore?: StageScene;
   bank: CastBank;
   beats: Project["beats"];
   update: (changes: Partial<StageScene>) => void;
@@ -705,6 +750,17 @@ function SceneInspector({
 }) {
   const location = bank.locations.find((l) => l.id === scene.location_id);
   const active = bank.characters.filter((c) => !c.archived);
+  const costumesFor = (characterId: string) =>
+    (bank.items || []).filter(
+      (i) =>
+        i.category === "costume" &&
+        !i.archived &&
+        (!i.character_ids.length || i.character_ids.includes(characterId)),
+    );
+  const placeable = (bank.items || []).filter((i) => i.category !== "costume" && !i.archived && i.variants.length);
+  const props = scene.props || [];
+  const setProp = (index: number, patch: Partial<StageProp>) =>
+    update({ props: props.map((x, i) => (i === index ? { ...x, ...patch } : x)) });
   const setPlaced = (index: number, patch: Partial<StageCharacter>) =>
     update({
       characters: scene.characters.map((c, i) => (i === index ? { ...c, ...patch } : c)),
@@ -813,12 +869,29 @@ function SceneInspector({
                 onChange={(e) => setPlaced(index, { pose_id: e.target.value })}
               >
                 <option value="">Domyślna</option>
-                {character?.poses.map((pose) => (
+                {character?.poses
+                  .filter((pose) => !placed.costume_id || pose.costume_id === placed.costume_id)
+                  .map((pose) => (
                   <option key={pose.id} value={pose.id}>
                     {pose.name}
                   </option>
                 ))}
               </select>
+              {costumesFor(placed.character_id).length > 0 && (
+                <select
+                  aria-label="Kostium"
+                  className="placed-motion"
+                  value={placed.costume_id || ""}
+                  onChange={(e) => setPlaced(index, { costume_id: e.target.value, pose_id: "" })}
+                >
+                  <option value="">Strój bazowy</option>
+                  {costumesFor(placed.character_id).map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.name}
+                    </option>
+                  ))}
+                </select>
+              )}
               <select
                 aria-label="Ruch postaci"
                 className="placed-motion"
@@ -879,6 +952,129 @@ function SceneInspector({
           {active.length ? "Dodaj postać" : "Bank postaci kanału jest pusty"}
         </Button>
         <span className="muted small">Przeciągnij postać na podglądzie, aby ją ustawić.</span>
+      </div>
+      <div className="inspector-section">
+        <strong>Rekwizyty i nakładki</strong>
+        {props.map((placed, index) => {
+          const item = bank.items?.find((i) => i.id === placed.item_id);
+          return (
+            <div key={index} className="prop-row">
+              <select
+                aria-label="Rekwizyt"
+                value={placed.item_id}
+                onChange={(e) => setProp(index, { item_id: e.target.value, variant_id: "" })}
+              >
+                {placeable.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label="Wariant"
+                value={placed.variant_id}
+                onChange={(e) => setProp(index, { variant_id: e.target.value })}
+              >
+                <option value="">Pierwszy wariant</option>
+                {item?.variants.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+              <IconButton
+                icon={X}
+                label="Usuń z kadru"
+                onClick={() => update({ props: props.filter((_, i) => i !== index) })}
+              />
+              <select
+                aria-label="Warstwa"
+                value={placed.layer}
+                onChange={(e) => setProp(index, { layer: e.target.value as StageProp["layer"] })}
+              >
+                <option value="behind">Za postaciami</option>
+                <option value="front">Przed postaciami</option>
+              </select>
+              <select
+                aria-label="Pojawienie"
+                value={placed.motion}
+                onChange={(e) => setProp(index, { motion: e.target.value as StageProp["motion"] })}
+              >
+                {Object.entries(propMotionLabels).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="range"
+                aria-label="Wielkość rekwizytu"
+                min={0.03}
+                max={1}
+                step={0.01}
+                defaultValue={placed.scale}
+                onPointerUp={(e) => setProp(index, { scale: Number(e.currentTarget.value) })}
+                onKeyUp={(e) => setProp(index, { scale: Number(e.currentTarget.value) })}
+              />
+              {placed.motion !== "none" && (
+                <label className="small muted prop-at">
+                  moment: {Math.round(placed.at * 100)}% sceny
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    defaultValue={placed.at}
+                    onPointerUp={(e) => setProp(index, { at: Number(e.currentTarget.value) })}
+                    onKeyUp={(e) => setProp(index, { at: Number(e.currentTarget.value) })}
+                  />
+                </label>
+              )}
+            </div>
+          );
+        })}
+        <Button
+          icon={Plus}
+          subtle
+          disabled={!placeable.length || props.length >= 20}
+          onClick={() =>
+            update({
+              props: [
+                ...props,
+                {
+                  item_id: placeable[0].id,
+                  variant_id: "",
+                  x: 0.5,
+                  y: 0.5,
+                  scale: 0.2,
+                  rotation: 0,
+                  layer: "behind",
+                  motion: "none",
+                  at: 0.5,
+                },
+              ],
+            })
+          }
+        >
+          {placeable.length ? "Dodaj rekwizyt" : "Bank rekwizytów kanału jest pusty"}
+        </Button>
+        {sceneBefore && (sceneBefore.props || []).length > 0 && (
+          <Button
+            subtle
+            onClick={() =>
+              update({
+                props: [
+                  ...props,
+                  ...(sceneBefore.props || [])
+                    .filter((x) => !props.some((y) => y.item_id === x.item_id))
+                    .map((x) => ({ ...x, motion: "none" as const })),
+                ],
+              })
+            }
+          >
+            Przenieś rekwizyty z poprzedniej sceny
+          </Button>
+        )}
       </div>
       <Field label="Akcja — co widzimy">
         <CommitText
@@ -1015,4 +1211,23 @@ function SceneInspector({
       </div>
     </aside>
   );
+}
+
+/** Warnings when something visible disappears or changes between consecutive scenes in one place. */
+function continuity(scene: StageScene, before: StageScene | undefined, bank: CastBank) {
+  if (!before || before.location_id !== scene.location_id || !scene.location_id) return [];
+  const name = (id: string) =>
+    bank.items?.find((i) => i.id === id)?.name ||
+    bank.characters.find((c) => c.id === id)?.name ||
+    "?";
+  const warnings: string[] = [];
+  for (const prop of before.props || [])
+    if (!(scene.props || []).some((x) => x.item_id === prop.item_id))
+      warnings.push(`w poprzedniej scenie był „${name(prop.item_id)}” — czy ma zniknąć?`);
+  for (const actor of scene.characters) {
+    const earlier = before.characters.find((c) => c.character_id === actor.character_id);
+    if (earlier && (earlier.costume_id || "") !== (actor.costume_id || ""))
+      warnings.push(`${name(actor.character_id)} zmienia strój względem poprzedniej sceny.`);
+  }
+  return warnings;
 }

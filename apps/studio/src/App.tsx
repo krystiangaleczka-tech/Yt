@@ -26,6 +26,7 @@ import {
   LayoutGrid,
   PersonStanding,
   Video,
+  Backpack,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { StudioProvider, useStudio } from "./context";
@@ -122,7 +123,7 @@ function Shell() {
   const content =
     s.page === "projects" ? (
       <Projects onNew={() => setNewOpen(true)} />
-    ) : s.page === "cast" || s.page === "locations" ? (
+    ) : s.page === "cast" || s.page === "locations" || s.page === "props" ? (
       <Suspense fallback={<div className="page-content">Ładowanie banku…</div>}>
         <CastBankView section={s.page} />
       </Suspense>
@@ -259,6 +260,14 @@ function Shell() {
             >
               <MapPinned size={18} />
               <span>Lokacje</span>
+            </button>
+            <button
+              className={`nav-item ${s.page === "props" ? "active" : ""}`}
+              title="Rekwizyty i kostiumy kanału"
+              onClick={() => navigate("props")}
+            >
+              <Backpack size={18} />
+              <span>Rekwizyty i kostiumy</span>
             </button>
           </>
         )}
@@ -416,6 +425,7 @@ function Shell() {
                   motion: "Wstawki animowane",
                   cast: "Postacie",
                   locations: "Lokacje",
+                  props: "Rekwizyty i kostiumy",
                 }[s.page as "sources"]}
             </strong>
           </div>

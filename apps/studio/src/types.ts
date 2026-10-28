@@ -258,6 +258,7 @@ export type Job = {
   message: string;
   result: null | {
     url?: string;
+    filename?: string;
     asset_id?: string;
     revision: number;
     mode?: string;

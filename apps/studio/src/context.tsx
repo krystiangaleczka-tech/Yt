@@ -26,7 +26,8 @@ export type Page =
   | "cast"
   | "locations"
   | "scenes"
-  | "storyboard";
+  | "storyboard"
+  | "props";
 type Context = {
   project: Project | null;
   projects: ProjectSummary[];
@@ -153,6 +154,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         "locations",
         "scenes",
         "storyboard",
+        "props",
       ];
       setPage(
         pages.includes(remembered as Page)
@@ -172,6 +174,27 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     setHealth(await api<Health>("/health"));
     await reloadList();
   }
+  // Claude and other windows edit the same film through the API: pick up newer revisions.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const current = ref.current;
+      if (!current || document.hidden) return;
+      queue.current = queue.current.then(async () => {
+        try {
+          const list = await api<ProjectSummary[]>("/projects");
+          const row = list.find((x) => x.id === current.id);
+          if (row && ref.current?.id === current.id && row.revision > ref.current.revision) {
+            accept(await api<Project>("/projects/" + current.id));
+            notify("Film zaktualizowany — wczytano najnowsze zmiany");
+          }
+          setProjects(list);
+        } catch {
+          /* offline: the next tick retries */
+        }
+      });
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
   function mutate(fn: (p: Project) => Promise<Project>): Promise<Project> {
     const task = queue.current.then(async () => {
       if (!ref.current) throw new Error("Wybierz projekt");
