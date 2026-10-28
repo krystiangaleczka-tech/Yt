@@ -246,5 +246,55 @@ class AnimationTests(unittest.TestCase):
         self.assertAlmostEqual(float(probe['format']['duration']), 1.5, delta=.3)
 
 
+    def test_sound_bank_scene_cues_music_ranges_and_mix(self):
+        cid = self.channel['id']
+
+        def tone(hz, seconds=1.0):
+            import numpy as np
+            import wave as wav
+            data = io.BytesIO()
+            t = np.arange(int(22050 * seconds)) / 22050
+            with wav.open(data, 'wb') as w:
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(22050)
+                w.writeframes((np.sin(2 * np.pi * hz * t) * 12000).astype('<i2').tobytes())
+            return data.getvalue()
+
+        def sound(name, kind, hz):
+            uploaded = self.ok(self.client.post(f'/api/channels/{cid}/cast-audio', files={'file': (name + '.wav', tone(hz), 'audio/wav')}, headers=H))
+            self.assertAlmostEqual(uploaded['duration'], 1.0, delta=.05)
+            return self.ok(self.client.post(f'/api/channels/{cid}/sounds', json={'name': name, 'kind': kind, 'license': 'CC0'} | uploaded, headers=H))
+
+        knock, room, theme = sound('knock', 'sfx', 600), sound('room', 'ambience', 120), sound('theme', 'music', 330)
+        bad = self.client.post(f'/api/channels/{cid}/cast-audio', files={'file': ('x.txt', b'nope', 'text/plain')}, headers=H)
+        self.assertEqual(bad.status_code, 422)
+        self.assertEqual(self.client.get(f"/api/channels/{self.other['id']}/cast-audio/{knock['file']}").status_code, 404)
+        film = self.film()
+        music_in_scene = self.client.post(f"/api/projects/{film['id']}/stage-scenes", json={'expected_revision': film['revision'], 'operations': [
+            {'type': 'add', 'scene': {'audio': [{'sound_id': theme['id']}]}}]}, headers=H)
+        self.assertEqual(music_in_scene.status_code, 422)
+        film = self.scenes(film, {'type': 'add', 'scene': {'title': 'A', 'seconds': 1, 'audio': [{'sound_id': room['id']}, {'sound_id': knock['id'], 'at': .2}]}},
+                           {'type': 'add', 'scene': {'title': 'B', 'seconds': 1}})
+        first, second = (s['id'] for s in film['stage_scenes'])
+        wrong = self.client.post(f"/api/projects/{film['id']}/stage-scenes", json={'expected_revision': film['revision'], 'operations': [
+            {'type': 'music_set', 'cue': {'sound_id': knock['id'], 'from_scene_id': first, 'to_scene_id': second}}]}, headers=H)
+        self.assertEqual(wrong.status_code, 422)
+        film = self.scenes(film, {'type': 'music_set', 'cue': {'sound_id': theme['id'], 'from_scene_id': first, 'to_scene_id': second}})
+        self.assertEqual(len(film['music_cues']), 1)
+        self.app.state.draft_voices.model_dir = Path(self.temp.name) / 'missing'
+        job = self.ok(self.client.post(f"/api/projects/{film['id']}/animatic/render", json={'expected_revision': film['revision']}, headers=H))
+        for _ in range(300):
+            state = self.ok(self.client.get('/api/jobs/' + job['id']))
+            if state['status'] in ('SUCCEEDED', 'FAILED'):
+                break
+            time.sleep(.05)
+        self.assertEqual(state['status'], 'SUCCEEDED', state['message'])
+        path = Path(self.temp.name) / 'mix.mp4'
+        path.write_bytes(self.client.get(state['result']['url']).content)
+        volume = subprocess.run(['ffmpeg', '-hide_banner', '-i', str(path), '-af', 'volumedetect', '-f', 'null', '-'], capture_output=True, text=True).stderr
+        self.assertNotIn('mean_volume: -91', volume)
+        film = self.scenes(film, {'type': 'delete', 'scene_id': second})
+        self.assertEqual(film['music_cues'], [])
+
+
 if __name__ == '__main__':
     unittest.main()

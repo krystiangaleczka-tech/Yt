@@ -24,6 +24,7 @@ import { Button, CommitText, Empty, Field, IconButton, NumberField } from "./com
 import {
   actorMotionLabels,
   cameraLabels,
+  castAudio,
   propMotionLabels,
   castImage,
   reviewTags,
@@ -38,6 +39,7 @@ import type {
   StageCharacter,
   StageProp,
   StageScene,
+  SoundCue,
 } from "./animationTypes";
 import type { Project } from "./types";
 
@@ -330,6 +332,15 @@ export default function SceneBoard() {
                 </ul>
               )}
               <div className="scene-sound">
+                {(scene.audio || []).map((cue, i) => {
+                  const sound = bank.sounds?.find((x) => x.id === cue.sound_id);
+                  return sound ? (
+                    <span key={"cue" + i} className="sound-chip linked">
+                      <Volume2 size={13} /> {sound.name}
+                      {sound.kind === "sfx" ? ` @${Math.round(cue.at * 100)}%` : " (pętla)"}
+                    </span>
+                  ) : null;
+                })}
                 {scene.sound.ambience && (
                   <span className="sound-chip"><Volume2 size={13} /> {scene.sound.ambience}</span>
                 )}
@@ -757,6 +768,10 @@ function SceneInspector({
         !i.archived &&
         (!i.character_ids.length || i.character_ids.includes(characterId)),
     );
+  const sceneSounds = (bank.sounds || []).filter((x) => x.kind !== "music" && !x.archived);
+  const cues = scene.audio || [];
+  const setCue = (index: number, patch: Partial<SoundCue>) =>
+    update({ audio: cues.map((x, i) => (i === index ? { ...x, ...patch } : x)) });
   const placeable = (bank.items || []).filter((i) => i.category !== "costume" && !i.archived && i.variants.length);
   const props = scene.props || [];
   const setProp = (index: number, patch: Partial<StageProp>) =>
@@ -1180,6 +1195,66 @@ function SceneInspector({
       </div>
       <div className="inspector-section">
         <strong>Dźwięk</strong>
+        {cues.map((cue, index) => {
+          const sound = sceneSounds.find((x) => x.id === cue.sound_id);
+          return (
+            <div key={index} className="cue-row">
+              <select
+                aria-label="Dźwięk"
+                value={cue.sound_id}
+                onChange={(e) => setCue(index, { sound_id: e.target.value })}
+              >
+                {sceneSounds.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.kind === "ambience" ? "Atmosfera: " : "Efekt: "}
+                    {x.name}
+                  </option>
+                ))}
+              </select>
+              <IconButton
+                icon={Play}
+                label="Odsłuchaj"
+                onClick={() => sound && void new Audio(castAudio(sound.channel_id, sound.file)).play()}
+              />
+              <IconButton icon={X} label="Usuń dźwięk" onClick={() => update({ audio: cues.filter((_, i) => i !== index) })} />
+              {sound?.kind === "sfx" && (
+                <label className="small muted cue-wide">
+                  moment: {Math.round(cue.at * 100)}% sceny
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    defaultValue={cue.at}
+                    onPointerUp={(e) => setCue(index, { at: Number(e.currentTarget.value) })}
+                    onKeyUp={(e) => setCue(index, { at: Number(e.currentTarget.value) })}
+                  />
+                </label>
+              )}
+              <label className="small muted cue-wide">
+                głośność: {Math.round(cue.volume * 100)}%
+                <input
+                  type="range"
+                  min={0}
+                  max={2}
+                  step={0.05}
+                  defaultValue={cue.volume}
+                  onPointerUp={(e) => setCue(index, { volume: Number(e.currentTarget.value) })}
+                  onKeyUp={(e) => setCue(index, { volume: Number(e.currentTarget.value) })}
+                />
+              </label>
+            </div>
+          );
+        })}
+        <Button
+          icon={Plus}
+          subtle
+          disabled={!sceneSounds.length || cues.length >= 20}
+          onClick={() => update({ audio: [...cues, { sound_id: sceneSounds[0].id, at: 0, volume: 1 }] })}
+        >
+          {sceneSounds.length ? "Dodaj efekt lub atmosferę" : "Bank dźwięków kanału jest pusty"}
+        </Button>
+        <span className="muted small">Notatki dźwiękowe (dla AI i dźwiękowca):</span>
         <Field label="Atmosfera">
           <CommitText
             value={scene.sound.ambience}

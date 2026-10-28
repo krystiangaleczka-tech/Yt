@@ -27,7 +27,8 @@ export type Page =
   | "locations"
   | "scenes"
   | "storyboard"
-  | "props";
+  | "props"
+  | "sounds";
 type Context = {
   project: Project | null;
   projects: ProjectSummary[];
@@ -155,6 +156,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         "scenes",
         "storyboard",
         "props",
+        "sounds",
       ];
       setPage(
         pages.includes(remembered as Page)

@@ -22,6 +22,9 @@ CHANNEL_ID = re.compile(r"channel_[a-f0-9]{16}")
 MEDIA_FILE = re.compile(r"[a-f0-9]{64}\.(png|webp|jpg)")
 IMAGE_TYPES = {"PNG": ("png", "image/png"), "WEBP": ("webp", "image/webp"), "JPEG": ("jpg", "image/jpeg")}
 MAX_IMAGE = 40 * 1024 * 1024
+AUDIO_FILE = re.compile(r"[a-f0-9]{64}\.(wav|mp3|ogg|m4a|flac)")
+AUDIO_TYPES = {"wav": "audio/wav", "mp3": "audio/mpeg", "ogg": "audio/ogg", "m4a": "audio/mp4", "flac": "audio/flac"}
+MAX_AUDIO = 80 * 1024 * 1024
 
 
 class CastImage(Model):
@@ -132,6 +135,42 @@ class Item(Model):
         return self
 
 
+class Sound(Model):
+    """Sound effect, ambience loop or music track of one channel, with its licence."""
+    id: str = Field(default_factory=lambda: uid("snd_"), pattern=r"^snd_[a-f0-9]{16}$")
+    revision: int = 0
+    channel_id: str = Field(pattern=CHANNEL_ID.pattern)
+    kind: Literal["sfx", "ambience", "music"] = "sfx"
+    name: str = Field(min_length=1, max_length=80)
+    file: str = Field(pattern=AUDIO_FILE.pattern)
+    duration: float = Field(default=0, ge=0, le=7200)
+    volume: float = Field(default=1, ge=0, le=2)
+    source_url: str = Field(default="", max_length=500)
+    author: str = Field(default="", max_length=200)
+    license: str = Field(default="", max_length=200)
+    attribution: str = Field(default="", max_length=500)
+    tags: list[str] = Field(default_factory=list, max_length=20)
+    archived: bool = False
+    updated_at: str = ""
+
+
+class SoundCue(Model):
+    """Effect or ambience inside one scene. Ambience loops through the whole scene."""
+    sound_id: str = Field(pattern=r"^snd_[a-f0-9]{16}$")
+    at: float = Field(default=0, ge=0, le=1)
+    volume: float = Field(default=1, ge=0, le=2)
+
+
+class MusicCue(Model):
+    """Music spanning a range of scenes in story order; ducked under dialogue."""
+    id: str = Field(default_factory=lambda: uid("music_"), pattern=r"^music_[a-f0-9]{16}$")
+    sound_id: str = Field(pattern=r"^snd_[a-f0-9]{16}$")
+    from_scene_id: str = Field(pattern=r"^stage_[a-f0-9]{16}$")
+    to_scene_id: str = Field(pattern=r"^stage_[a-f0-9]{16}$")
+    volume: float = Field(default=.35, ge=0, le=2)
+    offset: float = Field(default=0, ge=0, le=7200)
+
+
 class StageProp(Model):
     item_id: str = Field(pattern=r"^item_[a-f0-9]{16}$")
     variant_id: str = ""
@@ -197,6 +236,7 @@ class StageScene(Model):
     camera: str = Field(default="", max_length=300)
     dialogue: list[DialogueLine] = Field(default_factory=list, max_length=40)
     sound: SceneSound = Field(default_factory=SceneSound)
+    audio: list[SoundCue] = Field(default_factory=list, max_length=20)
     motion: SceneMotion = Field(default_factory=SceneMotion)
     seconds: float = Field(default=6, ge=.5, le=600)
     status: Literal["draft", "review", "approved", "rework"] = "draft"
@@ -210,9 +250,10 @@ class StageScene(Model):
         return self
 
 
-CONTENT_FIELDS = ("title", "story_time", "location_id", "location_state_id", "characters", "props", "action", "camera", "motion", "dialogue", "sound", "seconds")
+CONTENT_FIELDS = ("title", "story_time", "location_id", "location_state_id", "characters", "props", "action", "camera", "motion", "dialogue", "sound", "audio", "seconds")
 SCHEMA_HINT = """characters: [{"character_id","pose_id","x" 0-1,"y" 0-1 baseline,"scale","flip","motion": "idle"|"still"|"enter_left"|"enter_right"|"exit_left"|"exit_right"}];
 props: [{"item_id","variant_id","x","y","scale","rotation","layer": "behind"|"front","motion": "none"|"appear"|"fade_in","at" 0-1}] — props and overlays persist between scenes until the story removes them;
+audio: [{"sound_id" (sfx or ambience from the bank),"at" 0-1 moment for effects,"volume" 0-2}];
 motion: {"camera": "static"|"push_in"|"pull_out"|"pan_left"|"pan_right"|"shake", "strength" 0-1}; dialogue: [{"speaker","text","direction"}]; sound: {"ambience","music","sfx":[]}."""
 # Organisation, not content: moving a scene between beats does not reopen its review.
 SCENE_FIELDS = CONTENT_FIELDS + ("beat_id",)
@@ -265,8 +306,12 @@ class Cast:
     def items(self, channel_id, archived=False):
         return self._rows(channel_id, "items", Item, archived)
 
+    def sounds(self, channel_id, archived=False):
+        return self._rows(channel_id, "sounds", Sound, archived)
+
     def bank(self, channel_id):
-        return {"characters": self.characters(channel_id, True), "locations": self.locations(channel_id, True), "items": self.items(channel_id, True)}
+        return {"characters": self.characters(channel_id, True), "locations": self.locations(channel_id, True), "items": self.items(channel_id, True),
+                "sounds": self.sounds(channel_id, True)}
 
     def _save(self, channel_id, group, model, body):
         from .store import atomic_json, now, Conflict
@@ -297,6 +342,45 @@ class Cast:
 
     def save_location(self, channel_id, body):
         return self._save(channel_id, "locations", Location, body)
+
+    def save_sound(self, channel_id, body):
+        sound = Sound.model_validate(body | {"channel_id": channel_id})
+        if not (self.channel(channel_id) / "media" / sound.file).is_file():
+            raise ValueError("Plik dźwięku nie został wgrany do banku tego kanału")
+        return self._save(channel_id, "sounds", Sound, body)
+
+    def add_audio(self, channel_id, content: bytes, name: str):
+        import subprocess
+        import tempfile
+        if len(content) > MAX_AUDIO:
+            raise ValueError("Plik dźwięku przekracza 80 MB")
+        suffix = Path(name or "").suffix.lower().lstrip(".")
+        if suffix not in AUDIO_TYPES:
+            raise ValueError("Wgraj dźwięk WAV, MP3, OGG, M4A albo FLAC")
+        folder = self.channel(channel_id) / "media"
+        folder.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(dir=folder, suffix="." + suffix, delete=False) as handle:
+            handle.write(content)
+            temporary = Path(handle.name)
+        try:
+            run = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries", "format=duration", "-of", "csv=p=0", str(temporary)],
+                                 capture_output=True, text=True, timeout=60, check=False)
+            duration = float(run.stdout.strip() or 0)
+            if run.returncode or duration <= 0:
+                raise ValueError("Nie udało się odczytać dźwięku")
+            target = folder / (hashlib.sha256(content).hexdigest() + "." + suffix)
+            temporary.replace(target)
+        finally:
+            temporary.unlink(missing_ok=True)
+        return {"file": target.name, "duration": round(duration, 3)}
+
+    def audio_path(self, channel_id, file):
+        if not AUDIO_FILE.fullmatch(file or ""):
+            raise ValueError("Niepoprawny plik dźwięku")
+        path = self.channel(channel_id) / "media" / file
+        if not path.is_file():
+            raise FileNotFoundError(file)
+        return path, AUDIO_TYPES[file.rsplit(".", 1)[1]]
 
     def save_item(self, channel_id, body):
         item = Item.model_validate(body | {"channel_id": channel_id})
@@ -344,11 +428,15 @@ def validate_scene(scene: StageScene, characters: dict[str, Character], location
             raise ValueError(f"Scena {scene.number}: poza nie należy do postaci {character.name}")
         if placed.costume_id:
             costume = items.get(placed.costume_id)
-            if not costume or costume.category != "costume" or (costume.character_ids and character.id not in costume.character_ids):
+            if not costume or getattr(costume, "category", "") != "costume" or (costume.character_ids and character.id not in costume.character_ids):
                 raise ValueError(f"Scena {scene.number}: kostium nie pasuje do postaci {character.name}")
+    for cue in scene.audio:
+        sound = items.get(cue.sound_id)
+        if not sound or getattr(sound, "kind", "") not in ("sfx", "ambience"):
+            raise ValueError(f"Scena {scene.number}: dźwięk nie należy do banku kanału albo jest muzyką (muzykę ustawiasz na zakres scen)")
     for placed in scene.props:
         item = items.get(placed.item_id)
-        if not item or item.category == "costume":
+        if not item or getattr(item, "category", "") in ("", "costume"):
             raise ValueError(f"Scena {scene.number}: rekwizyt nie należy do banku kanału tego filmu")
         if placed.variant_id and placed.variant_id not in {v.id for v in item.variants}:
             raise ValueError(f"Scena {scene.number}: wariant nie należy do rekwizytu {item.name}")
@@ -363,7 +451,7 @@ def channel_bank(cast: Cast, project, *, archived=False):
         raise ValueError("Przypisz film do kanału, aby korzystać z banku postaci i lokacji")
     return ({c.id: c for c in cast.characters(project.channel_id, archived)},
             {loc.id: loc for loc in cast.locations(project.channel_id, archived)},
-            {i.id: i for i in cast.items(project.channel_id, archived)})
+            {i.id: i for i in [*cast.items(project.channel_id, archived), *cast.sounds(project.channel_id, archived)]})
 
 
 def apply_scene_operation(project, operation: dict, characters, locations, items=None):
@@ -372,6 +460,18 @@ def apply_scene_operation(project, operation: dict, characters, locations, items
     scenes = project.stage_scenes
     index = {s.id: i for i, s in enumerate(scenes)}
     beats = {b.id for b in project.beats}
+    if kind == "music_set":
+        cue = MusicCue.model_validate(operation.get("cue", {}))
+        sound = (items or {}).get(cue.sound_id)
+        if not isinstance(sound, Sound) or sound.kind != "music":
+            raise ValueError("Wybierz utwór muzyczny z banku kanału")
+        if cue.from_scene_id not in index or cue.to_scene_id not in index:
+            raise ValueError("Zakres muzyki wskazuje nieistniejącą scenę")
+        project.music_cues = [c for c in project.music_cues if c.id != cue.id] + [cue]
+        return cue
+    if kind == "music_delete":
+        project.music_cues = [c for c in project.music_cues if c.id != operation.get("cue_id")]
+        return None
     if kind == "add":
         values = operation.get("scene", {})
         scene = StageScene.model_validate({k: v for k, v in values.items() if k in SCENE_FIELDS} | {"number": max((s.number for s in scenes), default=0) + 1})
@@ -411,6 +511,8 @@ def apply_scene_operation(project, operation: dict, characters, locations, items
         return scene
     if kind == "delete":
         scenes.pop(index[scene_id])
+        # Music ranges cannot point at a missing scene: drop the ones anchored on it.
+        project.music_cues = [c for c in project.music_cues if scene_id not in (c.from_scene_id, c.to_scene_id)]
         return None
     if kind == "move":
         target = int(operation.get("to", index[scene_id]))
@@ -462,7 +564,8 @@ def parse_regeneration(text: str, scene: StageScene, characters, locations, item
 def bank_summary(characters, locations, items=None):
     return {
         "items": [{"id": i.id, "category": i.category, "name": i.name, "description": i.description, "for_characters": i.character_ids,
-                   "variants": [{"id": v.id, "name": v.name} for v in i.variants]} for i in (items or {}).values()],
+                   "variants": [{"id": v.id, "name": v.name} for v in i.variants]} for i in (items or {}).values() if isinstance(i, Item)],
+        "sounds": [{"id": i.id, "kind": i.kind, "name": i.name, "seconds": i.duration} for i in (items or {}).values() if isinstance(i, Sound) and i.kind != "music"],
         "characters": [{"id": c.id, "name": c.name, "role": c.role, "description": c.description, "poses": [{"id": p.id, "name": p.name, "view": p.view} for p in c.poses]} for c in characters.values()],
         "locations": [{"id": loc.id, "name": loc.name, "description": loc.description, "states": [{"id": s.id, "name": s.name, "time_of_day": s.time_of_day} for s in loc.states]} for loc in locations.values()],
     }

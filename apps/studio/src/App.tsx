@@ -27,6 +27,7 @@ import {
   PersonStanding,
   Video,
   Backpack,
+  AudioLines,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { StudioProvider, useStudio } from "./context";
@@ -123,7 +124,7 @@ function Shell() {
   const content =
     s.page === "projects" ? (
       <Projects onNew={() => setNewOpen(true)} />
-    ) : s.page === "cast" || s.page === "locations" || s.page === "props" ? (
+    ) : s.page === "cast" || s.page === "locations" || s.page === "props" || s.page === "sounds" ? (
       <Suspense fallback={<div className="page-content">Ładowanie banku…</div>}>
         <CastBankView section={s.page} />
       </Suspense>
@@ -268,6 +269,14 @@ function Shell() {
             >
               <Backpack size={18} />
               <span>Rekwizyty i kostiumy</span>
+            </button>
+            <button
+              className={`nav-item ${s.page === "sounds" ? "active" : ""}`}
+              title="Dźwięki i muzyka kanału"
+              onClick={() => navigate("sounds")}
+            >
+              <AudioLines size={18} />
+              <span>Dźwięki i muzyka</span>
             </button>
           </>
         )}
@@ -426,6 +435,7 @@ function Shell() {
                   cast: "Postacie",
                   locations: "Lokacje",
                   props: "Rekwizyty i kostiumy",
+                  sounds: "Dźwięki i muzyka",
                 }[s.page as "sources"]}
             </strong>
           </div>

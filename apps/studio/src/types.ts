@@ -1,4 +1,4 @@
-import type { ProductionMode, StageScene } from "./animationTypes";
+import type { MusicCue, ProductionMode, StageScene } from "./animationTypes";
 import type { MotionInsert } from "./motion/types";
 import type { Development } from "./developmentTypes";
 import type { ResourceLink } from "./workspaceTypes";
@@ -194,6 +194,7 @@ export type Project = {
   film_format: string;
   production_mode: ProductionMode;
   stage_scenes: StageScene[];
+  music_cues?: MusicCue[];
   workspace_snapshot: Record<string, unknown>;
   resource_links: ResourceLink[];
   archived: boolean;

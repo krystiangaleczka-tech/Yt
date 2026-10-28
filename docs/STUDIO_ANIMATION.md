@@ -6,7 +6,7 @@ Stan wdrożenia: 28.10.2026. Plan całości: [PLAN_ANIMACJA_SURVIVAL.md](PLAN_AN
 
 Przełącznik w lewym górnym rogu wybiera tryb: **Dokument**, **Animacja 2D** albo **B-roll**. Tryb zmienia nawigację, listę projektów i domyślne ustawienie nowego filmu. Film należy do jednego trybu; przełączenie na inny tryb zamyka otwarty film innego trybu, a kolejny start aplikacji otwiera film zgodny z wybranym trybem.
 
-- **Animacja 2D:** Pomysł → Research → Scenariusz → **Storyboard i animatik** → **Sceny** → Montaż → Eksport, a w Pracowni **Postacie**, **Lokacje** oraz **Rekwizyty i kostiumy**.
+- **Animacja 2D:** Pomysł → Research → Scenariusz → **Storyboard i animatik** → **Sceny** → Montaż → Eksport, a w Pracowni **Postacie**, **Lokacje**, **Rekwizyty i kostiumy** oraz **Dźwięki i muzyka**.
 - **Dokument** i **B-roll** zachowują dotychczasowy przebieg. B-roll nie ma jeszcze osobnych narzędzi.
 
 Kanał ma własny tryb produkcji (Pracownia → Kanały i kategorie → profil kanału). Nowy film dziedziczy go, chyba że wybierzesz inny w oknie **Nowy film**. Film animowany wymaga kanału.
@@ -37,6 +37,16 @@ Trzeci bank kanału ma trzy rodzaje elementów:
 
 W inspektorze sceny rekwizyt dodajesz z banku, wybierasz wariant, warstwę (za postaciami / przed nimi), wielkość i sposób pojawienia się (od początku, nagle, płynnie — w wybranym momencie sceny). Na kadrze przeciągasz go jak postać. **Przenieś rekwizyty z poprzedniej sceny** kopiuje to, co ma zostać w kadrze (np. pęknięcie). Tablica scen ostrzega, gdy w poprzedniej scenie w tej samej lokacji był rekwizyt, którego teraz brakuje, albo gdy postać zmienia strój. Scena może używać wyłącznie elementów banku kanału filmu.
 
+### Dźwięki i muzyka
+
+Czwarty bank kanału przechowuje pliki dźwiękowe (WAV, MP3, OGG, M4A, FLAC, do 80 MB) z rodzajem, domyślną głośnością i pochodzeniem: licencja, autor, źródło i podpis do opisu filmu (wymagany przy CC BY). Bank nie pobiera dźwięków z internetu — wgrywasz własne nagrania albo pliki z legalnych źródeł, np. CC0.
+
+- **Efekt (SFX)** — w scenie ustawiasz moment (procent długości sceny) i głośność; jeden dźwięk można wstawić kilka razy, np. trzy stuknięcia.
+- **Atmosfera** — gra w pętli przez całą scenę, cicho pod głosem, z krótkim wejściem i wyjściem.
+- **Muzyka** — przypisujesz ją w Storyboardzie do **zakresu scen** (od sceny – do sceny) na ścieżce pod osią animatiku; gra ciągle przez te sceny, z wejściem i wyjściem na krańcach zakresu, i automatycznie cichnie pod dialogiem. Usunięcie sceny będącej początkiem lub końcem zakresu usuwa ten zakres.
+
+Pola tekstowe dźwięku (atmosfera, muzyka, efekty) zostają jako notatki dla AI i dźwiękowca. AI może dodawać do scen efekty i atmosfery z banku; muzykę ustawia reżyser.
+
 ## Storyboard i animatik
 
 Proces jak w studiu animacji: **scenariusz → beaty → sceny (storyboard) → animatik → finał**. Beat to jednostka opowieści (co się zmienia w historii), scena to jednostka obrazu (jedno ujęcie). Jeden beat ma zwykle kilka scen.
@@ -62,7 +72,7 @@ Ruch widać w animatiku i po kliknięciu **Podgląd ruchu** na tablicy scen. AI 
 
 ### Eksport animatiku do MP4
 
-**Eksport MP4** w Storyboardzie renderuje cały animatik jako zadanie w kolejce: 1280×720, 25 kl./s, H.264/AAC, z ruchem kamery i postaci, rekwizytami, pierwszym planem, napisami i głosem Kokoro (gdy jest włączony i dostępny; inaczej bez dźwięku, z napisami w czasie). Scena trwa swoją długość albo dłużej, jeśli kwestie tego wymagają. Plik jest powiązany z rewizją filmu; gdy film zmienił się w międzyczasie, przycisk prosi o ponowne kliknięcie po wczytaniu najnowszej wersji. Na Macu 8 GB: 34 s animatiku (6 scen) ok. 15 s renderu. Renderer składa klatki w Pythonie (`studio_core/animatic.py`) i koduje FFmpeg; presety ruchu odpowiadają podglądowi w przeglądarce.
+**Eksport MP4** w Storyboardzie renderuje cały animatik jako zadanie w kolejce: 1280×720, 25 kl./s, H.264/AAC, z ruchem kamery i postaci, rekwizytami, pierwszym planem, napisami, głosem Kokoro, atmosferami, efektami i muzyką przyciszaną pod dialogiem (gdy jest włączony i dostępny; inaczej bez dźwięku, z napisami w czasie). Scena trwa swoją długość albo dłużej, jeśli kwestie tego wymagają. Plik jest powiązany z rewizją filmu; gdy film zmienił się w międzyczasie, przycisk prosi o ponowne kliknięcie po wczytaniu najnowszej wersji. Na Macu 8 GB: 34 s animatiku (6 scen) ok. 15 s renderu. Renderer składa klatki w Pythonie (`studio_core/animatic.py`) i koduje FFmpeg; presety ruchu odpowiadają podglądowi w przeglądarce.
 
 ### Odświeżanie
 
@@ -95,8 +105,8 @@ Wszystkie operacje na scenach podlegają kontroli rewizji i trwałemu Cofnij/Pon
 
 ## Czego jeszcze nie ma
 
-Animatik działa w przeglądarce, a nie jako render: ruch to proste presety (bez rigu kości i mimiki), brak finalnych głosów postaci, brak dźwięków i muzyki z banku (pola dźwięku są opisem), brak przenoszenia animatiku na oś Montażu, brak mimiki i trzymania rekwizytu w dłoni. Te elementy są kolejnymi etapami planu.
+Animatik działa w przeglądarce, a nie jako render: ruch to proste presety (bez rigu kości i mimiki), brak finalnych głosów postaci, dźwięk w MP4 jest mono 44,1 kHz (animatik, nie finalny miks), brak przenoszenia animatiku na oś Montażu, brak mimiki i trzymania rekwizytu w dłoni. Te elementy są kolejnymi etapami planu.
 
 ## Weryfikacja
 
-`studio_tests/test_animation.py`: dziedziczenie trybu z kanału, wymóg kanału, przezroczystość i izolacja obrazów, konflikt rewizji, izolacja banku między kanałami, przebieg ocen i powrót do „Do oceny” po zmianie, kolejność, cofanie, blokada zmiany kanału oraz walidacja propozycji AI; rekwizyty i kostiumy: izolacja kanału, kostium tylko dla przypisanych postaci, render MP4 sprawdzony ffprobe; głosy robocze: cache po kwestii, różne domyślne głosy, odrzucenie nieznanego głosu; beaty: przypisanie scen do istniejącego beatu, brak zmiany oceny przy przeniesieniu i walidacja scen proponowanych przez Story Director.
+`studio_tests/test_animation.py`: dziedziczenie trybu z kanału, wymóg kanału, przezroczystość i izolacja obrazów, konflikt rewizji, izolacja banku między kanałami, przebieg ocen i powrót do „Do oceny” po zmianie, kolejność, cofanie, blokada zmiany kanału oraz walidacja propozycji AI; rekwizyty i kostiumy: izolacja kanału, kostium tylko dla przypisanych postaci, render MP4 sprawdzony ffprobe; dźwięki: wgrywanie i odrzucanie nie-audio, izolacja kanału, muzyka tylko na zakresy, usuwanie zakresu z usuniętą sceną, niecichy miks; głosy robocze: cache po kwestii, różne domyślne głosy, odrzucenie nieznanego głosu; beaty: przypisanie scen do istniejącego beatu, brak zmiany oceny przy przeniesieniu i walidacja scen proponowanych przez Story Director.

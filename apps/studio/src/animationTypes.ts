@@ -95,10 +95,45 @@ export const propMotionLabels: Record<StageProp["motion"], string> = {
   appear: "Pojawia się nagle",
   fade_in: "Pojawia się płynnie",
 };
+export type SoundKind = "sfx" | "ambience" | "music";
+export const soundKindLabels: Record<SoundKind, string> = {
+  sfx: "Efekt (SFX)",
+  ambience: "Atmosfera",
+  music: "Muzyka",
+};
+export type Sound = {
+  id: string;
+  revision: number;
+  channel_id: string;
+  kind: SoundKind;
+  name: string;
+  file: string;
+  duration: number;
+  volume: number;
+  source_url: string;
+  author: string;
+  license: string;
+  attribution: string;
+  tags: string[];
+  archived: boolean;
+  updated_at: string;
+};
+export type SoundCue = { sound_id: string; at: number; volume: number };
+export type MusicCue = {
+  id: string;
+  sound_id: string;
+  from_scene_id: string;
+  to_scene_id: string;
+  volume: number;
+  offset: number;
+};
+export const castAudio = (channelId: string, file: string) =>
+  `/api/channels/${channelId}/cast-audio/${file}`;
 export type CastBank = {
   characters: Character[];
   locations: Location[];
   items?: Item[];
+  sounds?: Sound[];
 };
 export type StageCharacter = {
   character_id: string;
@@ -161,6 +196,7 @@ export type StageScene = {
   camera: string;
   dialogue: DialogueLine[];
   sound: { ambience: string; music: string; sfx: string[] };
+  audio?: SoundCue[];
   motion?: { camera: CameraMove; strength: number };
   seconds: number;
   status: SceneStatus;

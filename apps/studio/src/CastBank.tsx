@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Archive,
+  AudioLines,
   Backpack,
   ImagePlus,
   MapPinned,
@@ -13,13 +14,15 @@ import {
 import { useStudio } from "./context";
 import { api, upload } from "./api";
 import { Button, Empty, Field, IconButton, SectionHead } from "./components";
-import { castImage, itemCategoryLabels, viewLabels } from "./animationTypes";
+import { castAudio, castImage, itemCategoryLabels, soundKindLabels, viewLabels } from "./animationTypes";
 import type {
   CastBank as Bank,
   CastImage,
   Character,
   Item,
   ItemCategory,
+  Sound,
+  SoundKind,
   Location,
   LocationState,
   Pose,
@@ -103,7 +106,7 @@ export function useCastChannel() {
 export default function CastBankView({
   section,
 }: {
-  section: "cast" | "locations" | "props";
+  section: "cast" | "locations" | "props" | "sounds";
 }) {
   const s = useStudio();
   const { channels, channelId, choose } = useCastChannel();
@@ -119,18 +122,39 @@ export default function CastBankView({
   }, [channelId]);
   const characters = section === "cast";
   const props = section === "props";
-  const [category, setCategory] = useState<ItemCategory | "">("");
+  const sounds = section === "sounds";
+  const [category, setCategory] = useState("");
   const rows = (
-    (characters ? bank.characters : props ? bank.items || [] : bank.locations) as (
-      | Character
-      | Location
-      | Item
-    )[]
+    (characters
+      ? bank.characters
+      : props
+        ? bank.items || []
+        : sounds
+          ? bank.sounds || []
+          : bank.locations) as (Character | Location | Item | Sound)[]
   ).filter(
     (r) =>
       (archived || !r.archived) &&
-      (!props || !category || (r as Item).category === category),
+      (!category ||
+        (props && (r as Item).category === category) ||
+        (sounds && (r as Sound).kind === category)),
   );
+  if (sounds)
+    return (
+      <SoundBank
+        channels={channels}
+        channelId={channelId}
+        choose={choose}
+        rows={rows as Sound[]}
+        category={category}
+        setCategory={setCategory}
+        archived={archived}
+        setArchived={setArchived}
+        selected={selected}
+        setSelected={setSelected}
+        reload={reload}
+      />
+    );
   const current = rows.find((r) => r.id === selected) || null;
   const channelName = channels.find((c) => c.id === channelId)?.name || "";
   return (
@@ -150,7 +174,7 @@ export default function CastBankView({
           <select
             aria-label="Rodzaj"
             value={category}
-            onChange={(e) => setCategory(e.target.value as ItemCategory | "")}
+            onChange={(e) => setCategory(e.target.value)}
           >
             <option value="">Wszystkie rodzaje</option>
             {Object.entries(itemCategoryLabels).map(([k, v]) => (
@@ -886,6 +910,222 @@ function ItemEditor({
         save={() => persist(item)}
         archive={() => persist({ ...item, archived: !item.archived })}
       />
+    </div>
+  );
+}
+
+const blankSound = (channel_id: string): Sound => ({
+  id: "",
+  revision: 0,
+  channel_id,
+  kind: "sfx",
+  name: "Nowy dźwięk",
+  file: "",
+  duration: 0,
+  volume: 1,
+  source_url: "",
+  author: "",
+  license: "",
+  attribution: "",
+  tags: [],
+  archived: false,
+  updated_at: "",
+});
+
+function SoundBank({
+  channels,
+  channelId,
+  choose,
+  rows,
+  category,
+  setCategory,
+  archived,
+  setArchived,
+  selected,
+  setSelected,
+  reload,
+}: {
+  channels: { id: string; name: string }[];
+  channelId: string;
+  choose: (id: string) => void;
+  rows: Sound[];
+  category: string;
+  setCategory: (v: string) => void;
+  archived: boolean;
+  setArchived: (v: boolean) => void;
+  selected: string;
+  setSelected: (v: string) => void;
+  reload: () => Promise<void>;
+}) {
+  const current = rows.find((r) => r.id === selected) || null;
+  const channelName = channels.find((c) => c.id === channelId)?.name || "";
+  return (
+    <div className="page-content cast-page">
+      <SectionHead
+        eyebrow={`Pracownia · bank kanału${channelName ? " " + channelName : ""}`}
+        title="Dźwięki i muzyka"
+        description="Efekty, atmosfery miejsc i utwory z licencjami. Efekty i atmosfery przypisujesz do scen, muzykę do zakresu scen w Storyboardzie."
+      >
+        <select aria-label="Rodzaj" value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option value="">Wszystkie rodzaje</option>
+          {Object.entries(soundKindLabels).map(([k, v]) => (
+            <option key={k} value={k}>
+              {v}
+            </option>
+          ))}
+        </select>
+        <select aria-label="Kanał banku" value={channelId} onChange={(e) => choose(e.target.value)}>
+          {channels.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <Button primary icon={Plus} disabled={!channelId} onClick={() => setSelected("new")}>
+          Nowy dźwięk
+        </Button>
+      </SectionHead>
+      <div className="cast-layout">
+        <div className="cast-list">
+          {rows.length === 0 && (
+            <p className="muted small">
+              Brak dźwięków. Wgraj efekt, atmosferę albo utwór i zapisz jego licencję (np. CC0 z Freesound albo własne nagranie).
+            </p>
+          )}
+          {rows.map((r) => (
+            <button
+              key={r.id}
+              className={`cast-card ${selected === r.id ? "active" : ""} ${r.archived ? "archived" : ""}`}
+              onClick={() => setSelected(r.id)}
+            >
+              <span className="cast-thumb">
+                <AudioLines size={24} />
+              </span>
+              <strong>{r.name}</strong>
+              <span className="muted small">
+                {soundKindLabels[r.kind]} · {r.duration.toFixed(1)} s{r.license ? ` · ${r.license}` : " · brak licencji"}
+              </span>
+            </button>
+          ))}
+          <label className="checkbox small">
+            <input type="checkbox" checked={archived} onChange={(e) => setArchived(e.target.checked)} />
+            Pokaż archiwalne
+          </label>
+        </div>
+        <div className="cast-editor">
+          {selected === "new" || current ? (
+            <SoundEditor
+              key={selected + (current?.revision || 0)}
+              channelId={channelId}
+              value={current || blankSound(channelId)}
+              saved={async (x) => {
+                await reload();
+                setSelected(x.id);
+              }}
+            />
+          ) : (
+            <Empty icon={AudioLines} title="Wybierz dźwięk" children="Kliknij kartę po lewej albo dodaj nowy dźwięk." />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SoundEditor({
+  channelId,
+  value,
+  saved,
+}: {
+  channelId: string;
+  value: Sound;
+  saved: (x: Sound) => Promise<void>;
+}) {
+  const s = useStudio();
+  const [x, setX] = useState(value);
+  const [busy, setBusy] = useState(false);
+  const dirty = useMemo(() => JSON.stringify(x) !== JSON.stringify(value) || !value.id, [x, value]);
+  const set = (patch: Partial<Sound>) => setX((v) => ({ ...v, ...patch }));
+  async function addFile(file: File) {
+    setBusy(true);
+    try {
+      const result = await upload<{ file: string; duration: number }>(`/channels/${channelId}/cast-audio`, file);
+      set({ ...result, name: x.name === "Nowy dźwięk" ? label(file) : x.name });
+    } finally {
+      setBusy(false);
+    }
+  }
+  function persist(next: Sound) {
+    s.run(async () => {
+      const result = await api<Sound>(`/channels/${channelId}/sounds`, withoutBlankId(next));
+      s.notify(`Zapisano dźwięk ${result.name}`);
+      await saved(result);
+    });
+  }
+  return (
+    <div className="cast-form">
+      <div className="two-fields">
+        <Field label="Nazwa">
+          <input value={x.name} onChange={(e) => set({ name: e.target.value })} />
+        </Field>
+        <Field label="Rodzaj">
+          <select value={x.kind} onChange={(e) => set({ kind: e.target.value as SoundKind })}>
+            {Object.entries(soundKindLabels).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      {x.file ? (
+        <div className="sound-preview">
+          <audio controls src={castAudio(channelId, x.file)} preload="none" />
+          <span className="muted small">{x.duration.toFixed(1)} s</span>
+        </div>
+      ) : null}
+      <label className="cast-drop">
+        <AudioLines size={20} />
+        <span>{busy ? "Wgrywanie…" : x.file ? "Podmień plik (WAV, MP3, OGG, M4A, FLAC)" : "Wgraj plik dźwięku (WAV, MP3, OGG, M4A, FLAC)"}</span>
+        <input
+          type="file"
+          accept="audio/*,.wav,.mp3,.ogg,.m4a,.flac"
+          className="visually-hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) s.run(() => addFile(file));
+          }}
+        />
+      </label>
+      <Field label={`Głośność domyślna: ${Math.round(x.volume * 100)}%`}>
+        <input type="range" min={0} max={2} step={0.05} value={x.volume} onChange={(e) => set({ volume: Number(e.target.value) })} />
+      </Field>
+      <fieldset className="cast-fieldset">
+        <legend>Licencja i pochodzenie</legend>
+        <div className="two-fields">
+          <Field label="Licencja">
+            <input value={x.license} placeholder="CC0, CC BY 4.0, własne nagranie…" onChange={(e) => set({ license: e.target.value })} />
+          </Field>
+          <Field label="Autor">
+            <input value={x.author} onChange={(e) => set({ author: e.target.value })} />
+          </Field>
+        </div>
+        <Field label="Źródło (URL)">
+          <input value={x.source_url} onChange={(e) => set({ source_url: e.target.value })} />
+        </Field>
+        <Field label="Podpis do opisu filmu" hint="Wymagany przy CC BY — trafi do atrybucji.">
+          <input value={x.attribution} onChange={(e) => set({ attribution: e.target.value })} />
+        </Field>
+      </fieldset>
+      <div className="cast-savebar">
+        <span className="muted small">{dirty ? "Niezapisane zmiany" : "Zapisano w banku kanału"}</span>
+        <Button icon={Archive} subtle onClick={() => persist({ ...x, archived: !x.archived })} disabled={!x.file}>
+          {x.archived ? "Przywróć" : "Archiwizuj"}
+        </Button>
+        <Button primary icon={Save} disabled={!dirty || !x.file} onClick={() => persist(x)}>
+          Zapisz
+        </Button>
+      </div>
     </div>
   );
 }

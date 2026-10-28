@@ -49,6 +49,20 @@ def register_animation(app, store, connectors, jobs):
     def save_item(cid: str, body: dict):
         return cast.save_item(cid, body)
 
+    @app.post('/api/channels/{cid}/sounds')
+    def save_sound(cid: str, body: dict):
+        return cast.save_sound(cid, body)
+
+    @app.post('/api/channels/{cid}/cast-audio')
+    async def add_audio(cid: str, file: UploadFile):
+        cast.channel(cid)
+        return cast.add_audio(cid, await file.read(80 * 1024 * 1024 + 1), file.filename or '')
+
+    @app.get('/api/channels/{cid}/cast-audio/{name}')
+    def audio(cid: str, name: str):
+        path, mime = cast.audio_path(cid, name)
+        return FileResponse(path, media_type=mime, headers={'Cache-Control': 'private, max-age=31536000, immutable'})
+
     @app.post('/api/channels/{cid}/cast-media')
     async def add_image(cid: str, file: UploadFile):
         cast.channel(cid)

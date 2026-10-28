@@ -283,7 +283,7 @@ Trzeci przyrost (28.10.2026): głosy robocze Kokoro, ruch kamery i postaci, pier
 
 ### Czego jeszcze brakuje (przegląd z 28.10.2026, w kolejności wartości)
 
-1. **Dźwięk:** bank SFX, ambientów i muzyki z licencjami; przypisanie do scen i grup scen; słyszalne w animatiku i MP4. Teraz pola dźwięku są tylko opisem.
+1. ~~**Dźwięk**~~ — zrobione 28.10.2026: bank SFX/atmosfer/muzyki z licencjami, efekty i atmosfery w scenach, muzyka na zakresy scen z przyciszaniem pod dialogiem, w animatiku i MP4. Zostaje: wyszukiwarka CC0 (np. Freesound, wymaga klucza API), stereo i finalny miks.
 2. **Ciągłość stanu świata:** dzień/godzina, zasoby (woda), rany i wiedza postaci liczone automatycznie (rozdz. 6.2). Dziś ostrzeżenia obejmują tylko rekwizyty i stroje między sąsiednimi scenami.
 3. **Generowanie grafik w aplikacji:** adapter API do wybranego modelu (po teście), karta postaci → pozy w tym samym stylu, stany lokacji z jednej bazy.
 4. **Mimika i usta przy kwestiach:** zestaw twarzy na postać i zmiana podczas mówienia; rekwizyt „w dłoni”.

@@ -8,7 +8,7 @@ from .models_base import Model, uid
 from .inserts import MotionInsert
 from .development import Development, migrate_ideas
 from .workspace_models import ResourceLink
-from .animation import StageScene, ProductionMode
+from .animation import StageScene, ProductionMode, MusicCue
 
 
 class Fact(Model):
@@ -240,6 +240,7 @@ class Project(Model):
     film_format: str = ""
     production_mode: ProductionMode = "documentary"
     stage_scenes: list[StageScene] = Field(default_factory=list, max_length=2000)
+    music_cues: list[MusicCue] = Field(default_factory=list, max_length=500)
     workspace_snapshot: dict[str, Any] = Field(default_factory=dict)
     resource_links: list[ResourceLink] = Field(default_factory=list)
     archived: bool = False

@@ -3,6 +3,7 @@ import {
   Clipboard,
   ExternalLink,
   Film,
+  Music2,
   Mic,
   MicOff,
   Pause,
@@ -18,8 +19,8 @@ import { useStudio } from "./context";
 import { api } from "./api";
 import { Button, CommitText, Empty, IconButton } from "./components";
 import { Stage } from "./SceneBoard";
-import { statusLabels } from "./animationTypes";
-import type { CastBank, StageScene } from "./animationTypes";
+import { castAudio, statusLabels } from "./animationTypes";
+import type { CastBank, MusicCue, StageScene } from "./animationTypes";
 import type { Beat, Project } from "./types";
 
 type Breakdown = { beat_id: string; scenes: Partial<StageScene>[]; reason: string };
@@ -155,12 +156,36 @@ export default function Storyboard() {
     const audio = new Audio();
     const captions: ReturnType<typeof setTimeout>[] = [];
     const live = () => token.current === mine;
+    // Ambience loops and effects of this scene start together with its clock.
+    const sounds: HTMLAudioElement[] = [];
+    const sfxTimers: ReturnType<typeof setTimeout>[] = [];
+    const startSounds = () => {
+      for (const cue of current.audio || []) {
+        const sound = bank.sounds?.find((x) => x.id === cue.sound_id);
+        if (!sound) continue;
+        const make = () => {
+          const a = new Audio(castAudio(sound.channel_id, sound.file));
+          a.volume = Math.min(1, cue.volume * sound.volume * (sound.kind === "ambience" ? 0.35 : 1));
+          sounds.push(a);
+          return a;
+        };
+        if (sound.kind === "ambience") {
+          const a = make();
+          a.loop = true;
+          void a.play().catch(() => undefined);
+        } else
+          sfxTimers.push(
+            setTimeout(() => live() && void make().play().catch(() => undefined), cue.at * current.seconds * 1000),
+          );
+      }
+    };
     const advance = () => {
       if (!live() || !timeDone || !speechDone) return;
       if (index >= ordered.length - 1) setPlaying(false);
       else setIndex(index + 1);
     };
     const startClock = () => {
+      startSounds();
       timer = setTimeout(() => {
         timeDone = true;
         advance();
@@ -184,7 +209,11 @@ export default function Storyboard() {
             }
             setLineIndex(current.dialogue.findIndex((d) => d.id === rows[i].line_id));
             audio.src = rows[i].url;
-            audio.onended = () => play(i + 1);
+            audio.onplay = () => duck(true);
+            audio.onended = () => {
+              duck(false);
+              play(i + 1);
+            };
             audio.play().catch(() => play(i + 1));
           };
           play(0);
@@ -204,9 +233,14 @@ export default function Storyboard() {
         const voice = voices.browserVoice(line.speaker);
         if (voice) u.voice = voice;
         u.rate = rate;
-        u.onstart = () => live() && setLineIndex(current.dialogue.indexOf(line));
+        u.onstart = () => {
+          if (!live()) return;
+          duck(true);
+          setLineIndex(current.dialogue.indexOf(line));
+        };
         if (i === lines.length - 1)
           u.onend = u.onerror = () => {
+            duck(false);
             speechDone = true;
             advance();
           };
@@ -226,12 +260,52 @@ export default function Storyboard() {
     return () => {
       clearTimeout(timer);
       captions.forEach(clearTimeout);
+      sfxTimers.forEach(clearTimeout);
+      sounds.forEach((a) => a.pause());
+      duck(false);
       audio.pause();
       audio.removeAttribute("src");
       setPreparing(false);
       if ("speechSynthesis" in window) speechSynthesis.cancel();
     };
   }, [playing, index, current?.id, speak]);
+  // Music spans a range of scenes and keeps playing across scene changes.
+  const music = useRef<{ cue: string; audio: HTMLAudioElement; base: number } | null>(null);
+  const cueRange = (cue: MusicCue) => {
+    const a = ordered.findIndex((x) => x.id === cue.from_scene_id);
+    const b = ordered.findIndex((x) => x.id === cue.to_scene_id);
+    return a < 0 || b < 0 ? null : ([Math.min(a, b), Math.max(a, b)] as const);
+  };
+  function duck(speaking: boolean) {
+    if (music.current) music.current.audio.volume = music.current.base * (speaking ? 0.35 : 1);
+  }
+  useEffect(() => {
+    const active = playing
+      ? (p.music_cues || []).find((cue) => {
+          const range = cueRange(cue);
+          return range && range[0] <= index && index <= range[1];
+        })
+      : undefined;
+    const sound = active && bank.sounds?.find((x) => x.id === active.sound_id);
+    if (music.current && (!active || music.current.cue !== active.id)) {
+      music.current.audio.pause();
+      music.current = null;
+    }
+    if (active && sound && !music.current) {
+      const range = cueRange(active)!;
+      const into = ordered.slice(range[0], index).reduce((sum, x) => sum + x.seconds, 0) + active.offset;
+      const a = new Audio(castAudio(sound.channel_id, sound.file));
+      a.loop = true;
+      const base = Math.min(1, active.volume * sound.volume);
+      a.volume = base;
+      a.currentTime = sound.duration ? into % sound.duration : 0;
+      void a.play().catch(() => undefined);
+      music.current = { cue: active.id, audio: a, base };
+    }
+  }, [playing, index, p.music_cues, bank.sounds]);
+  useEffect(() => () => music.current?.audio.pause(), []);
+  const [musicEdit, setMusicEdit] = useState<MusicCue | null>(null);
+  const tracks = (bank.sounds || []).filter((x) => x.kind === "music" && !x.archived);
   function prepareAll() {
     s.run(async () => {
       const spoken = ordered.filter((x) => x.dialogue.some((d) => d.text.trim()));
@@ -392,6 +466,120 @@ export default function Storyboard() {
             </button>
           ))}
         </div>
+        <div className="music-lane" aria-label="Muzyka">
+          {(p.music_cues || []).map((cue) => {
+            const range = cueRange(cue);
+            if (!range || !total) return null;
+            const before = ordered.slice(0, range[0]).reduce((sum, x) => sum + x.seconds, 0);
+            const span = ordered.slice(range[0], range[1] + 1).reduce((sum, x) => sum + x.seconds, 0);
+            const sound = bank.sounds?.find((x) => x.id === cue.sound_id);
+            return (
+              <button
+                key={cue.id}
+                className="music-block"
+                style={{ left: `${(before / total) * 100}%`, width: `${(span / total) * 100}%` }}
+                title={`Muzyka: ${sound?.name || "?"} — sceny ${ordered[range[0]].number}–${ordered[range[1]].number}`}
+                onClick={() => setMusicEdit(cue)}
+              >
+                <Music2 size={12} /> {sound?.name || "?"}
+              </button>
+            );
+          })}
+          <button
+            className="music-add"
+            disabled={!tracks.length || !ordered.length}
+            title={tracks.length ? "Dodaj muzykę na zakres scen" : "Dodaj utwór w banku Dźwięki i muzyka"}
+            onClick={() =>
+              setMusicEdit({
+                id: "music_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16),
+                sound_id: tracks[0].id,
+                from_scene_id: (current || ordered[0]).id,
+                to_scene_id: ordered[ordered.length - 1].id,
+                volume: 0.35,
+                offset: 0,
+              })
+            }
+          >
+            <Plus size={12} /> Muzyka
+          </button>
+        </div>
+        {musicEdit && (
+          <div className="music-editor">
+            <select
+              aria-label="Utwór"
+              value={musicEdit.sound_id}
+              onChange={(e) => setMusicEdit({ ...musicEdit, sound_id: e.target.value })}
+            >
+              {tracks.map((x) => (
+                <option key={x.id} value={x.id}>
+                  {x.name}
+                </option>
+              ))}
+            </select>
+            <label className="small muted">
+              od sceny
+              <select
+                value={musicEdit.from_scene_id}
+                onChange={(e) => setMusicEdit({ ...musicEdit, from_scene_id: e.target.value })}
+              >
+                {ordered.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.number} · {x.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="small muted">
+              do sceny
+              <select
+                value={musicEdit.to_scene_id}
+                onChange={(e) => setMusicEdit({ ...musicEdit, to_scene_id: e.target.value })}
+              >
+                {ordered.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.number} · {x.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="small muted">
+              głośność {Math.round(musicEdit.volume * 100)}%
+              <input
+                type="range"
+                min={0.05}
+                max={1}
+                step={0.05}
+                value={musicEdit.volume}
+                onChange={(e) => setMusicEdit({ ...musicEdit, volume: Number(e.target.value) })}
+              />
+            </label>
+            <Button
+              primary
+              onClick={() =>
+                s.run(async () => {
+                  await sceneOps([{ type: "music_set", cue: musicEdit }]);
+                  setMusicEdit(null);
+                })
+              }
+            >
+              Zapisz muzykę
+            </Button>
+            {(p.music_cues || []).some((c) => c.id === musicEdit.id) && (
+              <Button
+                icon={Trash2}
+                onClick={() =>
+                  s.run(async () => {
+                    await sceneOps([{ type: "music_delete", cue_id: musicEdit.id }]);
+                    setMusicEdit(null);
+                  })
+                }
+              >
+                Usuń
+              </Button>
+            )}
+            <IconButton icon={X} label="Zamknij" onClick={() => setMusicEdit(null)} />
+          </div>
+        )}
         {exportJob?.status === "SUCCEEDED" && exportJob.result && (
           <div className="animatic-export">
             <span className="small">

@@ -15,7 +15,8 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 FONT = Path(__file__).resolve().parents[1] / "pilot/fonts/Montserrat.ttf"
-RATE = 24000
+RATE = 44100
+DUCK = .35  # music level under dialogue
 GAP = .15  # seconds between spoken lines, as in the player
 
 
@@ -35,17 +36,94 @@ def ease_out(t):
     return 1 - (1 - t) ** 2
 
 
-def read_wav(path: Path) -> np.ndarray:
-    with wave.open(str(path)) as w:
-        if w.getsampwidth() != 2:
-            raise ValueError("Nieobsługiwany format głosu roboczego")
-        data = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768
-        if w.getnchannels() > 1:
-            data = data.reshape(-1, w.getnchannels()).mean(axis=1)
-        if w.getframerate() != RATE:
-            positions = np.linspace(0, len(data) - 1, int(len(data) * RATE / w.getframerate()))
-            data = np.interp(positions, np.arange(len(data)), data).astype(np.float32)
-    return data
+def decode(path: Path) -> np.ndarray:
+    """Any audio file -> mono float32 at RATE (FFmpeg handles format and resampling)."""
+    run = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-f", "f32le", "-ac", "1", "-ar", str(RATE), "-"],
+                         capture_output=True, timeout=300, check=False)
+    if run.returncode:
+        raise ValueError(f"Nie udało się odczytać dźwięku {path.name}")
+    return np.frombuffer(run.stdout, dtype=np.float32).copy()
+
+
+def moving_average(signal: np.ndarray, width: int) -> np.ndarray:
+    total = np.concatenate([[0], np.cumsum(signal, dtype=np.float64)])
+    half = width // 2
+    lo = np.clip(np.arange(len(signal)) - half, 0, len(signal))
+    hi = np.clip(np.arange(len(signal)) + half + 1, 0, len(signal))
+    return ((total[hi] - total[lo]) / np.maximum(1, hi - lo)).astype(np.float32)
+
+
+def fades(length: int, fade_in: float, fade_out: float) -> np.ndarray:
+    gain = np.ones(length, dtype=np.float32)
+    a, b = min(length, int(fade_in * RATE)), min(length, int(fade_out * RATE))
+    if a:
+        gain[:a] *= np.linspace(0, 1, a, dtype=np.float32)
+    if b:
+        gain[length - b:] *= np.linspace(1, 0, b, dtype=np.float32)
+    return gain
+
+
+class Mixer:
+    """Builds the soundtrack scene by scene so long films never hold the whole mix in memory."""
+
+    def __init__(self, project, timeline, sounds, audio_path):
+        self.sounds, self.audio_path, self.cache = sounds, audio_path, {}
+        index = {item["scene"].id: i for i, item in enumerate(timeline)}
+        self.music = []
+        for cue in project.music_cues:
+            sound = sounds.get(cue.sound_id)
+            if not sound or cue.from_scene_id not in index or cue.to_scene_id not in index:
+                continue
+            first, last = sorted((index[cue.from_scene_id], index[cue.to_scene_id]))
+            begin = timeline[first]["start"]
+            end = timeline[last]["start"] + timeline[last]["duration"]
+            self.music.append((cue, sound, begin, end))
+
+    def data(self, sound):
+        if sound.file not in self.cache:
+            self.cache[sound.file] = decode(self.audio_path(sound.file))
+        return self.cache[sound.file]
+
+    @staticmethod
+    def loop(data, start, length):
+        if not len(data):
+            return np.zeros(length, dtype=np.float32)
+        return data[(np.arange(length) + start) % len(data)]
+
+    def scene(self, item):
+        n = max(1, round(item["duration"] * RATE))
+        voice = np.zeros(n, dtype=np.float32)
+        for line in item["lines"]:
+            if line["audio"]:
+                data = decode(Path(line["audio"]))
+                at = int(line["start"] * RATE)
+                voice[at:at + len(data)] += data[:max(0, n - at)]
+        effects = np.zeros(n, dtype=np.float32)
+        for cue in item["scene"].audio:
+            sound = self.sounds.get(cue.sound_id)
+            if not sound:
+                continue
+            data, gain = self.data(sound), cue.volume * sound.volume
+            if sound.kind == "ambience":
+                effects += self.loop(data, 0, n) * fades(n, .3, .3) * gain * .35
+            else:
+                at = int(cue.at * item["duration"] * RATE)
+                effects[at:at + len(data)] += data[:max(0, n - at)] * gain
+        music = np.zeros(n, dtype=np.float32)
+        scene_start, scene_end = item["start"], item["start"] + item["duration"]
+        for cue, sound, begin, end in self.music:
+            if end <= scene_start or begin >= scene_end:
+                continue
+            offset = int((scene_start - begin + cue.offset) * RATE)
+            track = self.loop(self.data(sound), offset, n)
+            # Fades at the start and end of the whole range, not every scene.
+            t = scene_start + np.arange(n, dtype=np.float32) / RATE
+            ramp = np.clip((t - begin) / 1.0, 0, 1) * np.clip((end - t) / 1.5, 0, 1)
+            music += track * ramp * cue.volume * sound.volume
+        if music.any():
+            speech = moving_average((np.abs(voice) > .01).astype(np.float32), int(.35 * RATE))
+            music *= 1 - (1 - DUCK) * np.clip(speech * 3, 0, 1)
+        return np.clip(voice + effects + music, -1, 1)
 
 
 class Images:
@@ -247,19 +325,23 @@ def render_animatic(project, bank, images, drafts_for, output: Path, progress, c
         raise ValueError("Animatik nie ma scen")
     total = sum(item["duration"] for item in timeline)
     speakers = speakers or {}
-    audio = np.zeros(int(total * RATE) + RATE, dtype=np.float32)
-    for item in timeline:
-        for line in item["lines"]:
-            if line["audio"]:
-                data = read_wav(Path(line["audio"]))
-                at = int((item["start"] + line["start"]) * RATE)
-                audio[at:at + len(data)] += data[:len(audio) - at]
+    sounds = {k: v for k, v in bank[2].items() if hasattr(v, "kind")}
+    mixer = Mixer(project, timeline, sounds, lambda file: images.cast.audio_path(images.channel_id, file)[0])
     audio_path = output.with_suffix(".wav")
     with wave.open(str(audio_path), "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
         w.setframerate(RATE)
-        w.writeframes((np.clip(audio[:int(total * RATE)], -1, 1) * 32767).astype(np.int16).tobytes())
+        written = 0
+        for item in timeline:
+            if cancel.is_set():
+                raise InterruptedError()
+            chunk = mixer.scene(item)
+            # Keep scene boundaries on the same sample grid as the video frames.
+            want = round((item["start"] + item["duration"]) * RATE) - written
+            chunk = np.pad(chunk, (0, max(0, want - len(chunk))))[:want]
+            w.writeframes((chunk * 32767).astype(np.int16).tobytes())
+            written += want
     width, height = size
     command = ["ffmpeg", "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{width}x{height}", "-r", str(fps), "-i", "-",
                "-i", str(audio_path), "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
