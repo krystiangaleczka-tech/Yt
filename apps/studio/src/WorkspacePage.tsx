@@ -303,12 +303,21 @@ function ResourceEditor({
             .filter(Boolean),
         }),
       )}
-      {textField(
-        "Kontekst i ograniczenia użycia",
-        r.context,
-        (v) => set({ context: v }),
-        3,
-      )}
+      <Field
+        label="Kontekst i ograniczenia użycia"
+        hint={
+          kind === "idea"
+            ? "Opcjonalna notatka: skąd pochodzi pomysł, jakie podejście proponujesz i co trzeba sprawdzić. Np. „Relacja autora; potwierdzić rozdział i szczegóły w książce”. To opis wpisu w poczekalni; nie ustawia automatycznie zasad dla AI ani notatek filmu."
+            : "Opisz, kiedy i do czego można wykorzystać ten zasób oraz co wymaga ponownego sprawdzenia. Ta notatka opisuje wpis w banku; nie jest automatyczną blokadą użycia."
+        }
+      >
+        <textarea
+          rows={3}
+          maxLength={4000}
+          value={r.context}
+          onChange={(e) => set({ context: e.target.value })}
+        />
+      </Field>
       {kind === "note" &&
         textField(
           "Treść notatki — nie jest potwierdzonym faktem",

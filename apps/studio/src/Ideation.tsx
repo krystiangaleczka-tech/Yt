@@ -1564,13 +1564,6 @@ function StoryTable({
             {stories.map((item, index) => {
               const isChosen = selectedId === item.id;
               const fc = forecasts[item.id];
-              const scoreKeys = Object.keys(item.scores) as (keyof Scores)[];
-              const avgScore = scoreKeys.length
-                ? Math.round(
-                    scoreKeys.reduce((acc, k) => acc + item.scores[k], 0) /
-                      scoreKeys.length,
-                  )
-                : 0;
               return (
                 <tr key={item.id} className={isChosen ? "row-chosen" : ""}>
                   <td>
@@ -1607,7 +1600,12 @@ function StoryTable({
                     </div>
                   </td>
                   <td>
-                    <span className="badge">{avgScore}/100</span>
+                    <span className="badge">
+                      Redakcja {fc?.editorial_score ?? "—"}/100
+                    </span>
+                    <div className="small muted" style={{ marginTop: 2 }}>
+                      Evergreen {item.scores.evergreen}/100
+                    </div>
                     {item.evergreen_reason && (
                       <div className="small muted" style={{ marginTop: 2 }}>
                         {item.evergreen_reason}

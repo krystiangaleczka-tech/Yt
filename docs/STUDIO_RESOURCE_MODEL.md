@@ -1,6 +1,6 @@
 # Zasoby pracowni, kategorie, szablony i pojedynczy film
 
-Status: propozycja architektury produktu, 27.10.2026. Dokument opisuje planowane zachowanie; nie jest raportem wdrożenia.
+Status: projekt architektury z 27.10.2026, zaktualizowany 28.10.2026. Podział pracowni i filmu, kategorie, wersjonowane banki oraz jawny import zostały wdrożone. Dokument zachowuje również szersze założenia produktu; aktualny zakres, obsługę i ograniczenia opisuje [STUDIO_WORKSPACE.md](STUDIO_WORKSPACE.md).
 
 ## Główna zasada
 
@@ -95,7 +95,7 @@ Historia tematów i publikacji działa przekrojowo: przy nowym pomyśle pokazuje
 
 Wyszukiwarka źródeł może pracować w obu kontekstach. Wynik ma jawny cel: **Dodaj do tego filmu** albo **Zapisz w banku**. AI domyślnie korzysta z wiedzy dodanej do filmu; szersze przeszukiwanie banku jest wybieraną operacją, a znalezione propozycje czekają na przyjęcie.
 
-## Dopasowanie do obecnego kodu
+## Stan kodu przed wdrożeniem banków (27.10.2026)
 
 - `Project` zawiera obecnie fakty, źródła, media, warsztat pomysłów i dane odniesienia. Biblioteka w UI filtruje `project.assets`, więc jest biblioteką danego filmu.
 - `ProjectService.channels()` i `save_channel()` zapisują wspólne profile. `project.channel_profile` jest migawką, co pasuje do proponowanego modelu.
@@ -107,7 +107,7 @@ Wyszukiwarka źródeł może pracować w obu kontekstach. Wynik ma jawny cel: **
 
 Docelowo potrzebujemy osobnych rekordów kategorii, wersjonowanych wpisów banku i wersjonowanych szablonów. Projekt zachowuje lokalne ID oraz pochodzenie: identyfikator wpisu, numer wersji i datę dodania. Pliki można deduplikować po sumie kontrolnej; metadane źródła i kontekst użycia pozostają rozdzielone.
 
-## Kolejność wdrażania
+## Przyjęta kolejność wdrażania
 
 1. Wprowadzić kanały/kategorie i rozdzielenie nawigacji pracowni od otwartego filmu. Rozbudować Nowy film, zachowując pustą treść jako domyślne zachowanie.
 2. Wdrożyć bank źródeł i faktów, jawne udostępnianie z filmu oraz import zestawu fakt–źródło–plik z przeglądem zastosowania.
@@ -117,7 +117,7 @@ Docelowo potrzebujemy osobnych rekordów kategorii, wersjonowanych wpisów banku
 
 Migracja zachowuje wszystkie obecne dane w ich filmach. Nie publikuje automatycznie dotychczasowych źródeł, mediów ani faktów do banku. Autor może później udostępnić wybrane wpisy.
 
-## Kryteria odbioru przyszłego wdrożenia
+## Kryteria odbioru
 
 - Nowy film zawiera wyłącznie świadomie wybrane ustawienia/szablon; nie dziedziczy faktów, scenariusza ani montażu otwartego wcześniej projektu.
 - Bez importu z banku można przejść cały proces produkcji.

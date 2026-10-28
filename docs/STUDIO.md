@@ -28,6 +28,8 @@ Wagi modeli pobierają się przy pierwszym użyciu. Pliki lock dla serwera, obra
 
 ## Praca nad filmem
 
+**Pracownia** przechowuje wspólne banki, szablony, kanały, kategorie i poczekalnię pomysłów. **Nowy film** tworzy osobny projekt z wybranymi ustawieniami; źródła, fakty i media dobierasz jawnie. Aktualizacja banku nie przepisuje istniejących filmów. [Obsługa banków i zakres wdrożenia](STUDIO_WORKSPACE.md).
+
 1. **Pomysł** — brief i kafelki tematów własnych/AI; w każdym temacie kilka wariantów historii, porównanie potencjału oraz rozdziały i podrozdziały. Historia tematów jest wspólna dla kanału. [Warsztat pomysłów i metryki](STUDIO_IDEAS.md).
 2. **Fakty i research** — twierdzenie, źródło, strona/rozdział, cytat, status i użycia. Zmiana twierdzenia lub źródła cofa jego weryfikację.
 3. **Historia** — pytanie, hook, teza i finał; zatwierdzenie wymaga sprawdzonego źródła. Widok różnic pokazuje zmiany od poprzedniego zatwierdzenia.
