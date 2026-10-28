@@ -50,6 +50,7 @@ const MotionEditor = lazy(() => import("./MotionEditor"));
 const WorkspaceView = lazy(() => import("./WorkspacePage"));
 const CastBankView = lazy(() => import("./CastBank"));
 const SceneBoard = lazy(() => import("./SceneBoard"));
+const Storyboard = lazy(() => import("./Storyboard"));
 
 const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "idea", label: "Pomysł", icon: Compass },
@@ -64,6 +65,7 @@ const animationSteps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "idea", label: "Pomysł", icon: Compass },
   { id: "facts", label: "Research", icon: BookOpen },
   { id: "script", label: "Scenariusz", icon: FileText },
+  { id: "storyboard", label: "Storyboard i animatik", icon: Clapperboard },
   { id: "scenes", label: "Sceny", icon: LayoutGrid },
   { id: "editing", label: "Montaż", icon: SlidersHorizontal },
   { id: "export", label: "Eksport", icon: ArrowUpRight },
@@ -142,6 +144,10 @@ function Shell() {
     ) : s.page === "scenes" ? (
       <Suspense fallback={<div className="page-content">Ładowanie scen…</div>}>
         <SceneBoard />
+      </Suspense>
+    ) : s.page === "storyboard" ? (
+      <Suspense fallback={<div className="page-content">Ładowanie storyboardu…</div>}>
+        <Storyboard />
       </Suspense>
     ) : s.page === "generation" ? (
       <Generation />

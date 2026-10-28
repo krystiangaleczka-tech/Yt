@@ -2,8 +2,8 @@
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
 
-from studio_core.animation import (Cast, MAX_IMAGE, apply_scene_operation, channel_bank, parse_regeneration,
-                                   regeneration_prompt)
+from studio_core.animation import (Cast, MAX_IMAGE, apply_scene_operation, breakdown_prompt, channel_bank,
+                                   parse_breakdown, parse_regeneration, regeneration_prompt)
 from studio_core.assistant import complete
 
 
@@ -65,3 +65,25 @@ def register_animation(app, store, connectors):
         if not text:
             text = complete(connectors, regeneration_prompt(project, scene, characters, locations, str(body.get('instruction', ''))[:2000]), store=store, project=project)
         return parse_regeneration(str(text), scene, characters, locations) | {'base_revision': project.revision}
+
+    def beat_of(project, bid):
+        beat = next((b for b in project.beats if b.id == bid), None)
+        if not beat:
+            raise ValueError('Nie ma takiego beatu')
+        return beat
+
+    @app.post('/api/projects/{pid}/beats/{bid}/breakdown/prompt')
+    def breakdown_text(pid: str, bid: str, body: dict):
+        project = store.get(pid)
+        characters, locations = channel_bank(cast, project)
+        return {'prompt': breakdown_prompt(project, beat_of(project, bid), characters, locations, str(body.get('instruction', ''))[:2000])}
+
+    @app.post('/api/projects/{pid}/beats/{bid}/breakdown')
+    def breakdown(pid: str, bid: str, body: dict):
+        project = store.get(pid)
+        characters, locations = channel_bank(cast, project)
+        beat = beat_of(project, bid)
+        text = body.get('response')
+        if not text:
+            text = complete(connectors, breakdown_prompt(project, beat, characters, locations, str(body.get('instruction', ''))[:2000]), store=store, project=project)
+        return parse_breakdown(str(text), beat, characters, locations) | {'base_revision': project.revision}

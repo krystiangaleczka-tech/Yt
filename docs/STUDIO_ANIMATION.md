@@ -6,7 +6,7 @@ Stan wdrożenia: 28.10.2026. Plan całości: [PLAN_ANIMACJA_SURVIVAL.md](PLAN_AN
 
 Przełącznik w lewym górnym rogu wybiera tryb: **Dokument**, **Animacja 2D** albo **B-roll**. Tryb zmienia nawigację, listę projektów i domyślne ustawienie nowego filmu. Film należy do jednego trybu; przełączenie na inny tryb zamyka otwarty film innego trybu, a kolejny start aplikacji otwiera film zgodny z wybranym trybem.
 
-- **Animacja 2D:** Pomysł → Research → Scenariusz → **Sceny** → Montaż → Eksport, a w Pracowni **Postacie** i **Lokacje**.
+- **Animacja 2D:** Pomysł → Research → Scenariusz → **Storyboard i animatik** → **Sceny** → Montaż → Eksport, a w Pracowni **Postacie** i **Lokacje**.
 - **Dokument** i **B-roll** zachowują dotychczasowy przebieg. B-roll nie ma jeszcze osobnych narzędzi.
 
 Kanał ma własny tryb produkcji (Pracownia → Kanały i kategorie → profil kanału). Nowy film dziedziczy go, chyba że wybierzesz inny w oknie **Nowy film**. Film animowany wymaga kanału.
@@ -26,6 +26,17 @@ Każda postać ma imię, rolę, znak rozpoznawczy, kolor akcentu, wygląd, chara
 Lokacja ma opis układu (gdzie drzwi, okno, zlew) i **stany**: to samo miejsce w różnych chwilach historii, np. „Dzień 1” i „Dzień 30 — barykada”, z własnym tłem i porą dnia.
 
 Zapis wpisu wymaga zgodnej rewizji. Gdy ktoś (albo inne okno) zmienił wpis wcześniej, aplikacja odrzuci zapis zamiast nadpisać zmiany. Archiwizacja ukrywa wpis z wyboru w nowych scenach.
+
+## Storyboard i animatik
+
+Proces jak w studiu animacji: **scenariusz → beaty → sceny (storyboard) → animatik → finał**. Beat to jednostka opowieści (co się zmienia w historii), scena to jednostka obrazu (jedno ujęcie). Jeden beat ma zwykle kilka scen.
+
+- **Beaty:** dodajesz je na ekranie Storyboard i animatik, wpisujesz tytuł oraz co się dzieje i po co.
+- **Rozpisz na sceny:** AI (Story Director) proponuje 2–8 scen beatu, używając wyłącznie postaci, póz, lokacji i stanów z banku kanału. Propozycję widzisz jako listę i dodajesz jednym kliknięciem; nowe sceny trafiają do oceny. Gdy model nie odpowie poprawnie, aplikacja pokazuje powód, prompt do skopiowania i pole na odpowiedź JSON.
+- **Storyboard:** siatka kadrów pogrupowana po beatach, ze statusem, długością i pierwszą kwestią. Klik ustawia animatik na scenie, podwójny klik (albo ikona) otwiera scenę do oceny. Scenę można przypisać do beatu w inspektorze sceny; przeniesienie nie zmienia jej oceny.
+- **Animatik:** odtwarza wszystkie sceny po kolei (najpierw beaty, potem sceny bez beatu) według ich długości, z napisami i **roboczym głosem** z syntezatora przeglądarki. Każdemu mówcy (narrator, postacie) przypisujesz inny głos systemowy; tempo reguluje suwak. Scena kończy się, gdy minie jej czas i padną wszystkie kwestie. Pasek pod kadrem pokazuje sceny proporcjonalnie do długości i kolorem statusu.
+
+Głos roboczy służy tylko do oceny tempa i dialogów. Nie trafia do eksportu; finalne głosy to osobna decyzja (lokalny model albo serwis zewnętrzny).
 
 ## Tablica scen
 
@@ -54,8 +65,8 @@ Wszystkie operacje na scenach podlegają kontroli rewizji i trwałemu Cofnij/Pon
 
 ## Czego jeszcze nie ma
 
-Kadr jest podglądem składu sceny, a nie renderem: brak ruchu postaci, kamery i światła w czasie, brak generowania głosu postaci, brak dźwięków z banku i brak przenoszenia scen na oś Montażu. Te elementy są kolejnymi etapami planu.
+Kadr jest podglądem składu sceny, a nie renderem: brak ruchu postaci, kamery i światła w czasie, brak finalnych głosów postaci, brak dźwięków z banku i brak przenoszenia animatiku na oś Montażu ani eksportu animatiku do MP4. Te elementy są kolejnymi etapami planu.
 
 ## Weryfikacja
 
-`studio_tests/test_animation.py`: dziedziczenie trybu z kanału, wymóg kanału, przezroczystość i izolacja obrazów, konflikt rewizji, izolacja banku między kanałami, przebieg ocen i powrót do „Do oceny” po zmianie, kolejność, cofanie, blokada zmiany kanału oraz walidacja propozycji AI.
+`studio_tests/test_animation.py`: dziedziczenie trybu z kanału, wymóg kanału, przezroczystość i izolacja obrazów, konflikt rewizji, izolacja banku między kanałami, przebieg ocen i powrót do „Do oceny” po zmianie, kolejność, cofanie, blokada zmiany kanału oraz walidacja propozycji AI; beaty: przypisanie scen do istniejącego beatu, brak zmiany oceny przy przeniesieniu i walidacja scen proponowanych przez Story Director.

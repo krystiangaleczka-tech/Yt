@@ -6194,3 +6194,188 @@ textarea::placeholder {
     grid-template-columns: 1fr;
   }
 }
+
+/* Storyboard and animatic */
+.storyboard-page {
+  display: grid;
+  gap: 16px;
+}
+.animatic {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.animatic-stage {
+  display: flex;
+  justify-content: center;
+}
+.animatic-stage .stage-frame {
+  max-width: 960px;
+}
+.animatic-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.animatic-clock {
+  font-family: "Courier Prime", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.animatic-spacer {
+  flex: 1;
+}
+.animatic-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.animatic-strip {
+  display: flex;
+  gap: 2px;
+  height: 28px;
+}
+.strip-block {
+  flex-basis: 0;
+  min-width: 14px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--panel-2);
+  border-bottom: 3px solid var(--muted);
+  color: var(--muted);
+  font: inherit;
+  font-size: 10px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.strip-block.review {
+  border-bottom-color: var(--blue);
+}
+.strip-block.approved {
+  border-bottom-color: var(--green);
+}
+.strip-block.rework {
+  border-bottom-color: var(--red);
+}
+.strip-block.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  outline: 1px solid var(--accent);
+}
+.animatic-voices summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+}
+.voice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+.storyboard-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.storyboard-head h2 {
+  margin: 0;
+}
+.storyboard-head .button {
+  margin-left: auto;
+}
+.beat-row {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.beat-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: start;
+}
+.beat-no {
+  font-family: "Courier Prime", ui-monospace, monospace;
+  font-weight: 700;
+  color: var(--accent);
+  padding-top: 6px;
+}
+.beat-fields {
+  display: grid;
+  gap: 6px;
+}
+.beat-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.board-card {
+  display: grid;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  cursor: pointer;
+}
+.board-card.active {
+  border-color: var(--accent);
+}
+.board-card-meta {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  gap: 6px;
+  align-items: center;
+}
+.board-card-meta strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board-card-line {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stage-frame.compact {
+  border-radius: 6px;
+}
+.stage-frame.compact .stage-empty span {
+  font-size: 11px;
+}
+.stage-frame.compact .stage-actor {
+  cursor: inherit;
+}
+.breakdown-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+}
+@media (max-width: 800px) {
+  .beat-head {
+    grid-template-columns: auto 1fr;
+  }
+  .beat-head > .muted,
+  .beat-actions {
+    grid-column: 2;
+  }
+}
+
+.manual-error {
+  margin: 0;
+  color: var(--red);
+}

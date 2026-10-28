@@ -59,7 +59,7 @@ export default function SceneBoard() {
     [tags, setTags] = useState<string[]>([]),
     [note, setNote] = useState(""),
     [proposal, setProposal] = useState<Proposal | null>(null),
-    [manual, setManual] = useState<{ prompt: string; response: string } | null>(null),
+    [manual, setManual] = useState<{ prompt: string; response: string; error: string } | null>(null),
     [busy, setBusy] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function SceneBoard() {
           `/projects/${p.id}/stage-scenes/${scene.id}/prompt`,
           { instruction: instruction() },
         );
-        setManual({ prompt, response: response || "" });
+        setManual({ prompt, response: response || "", error: String((error as Error).message || error) });
         throw error;
       } finally {
         setBusy(false);
@@ -366,12 +366,13 @@ export default function SceneBoard() {
             {manual && (
               <div className="proposal-card">
                 <div className="proposal-head">
-                  <strong>AI nie jest połączone — użyj własnego modelu</strong>
+                  <strong>AI nie dało poprawnej propozycji</strong>
                   <IconButton icon={X} label="Zamknij" onClick={() => setManual(null)} />
                 </div>
-                <p className="muted small">
-                  Skopiuj prompt do Claude/ChatGPT, a odpowiedź JSON wklej poniżej. Aplikacja sprawdzi, czy używa tylko postaci i lokacji z banku.
-                </p>
+          <p className="small manual-error">{manual.error}</p>
+          <p className="muted small">
+            Spróbuj ponownie albo skopiuj prompt do własnego modelu i wklej odpowiedź JSON — aplikacja sprawdzi, czy używa tylko postaci i lokacji z banku.
+          </p>
                 <Button
                   icon={Clipboard}
                   onClick={() =>
@@ -422,6 +423,7 @@ export default function SceneBoard() {
             key={scene.id}
             scene={scene}
             bank={bank}
+            beats={p.beats}
             update={update}
             remove={() =>
               s.run(async () => {
@@ -448,16 +450,20 @@ export default function SceneBoard() {
   );
 }
 
-function Stage({
+export function Stage({
   scene,
   bank,
   channelId,
   onPlace,
+  lineIndex = 0,
+  compact = false,
 }: {
   scene: StageScene;
   bank: CastBank;
   channelId: string;
-  onPlace: (placed: StageCharacter[]) => void;
+  onPlace?: (placed: StageCharacter[]) => void;
+  lineIndex?: number;
+  compact?: boolean;
 }) {
   const frame = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{
@@ -471,7 +477,7 @@ function Stage({
   const state =
     location?.states.find((st) => st.id === scene.location_state_id) ||
     location?.states.find((st) => st.image);
-  const line = scene.dialogue[0];
+  const line = compact ? undefined : scene.dialogue[lineIndex];
   const speaker =
     line && line.speaker !== "narrator"
       ? bank.characters.find((c) => c.id === line.speaker)?.name
@@ -486,7 +492,7 @@ function Stage({
   return (
     <div
       ref={frame}
-      className={`stage-frame ${state?.time_of_day === "night" ? "night" : ""}`}
+      className={`stage-frame ${state?.time_of_day === "night" ? "night" : ""} ${compact ? "compact" : ""}`}
       onPointerMove={(e) => {
         if (!drag) return;
         const at = position(e);
@@ -497,7 +503,7 @@ function Stage({
         });
       }}
       onPointerUp={() => {
-        if (!drag) return;
+        if (!drag || !onPlace) return;
         onPlace(
           scene.characters.map((c, i) =>
             i === drag.index
@@ -537,6 +543,7 @@ function Stage({
               transform: `translate(-50%, -100%) scaleX(${placed.flip ? -1 : 1})`,
             }}
             onPointerDown={(e) => {
+              if (!onPlace) return;
               e.currentTarget.setPointerCapture(e.pointerId);
               // Keep the grab point under the cursor instead of snapping the feet to it.
               const at = position(e);
@@ -641,12 +648,14 @@ function ProposalCard({
 function SceneInspector({
   scene,
   bank,
+  beats,
   update,
   remove,
   move,
 }: {
   scene: StageScene;
   bank: CastBank;
+  beats: Project["beats"];
   update: (changes: Partial<StageScene>) => void;
   remove: () => void;
   move: (delta: number) => void;
@@ -668,6 +677,19 @@ function SceneInspector({
         <IconButton icon={ChevronDown} label="Przesuń niżej" onClick={() => move(1)} />
         <IconButton icon={Trash2} label="Usuń scenę" onClick={remove} />
       </div>
+      <Field label="Beat historii">
+        <select
+          value={scene.beat_id}
+          onChange={(e) => update({ beat_id: e.target.value })}
+        >
+          <option value="">Bez beatu</option>
+          {beats.map((b, i) => (
+            <option key={b.id} value={b.id}>
+              B{String(i + 1).padStart(2, "0")} · {b.title}
+            </option>
+          ))}
+        </select>
+      </Field>
       <Field label="Tytuł sceny">
         <CommitText value={scene.title} onCommit={(title) => update({ title: title || "Scena" })} />
       </Field>

@@ -138,5 +138,33 @@ class AnimationTests(unittest.TestCase):
         self.assertEqual(film['stage_scenes'][0]['dialogue'][0]['speaker'], 'narrator')
 
 
+    def test_beats_group_scenes_and_story_director_proposes_scenes(self):
+        mara, kitchen = self.character(self.channel['id']), self.location(self.channel['id'])
+        film = self.film()
+        beat = {'id': 'beat_' + 'a' * 16, 'title': 'Woda się kończy', 'goal': 'Pokazać pierwszy deficyt', 'narration': 'The tap coughs and dies.'}
+        film = self.store.patch(film['id'], film['revision'], {'beats': [beat]}).model_dump()
+        missing = self.client.post(f"/api/projects/{film['id']}/stage-scenes", json={'expected_revision': film['revision'], 'operations': [{'type': 'add', 'scene': {'beat_id': 'beat_' + 'b' * 16}}]}, headers=H)
+        self.assertEqual(missing.status_code, 422)
+        film = self.scenes(film, {'type': 'add', 'scene': {'title': 'Kran', 'beat_id': beat['id']}})
+        scene = film['stage_scenes'][0]
+        film = self.scenes(film, {'type': 'review', 'scene_id': scene['id'], 'status': 'approved'},
+                           {'type': 'update', 'scene_id': scene['id'], 'changes': {'beat_id': ''}})
+        self.assertEqual(film['stage_scenes'][0]['status'], 'approved')
+        prompt = self.ok(self.client.post(f"/api/projects/{film['id']}/beats/{beat['id']}/breakdown/prompt", json={}, headers=H))
+        self.assertIn(kitchen['states'][0]['id'], prompt['prompt'])
+        answer = {'reason': 'Dwa ujęcia', 'scenes': [
+            {'title': 'Kran kaszle', 'location_id': kitchen['id'], 'location_state_id': kitchen['states'][0]['id'], 'seconds': 4},
+            {'title': 'Mara patrzy', 'characters': [{'character_id': mara['id'], 'pose_id': mara['poses'][0]['id']}],
+             'dialogue': [{'speaker': mara['id'], 'text': "That's it."}]}]}
+        with mock.patch('studio_api.animation.complete', return_value=json.dumps(answer)):
+            proposal = self.ok(self.client.post(f"/api/projects/{film['id']}/beats/{beat['id']}/breakdown", json={}, headers=H))
+        self.assertEqual([s['beat_id'] for s in proposal['scenes']], [beat['id']] * 2)
+        self.assertEqual(len(self.store.get(film['id']).stage_scenes), 1)
+        bad = self.client.post(f"/api/projects/{film['id']}/beats/{beat['id']}/breakdown", json={'response': json.dumps({'scenes': [{'location_id': 'loc_' + '0' * 16}]})}, headers=H)
+        self.assertEqual(bad.status_code, 422)
+        film = self.scenes(film, *[{'type': 'add', 'scene': s} for s in proposal['scenes']])
+        self.assertEqual([s['title'] for s in film['stage_scenes']], ['Kran', 'Kran kaszle', 'Mara patrzy'])
+
+
 if __name__ == '__main__':
     unittest.main()

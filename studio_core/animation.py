@@ -133,6 +133,7 @@ REVIEW_TAGS = ("Kadr", "Postać/poza", "Tło", "Dialog", "Dźwięk", "Tempo")
 class StageScene(Model):
     id: str = Field(default_factory=lambda: uid("stage_"), pattern=r"^stage_[a-f0-9]{16}$")
     number: int = Field(default=1, ge=1, le=9999)
+    beat_id: str = Field(default="", pattern=r"^(beat_[a-f0-9]{16})?$")
     title: str = Field(default="Nowa scena", min_length=1, max_length=200)
     story_time: str = Field(default="", max_length=60)
     location_id: str = ""
@@ -155,6 +156,8 @@ class StageScene(Model):
 
 
 CONTENT_FIELDS = ("title", "story_time", "location_id", "location_state_id", "characters", "action", "camera", "dialogue", "sound", "seconds")
+# Organisation, not content: moving a scene between beats does not reopen its review.
+SCENE_FIELDS = CONTENT_FIELDS + ("beat_id",)
 
 
 def read_image(content: bytes) -> tuple[bytes, CastImage, str]:
@@ -284,10 +287,13 @@ def apply_scene_operation(project, operation: dict, characters, locations):
     kind = operation.get("type")
     scenes = project.stage_scenes
     index = {s.id: i for i, s in enumerate(scenes)}
+    beats = {b.id for b in project.beats}
     if kind == "add":
         values = operation.get("scene", {})
-        scene = StageScene.model_validate({k: v for k, v in values.items() if k in CONTENT_FIELDS} | {"number": max((s.number for s in scenes), default=0) + 1})
+        scene = StageScene.model_validate({k: v for k, v in values.items() if k in SCENE_FIELDS} | {"number": max((s.number for s in scenes), default=0) + 1})
         validate_scene(scene, characters, locations)
+        if scene.beat_id and scene.beat_id not in beats:
+            raise ValueError("Scena wskazuje nieistniejący beat")
         position = index.get(operation.get("after", ""), len(scenes) - 1) + 1
         scenes.insert(position, scene)
         return scene
@@ -297,10 +303,12 @@ def apply_scene_operation(project, operation: dict, characters, locations):
     scene = scenes[index[scene_id]]
     if kind == "update":
         changes = operation.get("changes", {})
-        if not isinstance(changes, dict) or not set(changes) <= set(CONTENT_FIELDS) | {"number"}:
+        if not isinstance(changes, dict) or not set(changes) <= set(SCENE_FIELDS) | {"number"}:
             raise ValueError("Scena przyjmuje wyłącznie pola treści")
         candidate = StageScene.model_validate(scene.model_dump() | changes)
         validate_scene(candidate, characters, locations)
+        if candidate.beat_id and candidate.beat_id not in beats:
+            raise ValueError("Scena wskazuje nieistniejący beat")
         content_changed = any(getattr(candidate, k) != getattr(scene, k) for k in CONTENT_FIELDS)
         if content_changed and candidate.status in ("approved", "rework"):
             # Any change to an approved shot sends it back for the director's review.
@@ -330,10 +338,7 @@ def apply_scene_operation(project, operation: dict, characters, locations):
 
 
 def regeneration_prompt(project, scene: StageScene, characters, locations, instruction: str) -> str:
-    bank = {
-        "characters": [{"id": c.id, "name": c.name, "role": c.role, "description": c.description, "poses": [{"id": p.id, "name": p.name, "view": p.view} for p in c.poses]} for c in characters.values()],
-        "locations": [{"id": loc.id, "name": loc.name, "description": loc.description, "states": [{"id": s.id, "name": s.name, "time_of_day": s.time_of_day} for s in loc.states]} for loc in locations.values()],
-    }
+    bank = bank_summary(characters, locations)
     neighbours = [s for s in project.stage_scenes if abs(s.number - scene.number) == 1]
     last = scene.reviews[-1] if scene.reviews else None
     feedback = "; ".join(filter(None, [", ".join(last.tags) if last else "", last.note if last else "", instruction]))
@@ -368,3 +373,57 @@ def parse_regeneration(text: str, scene: StageScene, characters, locations) -> d
     candidate = StageScene.model_validate(scene.model_dump() | changes)
     validate_scene(candidate, characters, locations)
     return {"scene_id": scene.id, "changes": candidate.model_dump(include=set(CONTENT_FIELDS)), "reason": reason}
+
+
+def bank_summary(characters, locations):
+    return {
+        "characters": [{"id": c.id, "name": c.name, "role": c.role, "description": c.description, "poses": [{"id": p.id, "name": p.name, "view": p.view} for p in c.poses]} for c in characters.values()],
+        "locations": [{"id": loc.id, "name": loc.name, "description": loc.description, "states": [{"id": s.id, "name": s.name, "time_of_day": s.time_of_day} for s in loc.states]} for loc in locations.values()],
+    }
+
+
+def breakdown_prompt(project, beat, characters, locations, instruction: str) -> str:
+    """Story Director: split one story beat into storyboard scenes built only from the channel bank."""
+    order = [b.id for b in project.beats]
+    index = order.index(beat.id)
+    around = [b.model_dump(include={"title", "goal", "turn", "narration"}) for b in project.beats[max(0, index - 1):index + 2] if b.id != beat.id]
+    existing = [s.model_dump(include={"number", "title", "action"}) for s in project.stage_scenes if s.beat_id == beat.id]
+    return f"""You are the story director of a 2D animated series. Break ONE story beat into storyboard scenes (shots).
+Film: {project.title}. Language of narration and dialogue: {project.language}.
+A beat is a unit of story; a scene is a unit of picture. Use 2-8 scenes, each 3-12 seconds, varied framing, clear action.
+Build scenes ONLY from the character, pose, location and state ids in the bank. Speakers are "narrator" or a character id.
+Prefer reusing an existing location with a different camera over inventing new places.
+
+BANK: {json.dumps(bank_summary(characters, locations), ensure_ascii=False)}
+NEIGHBOUR BEATS: {json.dumps(around, ensure_ascii=False)}
+BEAT: {json.dumps(beat.model_dump(include={"title", "goal", "turn", "narration"}), ensure_ascii=False)}
+SCENES ALREADY IN THIS BEAT: {json.dumps(existing, ensure_ascii=False)}
+DIRECTOR NOTES: {instruction or "none"}
+
+Return only JSON: {{"reason": "one sentence", "scenes": [{{{", ".join(f'"{k}"' for k in CONTENT_FIELDS)}}}]}}.
+characters: [{{"character_id","pose_id","x" 0-1,"y" 0-1 baseline,"scale","flip"}}]; dialogue: [{{"speaker","text","direction"}}]; sound: {{"ambience","music","sfx":[]}}."""
+
+
+def parse_breakdown(text: str, beat, characters, locations) -> dict:
+    match = re.search(r"\{.*\}", text or "", re.S)
+    if not match:
+        raise ValueError("Odpowiedź AI nie zawiera JSON scen")
+    try:
+        data = json.loads(match.group(0))
+    except json.JSONDecodeError as error:
+        raise ValueError("Odpowiedź AI zawiera niepoprawny JSON") from error
+    rows = data.get("scenes")
+    if not isinstance(rows, list) or not 1 <= len(rows) <= 12:
+        raise ValueError("Propozycja musi zawierać od 1 do 12 scen")
+    scenes = []
+    for number, row in enumerate(rows, 1):
+        if not isinstance(row, dict):
+            raise ValueError("Niepoprawna scena w propozycji")
+        values = {k: v for k, v in row.items() if k in CONTENT_FIELDS}
+        for line in values.get("dialogue", []) if isinstance(values.get("dialogue"), list) else []:
+            if isinstance(line, dict):
+                line.pop("id", None)
+        scene = StageScene.model_validate(values | {"number": number})
+        validate_scene(scene, characters, locations)
+        scenes.append(scene.model_dump(include=set(CONTENT_FIELDS)) | {"beat_id": beat.id})
+    return {"beat_id": beat.id, "scenes": scenes, "reason": str(data.get("reason", ""))[:500]}

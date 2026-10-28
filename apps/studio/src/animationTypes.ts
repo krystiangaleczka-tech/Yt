@@ -76,6 +76,7 @@ export type SceneStatus = "draft" | "review" | "approved" | "rework";
 export type StageScene = {
   id: string;
   number: number;
+  beat_id: string;
   title: string;
   story_time: string;
   location_id: string;

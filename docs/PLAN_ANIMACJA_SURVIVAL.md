@@ -277,6 +277,8 @@ Fazy 1–5 to zmiany w aplikacji; 6–8 to produkcja. Część zadań z faz 2 i 
 
 Pierwszy przyrost aplikacji jest gotowy — [instrukcja](STUDIO_ANIMATION.md): przełącznik trybu (Dokument / Animacja 2D / B-roll), bank **postaci z pozami** i bank **lokacji ze stanami** przypisane do kanału (bez przenikania między kanałami), tablica scen w stylu planu zdjęciowego („Scena 23”: lokacja + stan, postacie i pozy, akcja, kamera, narracja/dialog z mówcami, dźwięk), ocena jednym klawiszem (zatwierdź / do poprawki z obszarem i uwagą) oraz regeneracja sceny przez AI jako propozycja do przyjęcia. To realizuje część faz 1–4 z rozdz. 7, w uproszczonej formie: pozy jako gotowe obrazy (rysujesz/generujesz je sam), bez rigu kości, bez ruchu w czasie, bez głosów i bez kontroli ciągłości stanu świata.
 
+Drugi przyrost (28.10.2026): ekran **Storyboard i animatik** — beaty nad scenami, AI rozpisujące beat na sceny z banku kanału, siatka kadrów i odtwarzacz animatiku z roboczymi głosami przeglądarki (osobny głos na postać). Ustalenia z autorem: Blender odpada (za ciężki na tego Maca, ruch 2.5D zrobi Remotion); rig na start prosty (podmiana póz + drobny ruch); model graficzny wybierzemy testem na tych samych postaciach i lokacjach; Google Flow uznany za słaby w trzymaniu spójności.
+
 ### Decyzje
 
 

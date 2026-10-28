@@ -25,7 +25,8 @@ export type Page =
   | "idea-pool"
   | "cast"
   | "locations"
-  | "scenes";
+  | "scenes"
+  | "storyboard";
 type Context = {
   project: Project | null;
   projects: ProjectSummary[];
@@ -151,6 +152,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         "cast",
         "locations",
         "scenes",
+        "storyboard",
       ];
       setPage(
         pages.includes(remembered as Page)
