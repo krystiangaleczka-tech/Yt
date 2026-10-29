@@ -48,6 +48,10 @@ Zaznaczenie ujęcia jest wspólne dla scenariusza, generowania, montażu i narz�
 
 Mapy mają edytowalne bounds, punkty i trasy; podkład Natural Earth działa offline. Diagramy przyjmują węzły i połączenia. Oscylogram i spektrogram wymagają rzeczywistego audio. Parallax wymaga tła i wyciętych warstw PNG z przezroczystością. Nie jest automatycznym wycinaniem obiektów.
 
+**Papierowa diorama 2.5D (dokładanie warstw):** w Narzędziach produkcji → Ujęcia wybierz typ **Parallax z warstw**, główny materiał jako tło i kolejne PNG jako warstwy. Przyciski **Wyżej/Niżej** ustawiają ich kolejność. Parametr `assembly_interval` (w sekundach) rozsuwa wejścia: przy `assembly_start=0.2`, `assembly_interval=0.8` i `assembly_duration=0.35` pierwsza wycięta warstwa pojawia się od 0,2 s, druga od 1,0 s, trzecia od 1,8 s. `assembly_drop` ustawia niewielki ruch osadzania (0–0,3 wysokości kadru). Każda warstwa zachowuje własną przezroczystość i ruch głębi `depth`.
+
+Opcjonalnie `layer_cues` to lista JSON z nadpisaniami czasu lub ruchu konkretnej warstwy, liczonej od 1 (tło ma numer 0), np. `[{"layer":3,"start":0.4,"duration":0.2,"drop":0.04,"depth":1.5}]`. Nieznane pola, duplikaty i niepoprawne wartości są odrzucane. Wartość `assembly_interval=0`, `assembly_start=0` i pusta lista `layer_cues` zachowują poprzedni sposób wyświetlania wszystkich warstw. Zmiany należy **Zastosować w montażu** i sprawdzić w dokładnym podglądzie/MP4; sam podgląd roboczy Canvas nie jest klatką z ostatecznego kompozytora.
+
 Profil kanału zapisuje styl narracji i obrazów, referencje, kolor oraz krój napisów. Wbudowane kroje to Montserrat i Courier Prime z dołączonymi licencjami OFL. Projekt zachowuje migawkę profilu; późniejsza zmiana kanału nie przepisuje wcześniejszych odcinków.
 
 Blokady obejmują całe ujęcie lub osobno narrację, czas i media. Są egzekwowane również dla powiązanych klipów i AI. Przekazanie do montażu jawnie zmienia medium/parametry; generowanie wariantu nie rusza ręcznych cięć i ruchu. Zmiana długości ręcznie pociętego ujęcia wymaga pracy na osi.
