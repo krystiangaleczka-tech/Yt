@@ -72,7 +72,7 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
     checked, unique = [], {background_id}
     for index, item in enumerate(layers):
         layout_keys = {"layout_x", "layout_y", "layout_width", "z_index"}
-        if not isinstance(item, dict) or not set(item) <= {"asset_id", "group", "duration"} | layout_keys:
+        if not isinstance(item, dict) or not set(item) <= {"asset_id", "group", "duration", "pivot_x", "pivot_y", "rig"} | layout_keys:
             raise ValueError("Nieprawidłowa definicja wycinka numer " + str(index + 1))
         has_layout = any(key in item for key in layout_keys)
         if has_layout:
@@ -85,6 +85,13 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
             z = item.get("z_index", GROUP_INDEX.get(item.get("group"), 0) * 10)
             if type(z) is not int or not -100 <= z <= 100:
                 raise ValueError("Głębokość z musi być liczbą całkowitą od -100 do 100")
+        for key in ("pivot_x", "pivot_y"):
+            if key in item and (isinstance(item[key], bool) or
+                    not isinstance(item[key], (int, float)) or
+                    not math.isfinite(item[key]) or not 0 <= item[key] <= 1):
+                raise ValueError("Niepoprawny punkt zakotwiczenia: " + key)
+        if "rig" in item and item["rig"] not in ("static", "hanging_drop", "bottom_rise", "rake_lift"):
+            raise ValueError("Nieobsługiwana mechanika wejścia obiektu")
         aid = item.get("asset_id")
         group = item.get("group")
         if not isinstance(aid, str) or aid in unique:
@@ -116,23 +123,26 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
         duration = item["duration"]
         cue = {
             "layer": len(cues) + 1, "group": group,
-            "rig": GROUP_RIG[group], "start": round(start, 3),
+            "rig": item["rig"] if "rig" in item else GROUP_RIG[group], "start": round(start, 3),
             "duration": duration, "settle_duration": DEFAULT_SETTLE,
             "depth": round(1 + GROUP_INDEX[group] * .3, 2),
         }
-        if group == "sky":
+        if cue["rig"] == "hanging_drop":
             cue.update(string_visible=True, string_length=.16, swing_deg=1.8,
                        swing_decay=.9, overshoot=.025)
-        if group in ("vegetation", "props", "characters", "hero"):
+        if cue["rig"] == "rake_lift":
             cue.update(pivot_x=.5, pivot_y=1, start_rotation=82,
                        overshoot_rotation=-5, stick_visible=True, stick_length=.1)
         if group == "hero":
             cue.update(start_rotation=88, duration=duration,
                        outline_px=hero_outline_px, outline_color="#e7c26d")
-        if group in ("landscape", "foundations"):
+        if cue["rig"] == "bottom_rise":
             cue["overshoot"] = .018
         if item["layout"]:
             cue.update(item["layout"])
+        for key in ("pivot_x", "pivot_y"):
+            if key in layers[item["source_order"]]:
+                cue[key] = float(layers[item["source_order"]][key])
         if item["bbox_fraction"] > .42 and not item["layout"]:
             warnings.append(item["name"] + ": rozległy wycinek; sprawdź, czy nie zawiera kilku obiektów")
         cues.append(cue)
