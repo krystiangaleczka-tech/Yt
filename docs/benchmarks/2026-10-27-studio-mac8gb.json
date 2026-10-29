@@ -1,0 +1,42 @@
+{
+  "system": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+  "python": "3.13.5",
+  "shots": 500,
+  "clips": 500,
+  "undo_depth": 40,
+  "load": {
+    "median_ms": 26.63,
+    "p95_ms": 27.73
+  },
+  "save": {
+    "median_ms": 243.01,
+    "p95_ms": 247.36
+  },
+  "project_json_bytes": 1023795,
+  "target": {
+    "load_p95_ms": 500,
+    "save_p95_ms": 1000
+  },
+  "includes": "JSON load/validation, shared service edit, locks, fsync and durable undo; excludes browser paint and model inference",
+  "before_history_optimization": {
+    "system": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+    "python": "3.13.5",
+    "shots": 500,
+    "clips": 500,
+    "undo_depth": 40,
+    "load": {
+      "median_ms": 354.24,
+      "p95_ms": 368.03
+    },
+    "save": {
+      "median_ms": 1906.26,
+      "p95_ms": 2015.34
+    },
+    "project_json_bytes": 41760739,
+    "target": {
+      "load_p95_ms": 500,
+      "save_p95_ms": 1000
+    },
+    "includes": "JSON load/validation, shared service edit, locks, fsync and durable undo; excludes browser paint and model inference"
+  }
+}

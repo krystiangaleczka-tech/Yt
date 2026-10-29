@@ -70,6 +70,21 @@ Lektor wymaga własnej próbki głosu (15–30 s czystej mowy) — patrz [docs/V
 
 ## Dokumentacja
 
+### DocOS Studio — aplikacja
+
+Lokalne studio: projekty, research i książki, przygotowanie ujęć, wielościeżkowy montaż
+ręczny/AI oraz eksport MP4. Wymaga Pythona 3.12+, Node.js 22.12+ i FFmpeg.
+
+```bash
+python3 scripts/install_studio.py --run
+# Otwórz http://127.0.0.1:8876
+```
+
+Instalacja, połączenia, modele, montaż i granice wydania: [docs/STUDIO.md](docs/STUDIO.md).
+Dotychczasowy workflow CLI nadal działa.
+
+### Dotychczasowy workflow i silniki
+
 - [docs/EDITORIAL.md](docs/EDITORIAL.md) — profil kanału, propozycje tematów i Story Lock
 - [docs/SETUP.md](docs/SETUP.md) — instalacja, modele, sprzęt i wydajność
 - [docs/WORKFLOW.md](docs/WORKFLOW.md) — od tematu do gotowego filmu, krok po kroku (z Claude)

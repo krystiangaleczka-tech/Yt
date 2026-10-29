@@ -1,0 +1,660 @@
+import { useEffect, useState } from "react";
+import {
+  Sparkles,
+  Copy,
+  Check,
+  Plus,
+  ArrowRight,
+  BookOpen,
+  LockKeyhole,
+  FileText,
+  Download,
+  Trash2,
+  Search,
+} from "lucide-react";
+import { useStudio } from "./context";
+import { api, id, saveText } from "./api";
+import {
+  Button,
+  CommitText,
+  Empty,
+  Field,
+  IconButton,
+  Modal,
+  SectionHead,
+} from "./components";
+import type { Fact, Project } from "./types";
+import { makeScene } from "./Generation";
+import { ScriptStructure } from "./Ideation";
+import { BankPicker, PublishToBank } from "./Workspace";
+import { fps, time } from "./timing";
+
+const storyLabels: Record<string, string> = {
+  central_question: "Centralne pytanie",
+  hook: "Początek, który wciąga",
+  signature_line: "Zdanie przewodnie",
+  thesis: "Teza",
+  complication: "Komplikacja",
+  counterpoint: "Kontrargument",
+  stakes_for_viewer: "Dlaczego widza to obchodzi?",
+  payoff: "Odpowiedź i finał",
+  open_question: "Co pozostaje niewiadomą?",
+  sting: "Drzwi do następnego odcinka",
+};
+export function WriterTools({ kind }: { kind: "topics" | "story" | "script" }) {
+  const s = useStudio(),
+    p = s.project!;
+  const [open, setOpen] = useState(false),
+    [response, setResponse] = useState(""),
+    [prompt, setPrompt] = useState(""),
+    [baseRevision, setBaseRevision] = useState<number | null>(null),
+    [busy, setBusy] = useState(false);
+  async function copy() {
+    const result = await api<{ prompt: string; base_revision: number }>(
+      `/projects/${p.id}/writer/${kind}/prompt`,
+      {},
+    );
+    setPrompt(result.prompt);
+    setBaseRevision(result.base_revision);
+    try {
+      await navigator.clipboard.writeText(result.prompt);
+      s.notify("Prompt skopiowano do schowka");
+    } catch {
+      s.notify("Prompt jest poniżej — możesz skopiować go ręcznie");
+    }
+  }
+  async function generate() {
+    setBusy(true);
+    try {
+      const result = await api<{ response: string; base_revision: number }>(
+        `/projects/${p.id}/writer/${kind}/generate`,
+        {},
+      );
+      setResponse(result.response);
+      setBaseRevision(result.base_revision);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function accept() {
+    if (kind !== "script")
+      JSON.parse(response.replace(/^```(?:json)?\s*/, "").replace(/```$/, ""));
+    await s.mutate((current) =>
+      api<Project>(`/projects/${current.id}/writer/${kind}/import`, {
+        expected_revision: current.revision,
+        base_revision: baseRevision,
+        response,
+      }),
+    );
+    setOpen(false);
+    s.notify("Wczytano propozycję. Sprawdź jej treść i źródła.");
+  }
+  return (
+    <>
+      <Button
+        icon={Sparkles}
+        onClick={() => {
+          setBaseRevision(p.revision);
+          setOpen(true);
+        }}
+      >
+        Pracuj z AI
+      </Button>
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={
+          kind === "topics"
+            ? "Pomysły z AI"
+            : kind === "story"
+              ? "Ułóż historię z AI"
+              : "Scenariusz z AI"
+        }
+        description="Otrzymujesz propozycję do sprawdzenia przed przyjęciem."
+        wide
+      >
+        <div className="button-row">
+          <Button icon={Copy} onClick={() => s.run(copy)}>
+            Skopiuj prompt
+          </Button>
+          <Button
+            primary
+            icon={Sparkles}
+            busy={busy}
+            onClick={() => s.run(generate)}
+          >
+            Użyj połączonego AI
+          </Button>
+        </div>
+        {prompt && (
+          <details className="advanced">
+            <summary>Prompt do ręcznego skopiowania</summary>
+            <textarea rows={8} readOnly value={prompt} />
+          </details>
+        )}
+        <Field label="Odpowiedź modelu — JSON">
+          <textarea
+            rows={12}
+            value={response}
+            onChange={(e) => setResponse(e.target.value)}
+            placeholder="Wygeneruj odpowiedź lub wklej ją ze swojego AI."
+          />
+        </Field>
+        {kind === "script" && (
+          <p className="small muted">
+            Przyjęte ujęcia zostaną dodane na końcu scenariusza.
+          </p>
+        )}
+        <Button
+          primary
+          icon={Check}
+          disabled={!response.trim() || baseRevision !== p.revision}
+          onClick={() => s.run(accept)}
+        >
+          Przyjmij propozycję
+        </Button>
+        {baseRevision !== p.revision && (
+          <p className="warning-text">
+            Projekt zmienił się od przygotowania promptu. Pobierz nowy prompt i
+            przygotuj aktualną odpowiedź.
+          </p>
+        )}
+      </Modal>
+    </>
+  );
+}
+
+export { default as Idea } from "./Ideation";
+
+export function Facts() {
+  const s = useStudio(),
+    p = s.project!;
+  const [filter, setFilter] = useState("");
+  const facts = p.facts.filter(
+    (f) =>
+      !filter ||
+      (f.claim + " " + f.source)
+        .toLocaleLowerCase()
+        .includes(filter.toLocaleLowerCase()),
+  );
+  function update(factId: string, changes: Partial<Fact>) {
+    s.run(() =>
+      s.patch((current) => ({
+        facts: current.facts.map((f) =>
+          f.id === factId ? { ...f, ...changes } : f,
+        ),
+      })),
+    );
+  }
+  async function add() {
+    const f: Fact = {
+      id: id("fact_"),
+      claim: "",
+      source: "",
+      url: "",
+      page: "",
+      status: "UNVERIFIED",
+      note: "",
+    };
+    await s.patch((current) => ({ facts: [...current.facts, f] }));
+  }
+  return (
+    <div className="page-content editorial-page">
+      <SectionHead
+        eyebrow="02 / DOWODY"
+        title="Fakty i źródła"
+        description="Sprawdzenie źródła jest decyzją redakcyjną. AI nie nadaje statusu faktu."
+      >
+        <Button icon={Search} onClick={() => s.setPage("sources")}>
+          Szukaj źródeł
+        </Button>
+        <BankPicker kinds={["fact", "source", "note"]} />
+        <Button primary icon={Plus} onClick={() => s.run(add)}>
+          Dodaj fakt
+        </Button>
+      </SectionHead>
+      <div className="inline-summary">
+        <span>
+          <strong>{p.facts.length}</strong> faktów w tym filmie
+        </span>
+        <span>
+          <Check size={14} />
+          {p.facts.filter((f) => f.status === "VERIFIED").length} sprawdzonych
+        </span>
+        <span>{p.sources.length} dokumentów źródłowych</span>
+      </div>
+      {p.facts.length > 0 && (
+        <div className="small-search">
+          <Search size={16} />
+          <input
+            aria-label="Filtruj fakty"
+            placeholder="Znajdź twierdzenie lub źródło…"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </div>
+      )}
+      {!p.facts.length ? (
+        <Empty
+          icon={BookOpen}
+          title="Zbierz fakty do tego filmu"
+          action={
+            <Button icon={Plus} onClick={() => s.run(add)}>
+              Dodaj pierwsze twierdzenie
+            </Button>
+          }
+        >
+          Zapisuj twierdzenia razem ze źródłem, adresem i stroną książki.
+        </Empty>
+      ) : (
+        <div className="fact-list">
+          {facts.map((fact, index) => (
+            <section className="fact-card surface" key={fact.id}>
+              <div className="fact-top">
+                <span className="eyebrow">
+                  FAKT {String(index + 1).padStart(2, "0")}
+                </span>
+                <select
+                  className={"status-select " + fact.status.toLowerCase()}
+                  aria-label="Stan weryfikacji"
+                  value={fact.status}
+                  onChange={(e) =>
+                    update(fact.id, {
+                      status: e.target.value as Fact["status"],
+                    })
+                  }
+                >
+                  <option value="UNVERIFIED">Do sprawdzenia</option>
+                  <option value="VERIFIED">Sprawdzony</option>
+                  <option value="DISPUTED">Sporny</option>
+                  <option value="DRAMATIZATION">Dramatyzacja</option>
+                </select>
+                <IconButton
+                  icon={Trash2}
+                  label="Usuń fakt"
+                  disabled={
+                    p.scenes.some((sc) => sc.fact_ids.includes(fact.id)) ||
+                    p.beats.some((beat) => beat.fact_ids.includes(fact.id)) ||
+                    p.development.ideas.some((idea) =>
+                      idea.stories.some((story) =>
+                        story.chapters.some((chapter) =>
+                          chapter.sections.some((section) =>
+                            section.fact_ids.includes(fact.id),
+                          ),
+                        ),
+                      ),
+                    )
+                  }
+                  onClick={() =>
+                    s.run(() =>
+                      s.patch((current) => ({
+                        facts: current.facts.filter((f) => f.id !== fact.id),
+                      })),
+                    )
+                  }
+                />
+              </div>
+              <Field label="Twierdzenie">
+                <CommitText
+                  multiline
+                  rows={2}
+                  value={fact.claim}
+                  onCommit={(v) => update(fact.id, { claim: v })}
+                  placeholder="Co dokładnie potwierdza źródło?"
+                />
+              </Field>
+              <div className="fact-source-fields">
+                <Field label="Autor / publikacja">
+                  <CommitText
+                    value={fact.source}
+                    onCommit={(v) => update(fact.id, { source: v })}
+                    placeholder="Nazwa źródła lub wydanie książki"
+                  />
+                </Field>
+                <Field label="Adres źródła">
+                  <CommitText
+                    value={fact.url}
+                    onCommit={(v) => update(fact.id, { url: v })}
+                    placeholder="https://…"
+                  />
+                </Field>
+                <Field label="Strona / sekcja">
+                  <CommitText
+                    value={fact.page}
+                    onCommit={(v) => update(fact.id, { page: v })}
+                    placeholder="np. s. 42"
+                  />
+                </Field>
+              </div>
+              <div className="fact-references">
+                <PublishToBank
+                  kind="fact"
+                  itemId={fact.id}
+                  title={fact.claim.slice(0, 200)}
+                />
+                {fact.status === "UNVERIFIED" &&
+                  !!fact.provenance?.bank_resource_id && (
+                    <p className="small warning-text">
+                      Z banku, wersja {String(fact.provenance.bank_revision)}.
+                      Sprawdź zastosowanie w tym filmie; poprzednia weryfikacja
+                      pozostaje w pochodzeniu.
+                    </p>
+                  )}
+                {p.scenes
+                  .filter((sc) => sc.fact_ids.includes(fact.id))
+                  .map((sc) => (
+                    <button
+                      className="text-button"
+                      key={sc.id}
+                      onClick={() => {
+                        s.setTargetScene(sc.id);
+                        s.setPage("generation");
+                      }}
+                    >
+                      {sc.title}
+                    </button>
+                  ))}
+                {!p.scenes.some((sc) => sc.fact_ids.includes(fact.id)) && (
+                  <span className="small muted">Brak przypisanych ujęć</span>
+                )}
+              </div>
+              {fact.quote && (
+                <blockquote>
+                  {fact.quote}
+                  <small>Strona / sekcja: {fact.page}</small>
+                </blockquote>
+              )}
+              <details className="advanced">
+                <summary>Notatka, spór i stanowiska</summary>
+                <CommitText
+                  multiline
+                  rows={3}
+                  value={fact.note}
+                  onCommit={(v) => update(fact.id, { note: v })}
+                />
+              </details>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function Story() {
+  const s = useStudio(),
+    p = s.project!;
+  const [diff, setDiff] = useState<{
+    approved_revision: number | null;
+    changes: { field: string; before: unknown; after: unknown }[];
+  } | null>(null);
+  useEffect(() => {
+    s.run(async () =>
+      setDiff(await api<typeof diff>(`/projects/${p.id}/story/diff`)),
+    );
+  }, [p.revision]);
+  return (
+    <div className="page-content editorial-page">
+      <SectionHead
+        eyebrow="03 / HISTORIA"
+        title="Karta historii"
+        description="Zatwierdzona karta jest punktem odniesienia dla scenariusza."
+      >
+        <WriterTools kind="story" />
+        <Button
+          primary
+          icon={LockKeyhole}
+          disabled={p.story.status === "APPROVED"}
+          onClick={() =>
+            s.run(async () => {
+              await s.mutate((current) =>
+                api<Project>("/projects/" + current.id + "/story/approve", {
+                  expected_revision: current.revision,
+                }),
+              );
+              s.notify("Historia zatwierdzona");
+            })
+          }
+        >
+          {p.story.status === "APPROVED"
+            ? "Historia zatwierdzona"
+            : "Zatwierdź historię"}
+        </Button>
+      </SectionHead>
+      <div
+        className={`story-state ${p.story.status === "APPROVED" ? "approved" : ""}`}
+      >
+        <LockKeyhole size={18} />
+        <div>
+          <strong>
+            {p.story.status === "APPROVED"
+              ? "Kierunek opowieści jest zatwierdzony."
+              : "Karta historii jest szkicem."}
+          </strong>
+          <p>Zmiana tezy, źródeł lub faktów wymaga ponownego zatwierdzenia.</p>
+        </div>
+        <span className="badge quiet">
+          {p.facts.filter((f) => f.status === "VERIFIED").length} faktów
+          sprawdzonych
+        </span>
+      </div>
+      {diff?.changes.length ? (
+        <details className="surface tool-panel">
+          <summary>
+            Zmiany od zatwierdzenia r{diff.approved_revision} ·{" "}
+            {diff.changes.length} obszarów
+          </summary>
+          {diff.changes.map((c) => (
+            <div key={c.field}>
+              <strong>{c.field}</strong>
+              <div className="diff-grid">
+                <pre>{JSON.stringify(c.before, null, 2)}</pre>
+                <pre>{JSON.stringify(c.after, null, 2)}</pre>
+              </div>
+            </div>
+          ))}
+          <p className="small muted">
+            Ponownie sprawdź scenariusz oparty na zmienionych dowodach.
+          </p>
+        </details>
+      ) : null}
+      <div className="story-fields">
+        {Object.entries(storyLabels).map(([key, label], index) => (
+          <section
+            className={`surface story-field ${key === "central_question" || key === "payoff" ? "emphasis" : ""}`}
+            key={key}
+          >
+            <div className="story-field-number">
+              {String(index + 1).padStart(2, "0")}
+            </div>
+            <Field label={label}>
+              <CommitText
+                value={p.story[key] || ""}
+                multiline
+                rows={key === "central_question" || key === "payoff" ? 3 : 2}
+                onCommit={(v) =>
+                  s.run(() =>
+                    s.patch((current) => ({
+                      story: { ...current.story, [key]: v },
+                    })),
+                  )
+                }
+              />
+            </Field>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function Script() {
+  const s = useStudio(),
+    p = s.project!;
+  const [open, setOpen] = useState(false),
+    [text, setText] = useState("");
+  const narration = p.scenes
+      .map((sc) => sc.narration)
+      .filter(Boolean)
+      .join(" "),
+    words = narration.split(/\s+/).filter(Boolean).length;
+  function update(sceneId: string, value: string) {
+    s.run(() =>
+      s.patch((current) => ({
+        scenes: current.scenes.map((sc) =>
+          sc.id === sceneId ? { ...sc, narration: value } : sc,
+        ),
+      })),
+    );
+  }
+  async function append() {
+    const paragraphs = text
+      .split(/\n\s*\n/)
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (!paragraphs.length) return;
+    let start = Math.max(0, ...p.scenes.map((sc) => sc.start + sc.duration));
+    const next = paragraphs.map((value, index) => {
+      const sc = makeScene(start);
+      sc.title = "Scena " + (p.scenes.length + index + 1);
+      sc.narration = value;
+      sc.duration = Math.max(
+        90,
+        Math.round((value.split(/\s+/).length / 2.5) * fps(p)),
+      );
+      start += sc.duration;
+      return sc;
+    });
+    await s.patch((current) => ({ scenes: [...current.scenes, ...next] }));
+    setOpen(false);
+    setText("");
+    s.notify("Tekst podzielono na ujęcia z planowanym czasem");
+  }
+  return (
+    <div className="page-content editorial-page">
+      <SectionHead
+        eyebrow="04 / NARRACJA"
+        title="Scenariusz"
+        description="Słowa lektora i plan obrazu mają swoje osobne miejsca."
+      >
+        <WriterTools kind="script" />
+        <Button primary icon={Plus} onClick={() => setOpen(true)}>
+          Dodaj tekst
+        </Button>
+      </SectionHead>
+      <div className="script-summary">
+        <span>
+          <strong>{words}</strong> słów
+        </span>
+        <span>
+          Około {Math.floor(words / 150)} min{" "}
+          {Math.round(((words / 150) % 1) * 60)} s przy 150 słowach/min
+        </span>
+        <span>{p.scenes.length} ujęć</span>
+        <div className="player-spacer" />
+        <Button
+          subtle
+          icon={Copy}
+          disabled={!narration}
+          onClick={() =>
+            s.run(async () => {
+              await navigator.clipboard.writeText(narration);
+              s.notify("Skopiowano tekst lektora");
+            })
+          }
+        >
+          Kopiuj lektora
+        </Button>
+        <Button
+          subtle
+          icon={Download}
+          onClick={() => saveText("narracja.txt", narration)}
+        >
+          TXT
+        </Button>
+      </div>
+      <ScriptStructure />
+      {!p.scenes.length ? (
+        <Empty
+          icon={FileText}
+          title="Twoja historia zaczyna się tutaj"
+          action={
+            <Button primary icon={Plus} onClick={() => setOpen(true)}>
+              Wklej tekst
+            </Button>
+          }
+        >
+          Oddziel sceny pustą linią. Aplikacja przygotuje ujęcia i szacowane
+          czasy.
+        </Empty>
+      ) : (
+        <div className="script-scenes">
+          {p.scenes.map((scene, index) => (
+            <section className="script-scene surface" key={scene.id}>
+              <div className="script-scene-side">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <small>{time(scene.start, fps(p))}</small>
+              </div>
+              <div className="script-scene-content">
+                <div className="inline-heading">
+                  <h3>{scene.title}</h3>
+                  {scene.locked && <LockKeyhole size={14} />}
+                  <div className="player-spacer" />
+                  <button
+                    className="text-button"
+                    onClick={() => {
+                      s.setTargetScene(scene.id);
+                      s.setPage("generation");
+                    }}
+                  >
+                    Przygotuj obraz
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+                <CommitText
+                  multiline
+                  rows={Math.max(3, Math.ceil(scene.narration.length / 100))}
+                  value={scene.narration}
+                  onCommit={(v) => update(scene.id, v)}
+                  disabled={scene.locked}
+                  placeholder="Narracja tego ujęcia…"
+                />
+                {scene.fact_ids.length > 0 && (
+                  <div className="fact-references">
+                    {scene.fact_ids.map((fid) => (
+                      <span key={fid}>{fid}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Dodaj fragment scenariusza"
+        description="Każdy akapit stanie się osobnym ujęciem."
+        wide
+      >
+        <textarea
+          rows={13}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Wklej narrację. Oddziel sceny pustą linią."
+        />
+        <div className="button-row">
+          <Button
+            primary
+            icon={Plus}
+            disabled={!text.trim()}
+            onClick={() => s.run(append)}
+          >
+            Utwórz ujęcia z tekstu
+          </Button>
+        </div>
+      </Modal>
+    </div>
+  );
+}

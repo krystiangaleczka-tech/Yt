@@ -1,0 +1,36 @@
+{
+  "name": "docos-studio",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "format": "prettier --write src",
+    "remotion:setup": "node scripts/render-insert.mjs --setup"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "1.3.1",
+    "@remotion/bundler": "4.0.539",
+    "@remotion/player": "4.0.539",
+    "@remotion/renderer": "4.0.539",
+    "lucide-react": "1.61.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.539"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2",
+    "vite": "8.3.5"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}
