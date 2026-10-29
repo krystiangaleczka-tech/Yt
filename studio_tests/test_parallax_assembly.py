@@ -78,7 +78,7 @@ class ParallaxAssemblyTests(unittest.TestCase):
         self.assertEqual(self.frame(.1, **opts).getpixel((15, 10)), self.background)
         landed = self.frame(.6, **opts)
         self.assertEqual(landed.getpixel((15, 10)), (114, 154, 219))
-        self.assertNotEqual(landed.getpixel((15, 1)), self.background)
+        self.assertNotEqual(landed.getpixel((16, 1)), self.background)  # midpoint of inclusive rectangle rounds to x=16
 
     def test_rake_lift_unfolds_from_cutout_lower_pivot(self):
         cue = {"layer": 3, "rig": "rake_lift", "start": .1,
