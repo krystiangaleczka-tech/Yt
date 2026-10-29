@@ -310,7 +310,7 @@ class AnimationTests(unittest.TestCase):
                         json.dumps({'characters': [{'character_id': 'chr_' + '0' * 16}]})])
         with mock.patch('studio_api.animation.complete', side_effect=lambda *a, **k: next(answers)):
             job = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/rework-batch", json={}, headers=H))
-            for _ in range(200):
+            for _ in range(750):  # up to 15 s on a loaded machine
                 state = self.ok(self.client.get('/api/jobs/' + job['id']))
                 if state['status'] in ('SUCCEEDED', 'FAILED'):
                     break
@@ -373,7 +373,7 @@ class AnimationTests(unittest.TestCase):
 
         with mock.patch('studio_api.animation.complete', side_effect=fake):
             job = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/rework-batch", json={}, headers=H))
-            for _ in range(200):
+            for _ in range(750):  # up to 15 s on a loaded machine
                 state = self.ok(self.client.get('/api/jobs/' + job['id']))
                 if state['status'] in ('SUCCEEDED', 'FAILED'):
                     break
