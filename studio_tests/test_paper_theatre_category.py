@@ -312,5 +312,59 @@ class PaperTheatreCategoryTests(unittest.TestCase):
         self.assertEqual(outlined.getpixel((1,1))[3],0)
 
 
+    def test_technique_is_not_documentary_only(self):
+        from studio_core.paper_theatre_reference import draft_prompt
+        from studio_core.paper_theatre_asset_first import DEFAULT_BRIEF, DEFAULT_STYLE
+        from types import SimpleNamespace
+        scene = SimpleNamespace(title="Legenda", narration="Opowieść o dawnej królowej.",
+                                prompt="")
+        prompt = draft_prompt(scene, "Bitwa w epoce brązu", DEFAULT_STYLE)
+        self.assertIn("story shot", prompt)
+        self.assertNotIn("documentary shot", prompt)
+        self.assertNotIn("documentary", DEFAULT_STYLE.lower())
+        self.assertNotIn("dokument", DEFAULT_BRIEF.lower())
+
+    def test_per_object_pivot_and_entrance_rig_round_trip(self):
+        from studio_core.paper_theatre_asset_first import normalize_manifest, assemble_manifest
+        manifest = self.asset_manifest()
+        manifest["objects"][1].update(pivot_x=.17, pivot_y=.91, rig="hanging_drop")
+        normalized = normalize_manifest(manifest)
+        wall = next(obj for obj in normalized["objects"] if obj["id"] == "cloud")
+        self.assertEqual(wall["pivot_x"], .17)
+        self.assertEqual(wall["rig"], "hanging_drop")
+        project = self.app.state.store.get(self.project["id"])
+        data = assemble_manifest(self.app.state.store, project, self.background, normalized)
+        cue = data["layer_cues"][0]
+        self.assertEqual(cue["rig"], "hanging_drop")
+        self.assertEqual(cue["pivot_x"], .17)
+        self.assertEqual(cue["pivot_y"], .91)
+        for key, invalid in (("pivot_x", -1), ("pivot_y", True),
+                             ("rig", "unknown_motion")):
+            broken = self.asset_manifest()
+            broken["objects"][1][key] = invalid
+            with self.assertRaises(ValueError):
+                normalize_manifest(broken)
+
+    def test_geometry_and_alpha_diagnostics_are_advisory(self):
+        from studio_core.paper_theatre_quality import alpha_diagnostics, layout_warnings
+        sprite = Image.new("RGBA", (120, 60), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(sprite)
+        draw.rectangle((10, 10, 30, 40), fill=(20, 30, 40, 255))
+        draw.rectangle((85, 10, 105, 40), fill=(20, 30, 40, 255))
+        self.assertEqual(alpha_diagnostics(sprite)["regions"], 2)
+        entries = [
+            {"name": "Drzewo", "bounds": (0, 0, 100, 100),
+             "layout": {"layout_x": .5, "layout_y": .7, "layout_width": .4}},
+            {"name": "Mur", "bounds": (0, 0, 100, 100),
+             "layout": {"layout_x": .5, "layout_y": .7, "layout_width": .4}},
+            {"name": "Obłok", "bounds": (0, 0, 100, 100),
+             "layout": {"layout_x": .99, "layout_y": .2, "layout_width": .4}},
+        ]
+        warnings = layout_warnings(entries, (320, 180))
+        self.assertTrue(any("nakładanie" in w for w in warnings))
+        self.assertTrue(any("poza kadr" in w for w in warnings))
+        self.assertEqual(layout_warnings([{"name": "Dym", "layout": {}}], (320,180)), [])
+
+
 if __name__=="__main__":
     unittest.main()

@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from "lucide-react";
 import { api, mediaUrl, saveText, upload, id as makeId } from "./api";
 import { useStudio } from "./context";
 import { Button, Field, NumberField } from "./components";
 import type { Project, Scene } from "./types";
+import PaperCutoutMaskEditor from "./PaperCutoutMaskEditor";
 
 const GROUPS = [
   ["sky", "Niebo · osobne chmury/słońce"],
@@ -19,6 +21,8 @@ type ObjectSpec = {
   id: string; name: string; description: string; group: Group;
   x: number; y: number; width: number; z: number; asset_id: string;
   duration?: number;
+  pivot_x?: number; pivot_y?: number;
+  rig?: "hanging_drop" | "bottom_rise" | "rake_lift" | "static";
 };
 type Manifest = {
   mode?: "asset-first" | "reference-guided";
@@ -60,6 +64,9 @@ export default function PaperTheatreAssetFirst({
   const [referenceApproved, setReferenceApproved] = useState(false);
   const [referencePrompt, setReferencePrompt] = useState("");
   const [draftJobId, setDraftJobId] = useState("");
+  const [selectedObjectId, setSelectedObjectId] = useState("");
+  const dragOffsetRef = useRef<{ id: string; x: number; y: number } | null>(null);
+  const [maskObjectId, setMaskObjectId] = useState("");
   const assets = project.assets.filter((asset) => asset.kind === "image" && asset.filename.toLowerCase().endsWith(".png"));
   const references = project.assets.filter((asset) => asset.kind === "image" &&
     /\.(png|jpe?g)$/i.test(asset.filename));
@@ -221,12 +228,25 @@ export default function PaperTheatreAssetFirst({
   });
   const addUploaded = (files: FileList | null) => studio.run(async () => {
     if (!files) return;
+    const imported: { name: string; id: string }[] = [];
     for (const file of Array.from(files)) {
       if (file.type !== "image/png") throw new Error("Wymagane PNG; bez przezroczystości zostaną odrzucone przy składaniu");
-      const response = await upload<{ project: Project }>(`/projects/${project.id}/media`, file);
+      const response = await upload<{ project: Project; asset: { id: string } }>(
+        `/projects/${project.id}/media`, file);
       studio.accept(response.project);
+      imported.push({ name: file.name.replace(/\.png$/i, "").toLowerCase(), id: response.asset.id });
     }
-    studio.notify("Wgrano PNG. Dopasuj je do obiektów z listy.");
+    // Match only exact object IDs; never guess a person's identity from a PNG
+    // filename or overwrite an already approved linked asset.
+    setManifest((previous) => ({
+      ...previous,
+      objects: previous.objects.map((obj) => {
+        if (obj.asset_id) return obj;
+        const match = imported.filter((item) => item.name === obj.id.toLowerCase());
+        return match.length === 1 ? { ...obj, asset_id: match[0].id } : obj;
+      }),
+    }));
+    studio.notify("Zaimportowano PNG. Pliki nazwane dokładnie jak ID obiektu przypisano automatycznie.");
   });
   const requestDraftPrompt = () => studio.run(async () => {
     if (!scene) throw new Error("Utwórz ujęcie");
@@ -254,8 +274,28 @@ export default function PaperTheatreAssetFirst({
     setReferenceId(response.asset.id);
     setReferenceApproved(false);
   });
-  const updateObjectNumber = (obj: ObjectSpec, key: "x"|"y"|"width"|"z", value: number) => {
+  const saveCutoutMask = (obj: ObjectSpec, png: Blob) => studio.run(async () => {
+    if (!scene || !obj.asset_id) throw new Error("Wybierz wycinek i ujęcie");
+    const file = new File([png], obj.id + "-mask.png", { type: "image/png" });
+    const result = await upload<{ project: Project; asset: { id: string } }>(
+      `/projects/${project.id}/media`, file);
+    studio.accept(result.project);
+    modify(obj.id, { asset_id: result.asset.id });
+    setMaskObjectId("");
+    studio.notify("Nowa maska alpha zapisana jako osobny PNG. Oryginał pozostał w bibliotece.");
+  });
+  const updateObjectNumber = (obj: ObjectSpec, key: "x"|"y"|"width"|"z"|"pivot_x"|"pivot_y", value: number) => {
     modify(obj.id, { [key]: value });
+  };
+
+  const placeFromPointer = (obj: ObjectSpec, event: ReactPointerEvent<HTMLImageElement>) => {
+    const rect = event.currentTarget.parentElement?.getBoundingClientRect();
+    if (!rect || !rect.width || !rect.height) return;
+    const offset = dragOffsetRef.current?.id === obj.id ? dragOffsetRef.current : null;
+    modify(obj.id, {
+      x: Math.min(1, Math.max(0, Math.round(((event.clientX - rect.left) / rect.width - (offset?.x || 0)) * 1000) / 1000)),
+      y: Math.min(1, Math.max(0, Math.round(((event.clientY - rect.top) / rect.height - (offset?.y || 0)) * 1000) / 1000)),
+    });
   };
 
   return (
@@ -389,17 +429,64 @@ export default function PaperTheatreAssetFirst({
             .sort((a, b) => a.z - b.z)
             .map((obj) => (
               <img key={obj.id} src={mediaUrl(project.id, obj.asset_id)}
-                alt={obj.name} title={obj.name}
+                alt={obj.name} title={obj.name + " · przeciągnij, aby ustawić pozycję"}
+                role="button" tabIndex={0}
+                aria-label={obj.name + " · położenie; strzałki przesuwają wycinek"}
+                onClick={() => setSelectedObjectId(obj.id)}
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  setSelectedObjectId(obj.id);
+                  const rect = event.currentTarget.parentElement?.getBoundingClientRect();
+                  if (rect) dragOffsetRef.current = {
+                    id: obj.id,
+                    x: (event.clientX - rect.left) / rect.width - obj.x,
+                    y: (event.clientY - rect.top) / rect.height - obj.y,
+                  };
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  placeFromPointer(obj, event);
+                }}
+                onPointerMove={(event) => {
+                  if (event.currentTarget.hasPointerCapture(event.pointerId))
+                    placeFromPointer(obj, event);
+                }}
+                onPointerUp={(event) => {
+                  dragOffsetRef.current = null;
+                  if (event.currentTarget.hasPointerCapture(event.pointerId))
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                }}
+                onPointerCancel={(event) => {
+                  dragOffsetRef.current = null;
+                  if (event.currentTarget.hasPointerCapture(event.pointerId))
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                }}
+                onKeyDown={(event) => {
+                  const delta = event.shiftKey ? .05 : .01;
+                  const movement: Record<string, [number, number]> = {
+                    ArrowLeft: [-delta, 0], ArrowRight: [delta, 0],
+                    ArrowUp: [0, -delta], ArrowDown: [0, delta],
+                  };
+                  const move = movement[event.key];
+                  if (move) {
+                    event.preventDefault();
+                    setSelectedObjectId(obj.id);
+                    modify(obj.id, {
+                      x: Math.min(1, Math.max(0, obj.x + move[0])),
+                      y: Math.min(1, Math.max(0, obj.y + move[1])),
+                    });
+                  }
+                }}
                 style={{ position: "absolute", left: `${obj.x * 100}%`,
                   bottom: `${(1 - obj.y) * 100}%`, width: `${obj.width * 100}%`,
                   height: "auto", transform: "translateX(-50%)",
-                  objectFit: "contain" }} />
+                  objectFit: "contain", touchAction: "none", cursor: "grab",
+                  outline: selectedObjectId === obj.id ? "2px solid #d9b44a" : "none" }} />
             ))}
         </div>
         <p className="small muted">
           {referenceMode && !background ? "Pod spodem jest wyłącznie szkic poglądowy. Przed montażem wybierz osobne czyste tło. " : ""}
-          Podgląd układu to mapa statyczna; ostateczne obcinanie przezroczystości,
-          mechaniki wejść i kolejność Z są liczone przez renderer.
+          Przeciągnij pojedynczy PNG, aby przesunąć go po scenie (lub użyj strzałek na klawiaturze;
+          Shift oznacza większy krok). W podglądzie widać schemat układu, nie dokładną klatkę:
+          ostateczne obcinanie alpha, mechaniki wejść i kolejność Z liczy renderer.
         </p>
         {GROUPS.map(([group, title]) => {
           const objects = manifest.objects.filter((obj) => obj.group === group);
@@ -436,6 +523,14 @@ export default function PaperTheatreAssetFirst({
                         .map((asset) => <option key={asset.id} value={asset.id}>{asset.name}</option>)}
                     </select>
                   </Field>
+                  {obj.asset_id && <>
+                    <Button onClick={() => setMaskObjectId(maskObjectId === obj.id ? "" : obj.id)}>
+                      {maskObjectId === obj.id ? "Zamknij maskę" : "Edytuj maskę PNG"}
+                    </Button>
+                    {maskObjectId === obj.id && <PaperCutoutMaskEditor
+                      key={obj.asset_id} src={mediaUrl(project.id, obj.asset_id)}
+                      onSave={(png) => saveCutoutMask(obj, png)} />}
+                  </>}
                   <div className="two-fields">
                     <NumberField label="X · środek (0–1)" value={obj.x} min={0} max={1} step={.01}
                       onCommit={(value) => updateObjectNumber(obj, "x", value)} />
@@ -445,7 +540,22 @@ export default function PaperTheatreAssetFirst({
                       onCommit={(value) => updateObjectNumber(obj, "width", value)} />
                     <NumberField label="Z · przesłanianie" value={obj.z} min={-100} max={100} step={1}
                       onCommit={(value) => updateObjectNumber(obj, "z", Math.round(value))} />
+                    <NumberField label="Pivot X (0–1)" value={obj.pivot_x ?? .5} min={0} max={1} step={.01}
+                      onCommit={(value) => updateObjectNumber(obj, "pivot_x", value)} />
+                    <NumberField label="Pivot Y (0–1)" value={obj.pivot_y ?? 1} min={0} max={1} step={.01}
+                      onCommit={(value) => updateObjectNumber(obj, "pivot_y", value)} />
                   </div>
+                  <Field label="Indywidualna mechanika wejścia">
+                    <select value={obj.rig || ""} onChange={(event) =>
+                      modify(obj.id, { rig: event.target.value
+                        ? event.target.value as ObjectSpec["rig"] : undefined })}>
+                      <option value="">Automatyczna wg grupy</option>
+                      <option value="hanging_drop">Opuszczany na nitce</option>
+                      <option value="bottom_rise">Wysuwany od dołu</option>
+                      <option value="rake_lift">Podnoszony na patyczku (pivot)</option>
+                      <option value="static">Bez animacji wejścia</option>
+                    </select>
+                  </Field>
                 </div>
               ))}
             </section>
