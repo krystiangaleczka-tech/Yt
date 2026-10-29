@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book Scout</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Book Scout</h1>
+    <p class="sub">Tematy na filmy z książek, których nie ma w sieci</p>
+  </div>
+  <div class="pills" id="status-pills"></div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="draw" class="active">1. Losuj</button>
+  <button role="tab" data-tab="claude">2. Ocena Claude <span class="count" id="cnt-pending"></span></button>
+  <button role="tab" data-tab="rank">3. Ranking <span class="count" id="cnt-rated"></span></button>
+  <button role="tab" data-tab="settings">Ustawienia</button>
+</nav>
+
+<main>
+  <!-- 1. Losowanie -->
+  <section id="tab-draw" class="tab active">
+    <div class="panel">
+      <div class="row">
+        <div class="field">
+          <span class="label">Źródło</span>
+          <div class="seg" id="source-seg">
+            <button data-v="openlibrary" class="on">Open Library (EN)</button>
+            <button data-v="bn">Biblioteka Narodowa (PL→EN)</button>
+            <button data-v="both">Obie</button>
+          </div>
+        </div>
+      </div>
+      <span class="label">Kategoria</span>
+      <div class="chips" id="cat-chips"></div>
+      <div class="row opts">
+        <label class="field small">Ile książek <input type="number" id="draw-count" min="1" max="40" value="10"></label>
+        <label class="field small">Rok od <input type="number" id="year-from" placeholder="np. 1850"></label>
+        <label class="field small">Rok do <input type="number" id="year-to" placeholder="np. 1990"></label>
+        <label class="check"><input type="checkbox" id="only-offline" checked> Tylko bez pełnej wersji online</label>
+        <button class="primary" id="btn-draw">Losuj książki</button>
+      </div>
+      <p class="msg" id="draw-msg"></p>
+    </div>
+    <h2 class="section-title">Czekają na ocenę <span class="muted" id="pending-info"></span></h2>
+    <div class="cards" id="pending-list"></div>
+  </section>
+
+  <!-- 2. Claude -->
+  <section id="tab-claude" class="tab">
+    <div class="grid2">
+      <div class="panel">
+        <h2>Kopiuj–wklej (claude.ai)</h2>
+        <ol class="steps">
+          <li>Przygotuj paczkę i skopiuj prompt.</li>
+          <li>Wklej go w czacie Claude.</li>
+          <li>Skopiuj odpowiedź (tablicę JSON) i zaimportuj poniżej.</li>
+        </ol>
+        <div class="row">
+          <label class="field small">Książek w paczce <input type="number" id="batch-count" min="1" max="40" value="15"></label>
+          <button class="primary" id="btn-prompt">Przygotuj prompt</button>
+          <button id="btn-copy" disabled>Kopiuj prompt</button>
+        </div>
+        <textarea id="prompt-box" readonly placeholder="Tu pojawi się prompt…"></textarea>
+        <span class="label">Odpowiedź Claude</span>
+        <textarea id="answer-box" placeholder="Wklej tu odpowiedź Claude (tablica JSON)…"></textarea>
+        <div class="row"><button class="primary" id="btn-import">Importuj oceny</button></div>
+        <div class="msg" id="import-msg"></div>
+      </div>
+      <div class="panel">
+        <h2>Claude Code (bez kopiowania)</h2>
+        <p>Program zapisuje paczkę do pliku. W Claude Code napisz <code>oceń paczkę Book Scout</code>.
+          Claude przeczyta plik i zapisze oceny obok, a Ty klikasz „Importuj z plików”.</p>
+        <div class="row">
+          <button id="btn-export-file">Zapisz paczkę do pliku</button>
+          <button id="btn-import-files">Importuj z plików</button>
+        </div>
+        <div class="msg" id="file-msg"></div>
+        <h3>Co ocenia Claude</h3>
+        <ul class="plain">
+          <li><b>Ciekawość</b> 0–100: czy z książki wyjdzie film dla szerokiej widowni</li>
+          <li><b>Trudność</b> 1–10: dostęp do źródła, język, research, materiały</li>
+          <li><b>Materiały wizualne</b>, godziny researchu, potencjał na serię i Shorts</li>
+          <li>Tytuł filmu, hook, pytanie centralne i fraza do sprawdzenia konkurencji</li>
+          <li>Ryzyka: kontrowersje, demonetyzacja, prawa autorskie</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Ranking -->
+  <section id="tab-rank" class="tab">
+    <div class="panel toolbar">
+      <button class="primary" id="btn-market">Analizuj rynek</button>
+      <button id="btn-market-file" title="Bez klucza Google: Claude Code sprawdzi YouTube przez TubeAlfred">Analiza YouTube przez Claude Code</button>
+      <div class="seg" id="rank-filter">
+        <button data-v="all" class="on">Wszystkie</button>
+        <button data-v="analyzed">Z analizą rynku</button>
+        <button data-v="picked">★ Wybrane</button>
+      </div>
+      <button id="btn-docos">Eksport ★ do DocOS</button>
+      <span class="msg" id="rank-msg"></span>
+    </div>
+    <div class="table-wrap">
+      <table id="rank-table">
+        <thead><tr>
+          <th></th><th>Temat</th><th>Wynik</th><th title="Ciekawość wg Claude">Ciek.</th>
+          <th title="Popyt: Wikipedia + YouTube">Popyt</th><th title="Konkurencja na YouTube">Konk.</th>
+          <th title="Popyt / konkurencja">Ratio</th><th title="Trudność 1–10">Trud.</th>
+          <th title="Prognoza wyświetleń w 12 mies.">Wyśw. 12 mies.</th><th>Zarobek</th><th>Koszt</th>
+          <th>ROI</th><th>Dostępność</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="muted empty" id="rank-empty">Brak ocenionych tematów. Wylosuj książki i oceń je w zakładce „Ocena Claude”.</p>
+    <aside class="detail" id="detail" hidden></aside>
+  </section>
+
+  <!-- Ustawienia -->
+  <section id="tab-settings" class="tab">
+    <div class="grid2">
+      <form class="panel" id="settings-form">
+        <h2>Kanał i koszty</h2>
+        <label class="field">Subskrybenci kanału <input type="number" name="channel_subs" min="0"></label>
+        <label class="field">RPM (USD / 1000 wyświetleń) <input type="number" name="rpm_usd" step="0.1" min="0"></label>
+        <label class="check"><input type="checkbox" name="monetized"> Kanał zarabia (program partnerski YouTube)</label>
+        <label class="field">Stawka za godzinę Twojej pracy (USD) <input type="number" name="hourly_rate_usd" step="1" min="0"></label>
+        <label class="field">Koszty stałe filmu (USD) <input type="number" name="fixed_cost_usd" step="1" min="0"></label>
+        <label class="field">Docelowa długość filmu (min) <input type="number" name="video_minutes" min="1"></label>
+        <div class="row"><button class="primary" type="submit">Zapisz</button><span class="msg" id="settings-msg"></span></div>
+      </form>
+      <div class="panel">
+        <h2>Klucz Google (YouTube + Google Books)</h2>
+        <p id="key-status"></p>
+        <p>Bez klucza działa wszystko poza wynikami YouTube i Google Books. Popyt liczony jest wtedy z Wikipedii,
+          a YouTube można sprawdzić przez Claude Code.</p>
+        <ol class="steps">
+          <li>W <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">Google Cloud Console</a>
+            włącz <b>YouTube Data API v3</b> i <b>Books API</b>.</li>
+          <li>Utwórz klucz API (Dane logowania → Utwórz → Klucz API).</li>
+          <li>Wpisz go do pliku <code>bookscout/.env</code>: <code>GOOGLE_API_KEY=…</code> i uruchom ponownie Book Scout.</li>
+        </ol>
+        <p class="muted">Darmowy limit YouTube to 10 000 jednostek dziennie. Jedna analiza tematu zużywa ok. 102,
+          czyli około 95 tematów dziennie.</p>
+        <h3>Jak liczony jest wynik</h3>
+        <ul class="plain">
+          <li>25% ciekawość, 20% popyt, 15% wolne pole (100 − konkurencja), 15% wyjątkowość źródła, 15% ROI, 10% łatwość</li>
+          <li><b>Ratio</b> = popyt / konkurencja. Powyżej 1,5 to luka.</li>
+          <li><b>Wyjątkowość</b> = ciekawość × brak wersji cyfrowej (+15% bez angielskiego wydania)</li>
+          <li>Prognozy są orientacyjne (±50–100%) i służą do porównywania tematów.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" hidden></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

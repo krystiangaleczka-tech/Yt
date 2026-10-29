@@ -46,3 +46,7 @@ node_modules/
 apps/studio/dist/
 *.tsbuildinfo
 .pytest_cache/
+
+# Book Scout: lokalna baza, paczki dla Claude i klucz
+bookscout/data/
+bookscout/.env
