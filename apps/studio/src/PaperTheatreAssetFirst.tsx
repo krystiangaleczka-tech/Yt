@@ -125,8 +125,14 @@ export default function PaperTheatreAssetFirst({
   const importJSON = () => {
     try {
       const raw = incoming.trim().replace(/^```(?:json)?\s*|\s*```$/g, "");
-      const data = JSON.parse(raw) as Manifest;
-      setValue(data);
+      const data = JSON.parse(raw) as Partial<Manifest>;
+      if (!data || typeof data.brief !== "string" || typeof data.style !== "string" ||
+          !Array.isArray(data.objects) || !data.objects.every((obj) =>
+            obj && typeof obj === "object" && typeof obj.id === "string" &&
+            typeof obj.name === "string" && typeof obj.group === "string")) {
+        throw new Error("JSON musi zawierać brief, style i tablicę pojedynczych objects.");
+      }
+      setValue(data as Manifest);
       studio.notify("Zaimportowano roboczą listę. Sprawdź i zapisz plan.");
     } catch (error) {
       studio.notify(error instanceof Error ? error.message : "Niepoprawny JSON", true);
