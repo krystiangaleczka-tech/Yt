@@ -17,6 +17,7 @@ export type Page =
   | "library"
   | "jobs"
   | "production"
+  | "paper-theatre"
   | "bank"
   | "bank-media"
   | "templates"
@@ -123,6 +124,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         "library",
         "jobs",
         "production",
+        "paper-theatre",
         "bank",
         "bank-media",
         "templates",

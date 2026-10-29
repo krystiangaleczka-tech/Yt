@@ -23,6 +23,7 @@ import {
 } from "./components";
 import type { Beat, Project, Scene, Template, Word } from "./types";
 import CaptionEditor from "./Captions";
+import PaperTheatre from "./PaperTheatre";
 
 export function JSONField({
   label,
@@ -87,6 +88,7 @@ export default function Production() {
       <div className="filter-pills">
         {[
           ["shots", "Ujęcia"],
+          ["paper", "Paper Theatre 2.5D"],
           ["voice", "Lektor"],
           ["beats", "Fragmenty"],
           ["versions", "Wersje A/B"],
@@ -105,6 +107,8 @@ export default function Production() {
       </div>
       {tab === "shots" ? (
         <ShotTools />
+      ) : tab === "paper" ? (
+        <PaperTheatre />
       ) : tab === "voice" ? (
         <VoiceTools />
       ) : tab === "beats" ? (

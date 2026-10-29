@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import io
+import math
 import json
 import os
 from pathlib import Path
@@ -37,6 +38,60 @@ def register(app, store, jobs, connectors, repo, callbacks):
 
     def job_request(action,body,**identifiers):
         return {"action":action,"body":{k:v for k,v in body.items() if k!="_retry_job"},**identifiers}
+
+    @app.get("/api/paper-theatre/groups")
+    def theatre_groups():
+        from studio_core.paper_theatre import GROUPS
+        return [{"id": ident, "name": name, "rig": rig} for ident, name, rig in GROUPS]
+
+    @app.post("/api/projects/{pid}/paper-theatre/scenes")
+    def theatre_new_scene(pid: str, body: dict):
+        from studio_core.models import Scene
+        def create(project):
+            start=max((scene.start + scene.duration for scene in project.scenes), default=0)
+            scene=Scene(title="Paper Theatre 2.5D", start=start, duration=round(20*fps(project)),
+                        animation="static", template="paper-theatre",
+                        parameters={"depth": .015, "layer_cues": []})
+            project.scenes.append(scene)
+        return store.mutate(pid, int(body["expected_revision"]), create)
+
+    @app.post("/api/projects/{pid}/paper-theatre/{sid}/preview")
+    def theatre_preview(pid: str, sid: str, body: dict):
+        from studio_core.paper_theatre import plan
+        project=store.get(pid)
+        if int(body["expected_revision"]) != project.revision:
+            raise Conflict("Plan pochodzi z poprzedniej rewizji filmu")
+        scene=next((s for s in project.scenes if s.id == sid), None)
+        if scene is None: raise ValueError("Nie ma takiego ujęcia")
+        return plan(store,project,body.get("background_id",""),body.get("layers",[]),
+                    gap=body.get("gap",.12),group_gap=body.get("group_gap",.22),
+                    hero_outline_px=body.get("hero_outline_px",8))
+
+    @app.post("/api/projects/{pid}/paper-theatre/{sid}/commit")
+    def theatre_commit(pid: str, sid: str, body: dict):
+        from studio_core.paper_theatre import plan
+        def change(project):
+            scene=next((s for s in project.scenes if s.id == sid), None)
+            if scene is None: raise ValueError("Nie ma takiego ujęcia")
+            if scene.locked or scene.lock_media:
+                raise ValueError("Odblokuj media tego ujęcia przed zmianą scenografii")
+            assembled=plan(store,project,body.get("background_id",""),body.get("layers",[]),
+                           gap=body.get("gap",.12),group_gap=body.get("group_gap",.22),
+                           hero_outline_px=body.get("hero_outline_px",8))
+            required=math.ceil(assembled["total_seconds"]*fps(project))
+            if scene.duration < required:
+                if scene.lock_timing or any(c.scene_id==sid for c in project.sequence.clips):
+                    raise ValueError("Ujęcie jest za krótkie. Dostosuj długość w montażu i ponów.")
+                scene.duration=required
+            scene.template="paper-theatre"
+            scene.animation="static"
+            scene.asset_id=assembled["background_id"]
+            scene.asset_ids=assembled["asset_ids"]
+            scene.parameters={"depth":.015,"layer_cues":assembled["layer_cues"]}
+            scene.generation={**scene.generation,"paper_theatre_report":{
+                "cutouts": assembled["cutouts"], "warnings": assembled["warnings"],
+                "hero_last": assembled["hero_last"], "reference_match_confirmed": False}}
+        return store.mutate(pid,int(body["expected_revision"]),change)
 
     @app.get("/api/templates")
     def templates(): return TEMPLATES
