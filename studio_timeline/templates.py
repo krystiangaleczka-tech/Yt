@@ -138,8 +138,8 @@ def paint(clip, params, media, n, w, h, rate, style=None):
         for label,x in ((params.get("left",""),w*.04),(params.get("right",""),w*.54)):
             draw.rectangle((x-5,h*.77,x+w*.42,h*.89),fill="#10151ee8")
             draw.text((x,h*.8),label,font=small,fill="#ffffff")
-    elif kind in ("stack", "parallax"):
-        if kind=="parallax":
+    elif kind in ("stack", "parallax", "paper-theatre"):
+        if kind in ("parallax", "paper-theatre"):
             picture(0,(0,0,w,h))
             cues = {cue["layer"]: cue for cue in params.get("layer_cues", [])}
             # A mechanical cue must not accidentally fade unrelated legacy layers.
