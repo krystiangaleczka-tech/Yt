@@ -60,7 +60,7 @@ def register(app, store, jobs, connectors, repo, callbacks):
         if action != "generate":
             raise ValueError("Nieznane działanie planera Asset-first")
         output = complete(connectors, prompt, store=store, project=project)
-        clean = re.sub(r"^\\s*```(?:json)?\\s*|\\s*```\\s*$", "", output.strip())
+        clean = re.sub(r"^\s*```(?:json)?\s*|\s*```\s*$", "", output.strip())
         try:
             value = normalize_manifest(json.loads(clean))
         except (ValueError, TypeError, json.JSONDecodeError) as error:
