@@ -17,7 +17,7 @@ from studio_core.freshness import fingerprint
 from studio_core.media import asset_path, probe
 from studio_core.templates import validate_parameters
 from studio_core.models import fps
-from .paper_theatre import rig_image
+from .paper_theatre import rig_image, layout_cutout
 
 FONT = Path(__file__).resolve().parents[1] / "pilot/fonts/Montserrat.ttf"
 FONTS={"montserrat":FONT,"courier":FONT.with_name("CourierPrime-Regular.ttf"),"courier-bold":FONT.with_name("CourierPrime-Bold.ttf")}
@@ -144,7 +144,11 @@ def paint(clip, params, media, n, w, h, rate, style=None):
             cues = {cue["layer"]: cue for cue in params.get("layer_cues", [])}
             # A mechanical cue must not accidentally fade unrelated legacy layers.
             assembling = bool(params.get("assembly_start", 0) or params.get("assembly_interval", 0) or any(cue.get("rig", "sequential") == "sequential" for cue in cues.values()))
-            for i in range(1, len(media.images)):
+            order = list(range(1, len(media.images)))
+            if kind == "paper-theatre":
+                # Visible overlap is independent of the sequence of entrances.
+                order.sort(key=lambda index: (cues.get(index, {}).get("z_index", index), index))
+            for i in order:
                 cue = cues.get(i, {})
                 start = cue.get("start", params.get("assembly_start", 0) + (i - 1) * params.get("assembly_interval", 0))
                 if assembling and seconds < start:
@@ -152,7 +156,10 @@ def paint(clip, params, media, n, w, h, rate, style=None):
                 layer = media.frame(i, n)
                 if layer:
                     duration = cue.get("duration", params.get("assembly_duration", .35))
-                    layer = layer.resize((w, h))
+                    if kind == "paper-theatre" and "layout_x" in cue:
+                        layer = layout_cutout(layer, cue, w, h)
+                    else:
+                        layer = layer.resize((w, h))
                     depth = cue.get("depth", i)
                     shift = round((phase - .5) * w * params.get("depth", .06) * depth)
                     rig = cue.get("rig", "sequential")
