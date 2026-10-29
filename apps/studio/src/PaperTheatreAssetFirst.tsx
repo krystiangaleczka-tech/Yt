@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from "lucide-react";
 import { api, mediaUrl, saveText, upload, id as makeId } from "./api";
@@ -65,6 +65,7 @@ export default function PaperTheatreAssetFirst({
   const [referencePrompt, setReferencePrompt] = useState("");
   const [draftJobId, setDraftJobId] = useState("");
   const [selectedObjectId, setSelectedObjectId] = useState("");
+  const dragOffsetRef = useRef<{ id: string; x: number; y: number } | null>(null);
   const [maskObjectId, setMaskObjectId] = useState("");
   const assets = project.assets.filter((asset) => asset.kind === "image" && asset.filename.toLowerCase().endsWith(".png"));
   const references = project.assets.filter((asset) => asset.kind === "image" &&
@@ -227,12 +228,25 @@ export default function PaperTheatreAssetFirst({
   });
   const addUploaded = (files: FileList | null) => studio.run(async () => {
     if (!files) return;
+    const imported: { name: string; id: string }[] = [];
     for (const file of Array.from(files)) {
       if (file.type !== "image/png") throw new Error("Wymagane PNG; bez przezroczystości zostaną odrzucone przy składaniu");
-      const response = await upload<{ project: Project }>(`/projects/${project.id}/media`, file);
+      const response = await upload<{ project: Project; asset: { id: string } }>(
+        `/projects/${project.id}/media`, file);
       studio.accept(response.project);
+      imported.push({ name: file.name.replace(/\.png$/i, "").toLowerCase(), id: response.asset.id });
     }
-    studio.notify("Wgrano PNG. Dopasuj je do obiektów z listy.");
+    // Match only exact object IDs; never guess a person's identity from a PNG
+    // filename or overwrite an already approved linked asset.
+    setManifest((previous) => ({
+      ...previous,
+      objects: previous.objects.map((obj) => {
+        if (obj.asset_id) return obj;
+        const match = imported.filter((item) => item.name === obj.id.toLowerCase());
+        return match.length === 1 ? { ...obj, asset_id: match[0].id } : obj;
+      }),
+    }));
+    studio.notify("Zaimportowano PNG. Pliki nazwane dokładnie jak ID obiektu przypisano automatycznie.");
   });
   const requestDraftPrompt = () => studio.run(async () => {
     if (!scene) throw new Error("Utwórz ujęcie");
@@ -277,9 +291,10 @@ export default function PaperTheatreAssetFirst({
   const placeFromPointer = (obj: ObjectSpec, event: ReactPointerEvent<HTMLImageElement>) => {
     const rect = event.currentTarget.parentElement?.getBoundingClientRect();
     if (!rect || !rect.width || !rect.height) return;
+    const offset = dragOffsetRef.current?.id === obj.id ? dragOffsetRef.current : null;
     modify(obj.id, {
-      x: Math.min(1, Math.max(0, Math.round((event.clientX - rect.left) / rect.width * 1000) / 1000)),
-      y: Math.min(1, Math.max(0, Math.round((event.clientY - rect.top) / rect.height * 1000) / 1000)),
+      x: Math.min(1, Math.max(0, Math.round(((event.clientX - rect.left) / rect.width - (offset?.x || 0)) * 1000) / 1000)),
+      y: Math.min(1, Math.max(0, Math.round(((event.clientY - rect.top) / rect.height - (offset?.y || 0)) * 1000) / 1000)),
     });
   };
 
@@ -421,6 +436,12 @@ export default function PaperTheatreAssetFirst({
                 onPointerDown={(event) => {
                   event.preventDefault();
                   setSelectedObjectId(obj.id);
+                  const rect = event.currentTarget.parentElement?.getBoundingClientRect();
+                  if (rect) dragOffsetRef.current = {
+                    id: obj.id,
+                    x: (event.clientX - rect.left) / rect.width - obj.x,
+                    y: (event.clientY - rect.top) / rect.height - obj.y,
+                  };
                   event.currentTarget.setPointerCapture(event.pointerId);
                   placeFromPointer(obj, event);
                 }}
@@ -429,10 +450,12 @@ export default function PaperTheatreAssetFirst({
                     placeFromPointer(obj, event);
                 }}
                 onPointerUp={(event) => {
+                  dragOffsetRef.current = null;
                   if (event.currentTarget.hasPointerCapture(event.pointerId))
                     event.currentTarget.releasePointerCapture(event.pointerId);
                 }}
                 onPointerCancel={(event) => {
+                  dragOffsetRef.current = null;
                   if (event.currentTarget.hasPointerCapture(event.pointerId))
                     event.currentTarget.releasePointerCapture(event.pointerId);
                 }}
