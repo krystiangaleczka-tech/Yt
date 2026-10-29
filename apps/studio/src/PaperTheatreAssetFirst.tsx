@@ -64,6 +64,8 @@ export default function PaperTheatreAssetFirst({
   const [referenceApproved, setReferenceApproved] = useState(false);
   const [referencePrompt, setReferencePrompt] = useState("");
   const [draftJobId, setDraftJobId] = useState("");
+  const [cutoutJobId, setCutoutJobId] = useState("");
+  const [cutoutObjectId, setCutoutObjectId] = useState("");
   const [selectedObjectId, setSelectedObjectId] = useState("");
   const dragOffsetRef = useRef<{ id: string; x: number; y: number } | null>(null);
   const [maskObjectId, setMaskObjectId] = useState("");
@@ -108,6 +110,21 @@ export default function PaperTheatreAssetFirst({
       setReferenceApproved(false);
     }
   }, [scene?.generation?.paper_theatre_reference, referenceId]);
+
+  useEffect(() => {
+    if (!cutoutJobId) return;
+    const job = studio.jobs.find((item) => item.id === cutoutJobId);
+    if (job?.status === "SUCCEEDED") {
+      setCutoutJobId("");
+      setCutoutObjectId("");
+      void studio.reload();
+      studio.notify("Wygenerowano rzeczywisty PNG alpha do biblioteki. Obejrzyj go i przypisz ręcznie do obiektu.");
+    } else if (job?.status === "FAILED" || job?.status === "CANCELLED") {
+      setCutoutJobId("");
+      setCutoutObjectId("");
+      studio.notify(job.message || "Generator PNG nie zwrócił poprawnego wycinka.", true);
+    }
+  }, [cutoutJobId, studio.jobs]);
 
   const setValue = (patch: Partial<Manifest>) => {
     setManifest((previous) => ({ ...previous, ...patch }));
@@ -199,6 +216,17 @@ export default function PaperTheatreAssetFirst({
       studio.notify(error instanceof Error ? error.message : "Niepoprawny JSON", true);
     }
   };
+  const generateCutout = (obj: ObjectSpec) => studio.run(async () => {
+    if (!scene || !referenceMode || !referenceId || !referenceApproved)
+      throw new Error("Zaakceptuj najpierw obraz referencyjny");
+    if (obj.asset_id) throw new Error("Odłącz obecny PNG przed ponownym generowaniem");
+    const result = await api<{ id: string }>(
+      `/projects/${project.id}/paper-theatre/${scene.id}/cutouts/generate`,
+      { expected_revision: project.revision, manifest: effectiveManifest(), object_id: obj.id });
+    setCutoutJobId(result.id);
+    setCutoutObjectId(obj.id);
+    studio.notify("W kolejce: jeden osobny przezroczysty PNG. Wymaga Twojej akceptacji po wygenerowaniu.");
+  });
   const getPrompts = () => studio.run(async () => {
     if (!scene) throw new Error("Utwórz ujęcie");
     if (referenceMode && (!referenceId || !referenceApproved))
@@ -369,9 +397,11 @@ export default function PaperTheatreAssetFirst({
         </Field>
         <p className="small muted">
           Tryb AI działa przez model tekstowy skonfigurowany w ustawieniach Studio.
-          Generowanie samych grafik PNG z prawdziwym alpha nie jest jeszcze
-          zautomatyzowane przez tę kategorię. Prompty można wykorzystać w
-          wybranym generatorze i wczytać jego rezultaty.
+          Gdy skonfigurujesz klucz OpenAI Images w Połączeniach, możesz po
+          zatwierdzeniu szkicu osobno wygenerować każdy PNG z prawdziwym kanałem
+          alpha. Wygenerowany obraz trafia do biblioteki jako niezatwierdzony
+          wariant; obejrzyj go i samodzielnie przypisz do wycinka. Bez usługi API
+          nadal możesz skopiować prompty i ręcznie wgrać obrazy.
         </p>
         <div className="button-row">
           <Button onClick={saveManifest} disabled={!scene || !manifest.objects.length}>Zapisz listę obiektów</Button>
@@ -516,6 +546,11 @@ export default function PaperTheatreAssetFirst({
                       {GROUPS.map(([name, label]) => <option key={name} value={name}>{label}</option>)}
                     </select>
                   </Field>
+                  {referenceMode && !obj.asset_id && referenceId && referenceApproved &&
+                    <Button disabled={!!cutoutJobId} onClick={() => generateCutout(obj)}>
+                      {cutoutJobId && cutoutObjectId === obj.id
+                        ? "Trwa generowanie tego PNG…" : "Wygeneruj pojedynczy PNG alpha z referencji"}
+                    </Button>}
                   <Field label="Przypisany osobny PNG">
                     <select value={obj.asset_id} onChange={(event) => modify(obj.id, { asset_id: event.target.value })}>
                       <option value="">Czeka na grafikę</option>

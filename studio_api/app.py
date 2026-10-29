@@ -232,7 +232,11 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
         c = connectors.config()
         return {"pixabay_configured": bool(c.get("pixabay_key")), "pexels_configured": bool(c.get("pexels_key")), "ai_configured": bool(c.get("ai_key")),
                 "ai_request_cost":c.get("ai_request_cost",0),
-                "ai_base_url": c.get("ai_base_url", ""), "ai_model": c.get("ai_model", ""), "custom": [{k:v for k,v in x.items() if k!="headers"}|{"authenticated":bool(x.get("headers"))} for x in c.get("custom", [])]}
+                "ai_base_url": c.get("ai_base_url", ""), "ai_model": c.get("ai_model", ""),
+                 "paper_image_configured": bool(c.get("paper_image_key")),
+                 "paper_image_model": c.get("paper_image_model", "gpt-image-2.5-sunburst"),
+                 "paper_image_request_cost": c.get("paper_image_request_cost", 0),
+                 "custom": [{k:v for k,v in x.items() if k!="headers"}|{"authenticated":bool(x.get("headers"))} for x in c.get("custom", [])]}
 
     @app.patch("/api/settings")
     def settings(body: dict):

@@ -35,6 +35,35 @@ w istniejącym systemie redakcyjnym, niezależnie od sposobu wizualizacji.
   edytor wektorowych masek, rekonstrukcja ukrytych pikseli i akceptacja jakości
   wizualnej nadal wymagają dalszych wdrożeń i rzeczywistych testów.
 
+## Opcjonalne generowanie oddzielnych PNG przez API (30.10.2026)
+
+Studio obsługuje teraz bezpośrednie, **ręcznie inicjowane** generowanie
+pojedynczego PNG alpha w trybie Reference-to-layers przez OpenAI Images Edit API.
+
+1. W **Połączeniach** ustaw osobny klucz obrazowy, obsługiwany model
+   (GPT Image 2.5 Sunburst lub Flare) i konserwatywny, dodatni szacunkowy koszt
+   pojedynczej próby. Ustaw także dodatni limit API projektu. Klucze pozostają
+   poza eksportami i repo; można użyć zmiennych `DOCOS_PAPER_IMAGE_KEY`,
+   `DOCOS_PAPER_IMAGE_MODEL`, `DOCOS_PAPER_IMAGE_REQUEST_COST`.
+2. Utwórz/zaimportuj i **jawnie zaakceptuj** draft. Utwórz listę osobnych
+   obiektów, sprawdź identyfikatory i kliknij **Wygeneruj pojedynczy PNG alpha
+   z referencji** przy konkretnym obiekcie.
+3. Aplikacja wysyła zatwierdzony obraz jako referencję stylu, żąda
+   `background=transparent` i `output_format=png`, weryfikuje format
+   oraz rzeczywiste niepuste alpha, a wynik dodaje do biblioteki.
+4. Wynik pozostaje **nieprzypisanym wariantem**: obejrzyj go, oceń styl i
+   ręcznie powiąż z obiektem; wygenerowanie nie zmienia automatycznie
+   montażu ani zatwierdzonych grafik.
+5. Jeżeli dostawca zwróci obraz bez alpha, zadanie kończy się błędem; nie
+   wycinamy fałszywego tła. Ręczny import PNG pozostaje dostępny bez klucza.
+
+Szacunek kosztu jest **rezerwowany przed żądaniem**, również w przypadku
+nieudanej próby, ponieważ dostawca może ją rozliczyć. Połączone konto API
+i płatne generowanie **nie były testowane w trybie live**. Integracja ma
+testy kontraktowe, ale spójność estetyczna nie jest gwarantowana. Nie
+traktujemy jej jako automatycznej akceptacji wszystkich warstw ani
+ukończenia benchmarku 1:1.
+
 ## Workflow domyślny: Reference-to-layers (aktualizacja 29.10.2026)
 
 **Najnowsza decyzja:** po ustaleniu scenariusza i beatów tworzymy najpierw **mały draftowy obraz całej sceny** (np. 512 × 288), który pokazuje kompozycję, proporcje i wspólny styl. Dopiero gdy jest zaakceptowany, z jego pomocą tworzymy **Scene Object Manifest** i oddzielne przezroczyste PNG dla każdego obiektu. Obraz draftowy jest wyłącznie referencją i nigdy nie stanowi spłaszczonego tła lub materiału do nieprecyzyjnego wycinania. **Reference-to-layers jest teraz domyślną opcją**. **Asset-first** bez obrazu poglądowego pozostaje pełnoprawną alternatywą.
@@ -45,7 +74,7 @@ w istniejącym systemie redakcyjnym, niezależnie od sposobu wizualizacji.
 2. **Reference → lista obiektów:** model wizualny podłączony przez zgodny endpoint chat/completions z obsługą obrazów może, po wyraźnym kliknięciu użytkownika, przeanalizować draft i zwrócić listę obiektów oraz pozycje. Bez takiego modelu listę można przygotować ręcznie albo w innym narzędziu; nie udajemy, że model tekstowy widzi obraz.
 3. **Scene Object Manifest:** każdy element jest niezależnym rekordem z `id`, `name`, `description`, `group`, `x`, `y`, `width`, `z`, `asset_id` (na początku pustym) i opcjonalnym `duration`. Grupy ustalają wejścia, **Z ustala przesłanianie**. `x` to środek poziomy, `y` to dolny punkt wycinka, `width` to część szerokości kadru.
 4. **Jedna linia artystyczna:** globalny `style` zasila wszystkie per-obiektowe prompty. Nie wolno dopuścić do postaci w innym oświetleniu, odcieniu papieru lub technice kreski niż reszta dioramy.
-5. **Generowanie pojedynczych zasobów:** osobny prompt dla każdej chmury, budynku, drzewa, monety i postaci. Generator musi zwrócić rzeczywisty **RGBA PNG** z przezroczystym tłem i jednym obiektem. Aplikacja przygotowuje i eksportuje prompty oraz wczytuje i wiąże gotowe PNG. **Nie deklarujemy automatycznego generowania alpha PNG**: obecny lokalny image worker nie zapewnia wiarygodnych wycinków, ten etap wymaga jeszcze integracji odpowiedniego modelu lub zewnętrznego generatora.
+5. **Generowanie pojedynczych zasobów:** osobny prompt dla każdej chmury, budynku, drzewa, monety i postaci. Generator musi zwrócić rzeczywisty **RGBA PNG** z przezroczystym tłem i jednym obiektem. Aplikacja przygotowuje i eksportuje prompty oraz wczytuje i wiąże gotowe PNG. **Lokalny image worker nadal nie zapewnia generacji alpha PNG.** Osobny opcjonalny adapter zewnętrznego API jest dostępny po konfiguracji własnego klucza i wymaga weryfikacji rzeczywistego wyniku przez autora.
 6. **Scene Layout Planner:** render umieszcza obraz na podstawie współrzędnych i szerokości ze spisu; wycina przezroczyste marginesy, nie rozciąga obiektu i nie wymaga płótna wielkości całego filmu. Niezależne `z_index` odpowiada za to, co jest przed czym.
 7. **Staging i rigging:** `sky = hanging_drop`, `landscape/foundations = bottom_rise`, `vegetation/props/characters/hero = rake_lift`. Każdy ma osobny czas. Hero tylko jeden, na końcu, z mocnym obrysem.
 8. **Podgląd, poprawki i montaż:** najpierw plan i statyczna mapa kompozycji, następnie rzeczywiste klatki renderera, a dopiero potem eksport MP4.
@@ -63,7 +92,7 @@ w istniejącym systemie redakcyjnym, niezależnie od sposobu wizualizacji.
 
 ### Pozostały zakres, którego nie wolno uznać za ukończony
 
-- Bezpośrednia generacja jakościowych przezroczystych PNG z modelu obrazu, zamiast jedynie promptów i ręcznego importu.
+- Bezpośredni opcjonalny adapter API transparent PNG jest zaimplementowany. **Wciąż otwarte:** test z prawdziwym kontem, batch generation, kontrola stylu, jakościowa zgodność wszystkich obiektów i niezawodność na docelowym sprzęcie.
 - [ ] Referencyjna zgodność wygenerowanych osobno PNG z draftem nie jest jeszcze automatycznie oceniana; prompty niosą opis stylu i notatki, ale lokalny image worker nie używa wejścia obrazowego do sterowania generowaniem przez obraz. W razie potrzeby przekazuj draft do generatora obsługującego image-to-image/reference conditioning.
 - Weryfikacja jednolitości stylu między osobno wygenerowanymi obrazami; automatyczne wykrywanie wielu obiektów na jednej warstwie, kolizji i brakujących pikseli.
 - Przeciąganie, pivoty oraz podstawowy pędzel alpha są wdrożone; **profesjonalny edytor konturów/masek**, zaawansowane wypełnianie i dokładny **wielowarstwowy podgląd na żywo** nadal wymagają implementacji.

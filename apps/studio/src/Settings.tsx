@@ -18,6 +18,9 @@ type Settings = {
   ai_base_url: string;
   ai_model: string;
   ai_request_cost: number;
+  paper_image_configured: boolean;
+  paper_image_model: string;
+  paper_image_request_cost: number;
   custom: Custom[];
 };
 export default function SettingsPanel() {
@@ -29,6 +32,9 @@ export default function SettingsPanel() {
     [base, setBase] = useState(""),
     [model, setModel] = useState(""),
     [cost, setCost] = useState("0"),
+    [paperImageKey, setPaperImageKey] = useState(""),
+    [paperImageModel, setPaperImageModel] = useState("gpt-image-2.5-sunburst"),
+    [paperImageCost, setPaperImageCost] = useState("0"),
     [authorization, setAuthorization] = useState(""),
     [header, setHeader] = useState("Authorization"),
     [name, setName] = useState(""),
@@ -47,6 +53,8 @@ export default function SettingsPanel() {
         setBase(data.ai_base_url);
         setModel(data.ai_model);
         setCost(String(data.ai_request_cost || 0));
+        setPaperImageModel(data.paper_image_model || "gpt-image-2.5-sunburst");
+        setPaperImageCost(String(data.paper_image_request_cost || 0));
       });
   }, [s.settingsOpen]);
   async function save() {
@@ -56,15 +64,19 @@ export default function SettingsPanel() {
         ai_base_url: base,
         ai_model: model,
         ai_request_cost: Number(cost),
+        paper_image_model: paperImageModel,
+        paper_image_request_cost: Number(paperImageCost),
       };
       if (pixabay) changes.pixabay_key = pixabay;
       if (pexels) changes.pexels_key = pexels;
       if (key) changes.ai_key = key;
+      if (paperImageKey) changes.paper_image_key = paperImageKey;
       const next = await api<Settings>("/settings", changes, "PATCH");
       setSettings(next);
       setPixabay("");
       setPexels("");
       setKey("");
+      setPaperImageKey("");
       await s.reload();
       s.notify("Zapisano ustawienia połączeń");
     } finally {
@@ -186,6 +198,32 @@ export default function SettingsPanel() {
           <p className="small muted">
             Możesz też korzystać z zalogowanego Claude CLI lub przenosić prompt
             i odpowiedź ręcznie.
+          </p>
+        </section>
+        <section>
+          <h3>Paper Theatre · osobne PNG alpha z referencji</h3>
+          <p className="small muted">
+            Opcjonalnie OpenAI Images API. Referencja jest wysyłana dopiero po Twoim
+            kliknięciu w kreatorze wycinków. Brak klucza nie blokuje ręcznego importu PNG.
+          </p>
+          <Field label="Model obrazu">
+            <select value={paperImageModel} onChange={(e) => setPaperImageModel(e.target.value)}>
+              <option value="gpt-image-2.5-sunburst">GPT Image 2.5 Sunburst</option>
+              <option value="gpt-image-2.5-flare">GPT Image 2.5 Flare</option>
+            </select>
+          </Field>
+          <Field label={`Klucz API obrazów ${settings?.paper_image_configured ? "· zapisany" : ""}`}>
+            <input type="password" autoComplete="off" value={paperImageKey}
+              onChange={(e) => setPaperImageKey(e.target.value)}
+              placeholder="Prywatny klucz OpenAI API obrazów" />
+          </Field>
+          <Field label="Oszacowany maksymalny koszt jednego wycinka (USD)">
+            <input type="number" min=".001" step=".001" value={paperImageCost}
+              onChange={(e) => setPaperImageCost(e.target.value)} />
+          </Field>
+          <p className="small muted">
+            Ustal koszt według cennika dostawcy. Projekt musi mieć dodatni limit API.
+            Aplikacja rezerwuje szacunkowy koszt każdej próby, także nieudanej.
           </p>
         </section>
       </div>

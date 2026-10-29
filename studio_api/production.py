@@ -136,6 +136,80 @@ def register(app, store, jobs, connectors, repo, callbacks):
             body.get("reference_notes", ""))
         return {"manifest": manifest, "base_revision": project.revision}
 
+    @app.post("/api/projects/{pid}/paper-theatre/{sid}/cutouts/generate")
+    def theatre_generate_reference_cutout(pid: str, sid: str, body: dict):
+        """One explicitly requested alpha cutout; always an unselected library variant."""
+        from studio_core.paper_theatre_asset_first import normalize_manifest, image_prompts
+        from studio_core.paper_theatre_cutouts import MODELS, generate_cutout_png, reserve_cutout_cost, check_reference
+        project = store.get(pid)
+        if project.revision != int(body["expected_revision"]):
+            raise Conflict("Scena zmieniła się od zatwierdzenia kompozycji")
+        scene = next((x for x in project.scenes if x.id == sid and x.template == "paper-theatre"), None)
+        if scene is None or scene.locked or scene.lock_media:
+            raise ValueError("Nie ma edytowalnego ujęcia Paper Theatre")
+        manifest = normalize_manifest(body.get("manifest", {}))
+        if manifest["mode"] != "reference-guided" or not manifest["reference_approved"]:
+            raise ValueError("Najpierw zaakceptuj referencję i plan osobnych obiektów")
+        reference_id = manifest["reference_asset_id"]
+        if not reference_id or reference_id in [o["asset_id"] for o in manifest["objects"]]:
+            raise ValueError("Referencja nie może być użyta jako gotowy wycinek")
+        object_id = body.get("object_id")
+        item = next((o for o in image_prompts(manifest) if o["id"] == object_id), None)
+        if item is None:
+            raise ValueError("Wybierz istniejący obiekt ze spisu sceny")
+        if item["asset_id"]:
+            raise ValueError("Ten obiekt ma już przypisany PNG; odłącz go przed nową generacją")
+        reference = next((a for a in project.assets if a.id == reference_id and a.kind == "image"), None)
+        if reference is None:
+            raise ValueError("Obraz referencyjny nie jest plikiem tego projektu")
+        path = asset_path(store, pid, reference_id, project=project)
+        check_reference(path)  # Reject bad formats before accepting a job.
+        settings = connectors.config()
+        key = settings.get("paper_image_key", "")
+        model = settings.get("paper_image_model", "gpt-image-2.5-sunburst")
+        estimate = settings.get("paper_image_request_cost", 0)
+        if not key or model not in MODELS:
+            raise ValueError("Skonfiguruj własny klucz i model generatora PNG w Połączeniach")
+        if not isinstance(estimate, (int, float)) or estimate <= 0:
+            raise ValueError("Ustaw dodatni szacowany koszt obrazu w Połączeniach")
+        active = [j for j in jobs.list(pid) if j["status"] in ("QUEUED", "RUNNING", "CANCEL_REQUESTED")]
+        if len(active) >= project.budget.get("max_jobs", 20):
+            raise ValueError("Osiągnięto limit zadań projektu")
+        prompt = item["prompt"] + (
+            " The attached scene is for STYLE and PROPORTION REFERENCE ONLY. "
+            "Do not reconstruct the complete scene or cut pixels from the reference. "
+            "Generate ONLY this one isolated object on a completely transparent background."
+        )
+
+        def run(job_id, progress, cancel):
+            if cancel.is_set():
+                raise InterruptedError()
+            reserve_cutout_cost(store, project, estimate)
+            progress(.12, "Wysłano zatwierdzoną referencję do modelu obrazów")
+            raw = generate_cutout_png(path, prompt, key=key, model=model)
+            if cancel.is_set():
+                raise InterruptedError()
+            directory = store.folder(pid) / "jobs" / job_id
+            directory.mkdir(parents=True, exist_ok=True)
+            png = directory / (object_id + ".png")
+            png.write_bytes(raw)
+            progress(.82, "Weryfikacja PNG i zapis w bibliotece")
+            asset, _ = import_media(
+                store, pid, png, object_id + ".png",
+                {"prompt": prompt, "provenance": {
+                    "kind": "paper-theatre-cutout", "source_revision": project.revision,
+                    "scene_id": sid, "object_id": object_id, "reference_asset_id": reference_id,
+                    "model": model, "job_id": job_id, "user_acceptance_required": True,
+                }},
+            )
+            return {"asset_id": asset.id, "object_id": object_id,
+                    "revision": project.revision, "requires_acceptance": True}
+
+        return jobs.submit(pid, project.revision, "image", run, heavy=False,
+            request={"action": "paper-theatre-cutout", "scene_id": sid, "object_id": object_id,
+                     "reference_id": reference_id},
+            snapshot=project.model_dump())
+
     @app.post("/api/projects/{pid}/paper-theatre/{sid}/asset-first/propose")
     def theatre_asset_first_propose(pid: str, sid: str, body: dict):
         from studio_core.paper_theatre_asset_first import drafting_prompt, normalize_manifest
