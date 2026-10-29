@@ -150,10 +150,10 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
         if item["alpha_diagnostics"]["regions"] > 1:
             warnings.append(item["name"] +
                 ": kilka rozłącznych części alpha; upewnij się, że to jeden obiekt")
-    warnings.extend(layout_warnings(checked, tuple(backdrop["size"])))
         cues.append(cue)
         start += duration + DEFAULT_SETTLE
         previous_group = group
+    warnings.extend(layout_warnings(checked, tuple(backdrop["size"])))
 
     total = round(start + .4, 3)
     return {
