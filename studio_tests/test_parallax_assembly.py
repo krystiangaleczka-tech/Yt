@@ -99,6 +99,12 @@ class ParallaxAssemblyTests(unittest.TestCase):
         self.assertEqual(self.frame(.1, **opts).getpixel((50, 45)), self.background)
         self.assertEqual(self.frame(.6, **opts).getpixel((50, 45)), (162, 127, 107))
 
+    def test_mechanical_rig_does_not_fade_unrelated_static_layer(self):
+        opts = {"layer_cues": [{"layer": 1, "rig": "hanging_drop",
+                                "start": .5, "duration": .3}]}
+        self.assertEqual(self.frame(0, **opts).getpixel((80, 20)), (64, 88, 60))
+        self.assertEqual(self.frame(0, **opts).getpixel((15, 10)), self.background)
+
     def test_static_cutout_becomes_visible_on_cue(self):
         opts = {"layer_cues": [{"layer": 2, "rig": "static", "start": .5}]}
         self.assertEqual(self.frame(.3, **opts).getpixel((50, 45)), self.background)
