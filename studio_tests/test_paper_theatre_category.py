@@ -366,5 +366,86 @@ class PaperTheatreCategoryTests(unittest.TestCase):
         self.assertEqual(layout_warnings([{"name": "Dym", "layout": {}}], (320,180)), [])
 
 
+    def test_cutout_adapter_rejects_opaque_and_empty_png(self):
+        from studio_core.paper_theatre_cutouts import validate_cutout_png
+        def data(color):
+            image = Image.new("RGBA", (64, 64), color)
+            raw = io.BytesIO()
+            image.save(raw, format="PNG")
+            return raw.getvalue()
+        with self.assertRaisesRegex(ValueError, "nieprzezroczyste"):
+            validate_cutout_png(data((1, 2, 3, 255)))
+        with self.assertRaisesRegex(ValueError, "puste"):
+            validate_cutout_png(data((1, 2, 3, 0)))
+        image = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+        ImageDraw.Draw(image).rectangle((15, 12, 42, 51), fill="#ff0055ff")
+        raw = io.BytesIO()
+        image.save(raw, format="PNG")
+        result = validate_cutout_png(raw.getvalue())
+        self.assertEqual(result["alpha_min"], 0)
+        self.assertEqual(result["alpha_max"], 255)
+
+    def test_image_edit_sends_reference_with_transparency_and_private_key(self):
+        import base64
+        from unittest.mock import patch, Mock
+        from studio_core.paper_theatre_cutouts import generate_cutout_png
+        from studio_core.media import asset_path
+        project = self.app.state.store.get(self.project["id"])
+        reference = asset_path(self.app.state.store, project.id, self.background, project=project)
+        image = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+        ImageDraw.Draw(image).ellipse((12, 10, 41, 45), fill="#183c65")
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        response = Mock()
+        response.json.return_value = {"data": [{"b64_json": base64.b64encode(buffer.getvalue()).decode()}]}
+        with patch("studio_core.paper_theatre_cutouts.httpx.Client") as client:
+            client.return_value.__enter__.return_value.post.return_value = response
+            raw = generate_cutout_png(reference, "One isolated moon, no background",
+                                      key="private-testing-key", model="gpt-image-2.5-sunburst")
+        self.assertEqual(raw, buffer.getvalue())
+        args, kwargs = client.return_value.__enter__.return_value.post.call_args
+        self.assertEqual(args[0], "https://api.openai.com/v1/images/edits")
+        self.assertEqual(kwargs["data"]["background"], "transparent")
+        self.assertEqual(kwargs["data"]["output_format"], "png")
+        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer private-testing-key")
+        self.assertEqual(kwargs["files"]["image[]"][1], reference.read_bytes())
+        with self.assertRaises(ValueError):
+            generate_cutout_png(reference, "moon", key="x", model="unknown")
+
+    def test_cutout_cost_uses_existing_project_limit(self):
+        import json
+        from studio_core.paper_theatre_cutouts import reserve_cutout_cost
+        project = self.app.state.store.get(self.project["id"])
+        project.budget["max_cost"] = .12
+        reserve_cutout_cost(self.app.state.store, project, .05)
+        reserve_cutout_cost(self.app.state.store, project, .05)
+        with self.assertRaisesRegex(ValueError, "przekroczyłoby"):
+            reserve_cutout_cost(self.app.state.store, project, .03)
+        path = self.app.state.store.folder(project.id) / "spending.json"
+        entries = json.loads(path.read_text())
+        self.assertEqual(len(entries), 2)
+        self.assertTrue(all(row["provider"] == "openai-images" for row in entries))
+
+    def test_cutout_api_requires_approved_reference_and_configured_service(self):
+        current = self.client.get(self.base).json()
+        created = self.client.post(self.base + "/paper-theatre/scenes",
+            json={"expected_revision": current["revision"]}, headers=HEADERS)
+        self.assertEqual(created.status_code, 200, created.text)
+        shot = created.json()["scenes"][-1]["id"]
+        endpoint = self.base + "/paper-theatre/" + shot + "/cutouts/generate"
+        manifest = self.asset_manifest()
+        manifest["objects"][1]["asset_id"] = ""
+        manifest.update(mode="reference-guided", reference_asset_id=self.background,
+                        reference_approved=False)
+        payload = {"expected_revision": created.json()["revision"],
+                   "manifest": manifest, "object_id": "cloud"}
+        denied = self.client.post(endpoint, json=payload, headers=HEADERS)
+        self.assertEqual(denied.status_code, 400, denied.text)
+        manifest["reference_approved"] = True
+        denied = self.client.post(endpoint, json=payload, headers=HEADERS)
+        self.assertEqual(denied.status_code, 400, denied.text)
+        self.assertIn("klucz", denied.text)
+
+
 if __name__=="__main__":
     unittest.main()
