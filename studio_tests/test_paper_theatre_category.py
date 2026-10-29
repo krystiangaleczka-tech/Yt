@@ -139,6 +139,109 @@ class PaperTheatreCategoryTests(unittest.TestCase):
                  [{"asset_id":self.hero,"group":"hero"},
                   {"asset_id":self.hero,"group":"hero"}])
 
+    def asset_manifest(self, *, small=None):
+        return {
+            "brief": "Chińskie cesarstwo składane jak papierowy teatr.",
+            "style": "Ciepły papier ryżowy, tusz, czerwone złoto.",
+            "objects": [
+                {"id": "emperor", "name": "Cesarz", "group": "hero",
+                 "description": "Cesarz w szatach", "asset_id": self.hero,
+                 "x": .3, "y": .9, "width": .22, "z": 70},
+                {"id": "cloud", "name": "Chmura", "group": "sky",
+                 "description": "Pojedyncza chmura", "asset_id": self.cloud,
+                 "x": .7, "y": .2, "width": .16, "z": -10},
+                {"id": "wall", "name": "Mur", "group": "foundations",
+                 "description": "Mur z kamieni", "asset_id": small or self.fortress,
+                 "x": .53, "y": .72, "width": .5, "z": 30},
+            ],
+        }
+
+    def test_asset_first_manifest_prompts_and_assembly(self):
+        from studio_core.paper_theatre_asset_first import normalize_manifest, image_prompts
+        obj = self.asset_manifest()
+        normalized = normalize_manifest(obj)
+        self.assertEqual([e["id"] for e in normalized["objects"]], ["cloud", "wall", "emperor"])
+        prompts = image_prompts(normalized)
+        self.assertEqual(len(prompts), 3)
+        self.assertTrue(all("ONE SINGLE ISOLATED" in e["prompt"] and "RGBA PNG" in e["prompt"] for e in prompts))
+        current = self.client.get(self.base).json()
+        created = self.client.post(self.base+"/paper-theatre/scenes",
+                                   json={"expected_revision":current["revision"]}, headers=HEADERS)
+        self.assertEqual(created.status_code,200,created.text)
+        shot = created.json()["scenes"][-1]["id"]
+        rev = created.json()["revision"]
+        route = self.base + "/paper-theatre/" + shot + "/asset-first/"
+        prompt = self.client.post(route+"propose",json={"expected_revision":rev,
+                                  "brief":"Chińskie imperium","style":"Papier ryżowy","action":"prompt"},
+                                  headers=HEADERS)
+        self.assertEqual(prompt.status_code,200,prompt.text)
+        self.assertIn("objects",prompt.json()["prompt"])
+        proposals = self.client.post(route+"prompts",
+            json={"expected_revision":rev,"manifest":obj},headers=HEADERS)
+        self.assertEqual(proposals.status_code,200,proposals.text)
+        self.assertEqual(len(proposals.json()["prompts"]),3)
+        saved = self.client.post(route+"save",
+            json={"expected_revision":rev,"manifest":obj},headers=HEADERS)
+        self.assertEqual(saved.status_code,200,saved.text)
+        prepared = saved.json()["scenes"][-1]
+        self.assertEqual(prepared["generation"]["paper_theatre_asset_first"]["objects"][0]["id"], "cloud")
+        self.assertFalse(prepared["asset_ids"])
+        assembled = self.client.post(route+"assemble",json={
+            "expected_revision":saved.json()["revision"], "background_id":self.background,
+            "manifest":obj},headers=HEADERS)
+        self.assertEqual(assembled.status_code,200,assembled.text)
+        shot = assembled.json()["scenes"][-1]
+        self.assertEqual(shot["asset_ids"],[self.cloud,self.fortress,self.hero])
+        cues=shot["parameters"]["layer_cues"]
+        self.assertEqual(cues[0]["layout_x"], .7)
+        self.assertEqual(cues[1]["layout_width"], .5)
+        self.assertEqual(cues[2]["z_index"], 70)
+        self.assertEqual(cues[-1]["group"],"hero")
+
+    def test_asset_first_small_pngs_and_validation(self):
+        from studio_core.paper_theatre_asset_first import normalize_manifest, assemble_manifest
+        small = self.png("malutka-wieża", size=(48,90))
+        manifest = self.asset_manifest(small=small)
+        p = self.app.state.store.get(self.project["id"])
+        result = assemble_manifest(self.app.state.store,p,self.background,manifest)
+        self.assertEqual(result["cutouts"],3)
+        self.assertEqual(result["layer_cues"][1]["layout_width"], .5)
+        bad=self.asset_manifest()
+        bad["objects"][0]["x"] = float("nan")
+        with self.assertRaisesRegex(ValueError,"Pozycja"):
+            normalize_manifest(bad)
+        bad=self.asset_manifest()
+        bad["objects"][0]["z"] = 1.3
+        with self.assertRaisesRegex(ValueError,"całkowitej"):
+            normalize_manifest(bad)
+        bad=self.asset_manifest()
+        bad["objects"][0]["asset_id"] = ""
+        with self.assertRaisesRegex(ValueError,"Brak wygenerowanych"):
+            assemble_manifest(self.app.state.store,p,self.background,bad)
+
+    def test_asset_first_render_uses_layout_and_z_not_cue_order(self):
+        from studio_timeline.templates import paint
+        from studio_core.models import Clip
+        class Frames:
+            def __init__(self):
+                self.images=[
+                    Image.new("RGBA",(100,60),"#e6d7b7"),
+                    Image.new("RGBA",(20,20),"#ff0000"),
+                    Image.new("RGBA",(20,20),"#0000ff")]
+            def frame(self,i,n):
+                return self.images[i]
+        clip=Clip(track_id="v1", template="paper-theatre", duration=60)
+        settings={"depth":0,"layer_cues":[
+            {"layer":1,"rig":"static","start":0,"layout_x":.5,"layout_y":.8,
+             "layout_width":.2,"z_index":70},
+            {"layer":2,"rig":"static","start":0,"layout_x":.5,"layout_y":.8,
+             "layout_width":.2,"z_index":30},
+        ]}
+        image=paint(clip,settings,Frames(),30,100,60,10)
+        # Higher Z red is painted above lower Z blue even though red is first.
+        self.assertEqual(image.getpixel((50,40))[:3],(255,0,0))
+        self.assertEqual(image.getpixel((10,40))[:3],(230,215,183))
+
     def test_hero_outline_changes_silhouette_not_rectangle(self):
         sprite=Image.new("RGBA",(128,72),(0,0,0,0))
         ImageDraw.Draw(sprite).rectangle((42,23,58,49),fill="#303030")
