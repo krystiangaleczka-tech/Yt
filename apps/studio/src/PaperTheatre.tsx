@@ -16,6 +16,10 @@ const GROUPS = [
   ["hero", "07 · Najważniejsza postać jako ostatnia"],
 ] as const;
 type Group = (typeof GROUPS)[number][0];
+const GROUP_DURATION: Record<Group, number> = {
+  sky: .42, landscape: .45, foundations: .5, vegetation: .33,
+  props: .3, characters: .32, hero: .55,
+};
 type Layer = { asset_id: string; group: Group; duration?: number };
 type Plan = {
   cutouts: number;
@@ -162,7 +166,12 @@ export default function PaperTheatre() {
           czyste tło i prawdziwie wycięte PNG.
         </p>
         <Field label="Tło bez postaci i rekwizytów">
-          <select value={background} onChange={(event) => { setBackground(event.target.value); invalidate(); }}>
+          <select value={background} onChange={(event) => {
+            const selectedId = event.target.value;
+            setBackground(selectedId);
+            setLayers((current) => current.filter((layer) => layer.asset_id !== selectedId));
+            invalidate();
+          }}>
             <option value="">Wybierz czyste tło PNG</option>
             {assets.map((asset) => <option value={asset.id} key={asset.id}>{asset.name}</option>)}
           </select>
@@ -220,7 +229,7 @@ export default function PaperTheatre() {
                     </select>
                   </Field>
                   <NumberField label="Czas własnego wejścia (s)"
-                    value={layer.duration ?? (group === "hero" ? .55 : .38)}
+                    value={layer.duration ?? GROUP_DURATION[group]}
                     min={.05} max={10} step={.01}
                     onCommit={(v) => setLayer(index, { duration: v })} />
                 </div>
