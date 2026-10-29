@@ -17,6 +17,7 @@ from studio_core.freshness import fingerprint
 from studio_core.media import asset_path, probe
 from studio_core.templates import validate_parameters
 from studio_core.models import fps
+from .paper_theatre import rig_image
 
 FONT = Path(__file__).resolve().parents[1] / "pilot/fonts/Montserrat.ttf"
 FONTS={"montserrat":FONT,"courier":FONT.with_name("CourierPrime-Regular.ttf"),"courier-bold":FONT.with_name("CourierPrime-Bold.ttf")}
@@ -140,11 +141,36 @@ def paint(clip, params, media, n, w, h, rate, style=None):
     elif kind in ("stack", "parallax"):
         if kind=="parallax":
             picture(0,(0,0,w,h))
-            for i in range(1,len(media.images)):
-                layer=media.frame(i,n)
+            cues = {cue["layer"]: cue for cue in params.get("layer_cues", [])}
+            # A mechanical cue must not accidentally fade unrelated legacy layers.
+            assembling = bool(params.get("assembly_start", 0) or params.get("assembly_interval", 0) or any(cue.get("rig", "sequential") == "sequential" for cue in cues.values()))
+            for i in range(1, len(media.images)):
+                cue = cues.get(i, {})
+                start = cue.get("start", params.get("assembly_start", 0) + (i - 1) * params.get("assembly_interval", 0))
+                if assembling and seconds < start:
+                    continue
+                layer = media.frame(i, n)
                 if layer:
-                    layer=layer.resize((w,h)); shift=round((phase-.5)*w*params.get("depth",.06)*i)
-                    image.alpha_composite(layer,(shift,0))
+                    duration = cue.get("duration", params.get("assembly_duration", .35))
+                    layer = layer.resize((w, h))
+                    depth = cue.get("depth", i)
+                    shift = round((phase - .5) * w * params.get("depth", .06) * depth)
+                    rig = cue.get("rig", "sequential")
+                    if rig != "sequential":
+                        image.alpha_composite(
+                            rig_image(layer, rig, cue, seconds - start, duration),
+                            (shift, 0),
+                        )
+                        continue
+                    # Legacy sequential entrance intentionally stays pixel-compatible.
+                    reveal = 1.0
+                    if assembling:
+                        fraction = min(1.0, max(0.0, (seconds - start) / duration)) if duration else 1.0
+                        reveal = fraction * fraction * (3 - 2 * fraction)
+                    if reveal < 1:
+                        layer.putalpha(layer.getchannel("A").point(lambda alpha: round(alpha * reveal)))
+                    drop = round((1 - reveal) * h * cue.get("drop", params.get("assembly_drop", .06))) if assembling else 0
+                    image.alpha_composite(layer, (shift, drop))
         else:
             for i in range(min(len(media.images), max(1,math.ceil(phase*len(media.images))))):
                 source=media.frame(i,n)

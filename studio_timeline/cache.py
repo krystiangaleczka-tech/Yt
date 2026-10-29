@@ -54,7 +54,9 @@ def process(command, cancel, error_path):
                     except subprocess.TimeoutExpired: child.kill(); child.wait()
                     raise InterruptedError("Anulowano render")
         if code:
-            log.seek(0); raise ValueError("FFmpeg: "+log.read()[-2000:])
+            log.seek(0)
+            detail = log.read()[-2000:].strip() or "brak komunikatu stderr"
+            raise ValueError(f"FFmpeg (etap cache, kod {code}): {detail}")
 
 
 def render_cached(store, project, output, progress, cancel, preview=False, start_frame=0, end_frame=None):

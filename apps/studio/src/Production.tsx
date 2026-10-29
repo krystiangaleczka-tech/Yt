@@ -146,6 +146,124 @@ function SceneSelect({
   );
 }
 
+type PaperCue = { layer: number; rig?: string; [key: string]: unknown };
+const PAPER_PRESETS: Record<string, Record<string, unknown>> = {
+  cloud: { rig: "hanging_drop", duration: .42, overshoot: .035, settle_duration: .18, string_visible: true, string_length: .16, swing_deg: 2, swing_decay: .7 },
+  prop: { rig: "hanging_drop", duration: .3, overshoot: .02, settle_duration: .1, string_visible: true, string_length: .12, swing_deg: 1.2, swing_decay: .8 },
+  character: { rig: "rake_lift", duration: .3, pivot_x: .5, pivot_y: 1, start_rotation: 88, overshoot_rotation: -5, settle_duration: .12, stick_visible: true, stick_length: .15 },
+  tree: { rig: "rake_lift", duration: .34, pivot_x: .5, pivot_y: 1, start_rotation: 72, overshoot_rotation: -3, settle_duration: .12, stick_visible: true, stick_length: .12 },
+  building: { rig: "bottom_rise", duration: .45, overshoot: .02, settle_duration: .15 },
+};
+
+function paperCues(scene: Scene): PaperCue[] {
+  const list = scene.parameters?.layer_cues;
+  return Array.isArray(list)
+    ? list.filter((item): item is PaperCue =>
+        typeof item === "object" && item !== null && Number.isInteger(item.layer))
+    : [];
+}
+
+function PaperLayerEditor({
+  layer, name, cue, defaults, onUpdate, onPreset, onMoveUp, onMoveDown,
+  first, last,
+}: {
+  layer: number;
+  name: string;
+  cue?: PaperCue;
+  defaults: Record<string, unknown>;
+  onUpdate: (changes: Record<string, unknown>) => void;
+  onPreset: (name: string) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  first: boolean;
+  last: boolean;
+}) {
+  const rig = String(cue?.rig || "sequential");
+  const numeric = (key: string, label: string, fallback: number, min: number, max: number) => (
+    <NumberField
+      key={key}
+      label={label}
+      value={Number(cue?.[key] ?? fallback)}
+      min={min}
+      max={max}
+      step={.01}
+      onCommit={(value) => onUpdate({ [key]: value })}
+    />
+  );
+  const flag = (key: string, title: string) => (
+    <label className="field">
+      <span className="field-label">{title}</span>
+      <input
+        type="checkbox"
+        checked={Boolean(cue?.[key] ?? (key === "string_visible" || key === "stick_visible"))}
+        onChange={(event) => onUpdate({ [key]: event.target.checked })}
+      />
+    </label>
+  );
+  const startDefault = Number(defaults.assembly_start ?? 0) + (layer - 1) * Number(defaults.assembly_interval ?? 0);
+  return (
+    <div className="surface" style={{ padding: "12px", marginBottom: "10px" }}>
+      <div className="button-row">
+        <strong>{layer}. {name}</strong>
+        <Button icon={ArrowUp} disabled={first} onClick={onMoveUp}>Wyżej</Button>
+        <Button icon={ArrowDown} disabled={last} onClick={onMoveDown}>Niżej</Button>
+      </div>
+      <Field label="Sposób wejścia">
+        <select value={rig} onChange={(event) => onPreset(event.target.value)}>
+          <option value="sequential">Klasyczne dokładanie (zgodność)</option>
+          <option value="static">Bez animacji, od wybranego momentu</option>
+          <option value="hanging_drop">Spuszczanie na lince</option>
+          <option value="rake_lift">Podnoszenie z patyczka</option>
+          <option value="bottom_rise">Wysuwanie od dołu</option>
+        </select>
+      </Field>
+      <Field label="Preset ruchu">
+        <select value="" onChange={(event) => onPreset(event.target.value)}>
+          <option value="">Wybierz gotowe ustawienie…</option>
+          <option value="cloud">Cloud Drop · chmura</option>
+          <option value="prop">Prop Drop · rekwizyt</option>
+          <option value="character">Character Lift · postać</option>
+          <option value="tree">Tree Lift · drzewo</option>
+          <option value="building">Building Rise · architektura</option>
+        </select>
+      </Field>
+      {rig !== "sequential" && (
+        <>
+          <div className="two-fields">
+            {numeric("start", "Wejście od (s)", startDefault, 0, 3600)}
+            {numeric("duration", "Czas wejścia (s)", Number(defaults.assembly_duration ?? .35), 0, 10)}
+            {rig !== "static" && numeric("settle_duration", "Osadzanie (s)", .15, 0, 10)}
+          </div>
+          {rig === "hanging_drop" && (
+            <>
+              <div className="two-fields">
+                {numeric("overshoot", "Przestrzelenie (0–0,3)", .03, 0, .3)}
+                {numeric("string_length", "Długość nitki (0–1)", .16, 0, 1)}
+                {numeric("swing_deg", "Kołysanie (°)", 2, 0, 20)}
+                {numeric("swing_decay", "Tłumienie kołysania", .7, 0, 10)}
+              </div>
+              {flag("string_visible", "Pokaż cienką linkę")}
+            </>
+          )}
+          {rig === "rake_lift" && (
+            <>
+              <div className="two-fields">
+                {numeric("start_rotation", "Kąt położenia początkowego (°)", 82, 0, 90)}
+                {numeric("overshoot_rotation", "Przechylenie przy zatrzymaniu (°)", -5, -20, 20)}
+                {numeric("pivot_x", "Oś obrotu X (0–1)", .5, 0, 1)}
+                {numeric("pivot_y", "Oś obrotu Y (0–1)", 1, 0, 1)}
+                {numeric("stick_length", "Długość patyczka (0–1)", .12, 0, 1)}
+              </div>
+              {flag("stick_visible", "Pokaż patyczek")}
+            </>
+          )}
+          {rig === "bottom_rise" && numeric("overshoot", "Przestrzelenie (0–0,3)", .02, 0, .3)}
+        </>
+      )}
+    </div>
+  );
+}
+
 export function ShotTools() {
   const s = useStudio(),
     p = s.project!;
@@ -177,6 +295,40 @@ export function ShotTools() {
         target,
       }),
     );
+  }
+  function moveLayer(assetId: string, neighborId: string) {
+    const next = [...(scene?.asset_ids || [])];
+    const from = next.indexOf(assetId);
+    const to = next.indexOf(neighborId);
+    if (from < 0 || to < 0) return;
+    const visible = next.filter((asset) => asset !== scene.asset_id);
+    const first = visible.indexOf(assetId) + 1;
+    const second = visible.indexOf(neighborId) + 1;
+    [next[from], next[to]] = [next[to], next[from]];
+    const cues = paperCues(scene).map((cue) => ({
+      ...cue,
+      layer: cue.layer === first ? second : cue.layer === second ? first : cue.layer,
+    }));
+    change({ asset_ids: next, parameters: { ...scene.parameters, layer_cues: cues } });
+  }
+  function updatePaperCue(layer: number, changes: Record<string, unknown>) {
+    const previous = paperCues(scene);
+    const existing = previous.find((cue) => cue.layer === layer);
+    const next = [...previous.filter((cue) => cue.layer !== layer), { ...existing, layer, ...changes }]
+      .sort((a, b) => a.layer - b.layer);
+    change({ parameters: { ...scene.parameters, layer_cues: next } });
+  }
+  function selectPaperRig(layer: number, preset: string) {
+    const existing = paperCues(scene);
+    const previous = existing.find((cue) => cue.layer === layer);
+    const next = existing.filter((cue) => cue.layer !== layer);
+    if (preset !== "sequential") {
+      const values = PAPER_PRESETS[preset] || { rig: preset };
+      const start = previous?.start ?? Number(scene.parameters?.assembly_start ?? 0) + (layer - 1) * Number(scene.parameters?.assembly_interval ?? 0);
+      next.push({ layer, start, ...values });
+    }
+    next.sort((a, b) => a.layer - b.layer);
+    change({ parameters: { ...scene.parameters, layer_cues: next } });
   }
   if (!scene) return <p>Dodaj pierwsze ujęcie w Generowaniu.</p>;
   return (
@@ -359,6 +511,33 @@ export function ShotTools() {
               </label>
             ))}
         </div>
+        {scene.template === "parallax" && (
+          <>
+            <h3>Kolejność dokładania elementów</h3>
+            <p className="small muted">
+              Główny materiał to tło. Ustaw kolejność i fizyczny sposób wejścia
+              osobno dla każdej wyciętej warstwy. Chmury wiszą na lince, a
+              postacie lub drzewa wstają na patyczku.
+            </p>
+            {(scene.asset_ids || [])
+              .filter((assetId) => assetId !== scene.asset_id)
+              .map((assetId, layerIndex, ordered) => (
+                <PaperLayerEditor
+                  key={assetId}
+                  layer={layerIndex + 1}
+                  name={p.assets.find((asset) => asset.id === assetId)?.name || assetId}
+                  cue={paperCues(scene).find((cue) => cue.layer === layerIndex + 1)}
+                  defaults={scene.parameters || {}}
+                  onUpdate={(changes) => updatePaperCue(layerIndex + 1, changes)}
+                  onPreset={(preset) => selectPaperRig(layerIndex + 1, preset)}
+                  onMoveUp={() => moveLayer(assetId, ordered[layerIndex - 1])}
+                  onMoveDown={() => moveLayer(assetId, ordered[layerIndex + 1])}
+                  first={layerIndex === 0}
+                  last={layerIndex === ordered.length - 1}
+                />
+              ))}
+          </>
+        )}
         <h3>Fakty wykorzystane w ujęciu</h3>
         <div className="tool-options">
           {p.facts.map((f) => (

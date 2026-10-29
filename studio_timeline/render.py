@@ -216,7 +216,8 @@ def render_full(store: ProjectStore, project: Project, output: Path, progress, c
             raise InterruptedError("Anulowano render")
         if code:
             errors.seek(0)
-            raise ValueError("FFmpeg: " + errors.read()[-2200:])
+            detail = errors.read()[-2200:].strip() or "brak komunikatu stderr"
+            raise ValueError(f"FFmpeg (kompozycja, kod {code}): {detail}")
     info = probe(output)
     if not any(s.get("codec_type") == "video" for s in info.get("streams", [])):
         raise ValueError("Renderer nie utworzył poprawnego filmu")
