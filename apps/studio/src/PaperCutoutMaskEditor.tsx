@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { Button, Field, NumberField } from "./components";
+import { Button, NumberField } from "./components";
 
 /** Non-destructive alpha editing: 'restore' can only use pixels from the source PNG. */
 export default function PaperCutoutMaskEditor({
