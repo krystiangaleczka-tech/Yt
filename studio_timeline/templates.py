@@ -140,11 +140,27 @@ def paint(clip, params, media, n, w, h, rate, style=None):
     elif kind in ("stack", "parallax"):
         if kind=="parallax":
             picture(0,(0,0,w,h))
-            for i in range(1,len(media.images)):
-                layer=media.frame(i,n)
+            cues = {cue["layer"]: cue for cue in params.get("layer_cues", [])}
+            assembling = bool(params.get("assembly_start", 0) or params.get("assembly_interval", 0) or cues)
+            for i in range(1, len(media.images)):
+                cue = cues.get(i, {})
+                start = cue.get("start", params.get("assembly_start", 0) + (i - 1) * params.get("assembly_interval", 0))
+                if assembling and seconds < start:
+                    continue
+                layer = media.frame(i, n)
                 if layer:
-                    layer=layer.resize((w,h)); shift=round((phase-.5)*w*params.get("depth",.06)*i)
-                    image.alpha_composite(layer,(shift,0))
+                    reveal = 1.0
+                    if assembling:
+                        duration = cue.get("duration", params.get("assembly_duration", .35))
+                        fraction = min(1.0, max(0.0, (seconds - start) / duration)) if duration else 1.0
+                        reveal = fraction * fraction * (3 - 2 * fraction)
+                    layer = layer.resize((w, h))
+                    if reveal < 1:
+                        layer.putalpha(layer.getchannel("A").point(lambda alpha: round(alpha * reveal)))
+                    depth = cue.get("depth", i)
+                    shift = round((phase - .5) * w * params.get("depth", .06) * depth)
+                    drop = round((1 - reveal) * h * cue.get("drop", params.get("assembly_drop", .06))) if assembling else 0
+                    image.alpha_composite(layer, (shift, drop))
         else:
             for i in range(min(len(media.images), max(1,math.ceil(phase*len(media.images))))):
                 source=media.frame(i,n)
