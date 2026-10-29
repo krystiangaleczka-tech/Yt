@@ -14,6 +14,7 @@ from pathlib import Path
 from PIL import Image
 
 from .media import asset_path
+from .paper_theatre_quality import alpha_diagnostics, layout_warnings
 
 GROUPS = (
     ("sky", "Niebo · słońce, księżyc, chmury", "hanging_drop"),
@@ -52,7 +53,7 @@ def _png(store, project, asset_id: str, *, cutout: bool = False) -> dict:
             raise ValueError("Wycinek musi mieć widoczne piksele i przezroczyste tło: " + asset.name)
         coverage = round((bounds[2]-bounds[0])*(bounds[3]-bounds[1])/(size[0]*size[1]), 4)
         return {"asset_id": asset_id, "name": asset.name, "size": size, "bounds": bounds,
-                "bbox_fraction": coverage}
+                "bbox_fraction": coverage, "alpha_diagnostics": alpha_diagnostics(image)}
 
 
 def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
@@ -146,6 +147,10 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
                 cue[key] = float(item[key])
         if item["bbox_fraction"] > .42 and not item["layout"]:
             warnings.append(item["name"] + ": rozległy wycinek; sprawdź, czy nie zawiera kilku obiektów")
+        if item["alpha_diagnostics"]["regions"] > 1:
+            warnings.append(item["name"] +
+                ": kilka rozłącznych części alpha; upewnij się, że to jeden obiekt")
+    warnings.extend(layout_warnings(checked, tuple(backdrop["size"])))
         cues.append(cue)
         start += duration + DEFAULT_SETTLE
         previous_group = group
