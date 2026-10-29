@@ -240,6 +240,8 @@ def register(app, store, jobs, connectors, repo, callbacks):
         for ident in ids:
             if not isinstance(ident, str) or ident not in prompts or prompts[ident]["asset_id"]:
                 raise ValueError("Wybrany obiekt nie istnieje lub ma już przypisany PNG")
+            if existing_cutouts(project, sid, reference_id, ident):
+                raise ValueError("Wariant dla " + ident + " już istnieje w bibliotece. Wybierz go przed ponowieniem serii.")
             selected.append(prompts[ident])
         config = connectors.config()
         key, model = config.get("paper_image_key", ""), config.get("paper_image_model", "gpt-image-2.5-sunburst")
