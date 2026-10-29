@@ -36,6 +36,7 @@ import { Exports, JobList } from "./Exports";
 import Settings from "./Settings";
 import LibraryView from "./Library";
 import Production from "./Production";
+import PaperTheatre from "./PaperTheatre";
 import { NewFilmModal } from "./Workspace";
 import { workspacePages, workspaceTitles } from "./workspaceTypes";
 
@@ -126,6 +127,13 @@ function Shell() {
       <Idea />
     ) : s.page === "production" ? (
       <Production />
+    ) : s.page === "paper-theatre" ? (
+      <div className="page-content production-page">
+        <SectionHead eyebrow="ANIMACJA PAPIEROWA"
+          title="Paper Theatre 2.5D"
+          description="Oddzielne warstwy PNG, wejścia grupami i podnoszone figurki. Najważniejsza postać wchodzi ostatnia." />
+        <PaperTheatre />
+      </div>
     ) : s.page === "jobs" ? (
       <div className="page-content">
         <SectionHead
@@ -216,6 +224,15 @@ function Shell() {
         >
           <Film size={18} />
           <span>Wstawki animowane</span>
+        </button>
+        <button
+          className={`nav-item ${s.page === "paper-theatre" ? "active" : ""}`}
+          aria-current={s.page === "paper-theatre" ? "page" : undefined}
+          onClick={() => navigate("paper-theatre")}
+          title="Paper Theatre 2.5D"
+        >
+          <Layers3 size={18} />
+          <span>Paper Theatre 2.5D</span>
         </button>
         <div className="nav-label resources-label">ZASOBY TEGO FILMU</div>
         <button
