@@ -23,6 +23,11 @@ import re
 import sys
 from pathlib import Path
 
+if __package__:
+    from . import editorial
+else:
+    import editorial
+
 # ───────────────────────── słowniki systemu ─────────────────────────
 
 SEGMENTS = {
@@ -163,13 +168,17 @@ def summary_of(prj: dict, i: int) -> str:
 # ───────────────────────── prompty ─────────────────────────
 
 def system_prompt(prj: dict) -> str:
+    editorial.ensure_locked(prj)
     m = prj["meta"]
     chapters = "\n".join(
         f"  Rozdział {c['id']}: {c['title']} — {c.get('description', '')} [segment {c.get('segment', '?')}]"
         for c in prj["chapters"]
     ) or "  (brak rozdziałów)"
+    registry = prj["facts"]
+    if "story_lock" in prj:
+        registry = [f for f in registry if f["id"] in prj["story_lock"]["fact_ids"]]
     facts = "\n".join(
-        f"  {f['id']} [{f['status']}] {f['claim']} — źródło: {f.get('source', '?')}" for f in prj["facts"]
+        f"  {f['id']} [{f['status']}] {f['claim']} — źródło: {f.get('source', '?')}" for f in registry
     ) or "  (pusty — najpierw research!)"
     return f"""### USTAWIENIA GLOBALNE ODCINKA (System Prompt — DocOS)
 Piszemy faceless dokument YouTube MODUŁOWO: beat po beacie. Nie widzisz całego filmu, tylko bieżący beat
@@ -210,10 +219,11 @@ Konsekwencję zwrotu opisz w 'Połączenie do N-1', żeby kolejne beaty skorygow
 """ + "\n".join(f"- {k}: {v}" for k, v in ASSETS.items()) + """
 Shot list jest produkcyjny, nie literacki: kąt kamery, ruch, detal, czas (Wide, ECU, Macro, POV, Match Cut, Ken Burns, Frame-in-frame).
 Bohater pod presją czasu działa — nie czeka biernie. Logika akcji ponad efekt.
-"""
+""" + editorial.story_context(prj)
 
 
 def beat_prompt(prj: dict, i: int) -> str:
+    editorial.ensure_locked(prj)
     b = prj["beats"][i]
     m = prj["meta"]
     dyn = effective_dynamic(prj, b)
@@ -236,7 +246,7 @@ def beat_prompt(prj: dict, i: int) -> str:
 [SCENA]: {b.get('scene_no', '')} ({b.get('scene_desc', '')})
 [BEAT]: {b['id']} | [TYPOLOGIA]: {b.get('typology', '')} | [DYNAMIKA]: {dyn}
 [KONTEKST N-2]: {summary_of(prj, i - 2)}
-[KONTEKST N-1]: {summary_of(prj, i - 1)}
+[KONTEKST N-1]: {summary_of(prj, i - 1)}{editorial.story_context(prj)}
 
 ### ZADANIE: Napisz BEAT skryptu.
 Akcja beatu: '{b.get('action', '')}'
@@ -318,7 +328,7 @@ def turn_polarity(turn: str) -> str:
 
 
 def check(prj: dict) -> list[tuple[str, str]]:
-    out: list[tuple[str, str]] = []
+    out: list[tuple[str, str]] = [("STORY_LOCK", msg) for msg in editorial.story_errors(prj)]
     beats = prj["beats"]
     facts = {f["id"]: f for f in prj["facts"]}
     dyns = [effective_dynamic(prj, b) for b in beats]
@@ -464,6 +474,10 @@ def export_xlsx(prj: dict, path: Path) -> None:
     from openpyxl.styles import Alignment, Font, PatternFill
     from openpyxl.worksheet.datavalidation import DataValidation
 
+    if any(b.get("narration") for b in prj["beats"]):
+        editorial.ensure_locked(prj)
+    story_issues = editorial.story_errors(prj)
+    pending_prompt = "STORY LOCK: zatwierdź kartę poleceniem lock przed pisaniem." if story_issues else ""
     wb = Workbook()
     bold = Font(bold=True)
     wrap = Alignment(wrap_text=True, vertical="top")
@@ -473,7 +487,7 @@ def export_xlsx(prj: dict, path: Path) -> None:
     ws.append(["Parametr", "Wartość"])
     for k, v in prj["meta"].items():
         ws.append([k, v])
-    ws.append(["SYSTEM_PROMPT (tylko odczyt)", system_prompt(prj)])
+    ws.append(["SYSTEM_PROMPT (tylko odczyt)", pending_prompt or system_prompt(prj)])
     ws.column_dimensions["A"].width = 28
     ws.column_dimensions["B"].width = 110
     for row in ws.iter_rows(min_row=2):
@@ -504,7 +518,7 @@ def export_xlsx(prj: dict, path: Path) -> None:
     for i, b in enumerate(prj["beats"]):
         d = effective_dynamic(prj, b)
         row = [", ".join(b.get(k, [])) if k == "facts" else b.get(k, "") for k, _ in BEAT_COLS]
-        row += [d, DYNAMICS[d][0], summary_of(prj, i - 2), summary_of(prj, i - 1), beat_prompt(prj, i),
+        row += [d, DYNAMICS[d][0], summary_of(prj, i - 2), summary_of(prj, i - 1), pending_prompt or beat_prompt(prj, i),
                 b.get("narration", ""), b.get("link", ""), f"{int(t // 60)}:{int(t % 60):02d}"]
         t += float(b.get("seconds") or 0)
         wbt.append(row)
@@ -645,7 +659,13 @@ def render_plan(prj: dict) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser(prog="docos", description="DocOS — system scenopisarski dla dokumentów YouTube")
     sp = ap.add_subparsers(dest="cmd", required=True)
-    p = sp.add_parser("new", help="nowy projekt");                p.add_argument("file"); p.add_argument("title")
+    p = sp.add_parser("channel", help="nowy profil kanału DOCUMENTARY"); p.add_argument("file"); p.add_argument("--name", required=True)
+    p = sp.add_parser("topics", help="prompt dziesięciu tematów dla kanału"); p.add_argument("file")
+    p = sp.add_parser("save-topics", help="zapisz propozycje i zapamiętaj tytuły"); p.add_argument("file"); p.add_argument("candidates")
+    p = sp.add_parser("story", help="karta Story Lock i instrukcja researchu"); p.add_argument("file")
+    p = sp.add_parser("lock", help="zatwierdź kartę i bank faktów"); p.add_argument("file")
+    p = sp.add_parser("unlock", help="otwórz Story Lock do zmian"); p.add_argument("file")
+    p = sp.add_parser("new", help="nowy projekt");                p.add_argument("file"); p.add_argument("title"); p.add_argument("--channel")
     p = sp.add_parser("system", help="globalny system prompt");   p.add_argument("file")
     p = sp.add_parser("prompt", help="złota formuła dla beatu");  p.add_argument("file"); p.add_argument("beat")
     p = sp.add_parser("next", help="prompt dla pierwszego nienapisanego beatu"); p.add_argument("file")
@@ -657,19 +677,49 @@ def main() -> None:
     a = ap.parse_args()
     path = Path(a.file)
 
+    if a.cmd == "channel":
+        if path.exists():
+            sys.exit(f"{path} już istnieje")
+        dump(path, editorial.new_channel(a.name))
+        print(f"Utworzono profil {path}. Ustaw focus, language i published_titles, potem użyj topics.")
+        return
     if a.cmd == "new":
         if path.exists():
             sys.exit(f"{path} już istnieje")
-        dump(path, new_project(a.title))
+        prj = new_project(a.title)
+        if a.channel:
+            editorial.attach_channel(prj, load(Path(a.channel)))
+        dump(path, prj)
         print(f"Utworzono {path}. Uzupełnij meta, rozdziały, fakty i beaty (albo: export → edytuj xlsx → import).")
+        if a.channel:
+            print("Przed pisaniem: story → research i karta → lock.")
         return
     prj = load(path)
 
-    if a.cmd == "system":
+    if a.cmd == "topics":
+        print(editorial.topics_prompt(prj))
+    elif a.cmd == "save-topics":
+        dump(path, editorial.save_topics(prj, load(Path(a.candidates))))
+        print("Zapisano 10 propozycji. Tytuły zostaną wykluczone z następnych list.")
+    elif a.cmd == "story":
+        print(editorial.story_prompt(prj))
+    elif a.cmd == "lock":
+        editorial.lock_story(prj)
+        dump(path, prj)
+        print("STORY LOCK zatwierdzony. Można planować i pisać beaty.")
+    elif a.cmd == "unlock":
+        if "story_lock" not in prj:
+            sys.exit("Projekt nie ma Story Lock.")
+        prj["story_lock"]["status"] = "DRAFT"
+        prj["story_lock"].pop("digest", None)
+        dump(path, prj)
+        print("Story Lock otwarty. Przed dalszym pisaniem zatwierdź zmiany poleceniem lock.")
+    elif a.cmd == "system":
         print(system_prompt(prj))
     elif a.cmd == "prompt":
         print(beat_prompt(prj, beat_index(prj, a.beat)))
     elif a.cmd == "next":
+        editorial.ensure_locked(prj)
         todo = [i for i, b in enumerate(prj["beats"]) if not b.get("narration")]
         if not todo:
             print("Wszystkie beaty napisane. Uruchom: check, potem export.")
@@ -677,12 +727,14 @@ def main() -> None:
         print(f"# NASTĘPNY: {prj['beats'][todo[0]]['id']} (zostało {len(todo)})\n")
         print(beat_prompt(prj, todo[0]))
     elif a.cmd == "save":
+        editorial.ensure_locked(prj)
         i = beat_index(prj, a.beat)
         text = sys.stdin.read() if a.result == "-" else Path(a.result).read_text(encoding="utf-8")
         r = parse_result(text)
         if not r["narration"]:
             sys.exit("Nie znaleziono sekcji 'Narracja:' — sprawdź format odpowiedzi.")
         prj["beats"][i].update(r, raw=text)
+        editorial.ensure_locked(prj)
         dump(path, prj)
         print(f"Zapisano {prj['beats'][i]['id']}: {len(r['narration'].split())} słów, {len(r['shots'])} ujęć, "
               f"fakty {r['facts_used'] or '-'}. Połączenie → N-1 dla kolejnego beatu.")
@@ -704,6 +756,8 @@ def main() -> None:
             t += float(b.get("seconds") or 0)
         print(f"Razem: {t / 60:.1f} min / cel {prj['meta'].get('target_minutes')} min")
     elif a.cmd == "export":
+        if any(b.get("narration") for b in prj["beats"]):
+            editorial.ensure_locked(prj)
         out = Path(a.out) if a.out else path.with_suffix("")
         out.mkdir(parents=True, exist_ok=True)
         stem = path.stem
@@ -719,4 +773,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except ValueError as exc:
+        sys.exit(str(exc))

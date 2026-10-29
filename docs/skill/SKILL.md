@@ -17,7 +17,13 @@ Ty (Claude) jesteś silnikiem piszącym — nie potrzeba żadnego API.
 - Shot list produkcyjny (Wide, ECU, Macro, POV, Match Cut, Ken Burns), nie literacki. Bohater pod presją działa, nie czeka.
 
 ## Workflow
-1. **Start**: `docos.py new <projekt>.json "Tytuł"` w folderze odcinka (domyślnie `~/Documents/YT/projekty/<slug>/`).
+0. **Etap redakcyjny Documentary** przy nowym kanale/odcinku: przeczytaj `docs/EDITORIAL.md` w repozytorium YT.
+   Wczytaj profil lub utwórz go przez `channel`; wygeneruj dziesięć propozycji z promptu `topics`, zapisz je przez `save-topics`.
+   Jeśli temat już podano, pomiń propozycje. Użyj `new ... --channel <profil.json>`, wykonaj research,
+   uzupełnij kartę z `story`, zatwierdź przez `lock` i dopiero pisz beaty. Polecenia nie wywołują API modeli.
+   W trybie prowadzonym pokaż kartę do zatwierdzenia; przy zleceniu automatycznym sprawdź ją i kontynuuj.
+   Po zmianie założeń użyj `unlock` i ponownie `lock`. Starsze projekty bez karty działają jak wcześniej.
+1. **Start**, jeśli projektu jeszcze nie utworzono: `docos.py new <projekt>.json "Tytuł"` w folderze odcinka (domyślnie `~/Documents/YT/projekty/<slug>/`).
 2. **Research → fakty**: uzupełnij `facts` (F1, F2…) z źródłami. Bez faktów nie planuj beatów.
 3. **Struktura**: uzupełnij `meta` (logline, teza, curiosity gap, narrator, język narracji, target_minutes, visual_style, master_outline), `chapters` (segment + default_dynamic), `subchapters`, potem `beats` (akcja, cel, turn, typologia, dynamika, chaos, fakty, sekundy).
    - Segmenty: COLD_OPEN (energia 8–10), CONTEXT, INVESTIGATION (4–7, Looped Arc: RISING_ACTION → CONFLICT → COMEBACK → EVIDENCE → PAYOFF → TRANSITION), TWIST (7–9), RESOLUTION, OUTRO.

@@ -28,6 +28,8 @@ mediów (~3 GB, odtwarzane skryptem `docos/fetch_media.py`), modeli AI, wyrender
 
 ## Najważniejsze funkcje
 
+- **Tematy i Story Lock (Documentary)** — profil kanału, prompt dziesięciu propozycji z historią tytułów,
+  zatwierdzana karta pytania, dowodów i odpowiedzi filmu, przekazywana do każdego beatu. [Instrukcja](docs/EDITORIAL.md).
 - **Scenariusz modułowy (DocOS)** — film to beaty z Celem, Turnem (1 emocja → 1 emocja), Typologią, Dynamiką
   wizualną (ACTION / STORY / CHILL / EUREKA / STATIC), Chaosem i kontekstem N-1/N-2. Claude pisze beat po beacie,
   więc nie „leje wody” i nie gubi wątku.
@@ -68,6 +70,7 @@ Lektor wymaga własnej próbki głosu (15–30 s czystej mowy) — patrz [docs/V
 
 ## Dokumentacja
 
+- [docs/EDITORIAL.md](docs/EDITORIAL.md) — profil kanału, propozycje tematów i Story Lock
 - [docs/SETUP.md](docs/SETUP.md) — instalacja, modele, sprzęt i wydajność
 - [docs/WORKFLOW.md](docs/WORKFLOW.md) — od tematu do gotowego filmu, krok po kroku (z Claude)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — jak działa DocOS, render i edytor; model danych projektu
