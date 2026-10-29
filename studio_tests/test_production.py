@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 from studio_api.app import create_app
-from studio_core.models import Project, Scene, Beat, Fact, Clip, Keyframe, from_docos,import_content
+from studio_core.models import Project, Scene, Beat, Fact, Clip, Keyframe, from_docos,import_content,fps
 from studio_core.service import ProjectService
 from studio_core.freshness import voice_hash,voice_state,sentence_hash
 from studio_core.media import import_media,probe
