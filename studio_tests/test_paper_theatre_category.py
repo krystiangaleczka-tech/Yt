@@ -329,11 +329,12 @@ class PaperTheatreCategoryTests(unittest.TestCase):
         manifest = self.asset_manifest()
         manifest["objects"][1].update(pivot_x=.17, pivot_y=.91, rig="hanging_drop")
         normalized = normalize_manifest(manifest)
-        self.assertEqual(normalized["objects"][1]["pivot_x"], .17)
-        self.assertEqual(normalized["objects"][1]["rig"], "hanging_drop")
+        wall = next(obj for obj in normalized["objects"] if obj["id"] == "cloud")
+        self.assertEqual(wall["pivot_x"], .17)
+        self.assertEqual(wall["rig"], "hanging_drop")
         project = self.app.state.store.get(self.project["id"])
         data = assemble_manifest(self.app.state.store, project, self.background, normalized)
-        cue = data["layer_cues"][1]
+        cue = data["layer_cues"][0]
         self.assertEqual(cue["rig"], "hanging_drop")
         self.assertEqual(cue["pivot_x"], .17)
         self.assertEqual(cue["pivot_y"], .91)
