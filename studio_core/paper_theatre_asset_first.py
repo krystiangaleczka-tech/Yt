@@ -84,12 +84,16 @@ def normalize_manifest(data: dict) -> dict:
         raise ValueError("Nieznany tryb tworzenia sceny")
     reference_id = data.get("reference_asset_id", "")
     reference_notes = data.get("reference_notes", "")
+    reference_approved = data.get("reference_approved", False)
+    if not isinstance(reference_approved, bool):
+        raise ValueError("Akceptacja obrazu referencyjnego musi być true/false")
     if not isinstance(reference_id, str) or len(reference_id) > 100:
         raise ValueError("Niepoprawne ID obrazu referencyjnego")
     if not isinstance(reference_notes, str) or len(reference_notes) > 3000:
         raise ValueError("Notatki o kompozycji przekraczają limit")
     return {"mode": mode, "brief": brief.strip(), "style": style.strip(), "objects": objects,
-            "reference_asset_id": reference_id, "reference_notes": reference_notes.strip()}
+            "reference_asset_id": reference_id, "reference_notes": reference_notes.strip(),
+            "reference_approved": reference_approved}
 
 
 def drafting_prompt(brief: str, style: str = DEFAULT_STYLE) -> str:
@@ -159,7 +163,7 @@ def assemble_manifest(store, project, background_id: str, manifest: dict,
     data = normalize_manifest(manifest)
     if data["mode"] == "reference-guided":
         ref_id = data.get("reference_asset_id")
-        if not ref_id:
+        if not ref_id or not data["reference_approved"]:
             raise ValueError("Wybierz i zaakceptuj obraz referencyjny przed składaniem sceny")
         if ref_id == background_id or any(obj["asset_id"] == ref_id for obj in data["objects"]):
             raise ValueError("Draft referencyjny nie może być tłem ani osobnym wycinkiem")
