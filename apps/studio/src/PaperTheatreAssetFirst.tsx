@@ -237,13 +237,20 @@ export default function PaperTheatreAssetFirst({
       studio.notify(error instanceof Error ? error.message : "Niepoprawny JSON", true);
     }
   };
-  const generateCutout = (obj: ObjectSpec) => studio.run(async () => {
+  const generateCutout = (obj: ObjectSpec, newVariant = false) => studio.run(async () => {
     if (!scene || !referenceMode || !referenceId || !referenceApproved)
       throw new Error("Zaakceptuj najpierw obraz referencyjny");
     if (obj.asset_id) throw new Error("Odłącz obecny PNG przed ponownym generowaniem");
+    if (newVariant) {
+      const settings = await api<{ paper_image_request_cost: number }>("/settings");
+      if (!window.confirm(`Istnieje już wariant dla ${obj.name}.
+Wygenerować dodatkowy, płatny PNG? Szacowany koszt: ${settings.paper_image_request_cost} USD.`))
+        return;
+    }
     const result = await api<{ id: string }>(
       `/projects/${project.id}/paper-theatre/${scene.id}/cutouts/generate`,
-      { expected_revision: project.revision, manifest: effectiveManifest(), object_id: obj.id });
+      { expected_revision: project.revision, manifest: effectiveManifest(),
+        object_id: obj.id, new_variant: newVariant });
     setCutoutJobId(result.id);
     setCutoutObjectId(obj.id);
     studio.notify("W kolejce: jeden osobny przezroczysty PNG. Wymaga Twojej akceptacji po wygenerowaniu.");
@@ -596,14 +603,17 @@ Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana 
                       {GROUPS.map(([name, label]) => <option key={name} value={name}>{label}</option>)}
                     </select>
                   </Field>
-                  {referenceMode && !obj.asset_id && referenceId && referenceApproved && !candidateFor(obj) &&
-                    <Button disabled={!!cutoutJobId || !!batchJobId} onClick={() => generateCutout(obj)}>
+                  {referenceMode && !obj.asset_id && referenceId && referenceApproved &&
+                    <Button disabled={!!cutoutJobId || !!batchJobId}
+                      onClick={() => generateCutout(obj, !!candidateFor(obj))}>
                       {cutoutJobId && cutoutObjectId === obj.id
-                        ? "Trwa generowanie tego PNG…" : "Wygeneruj pojedynczy PNG alpha z referencji"}
+                        ? "Trwa generowanie tego PNG…" : candidateFor(obj)
+                          ? "Wygeneruj dodatkowy wariant (płatny)"
+                          : "Wygeneruj pojedynczy PNG alpha z referencji"}
                     </Button>}
                   {!obj.asset_id && candidateFor(obj) &&
                     <p className="small muted">W bibliotece jest już nowy wariant dla tego obiektu.
-                      Wybierz go poniżej zamiast generować ponownie.</p>}
+                      Wybierz go poniżej; dodatkowy wariant jest opcjonalny i wymaga potwierdzenia kosztu.</p>}
                   <Field label="Przypisany osobny PNG">
                     <select value={obj.asset_id} onChange={(event) => modify(obj.id, { asset_id: event.target.value })}>
                       <option value="">Czeka na grafikę</option>
