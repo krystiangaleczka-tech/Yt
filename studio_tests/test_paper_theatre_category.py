@@ -34,9 +34,13 @@ class PaperTheatreCategoryTests(unittest.TestCase):
         self.temp.cleanup()
 
     def png(self, name, *, background=False, size=(320, 180)):
-        image = Image.new("RGB" if background else "RGBA", size, "#e6d7b7" if background else (0,0,0,0))
+        # Uploads are content-addressed: distinct cutouts need distinct pixels.
+        variant = sum((i + 1) * ord(char) for i, char in enumerate(name))
+        color = (80 + variant % 130, 60 + (variant // 7) % 140, 70 + (variant // 11) % 130)
+        image = Image.new("RGB" if background else "RGBA", size, color if background else (0, 0, 0, 0))
         if not background:
-            ImageDraw.Draw(image).rectangle((25, 30, 64, 91), fill="#36513b")
+            start = 15 + variant % 30
+            ImageDraw.Draw(image).rectangle((start, 30, start + 38, 91), fill=(*color, 255))
         binary = io.BytesIO()
         image.save(binary, format="PNG")
         response = self.client.post(self.base+"/media", files={
