@@ -37,9 +37,9 @@ TEMPLATES = [
         field("assembly_interval", "Odstęp między warstwami (s; 0 = wszystkie razem)", "number", 0, min=0, max=60),
         field("assembly_duration", "Czas pojawiania się warstwy (s)", "number", .35, min=0, max=10),
         field("assembly_drop", "Przesunięcie podczas wejścia (0–0,3 wysokości)", "number", .06, min=0, max=.3),
-        field("layer_cues", "Wyjątki dla warstw [{layer,start,duration,drop,depth}]", "json", []),
+        field("layer_cues", "Animacja warstw (opcjonalny zaawansowany JSON)", "json", []),
         CAPTION,
-    ], "note": "Tło to główny materiał, a warstwy PNG z przezroczystością pojawiają się w wybranej kolejności. Odstęp 0 zachowuje dawny wygląd; wyjątki layer liczymy od 1."},
+    ], "note": "Tło to główny materiał, a kolejne PNG są niezależnymi wycinkami. W panelu Warstwy wybierz mechanikę: linka, podnoszenie jak w teatrzyku lub wjazd od dołu. Bez nowych rigów stary parallax pozostaje bez zmian."},
 ]
 CATALOG = {item["id"]: item for item in TEMPLATES}
 LEGACY = {"ARCHIWUM": "media", "AI_OBRAZ": "media", "DOKUMENT": "document", "TYTUŁ": "title", "CYTAT": "quote", "PRASA": "press", "PODPIS": "lower-third", "LICZNIK": "counter", "OŚ_CZASU": "timeline", "MAPA": "map", "DIAGRAM": "diagram", "WAVEFORM": "waveform", "SPEKTRO": "spectrogram", "LUPA": "loupe", "SPLIT": "split", "PORÓWNANIE": "comparison", "STOS": "stack", "QA": "qa", "HASŁO": "slogan"}
@@ -79,17 +79,35 @@ def validate_parameters(template: str, parameters: dict) -> dict:
     if template=="timeline" and any(not isinstance(e,dict) or not isinstance(e.get("date",""),str) or not isinstance(e.get("text",""),str) for e in result["events"]): raise ValueError("Wydarzenia wymagają tekstowych pól date i text")
     if template=="parallax":
         seen_layers = set()
-        allowed = {"layer", "start", "duration", "drop", "depth"}
+        allowed = {
+            "layer", "start", "duration", "drop", "depth", "rig",
+            "overshoot", "settle_duration", "string_visible", "string_length",
+            "swing_deg", "swing_decay", "pivot_x", "pivot_y", "start_rotation",
+            "overshoot_rotation", "stick_visible", "stick_length",
+        }
+        numeric = {
+            "start": (0, 3600), "duration": (0, 10), "drop": (0, .3),
+            "depth": (0, 10), "overshoot": (0, .3), "settle_duration": (0, 10),
+            "string_length": (0, 1), "swing_deg": (0, 20),
+            "swing_decay": (0, 10), "pivot_x": (0, 1), "pivot_y": (0, 1),
+            "start_rotation": (0, 90), "overshoot_rotation": (-20, 20),
+            "stick_length": (0, 1),
+        }
         for cue in result["layer_cues"]:
             if not isinstance(cue, dict) or not set(cue) <= allowed:
-                raise ValueError("Wejście warstwy wymaga obiektu z polami layer/start/duration/drop/depth")
+                raise ValueError("Wejście warstwy zawiera nieobsługiwane pola")
             layer = cue.get("layer")
             if isinstance(layer, bool) or not isinstance(layer, int) or not 1 <= layer <= 1000 or layer in seen_layers:
                 raise ValueError("Warstwy mają unikalne numery od 1 do 1000")
             seen_layers.add(layer)
-            for key, low, high in (("start", 0, 3600), ("duration", 0, 10), ("drop", 0, .3), ("depth", 0, 10)):
+            if "rig" in cue and (not isinstance(cue["rig"], str) or cue["rig"] not in ("sequential", "static", "hanging_drop", "rake_lift", "bottom_rise")):
+                raise ValueError("Nieznany typ mechaniki warstwy")
+            for key, (low, high) in numeric.items():
                 if key in cue and not number(cue[key], low, high):
                     raise ValueError("Niepoprawna wartość " + key + " dla warstwy " + str(layer))
+            for key in ("string_visible", "stick_visible"):
+                if key in cue and not isinstance(cue[key], bool):
+                    raise ValueError("Pole " + key + " wymaga true/false")
     if template=="cards" and any(not isinstance(e,str) for e in result["items"]): raise ValueError("Karty wymagają listy tekstów")
     if any(isinstance(v,list) and len(v)>1000 for v in result.values()): raise ValueError("Maksymalnie tysiąc elementów szablonu")
     return result
