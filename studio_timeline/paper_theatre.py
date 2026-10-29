@@ -86,17 +86,17 @@ def rig_image(source: Image.Image, rig: str, cue: dict, elapsed: float, duration
         if angle:
             sprite = sprite.rotate(angle, resample=RESAMPLE, center=(pivot_x, pivot_y))
         _shadow(canvas, sprite)
+        canvas.alpha_composite(sprite)
         if cue.get("string_visible", False):
-            # The thread is subtle and sits behind the paper, not over it.
+            # End just before the cutout, never paint through its opaque paper.
             end_y = round(pivot_y)
             end_x = round(pivot_x)
             span = round(float(cue.get("string_length", .16)) * height)
             if span > 0 and end_y > 0:
                 ImageDraw.Draw(canvas).line(
-                    (end_x, max(0, end_y - span), end_x, end_y + 1),
-                    fill=(80, 66, 51, 115), width=max(1, round(width / 900)),
+                    (end_x, max(0, end_y - span), end_x, max(0, end_y - 1)),
+                    fill=(80, 66, 51, 150), width=max(1, round(width / 900)),
                 )
-        canvas.alpha_composite(sprite)
         return canvas
 
     if rig == "bottom_rise":
