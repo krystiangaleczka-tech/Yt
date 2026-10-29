@@ -56,6 +56,12 @@ Proces jak w studiu animacji: **scenariusz → beaty → sceny (storyboard) → 
 - **Storyboard:** siatka kadrów pogrupowana po beatach, ze statusem, długością i pierwszą kwestią. Klik ustawia animatik na scenie, podwójny klik (albo ikona) otwiera scenę do oceny. Scenę można przypisać do beatu w inspektorze sceny; przeniesienie nie zmienia jej oceny.
 - **Animatik:** odtwarza wszystkie sceny po kolei (najpierw beaty, potem sceny bez beatu) według ich długości, z ruchem kamery i postaci, napisami i **roboczym głosem**. Scena kończy się, gdy minie jej czas i padną wszystkie kwestie. Pasek pod kadrem pokazuje sceny proporcjonalnie do długości i kolorem statusu.
 
+### Szybka pętla reżyserska
+
+1. **Ocena w trakcie animatiku:** `Spacja` start/pauza, `A` zatwierdza bieżącą scenę bez zatrzymywania (potwierdzenie na kadrze), `R` pauzuje i otwiera krótką uwagę z obszarami poprawki, `Enter` zapisuje ją jako „Do poprawki” i odtwarza dalej od następnej sceny, `Esc` anuluje. `←` `→` przełączają sceny.
+2. **Popraw sceny do poprawki (N):** jedno kliknięcie (w Storyboardzie albo na liście scen) uruchamia w tle AI dla wszystkich scen ze statusem „Do poprawki”, z Twoimi ostatnimi uwagami. Nic się nie zmienia, dopóki nie przyjmiesz propozycji. Błędna odpowiedź dla jednej sceny nie blokuje pozostałych; jej powód jest pokazany.
+3. **Przegląd propozycji:** propozycje pokazują się po kolei jako porównanie przed/po razem z Twoją uwagą; `Enter` przyjmuje (scena wraca do „Do oceny”), `X` pomija. Gdy scena zmieniła się od przygotowania propozycji, aplikacja ostrzega przed nadpisaniem.
+
 ### Głosy robocze
 
 Domyślnie animatik czyta kwestie lokalnym modelem **Kokoro-82M** (Apache 2.0): angielskie głosy US/UK, męskie i żeńskie. Narrator i każda postać dostają automatycznie różne głosy; w panelu „Głosy robocze” możesz przypisać własne i ustawić tempo. Nagrania są cache'owane po treści kwestii, głosie i tempie, więc powtórne odtworzenie jest natychmiastowe, a po zmianie jednej kwestii generuje się tylko ona. **Przygotuj głosy całego animatiku** generuje wszystko z góry (na Macu 8 GB: ok. 18 s dla 6 scen z dialogami). Podczas odtwarzania następna scena przygotowuje się w tle.

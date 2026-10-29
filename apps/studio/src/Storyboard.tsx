@@ -19,7 +19,8 @@ import { useStudio } from "./context";
 import { api } from "./api";
 import { Button, CommitText, Empty, IconButton } from "./components";
 import { Stage } from "./SceneBoard";
-import { castAudio, statusLabels } from "./animationTypes";
+import { castAudio, reviewTags, statusLabels } from "./animationTypes";
+import { ReworkBatch } from "./ReworkBatch";
 import type { CastBank, MusicCue, StageScene } from "./animationTypes";
 import type { Beat, Project } from "./types";
 
@@ -327,6 +328,44 @@ export default function Storyboard() {
     setIndex(Math.max(0, Math.min(ordered.length - 1, i)));
     setLineIndex(0);
   }
+  // Review while watching: A approves without stopping, R pauses for a short note.
+  const [note, setNote] = useState<{ scene: StageScene; text: string; tags: string[]; resume: boolean } | null>(null),
+    [flash, setFlash] = useState("");
+  function review(scene: StageScene, status: "approved" | "rework", text = "", tags: string[] = []) {
+    s.run(async () => {
+      await sceneOps([{ type: "review", scene_id: scene.id, status, note: text, tags }]);
+      setFlash(`Scena ${scene.number}: ${status === "approved" ? "zatwierdzona ✓" : "do poprawki"}`);
+      setTimeout(() => setFlash(""), 1600);
+    });
+  }
+  function submitNote() {
+    if (!note || (!note.text.trim() && !note.tags.length)) return;
+    review(note.scene, "rework", note.text, note.tags);
+    const at = ordered.findIndex((x) => x.id === note.scene.id);
+    setNote(null);
+    if (note.resume && at < ordered.length - 1) {
+      seek(at + 1);
+      setPlaying(true);
+    }
+  }
+  useEffect(() => {
+    function keys(e: KeyboardEvent) {
+      const t = e.target as HTMLElement;
+      if (note || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName) || e.metaKey || e.ctrlKey || e.altKey || !current) return;
+      const k = e.key.toLowerCase();
+      if (k === " ") setPlaying(!playing);
+      else if (k === "a") review(current, "approved");
+      else if (k === "r") {
+        setNote({ scene: current, text: "", tags: [], resume: playing });
+        setPlaying(false);
+      } else if (k === "arrowright") seek(index + 1);
+      else if (k === "arrowleft") seek(index - 1);
+      else return;
+      e.preventDefault();
+    }
+    window.addEventListener("keydown", keys);
+    return () => window.removeEventListener("keydown", keys);
+  });
   function openScene(scene: StageScene) {
     localStorage.setItem("docos:stage:" + p.id, scene.id);
     s.setPage("scenes");
@@ -387,6 +426,42 @@ export default function Storyboard() {
           ) : (
             <Empty title="Animatik jest pusty" children="Dodaj beaty i sceny poniżej." />
           )}
+          {flash && <div className="animatic-flash">{flash}</div>}
+          {note && (
+            <div className="animatic-note" role="dialog" aria-label={`Uwaga do sceny ${note.scene.number}`}>
+              <strong>Scena {note.scene.number}: co poprawić?</strong>
+              <div className="review-tags">
+                {reviewTags.map((t) => (
+                  <button
+                    key={t}
+                    className={note.tags.includes(t) ? "active" : ""}
+                    onClick={() =>
+                      setNote({
+                        ...note,
+                        tags: note.tags.includes(t) ? note.tags.filter((x) => x !== t) : [...note.tags, t],
+                      })
+                    }
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <input
+                autoFocus
+                value={note.text}
+                placeholder="np. czerwona ma pukać w okno"
+                onChange={(e) => setNote({ ...note, text: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") submitNote();
+                  if (e.key === "Escape") {
+                    setNote(null);
+                    if (note.resume) setPlaying(true);
+                  }
+                }}
+              />
+              <span className="muted small">Enter — zapisz i graj dalej · Esc — anuluj</span>
+            </div>
+          )}
         </div>
         <div className="animatic-controls">
           <IconButton icon={SkipBack} label="Poprzednia scena" onClick={() => seek(index - 1)} />
@@ -404,6 +479,7 @@ export default function Storyboard() {
           </span>
           {current && (
             <span className="muted small">
+              <span className={`status-dot ${current.status}`} title={statusLabels[current.status]} />
               Scena {current.number} · {current.title}
               {preparing && " · przygotowuję głos…"}
             </span>
@@ -465,6 +541,13 @@ export default function Storyboard() {
               {x.number}
             </button>
           ))}
+        </div>
+        <div className="animatic-review-row">
+          <span className="muted small">
+            Ocena w trakcie oglądania: <kbd>Spacja</kbd> start/pauza · <kbd>A</kbd> zatwierdź · <kbd>R</kbd> uwaga · <kbd>←</kbd>
+            <kbd>→</kbd> scena
+          </span>
+          <ReworkBatch bank={bank} />
         </div>
         <div className="music-lane" aria-label="Muzyka">
           {(p.music_cues || []).map((cue) => {

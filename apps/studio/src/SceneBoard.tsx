@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { useStudio } from "./context";
+import { ReworkBatch } from "./ReworkBatch";
 import { api } from "./api";
 import { Button, CommitText, Empty, Field, IconButton, NumberField } from "./components";
 import {
@@ -43,7 +44,7 @@ import type {
 } from "./animationTypes";
 import type { Project } from "./types";
 
-type Proposal = {
+export type Proposal = {
   scene_id: string;
   changes: Partial<StageScene>;
   reason: string;
@@ -232,6 +233,7 @@ export default function SceneBoard() {
             Scena
           </Button>
         </div>
+        <ReworkBatch bank={bank} compact />
         <div className="scene-progress" aria-hidden>
           <span style={{ width: `${scenes.length ? (approved / scenes.length) * 100 : 0}%` }} />
         </div>
@@ -667,7 +669,7 @@ export function Stage({
   );
 }
 
-function ProposalCard({
+export function ProposalCard({
   scene,
   proposal,
   characters,

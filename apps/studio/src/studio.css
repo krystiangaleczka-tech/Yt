@@ -6724,3 +6724,78 @@ textarea::placeholder {
   display: grid;
   gap: 2px;
 }
+
+.rework-batch {
+  display: grid;
+  gap: 8px;
+}
+.batch-review {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.rework-batch.compact .batch-review {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  top: 70px;
+  transform: translateX(-50%);
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100vh - 100px);
+  overflow: auto;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+.batch-review .proposal-card .button-row {
+  display: none;
+}
+
+.animatic-stage {
+  position: relative;
+}
+.animatic-flash {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+  pointer-events: none;
+}
+.animatic-note {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 6;
+  width: min(560px, calc(100% - 32px));
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+.animatic-review-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.animatic-review-row > .rework-batch {
+  flex: 1 1 100%;
+}
+.animatic-review-row kbd {
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-size: 10px;
+}

@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
 
-from studio_core.animation import (Cast, DRAFT_VOICES, DraftVoices, MAX_IMAGE, apply_scene_operation, breakdown_prompt,
+from studio_core.animation import (CONTENT_FIELDS, Cast, DRAFT_VOICES, DraftVoices, MAX_IMAGE, apply_scene_operation, breakdown_prompt,
                                    channel_bank, default_draft_voice, parse_breakdown, parse_regeneration, regeneration_prompt)
 from studio_core.assistant import complete
 from studio_core.animatic import Images, render_animatic
@@ -105,6 +105,36 @@ def register_animation(app, store, connectors, jobs):
         if not text:
             text = complete(connectors, regeneration_prompt(project, scene, characters, locations, str(body.get('instruction', ''))[:2000], items), store=store, project=project)
         return parse_regeneration(str(text), scene, characters, locations, items) | {'base_revision': project.revision}
+
+    @app.post('/api/projects/{pid}/stage-scenes/rework-batch')
+    def rework_batch(pid: str, body: dict):
+        """AI proposals for every scene sent back for rework; nothing changes until the director accepts."""
+        project = store.get(pid)
+        characters, locations, items = channel_bank(cast, project)
+        wanted = set(body.get('scene_ids') or [])
+        targets = [s for s in project.stage_scenes if s.status == 'rework' and (not wanted or s.id in wanted)]
+        if not targets:
+            raise ValueError('Nie ma scen ze statusem „Do poprawki”')
+
+        def task(job_id, progress, cancel):
+            proposals, errors = [], []
+            for done, scene in enumerate(targets):
+                if cancel.is_set():
+                    raise InterruptedError()
+                progress(done / len(targets), f'Scena {scene.number} ({done + 1}/{len(targets)})')
+                try:
+                    text = complete(connectors, regeneration_prompt(project, scene, characters, locations, '', items), store=store, project=project)
+                    proposal = parse_regeneration(str(text), scene, characters, locations, items)
+                    proposals.append(proposal | {'number': scene.number, 'title': scene.title,
+                                                 'before': scene.model_dump(include=set(CONTENT_FIELDS))})
+                except InterruptedError:
+                    raise
+                except Exception as error:  # one bad answer must not lose the other proposals
+                    errors.append({'scene_id': scene.id, 'number': scene.number, 'message': str(error)[:500]})
+            return {'proposals': proposals, 'errors': errors, 'revision': project.revision}
+
+        return jobs.submit(pid, project.revision, 'rework', task, heavy=False,
+                           request={'action': 'rework', 'body': body}, snapshot=project.model_dump())
 
     def beat_of(project, bid):
         beat = next((b for b in project.beats if b.id == bid), None)

@@ -296,5 +296,33 @@ class AnimationTests(unittest.TestCase):
         self.assertEqual(film['music_cues'], [])
 
 
+    def test_rework_batch_returns_proposals_without_touching_scenes(self):
+        mara = self.character(self.channel['id'])
+        film = self.scenes(self.film(), {'type': 'add', 'scene': {'title': 'Jeden'}}, {'type': 'add', 'scene': {'title': 'Dwa'}},
+                           {'type': 'add', 'scene': {'title': 'Trzy'}})
+        one, two, three = (s['id'] for s in film['stage_scenes'])
+        none = self.client.post(f"/api/projects/{film['id']}/stage-scenes/rework-batch", json={}, headers=H)
+        self.assertEqual(none.status_code, 422)
+        film = self.scenes(film, {'type': 'review', 'scene_id': one, 'status': 'rework', 'note': 'ciemniej'},
+                           {'type': 'review', 'scene_id': two, 'status': 'rework', 'note': 'Mara ma pukać'},
+                           {'type': 'review', 'scene_id': three, 'status': 'approved'})
+        answers = iter([json.dumps({'title': 'Jeden po poprawce', 'reason': 'ciemniej'}),
+                        json.dumps({'characters': [{'character_id': 'chr_' + '0' * 16}]})])
+        with mock.patch('studio_api.animation.complete', side_effect=lambda *a, **k: next(answers)):
+            job = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/rework-batch", json={}, headers=H))
+            for _ in range(200):
+                state = self.ok(self.client.get('/api/jobs/' + job['id']))
+                if state['status'] in ('SUCCEEDED', 'FAILED'):
+                    break
+                time.sleep(.02)
+        self.assertEqual(state['status'], 'SUCCEEDED', state['message'])
+        result = state['result']
+        self.assertEqual([p['scene_id'] for p in result['proposals']], [one])
+        self.assertEqual(result['proposals'][0]['before']['title'], 'Jeden')
+        self.assertEqual([e['scene_id'] for e in result['errors']], [two])
+        self.assertEqual([s['title'] for s in self.store.get(film['id']).model_dump()['stage_scenes']], ['Jeden', 'Dwa', 'Trzy'])
+        self.assertTrue(mara)
+
+
 if __name__ == '__main__':
     unittest.main()
