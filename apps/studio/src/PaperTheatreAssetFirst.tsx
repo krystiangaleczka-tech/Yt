@@ -30,7 +30,7 @@ type Manifest = {
   reference_asset_id?: string; reference_notes?: string; reference_approved?: boolean;
 };
 type PromptResult = { id: string; name: string; prompt: string; group: string; asset_id: string };
-const DEFAULT_STYLE = "Hand-cut textured rice paper, warm imperial parchment palette, muted ink outlines, subtle fiber texture, paper shadow edges; consistent lighting from top-left.";
+const DEFAULT_STYLE = "Hand-cut textured paper, coordinated muted palette, subtle ink outlines, visible paper fibers and shadows; one coherent light direction. Adapt era and color scheme to the story.";
 
 const groupName = (key: string) => GROUPS.find(([id]) => id === key)?.[1] || key;
 const textArea = (value: string, onChange: (value: string) => void, rows = 3) => (
@@ -66,6 +66,7 @@ export default function PaperTheatreAssetFirst({
   const [draftJobId, setDraftJobId] = useState("");
   const [cutoutJobId, setCutoutJobId] = useState("");
   const [cutoutObjectId, setCutoutObjectId] = useState("");
+  const [batchJobId, setBatchJobId] = useState("");
   const [selectedObjectId, setSelectedObjectId] = useState("");
   const dragOffsetRef = useRef<{ id: string; x: number; y: number } | null>(null);
   const [maskObjectId, setMaskObjectId] = useState("");
@@ -75,6 +76,12 @@ export default function PaperTheatreAssetFirst({
   const ready = manifest.objects.filter((obj) => obj.asset_id).length;
   const missing = manifest.objects.length - ready;
   const selectedIds = new Set(manifest.objects.map((obj) => obj.asset_id).filter(Boolean));
+  const candidateFor = (obj: ObjectSpec) => project.assets.find((asset) =>
+    asset.provenance?.kind === "paper-theatre-cutout" &&
+    asset.provenance?.scene_id === scene?.id &&
+    asset.provenance?.reference_asset_id === referenceId &&
+    asset.provenance?.object_id === obj.id);
+  const missingWithNoVariant = manifest.objects.filter((obj) => !obj.asset_id && !candidateFor(obj));
 
   useEffect(() => {
     setManifest(previous?.objects?.length
@@ -125,6 +132,20 @@ export default function PaperTheatreAssetFirst({
       studio.notify(job.message || "Generator PNG nie zwrócił poprawnego wycinka.", true);
     }
   }, [cutoutJobId, studio.jobs]);
+
+  useEffect(() => {
+    if (!batchJobId) return;
+    const job = studio.jobs.find((item) => item.id === batchJobId);
+    if (job?.status === "SUCCEEDED") {
+      setBatchJobId("");
+      void studio.reload();
+      const count = job.result?.asset_ids?.length || 0;
+      studio.notify(`Wygenerowano ${count} nowych PNG. Sprawdź je w bibliotece i przypisz ręcznie do obiektów.`);
+    } else if (job?.status === "FAILED" || job?.status === "CANCELLED") {
+      setBatchJobId("");
+      studio.notify(job.message || "Seria generowania PNG została przerwana.", true);
+    }
+  }, [batchJobId, studio.jobs]);
 
   const setValue = (patch: Partial<Manifest>) => {
     setManifest((previous) => ({ ...previous, ...patch }));
@@ -226,6 +247,24 @@ export default function PaperTheatreAssetFirst({
     setCutoutJobId(result.id);
     setCutoutObjectId(obj.id);
     studio.notify("W kolejce: jeden osobny przezroczysty PNG. Wymaga Twojej akceptacji po wygenerowaniu.");
+  });
+  const generateBatch = () => studio.run(async () => {
+    if (!scene || !referenceMode || !referenceApproved || !referenceId)
+      throw new Error("Zatwierdź najpierw obraz referencyjny");
+    const ids = missingWithNoVariant.slice(0, 12).map((obj) => obj.id);
+    if (!ids.length) throw new Error("Wszystkie wycinki mają plik lub niezatwierdzony wariant");
+    const settings = await api<{ paper_image_configured: boolean; paper_image_request_cost: number }>("/settings");
+    if (!settings.paper_image_configured || !settings.paper_image_request_cost)
+      throw new Error("W Połączeniach wpisz klucz generatora i koszt jednego PNG");
+    const estimate = settings.paper_image_request_cost * ids.length;
+    if (!window.confirm(`Wygenerować ${ids.length} niezależnych PNG z zaakceptowaną referencją?
+Szacowany koszt maksymalny tej serii: ${estimate.toFixed(2)} USD.
+Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana automatycznie.`)) return;
+    const result = await api<{ id: string }>(
+      `/projects/${project.id}/paper-theatre/${scene.id}/cutouts/batch-generate`,
+      { expected_revision: project.revision, manifest: effectiveManifest(), object_ids: ids });
+    setBatchJobId(result.id);
+    studio.notify("Rozpoczęto seryjne generowanie warstw. Wyniki trafią do biblioteki.");
   });
   const getPrompts = () => studio.run(async () => {
     if (!scene) throw new Error("Utwórz ujęcie");
@@ -518,6 +557,17 @@ export default function PaperTheatreAssetFirst({
           Shift oznacza większy krok). W podglądzie widać schemat układu, nie dokładną klatkę:
           ostateczne obcinanie alpha, mechaniki wejść i kolejność Z liczy renderer.
         </p>
+        {referenceMode && referenceId && referenceApproved && missingWithNoVariant.length > 1 &&
+          <div className="surface" style={{ padding: 12, marginBottom: 12 }}>
+            <Button primary disabled={!!batchJobId || !!cutoutJobId} onClick={generateBatch}>
+              {batchJobId ? "Generowanie serii PNG…" :
+                `Generuj serię do 12 brakujących PNG (${Math.min(12, missingWithNoVariant.length)})`}
+            </Button>
+            <p className="small muted">
+              Przed wywołaniem potwierdzisz łączny koszt. Otrzymasz niezależne
+              warianty do ręcznego wyboru; już wygenerowane pliki nie są ponownie naliczane.
+            </p>
+          </div>}
         {GROUPS.map(([group, title]) => {
           const objects = manifest.objects.filter((obj) => obj.group === group);
           return (
@@ -546,11 +596,14 @@ export default function PaperTheatreAssetFirst({
                       {GROUPS.map(([name, label]) => <option key={name} value={name}>{label}</option>)}
                     </select>
                   </Field>
-                  {referenceMode && !obj.asset_id && referenceId && referenceApproved &&
-                    <Button disabled={!!cutoutJobId} onClick={() => generateCutout(obj)}>
+                  {referenceMode && !obj.asset_id && referenceId && referenceApproved && !candidateFor(obj) &&
+                    <Button disabled={!!cutoutJobId || !!batchJobId} onClick={() => generateCutout(obj)}>
                       {cutoutJobId && cutoutObjectId === obj.id
                         ? "Trwa generowanie tego PNG…" : "Wygeneruj pojedynczy PNG alpha z referencji"}
                     </Button>}
+                  {!obj.asset_id && candidateFor(obj) &&
+                    <p className="small muted">W bibliotece jest już nowy wariant dla tego obiektu.
+                      Wybierz go poniżej zamiast generować ponownie.</p>}
                   <Field label="Przypisany osobny PNG">
                     <select value={obj.asset_id} onChange={(event) => modify(obj.id, { asset_id: event.target.value })}>
                       <option value="">Czeka na grafikę</option>
