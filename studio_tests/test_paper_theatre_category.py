@@ -242,6 +242,65 @@ class PaperTheatreCategoryTests(unittest.TestCase):
         self.assertEqual(image.getpixel((50,40))[:3],(255,0,0))
         self.assertEqual(image.getpixel((10,40))[:3],(230,215,183))
 
+    def test_reference_guided_draft_from_scene_and_approved_inventory(self):
+        from studio_core.paper_theatre_reference import draft_prompt
+        from studio_core.paper_theatre_asset_first import normalize_manifest, image_prompts, assemble_manifest
+        current = self.client.get(self.base).json()
+        response = self.client.post(self.base + "/paper-theatre/scenes",
+            json={"expected_revision": current["revision"]}, headers=HEADERS)
+        self.assertEqual(response.status_code, 200, response.text)
+        shot = response.json()["scenes"][-1]
+        path = self.base + "/paper-theatre/" + shot["id"] + "/reference/"
+        reference = self.png("draft-reference", background=True)
+        prompt = self.client.post(path + "prompt", json={
+            "expected_revision": response.json()["revision"],
+            "brief": "Cesarz wydaje rozkaz", "style": "Papier ryżowy",
+        }, headers=HEADERS)
+        self.assertEqual(prompt.status_code, 200, prompt.text)
+        self.assertIn("Cesarz wydaje rozkaz", prompt.json()["prompt"])
+        self.assertIn("512", str(prompt.json()["width"]))
+        self.assertIn("ONLY a small preview", prompt.json()["prompt"])
+        manifest = self.asset_manifest()
+        manifest.update(mode="reference-guided", reference_asset_id=reference,
+                        reference_notes="Cesarz po lewej, obłoki wysoko",
+                        reference_approved=False)
+        project = self.app.state.store.get(self.project["id"])
+        with self.assertRaisesRegex(ValueError, "zaakceptuj"):
+            assemble_manifest(self.app.state.store, project, self.background, manifest)
+        manifest["reference_approved"] = True
+        data = normalize_manifest(manifest)
+        self.assertEqual(data["reference_asset_id"], reference)
+        self.assertEqual(data["mode"], "reference-guided")
+        prompts = image_prompts(data)
+        self.assertTrue(all(p["reference_asset_id"] == reference for p in prompts))
+        self.assertIn("Cesarz po lewej", prompts[-1]["prompt"])
+        self.assertEqual(assemble_manifest(self.app.state.store, project,
+            self.background, manifest)["cutouts"], 3)
+        with self.assertRaisesRegex(ValueError, "nie może być tłem"):
+            assemble_manifest(self.app.state.store, project, reference, manifest)
+        self.assertFalse(any(c["asset_id"] == reference for c in data["objects"]))
+
+    def test_vision_reference_route_uses_connected_analysis_not_pixel_cutting(self):
+        from unittest.mock import patch
+        current = self.client.get(self.base).json()
+        response = self.client.post(self.base + "/paper-theatre/scenes",
+            json={"expected_revision": current["revision"]}, headers=HEADERS)
+        self.assertEqual(response.status_code, 200)
+        sid = response.json()["scenes"][-1]["id"]
+        image = self.png("visual draft", background=True)
+        with patch("studio_core.paper_theatre_reference.propose_objects_from_reference") as vision:
+            vision.return_value = self.asset_manifest()
+            result = self.client.post(
+                self.base + "/paper-theatre/" + sid + "/reference/analyze",
+                json={"expected_revision": response.json()["revision"],
+                      "reference_asset_id": image,
+                      "brief": "Chińska scena", "style": "Papier", "reference_notes": "Most z prawej"},
+                headers=HEADERS)
+        self.assertEqual(result.status_code, 200, result.text)
+        self.assertEqual(len(result.json()["manifest"]["objects"]), 3)
+        vision.assert_called_once()
+        self.assertEqual(vision.call_args.args[4], image)
+
     def test_hero_outline_changes_silhouette_not_rectangle(self):
         sprite=Image.new("RGBA",(128,72),(0,0,0,0))
         ImageDraw.Draw(sprite).rectangle((42,23,58,49),fill="#303030")
