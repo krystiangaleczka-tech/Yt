@@ -8,6 +8,7 @@ from .models_base import Model, uid
 from .inserts import MotionInsert
 from .development import Development, migrate_ideas
 from .workspace_models import ResourceLink
+from .animation import StageScene, ProductionMode, MusicCue
 
 
 class Fact(Model):
@@ -237,6 +238,9 @@ class Project(Model):
     category_id: str = ""
     category_profile: dict[str, Any] = Field(default_factory=dict)
     film_format: str = ""
+    production_mode: ProductionMode = "documentary"
+    stage_scenes: list[StageScene] = Field(default_factory=list, max_length=2000)
+    music_cues: list[MusicCue] = Field(default_factory=list, max_length=500)
     workspace_snapshot: dict[str, Any] = Field(default_factory=dict)
     resource_links: list[ResourceLink] = Field(default_factory=list)
     archived: bool = False
@@ -263,7 +267,7 @@ class Project(Model):
                 raise ValueError("Limity budżetu muszą być nieujemnymi liczbami")
         if not 1<=self.budget.get("max_jobs",20)<=100 or not 1<=self.budget.get("max_seconds",3600)<=21600:
             raise ValueError("Limit zadań: 1–100; limit czasu: 1–21600 sekund")
-        for name in ("facts", "sources", "scenes", "assets", "beats", "inserts"):
+        for name in ("facts", "sources", "scenes", "assets", "beats", "inserts", "stage_scenes"):
             ids = [x.id for x in getattr(self, name)]
             if len(ids) != len(set(ids)):
                 raise ValueError(f"Powtórzone identyfikatory: {name}")

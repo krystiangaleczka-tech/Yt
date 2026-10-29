@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { api } from "./api";
 import type { Project, ProjectSummary, Job, Health, Operation } from "./types";
+import type { ProductionMode } from "./animationTypes";
 
 export type Page =
   | "projects"
@@ -22,7 +23,13 @@ export type Page =
   | "bank-media"
   | "templates"
   | "workspace-settings"
-  | "idea-pool";
+  | "idea-pool"
+  | "cast"
+  | "locations"
+  | "scenes"
+  | "storyboard"
+  | "props"
+  | "sounds";
 type Context = {
   project: Project | null;
   projects: ProjectSummary[];
@@ -57,6 +64,9 @@ type Context = {
   setSettingsOpen: (b: boolean) => void;
   searchInitial: string;
   setSearchInitial: (s: string) => void;
+  mode: ProductionMode;
+  setMode: (m: ProductionMode) => void;
+  close: () => void;
 };
 const StudioContext = createContext<Context | null>(null);
 export const useStudio = () => {
@@ -78,7 +88,19 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     [targetInsert, setTargetInsert] = useState<string | null>(null),
     [targetScene, setTargetScene] = useState<string | null>(null),
     [settingsOpen, setSettingsOpen] = useState(false),
-    [searchInitial, setSearchInitial] = useState("");
+    [searchInitial, setSearchInitial] = useState(""),
+    [mode, setModeState] = useState<ProductionMode>(
+      (localStorage.getItem("docos-mode") as ProductionMode) || "documentary",
+    );
+  function close() {
+    ref.current = null;
+    setProject(null);
+    localStorage.removeItem("docos:last-project");
+  }
+  function setMode(next: ProductionMode) {
+    setModeState(next);
+    localStorage.setItem("docos-mode", next);
+  }
   const ref = useRef<Project | null>(null),
     queue = useRef<Promise<unknown>>(Promise.resolve()),
     noticeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -96,6 +118,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       (ref.current.id !== p.id || ref.current.revision > p.revision)
     )
       return;
+    if (ref.current?.id !== p.id && p.production_mode) setMode(p.production_mode);
     ref.current = p;
     setProject(p);
     localStorage.setItem("docos:last-project", p.id);
@@ -130,11 +153,19 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         "templates",
         "workspace-settings",
         "idea-pool",
+        "cast",
+        "locations",
+        "scenes",
+        "storyboard",
+        "props",
+        "sounds",
       ];
       setPage(
         pages.includes(remembered as Page)
           ? (remembered as Page)
-          : "generation",
+          : p.production_mode === "animation_2d"
+            ? "scenes"
+            : "generation",
       );
     } finally {
       setLoading(false);
@@ -147,6 +178,27 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     setHealth(await api<Health>("/health"));
     await reloadList();
   }
+  // Claude and other windows edit the same film through the API: pick up newer revisions.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const current = ref.current;
+      if (!current || document.hidden) return;
+      queue.current = queue.current.then(async () => {
+        try {
+          const list = await api<ProjectSummary[]>("/projects");
+          const row = list.find((x) => x.id === current.id);
+          if (row && ref.current?.id === current.id && row.revision > ref.current.revision) {
+            accept(await api<Project>("/projects/" + current.id));
+            notify("Film zaktualizowany — wczytano najnowsze zmiany");
+          }
+          setProjects(list);
+        } catch {
+          /* offline: the next tick retries */
+        }
+      });
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
   function mutate(fn: (p: Project) => Promise<Project>): Promise<Project> {
     const task = queue.current.then(async () => {
       if (!ref.current) throw new Error("Wybierz projekt");
@@ -209,20 +261,19 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         if (!active) return;
         setProjects(list);
         setHealth(status);
-        if (list.length) {
-          const requested = new URLSearchParams(window.location.search);
-          const last = localStorage.getItem("docos:last-project");
-          const p = await api<Project>(
-            "/projects/" +
-              (list.find((x) => x.id === requested.get("project"))?.id ||
-                list.find((x) => x.id === last)?.id ||
-                list[0].id),
-          );
+        const requested = new URLSearchParams(window.location.search);
+        const last = localStorage.getItem("docos:last-project");
+        const chosen =
+          list.find((x) => x.id === requested.get("project"))?.id ||
+          list.find((x) => x.id === last)?.id ||
+          list.find((x) => (x.production_mode || "documentary") === mode)?.id;
+        if (chosen) {
+          const p = await api<Project>("/projects/" + chosen);
           if (active) accept(p);
           const remembered =
             requested.get("page") || localStorage.getItem("docos:page:" + p.id);
           if (active && remembered) setPage(remembered as Page);
-        } else setPage("projects");
+        } else setPage((requested.get("page") as Page) || "projects");
       } catch (error) {
         if (active)
           notify(
@@ -247,8 +298,9 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         "",
         `?project=${encodeURIComponent(project.id)}&page=${encodeURIComponent(page)}`,
       );
-    }
-  }, [page, project?.id]);
+    } else if (!loading)
+      window.history.replaceState(null, "", `?page=${encodeURIComponent(page)}`);
+  }, [page, project?.id, loading]);
   useEffect(() => {
     let previous: string | null = null;
     const events = new EventSource("/api/events");
@@ -274,6 +326,9 @@ export function StudioProvider({ children }: { children: ReactNode }) {
   return (
     <StudioContext.Provider
       value={{
+        mode,
+        setMode,
+        close,
         project,
         projects,
         jobs,

@@ -140,10 +140,12 @@ class ProjectService(ProjectStore):
         if not re.fullmatch(r"channel_[a-f0-9]{16}", channel_id):
             raise ValueError("Niepoprawny kanał")
         from .workspace_models import Preset
-        allowed = {"id", "name", "motion", "rules", "revision"} | set(Preset.model_fields)
+        allowed = {"id", "name", "motion", "rules", "revision", "production_mode"} | set(Preset.model_fields)
         if not set(values) <= allowed or not str(values.get("name", "")).strip():
             raise ValueError("Podaj nazwę i poprawne ustawienia kanału")
         settings = Preset.model_validate({k: v for k, v in values.items() if k in Preset.model_fields}).model_dump(exclude_none=True)
+        if values.get("production_mode", "documentary") not in ("documentary", "animation_2d", "broll"):
+            raise ValueError("Nieznany tryb produkcji")
         values = {k: v for k, v in values.items() if k not in Preset.model_fields} | settings
         path = self.root / "channels" / (channel_id+".json")
         with self.lock:

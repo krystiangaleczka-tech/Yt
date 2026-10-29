@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { BookOpen, Check, Library, Plus, ArrowRight, Copy } from "lucide-react";
 import { useStudio } from "./context";
+import { modeLabels } from "./animationTypes";
+import type { ProductionMode } from "./animationTypes";
 import { api, safeUrl } from "./api";
 import { Button, Empty, Field, Modal } from "./components";
 import type { Project, Fact, Source, Asset } from "./types";
@@ -228,13 +230,23 @@ export function NewFilmModal({
     [template, setTemplate] = useState(""),
     [language, setLanguage] = useState(""),
     [format, setFormat] = useState(""),
+    [mode, setMode] = useState<ProductionMode>(s.mode),
     [preview, setPreview] = useState<{
       preset: Preset;
       chapters: number;
     } | null>(null),
     [busy, setBusy] = useState(false);
   useEffect(() => {
-    if (open) s.run(async () => setData(await api("/workspace")));
+    if (!open) return;
+    setMode(s.mode);
+    s.run(async () => {
+      const value = await api<typeof data>("/workspace");
+      setData(value);
+      const matching = value.channels.find(
+        (c) => (c.production_mode || "documentary") === s.mode,
+      );
+      if (matching && !channel) setChannel(matching.id);
+    });
   }, [open]);
   useEffect(() => {
     if (!open) return;
@@ -269,6 +281,7 @@ export function NewFilmModal({
                 category_id: category,
                 template_id: template,
                 film_format: format,
+                production_mode: mode,
                 ...(language ? { language } : {}),
               });
               await onCreated(p);
@@ -283,6 +296,25 @@ export function NewFilmModal({
         }}
       >
         {textField("Nazwa robocza — możesz ustalić później", title, setTitle)}
+        <Field
+          label="Tryb produkcji"
+          hint={
+            mode === "animation_2d"
+              ? "Film animowany korzysta z postaci i lokacji z banku wybranego kanału."
+              : undefined
+          }
+        >
+          <select
+            value={mode}
+            onChange={(e) => setMode(e.target.value as ProductionMode)}
+          >
+            {(Object.keys(modeLabels) as ProductionMode[]).map((m) => (
+              <option key={m} value={m}>
+                {modeLabels[m]}
+              </option>
+            ))}
+          </select>
+        </Field>
         <div className="two-fields">
           <Field label="Kanał">
             <select
@@ -292,7 +324,9 @@ export function NewFilmModal({
                 setCategory("");
               }}
             >
-              <option value="">Bez profilu kanału</option>
+              <option value="" disabled={mode === "animation_2d"}>
+                Bez profilu kanału
+              </option>
               {data.channels.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}

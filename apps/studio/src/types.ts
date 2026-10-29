@@ -1,3 +1,4 @@
+import type { MusicCue, ProductionMode, StageScene } from "./animationTypes";
 import type { MotionInsert } from "./motion/types";
 import type { Development } from "./developmentTypes";
 import type { ResourceLink } from "./workspaceTypes";
@@ -191,6 +192,9 @@ export type Project = {
   category_id: string;
   category_profile: Record<string, unknown>;
   film_format: string;
+  production_mode: ProductionMode;
+  stage_scenes: StageScene[];
+  music_cues?: MusicCue[];
   workspace_snapshot: Record<string, unknown>;
   resource_links: ResourceLink[];
   archived: boolean;
@@ -240,6 +244,9 @@ export type ProjectSummary = {
   fps: number;
   archived?: boolean;
   channel?: string;
+  channel_id?: string;
+  production_mode?: ProductionMode;
+  stage_scenes?: number;
   next_step?: string;
 };
 export type Job = {
@@ -252,6 +259,7 @@ export type Job = {
   message: string;
   result: null | {
     url?: string;
+    filename?: string;
     asset_id?: string;
     revision: number;
     mode?: string;

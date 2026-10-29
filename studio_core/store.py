@@ -88,6 +88,7 @@ class ProjectStore:
                                "scenes": len(p.scenes), "assets": len(p.assets), "demo": p.demo,
                                "duration": max((c.start + c.duration for c in p.sequence.clips), default=0),
                                "fps": p.sequence.fps_num / p.sequence.fps_den, "archived": p.archived, "channel": p.channel,
+                               "channel_id": p.channel_id, "production_mode": p.production_mode, "stage_scenes": len(p.stage_scenes),
                                "next_step": next_step(p)})
             except (ValueError, OSError):
                 continue

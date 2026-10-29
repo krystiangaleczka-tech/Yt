@@ -40,6 +40,7 @@ from studio_workers.jobs import Jobs
 from studio_api.inserts import register_inserts
 from studio_core.workspace import Workspace
 from studio_api.workspace import register_workspace
+from studio_api.animation import register_animation
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -64,6 +65,7 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     workspace = Workspace(store)
     app.state.workspace = workspace
     register_workspace(app, workspace)
+    register_animation(app, store, connectors, jobs)
     motion_render=register_inserts(app, store, jobs, connectors)
 
     @app.middleware("http")
@@ -453,7 +455,7 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     @app.get("/api/jobs/{job_id}/output")
     def job_output(job_id: str):
         job = jobs.get(job_id)
-        if job["status"] != "SUCCEEDED" or job["kind"] not in ("render", "preview"):
+        if job["status"] != "SUCCEEDED" or job["kind"] not in ("render", "preview", "animatic"):
             raise FileNotFoundError()
         return FileResponse(store.folder(job["project_id"]) / "exports" / (job_id + ".mp4"), media_type="video/mp4")
 

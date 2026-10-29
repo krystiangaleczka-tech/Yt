@@ -251,7 +251,7 @@ class Workspace:
             p.voice_profile = {"id": values["voice_id"]}
 
     def new_project(self, body):
-        allowed = {"title", "language", "channel_id", "category_id", "template_id", "film_format"}
+        allowed = {"title", "language", "channel_id", "category_id", "template_id", "film_format", "production_mode"}
         if not set(body) <= allowed:
             raise ValueError("Nowy film przyjmuje wyłącznie nazwę i wybrane ustawienia. Treść dobierz później z banku.")
         preset, snapshots = self.effective(body.get("channel_id", ""), body.get("category_id", ""), body.get("template_id", ""))
@@ -265,6 +265,11 @@ class Workspace:
             Voices(self.store.root).get(preset.voice_id)
         if body.get("language"):
             p.language = str(body["language"])
+        p.production_mode = body.get("production_mode") or snapshots.get("channel", {}).get("production_mode", "documentary")
+        if p.production_mode not in ("documentary", "animation_2d", "broll"):
+            raise ValueError("Nieznany tryb produkcji")
+        if p.production_mode == "animation_2d" and not p.channel_id:
+            raise ValueError("Film animowany wymaga kanału: postacie i lokacje należą do banku kanału")
         if body.get("template_id"):
             template = snapshots["template"]
             self.apply_template_structure(p, template["payload"])
