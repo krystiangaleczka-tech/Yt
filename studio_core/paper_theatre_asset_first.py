@@ -1,9 +1,8 @@
 """Asset-first shot planning: describe objects before generating any pixels.
 
-Drafts are explicit objects, not fabricated segmentations of a flattened image.
-Prompt sheets are model-agnostic and may be sent to a connected AI service;
-the image generation step remains external until an alpha-capable generator
-is connected. Only separately uploaded, actual alpha PNGs can be assembled.
+Drafts are explicit objects, never fabricated segmentations of one flattened image.
+Paper Theatre is a shot technique independent of a film's genre or production
+mode. Only separately verified alpha PNG cutouts may be assembled.
 """
 from __future__ import annotations
 
@@ -16,8 +15,8 @@ from .paper_theatre import GROUPS, GROUP_INDEX, MAX_CUTOUTS, plan
 MAX_OBJECTS = min(MAX_CUTOUTS, 200)
 DEFAULT_STYLE = ("Hand-cut textured rice paper, warm imperial parchment palette, "
                  "muted ink outlines, subtle fiber texture, consistent warm top-left light, "
-                 "paper shadow edges. Stylized historical documentary, not photorealistic.")
-DEFAULT_BRIEF = "Scena historyczna w technice papierowego teatrzyku."
+                 "paper shadow edges. Consistent stylized 2.5D illustration, not photorealistic.")
+DEFAULT_BRIEF = "Scena opowieści zbudowana z osobnych papierowych wycinków."
 
 
 def _number(value, minimum, maximum):
@@ -41,7 +40,7 @@ def normalize_manifest(data: dict) -> dict:
     for index, item in enumerate(raw):
         if not isinstance(item, dict):
             raise ValueError("Obiekt musi mieć pola name, group, description i pozycję")
-        if set(item) - {"id", "name", "group", "description", "x", "y", "width", "z", "asset_id", "duration"}:
+        if set(item) - {"id", "name", "group", "description", "x", "y", "width", "z", "asset_id", "duration", "pivot_x", "pivot_y", "rig"}:
             raise ValueError("Nieznane pole w obiekcie Asset-first")
         ident = item.get("id") or "object_" + str(index + 1).zfill(3)
         name, group = item.get("name"), item.get("group")
@@ -66,12 +65,21 @@ def normalize_manifest(data: dict) -> dict:
         duration = item.get("duration")
         if duration is not None and not _number(duration, .05, 10):
             raise ValueError("Nieprawidłowy czas wejścia")
+        pivot_x, pivot_y = item.get("pivot_x", .5), item.get("pivot_y", 1.0)
+        if not _number(pivot_x, 0, 1) or not _number(pivot_y, 0, 1):
+            raise ValueError("Punkt obrotu pivot_x/pivot_y musi mieścić się w zakresie 0–1")
+        rig = item.get("rig")
+        if rig is not None and rig not in ("static", "hanging_drop", "bottom_rise", "rake_lift"):
+            raise ValueError("Nieobsługiwany rodzaj wejścia wycinka")
         seen.add(ident)
         obj = {"id": ident, "name": name.strip(), "group": group,
                "description": description.strip(), "x": float(x), "y": float(y),
                "width": float(width), "z": z, "asset_id": aid}
         if duration is not None:
             obj["duration"] = float(duration)
+        if "pivot_x" in item: obj["pivot_x"] = float(pivot_x)
+        if "pivot_y" in item: obj["pivot_y"] = float(pivot_y)
+        if rig is not None: obj["rig"] = rig
         objects.append(obj)
 
     hero = sum(item["group"] == "hero" for item in objects)
@@ -174,6 +182,7 @@ def assemble_manifest(store, project, background_id: str, manifest: dict,
         raise ValueError("Brak wygenerowanych PNG dla: " + ", ".join(missing[:8]))
     layers = [{
         "asset_id": obj["asset_id"], "group": obj["group"],
+        **{key: obj[key] for key in ("pivot_x", "pivot_y", "rig") if key in obj},
         "layout_x": obj["x"], "layout_y": obj["y"],
         "layout_width": obj["width"], "z_index": obj["z"],
         **({"duration": obj["duration"]} if "duration" in obj else {}),
