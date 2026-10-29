@@ -5,6 +5,7 @@ import { useStudio } from "./context";
 import { Button, Field, NumberField } from "./components";
 import type { Project, Scene } from "./types";
 import { fps } from "./timing";
+import PaperTheatreAssetFirst from "./PaperTheatreAssetFirst";
 
 const GROUPS = [
   ["sky", "01 · Niebo: każda chmura, słońce, księżyc"],
@@ -41,6 +42,7 @@ export default function PaperTheatre() {
   const [gap, setGap] = useState(.12);
   const [groupGap, setGroupGap] = useState(.22);
   const [heroOutline, setHeroOutline] = useState(8);
+  const [workflow, setWorkflow] = useState<"asset-first" | "reference">("asset-first");
   const [plan, setPlan] = useState<Plan | null>(null);
   const [posterSeconds, setPosterSeconds] = useState(0);
   const assets = project.assets.filter((asset) => asset.kind === "image" && asset.filename.toLowerCase().endsWith(".png"));
@@ -135,7 +137,32 @@ export default function PaperTheatre() {
   });
 
   return (
-    <div className="production-grid">
+    <>
+      <div className="surface" style={{ padding: 12, marginBottom: 12 }}>
+        <h2>Paper Theatre 2.5D · sposób przygotowania zasobów</h2>
+        <div className="button-row">
+          <Button primary={workflow === "asset-first"} onClick={() => setWorkflow("asset-first")}>
+            Asset-first · lista → obrazy → animacja
+          </Button>
+          <Button primary={workflow === "reference"} onClick={() => setWorkflow("reference")}>
+            Reference-to-layers · mam już PNG
+          </Button>
+        </div>
+        {scenes.length > 0 && <Field label="Ujęcie">
+          <select value={scene?.id || ""} onChange={(event) => {
+            setSceneId(event.target.value);
+            studio.setTargetScene(event.target.value);
+          }}>
+            {scenes.map((shot) => <option key={shot.id} value={shot.id}>{shot.title}</option>)}
+          </select>
+        </Field>}
+        <Button icon={Plus} onClick={create}>Dodaj kolejne ujęcie Paper Theatre</Button>
+      </div>
+      {workflow === "asset-first"
+        ? <PaperTheatreAssetFirst
+            scene={scene} background={background}
+            setBackground={setBackground} onCreate={create} />
+        : <div className="production-grid">
       <section className="surface tool-panel">
         <h2>Paper Theatre 2.5D · osobna kategoria</h2>
         <p className="small muted">
@@ -251,6 +278,7 @@ export default function PaperTheatre() {
           </section>
         )}
       </section>
-    </div>
+    </div>}
+    </>
   );
 }
