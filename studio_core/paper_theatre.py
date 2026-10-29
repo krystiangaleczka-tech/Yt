@@ -107,6 +107,7 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
         unique.add(aid)
         checked.append({"asset_id": aid, "group": group, "duration": float(length),
                         "source_order": index, "layout": {k: item[k] for k in layout_keys if k in item},
+                        **{key: item[key] for key in ("rig", "pivot_x", "pivot_y") if key in item},
                         **info})
 
     counts = Counter(item["group"] for item in checked)
@@ -141,8 +142,8 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
         if item["layout"]:
             cue.update(item["layout"])
         for key in ("pivot_x", "pivot_y"):
-            if key in layers[item["source_order"]]:
-                cue[key] = float(layers[item["source_order"]][key])
+            if key in item:
+                cue[key] = float(item[key])
         if item["bbox_fraction"] > .42 and not item["layout"]:
             warnings.append(item["name"] + ": rozległy wycinek; sprawdź, czy nie zawiera kilku obiektów")
         cues.append(cue)
