@@ -48,6 +48,12 @@ export default function PaperTheatre() {
   const assets = project.assets.filter((asset) => asset.kind === "image" && asset.filename.toLowerCase().endsWith(".png"));
 
   useEffect(() => {
+    const savedMode = (scene?.generation?.paper_theatre_asset_first as
+      { mode?: string } | undefined)?.mode;
+    setWorkflow(savedMode === "asset-first" ? "asset-first" : "reference");
+  }, [scene?.id]);
+
+  useEffect(() => {
     setBackground(scene?.asset_id || "");
     const cues = Array.isArray(scene?.parameters?.layer_cues)
       ? (scene.parameters.layer_cues as { layer: number; group?: Group; duration?: number }[])
