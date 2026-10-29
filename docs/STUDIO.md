@@ -187,3 +187,8 @@ DOCOS_TEST_REMOTION=1 .venv-studio/bin/python -m unittest studio_tests.test_moti
 ```
 
 Wymaga przygotowanego renderera i przeglądarki. CI wykonuje go z Node 22 i Pythonem 3.12.
+
+
+## Osobna kategoria: Paper Theatre 2.5D
+
+W **Narzędziach produkcji → Paper Theatre 2.5D** działa osobny kreator sceny papierowej: wiele niezależnych PNG, sztywna kolejność grup od nieba do pojedynczych postaci, opcjonalne linki i patyczki, wyróżniony bohater na końcu, walidacja prawdziwej przezroczystości i przekazanie do Montażu. Wszystkie zasady, ograniczenia spłaszczonych obrazów oraz wynik 50% wcześniejszego demo opisano w [specyfikacji Paper Theatre 2.5D](PAPER_THEATRE_2_5D.md). Nie jest to automatyczna segmentacja jednego obrazu.
