@@ -71,8 +71,20 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
 
     checked, unique = [], {background_id}
     for index, item in enumerate(layers):
-        if not isinstance(item, dict) or not set(item) <= {"asset_id", "group", "duration"}:
+        layout_keys = {"layout_x", "layout_y", "layout_width", "z_index"}
+        if not isinstance(item, dict) or not set(item) <= {"asset_id", "group", "duration"} | layout_keys:
             raise ValueError("Nieprawidłowa definicja wycinka numer " + str(index + 1))
+        has_layout = any(key in item for key in layout_keys)
+        if has_layout:
+            if not all(key in item for key in ("layout_x", "layout_y", "layout_width")):
+                raise ValueError("Layout Asset-first wymaga x, y i width")
+            for key, low, high in (("layout_x", 0, 1), ("layout_y", 0, 1), ("layout_width", .01, 2)):
+                v = item[key]
+                if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not low <= v <= high:
+                    raise ValueError("Niepoprawne współrzędne / skala wycinka: " + key)
+            z = item.get("z_index", GROUP_INDEX.get(item.get("group"), 0) * 10)
+            if type(z) is not int or not -100 <= z <= 100:
+                raise ValueError("Głębokość z musi być liczbą całkowitą od -100 do 100")
         aid = item.get("asset_id")
         group = item.get("group")
         if not isinstance(aid, str) or aid in unique:
@@ -83,11 +95,12 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
         if isinstance(length, bool) or not isinstance(length, (int, float)) or not math.isfinite(length) or not .05 <= length <= 10:
             raise ValueError("Czas wejścia wycinka: 0,05–10 sekund")
         info = _png(store, project, aid, cutout=True)
-        if tuple(info["size"]) != tuple(backdrop["size"]):
+        if not has_layout and tuple(info["size"]) != tuple(backdrop["size"]):
             raise ValueError("PNG muszą mieć dokładnie rozmiar tła (przezroczyste płótno): " + info["name"])
         unique.add(aid)
         checked.append({"asset_id": aid, "group": group, "duration": float(length),
-                        "source_order": index, **info})
+                        "source_order": index, "layout": {k: item[k] for k in layout_keys if k in item},
+                        **info})
 
     counts = Counter(item["group"] for item in checked)
     if counts["hero"] > 1:
@@ -118,7 +131,9 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
                        outline_px=hero_outline_px, outline_color="#e7c26d")
         if group in ("landscape", "foundations"):
             cue["overshoot"] = .018
-        if item["bbox_fraction"] > .42:
+        if item["layout"]:
+            cue.update(item["layout"])
+        if item["bbox_fraction"] > .42 and not item["layout"]:
             warnings.append(item["name"] + ": rozległy wycinek; sprawdź, czy nie zawiera kilku obiektów")
         cues.append(cue)
         start += duration + DEFAULT_SETTLE
