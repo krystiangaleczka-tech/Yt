@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageChops
 
 RESAMPLE = Image.Resampling.BICUBIC
 
@@ -51,6 +51,19 @@ def _place(source: Image.Image, y: int) -> Image.Image:
     return result
 
 
+def _outlined(source: Image.Image, width: int, color: str) -> Image.Image:
+    """Colored outline follows actual transparency, not a rectangular crop."""
+    if width <= 0:
+        return source
+    alpha = source.getchannel("A")
+    dilated = alpha.filter(ImageFilter.MaxFilter(2 * width + 1))
+    border = ImageChops.subtract(dilated, alpha)
+    stroke = Image.new("RGBA", source.size, color)
+    stroke.putalpha(border)
+    stroke.alpha_composite(source)
+    return stroke
+
+
 def rig_image(source: Image.Image, rig: str, cue: dict, elapsed: float, duration: float) -> Image.Image:
     """Return a full-size transparent layer positioned by one entrance rig.
 
@@ -63,6 +76,8 @@ def rig_image(source: Image.Image, rig: str, cue: dict, elapsed: float, duration
     bounds = _bbox(source)
     if elapsed < 0 or bounds is None:
         return canvas
+    if cue.get("outline_px"):
+        source = _outlined(source, int(cue["outline_px"]), cue.get("outline_color", "#e7c26d"))
     if rig == "static":
         return source.copy()
 
