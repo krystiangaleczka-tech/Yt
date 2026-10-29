@@ -64,6 +64,32 @@ def _outlined(source: Image.Image, width: int, color: str) -> Image.Image:
     return stroke
 
 
+def layout_cutout(source: Image.Image, cue: dict, width: int, height: int) -> Image.Image:
+    """Place an isolated RGBA object into a normalized, alpha-preserving scene.
+
+    layout_x is the horizontal center of the silhouette, layout_y its bottom.
+    layout_width is expressed in fractions of the final scene width. Z-order
+    is controlled separately by the compositor, never by altering start time.
+    """
+    bounds = source.getchannel("A").getbbox()
+    canvas = Image.new("RGBA", (width, height))
+    if not bounds:
+        return canvas
+    cutout = source.crop(bounds)
+    target_width = max(1, round(width * float(cue["layout_width"])))
+    target_height = max(1, round(cutout.height * target_width / cutout.width))
+    # Prevent unbounded output sizes for malformed tall source images.
+    if target_height > height * 4:
+        factor = height * 4 / target_height
+        target_width = max(1, round(target_width * factor))
+        target_height = height * 4
+    resized = cutout.resize((target_width, target_height), RESAMPLE)
+    x = round(width * float(cue["layout_x"]) - target_width / 2)
+    y = round(height * float(cue["layout_y"]) - target_height)
+    canvas.alpha_composite(resized, (x, y))
+    return canvas
+
+
 def rig_image(source: Image.Image, rig: str, cue: dict, elapsed: float, duration: float) -> Image.Image:
     """Return a full-size transparent layer positioned by one entrance rig.
 

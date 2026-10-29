@@ -90,6 +90,7 @@ def validate_parameters(template: str, parameters: dict) -> dict:
             "swing_deg", "swing_decay", "pivot_x", "pivot_y", "start_rotation",
             "overshoot_rotation", "stick_visible", "stick_length",
             "group", "outline_px", "outline_color",
+            "layout_x", "layout_y", "layout_width", "z_index",
         }
         numeric = {
             "start": (0, 3600), "duration": (0, 10), "drop": (0, .3),
@@ -98,6 +99,8 @@ def validate_parameters(template: str, parameters: dict) -> dict:
             "swing_decay": (0, 10), "pivot_x": (0, 1), "pivot_y": (0, 1),
             "start_rotation": (0, 90), "overshoot_rotation": (-20, 20),
             "stick_length": (0, 1), "outline_px": (0, 24),
+            "layout_x": (0, 1), "layout_y": (0, 1),
+            "layout_width": (.01, 2), "z_index": (-100, 100),
         }
         for cue in result["layer_cues"]:
             if not isinstance(cue, dict) or not set(cue) <= allowed:
@@ -111,6 +114,11 @@ def validate_parameters(template: str, parameters: dict) -> dict:
             for key, (low, high) in numeric.items():
                 if key in cue and not number(cue[key], low, high):
                     raise ValueError("Niepoprawna wartość " + key + " dla warstwy " + str(layer))
+            if "z_index" in cue and (type(cue["z_index"]) is not int):
+                raise ValueError("Głębokość z musi być liczbą całkowitą")
+            if any(key in cue for key in ("layout_x", "layout_y", "layout_width")) and not all(
+                    key in cue for key in ("layout_x", "layout_y", "layout_width")):
+                raise ValueError("Pozycja Asset-first wymaga współrzędnych x, y i width")
             if "group" in cue and (not isinstance(cue["group"], str) or cue["group"] not in
                                    ("sky", "landscape", "foundations", "vegetation", "props", "characters", "hero")):
                 raise ValueError("Nieznana grupa scenografii Paper Theatre")
