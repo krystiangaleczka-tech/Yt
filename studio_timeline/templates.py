@@ -142,7 +142,8 @@ def paint(clip, params, media, n, w, h, rate, style=None):
         if kind=="parallax":
             picture(0,(0,0,w,h))
             cues = {cue["layer"]: cue for cue in params.get("layer_cues", [])}
-            assembling = bool(params.get("assembly_start", 0) or params.get("assembly_interval", 0) or cues)
+            # A mechanical cue must not accidentally fade unrelated legacy layers.
+            assembling = bool(params.get("assembly_start", 0) or params.get("assembly_interval", 0) or any(cue.get("rig", "sequential") == "sequential" for cue in cues.values()))
             for i in range(1, len(media.images)):
                 cue = cues.get(i, {})
                 start = cue.get("start", params.get("assembly_start", 0) + (i - 1) * params.get("assembly_interval", 0))
