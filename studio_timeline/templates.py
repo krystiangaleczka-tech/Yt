@@ -17,6 +17,7 @@ from studio_core.freshness import fingerprint
 from studio_core.media import asset_path, probe
 from studio_core.templates import validate_parameters
 from studio_core.models import fps
+from .paper_theatre import rig_image
 
 FONT = Path(__file__).resolve().parents[1] / "pilot/fonts/Montserrat.ttf"
 FONTS={"montserrat":FONT,"courier":FONT.with_name("CourierPrime-Regular.ttf"),"courier-bold":FONT.with_name("CourierPrime-Bold.ttf")}
@@ -149,16 +150,24 @@ def paint(clip, params, media, n, w, h, rate, style=None):
                     continue
                 layer = media.frame(i, n)
                 if layer:
-                    reveal = 1.0
-                    if assembling:
-                        duration = cue.get("duration", params.get("assembly_duration", .35))
-                        fraction = min(1.0, max(0.0, (seconds - start) / duration)) if duration else 1.0
-                        reveal = fraction * fraction * (3 - 2 * fraction)
+                    duration = cue.get("duration", params.get("assembly_duration", .35))
                     layer = layer.resize((w, h))
-                    if reveal < 1:
-                        layer.putalpha(layer.getchannel("A").point(lambda alpha: round(alpha * reveal)))
                     depth = cue.get("depth", i)
                     shift = round((phase - .5) * w * params.get("depth", .06) * depth)
+                    rig = cue.get("rig", "sequential")
+                    if rig != "sequential":
+                        image.alpha_composite(
+                            rig_image(layer, rig, cue, seconds - start, duration),
+                            (shift, 0),
+                        )
+                        continue
+                    # Legacy sequential entrance intentionally stays pixel-compatible.
+                    reveal = 1.0
+                    if assembling:
+                        fraction = min(1.0, max(0.0, (seconds - start) / duration)) if duration else 1.0
+                        reveal = fraction * fraction * (3 - 2 * fraction)
+                    if reveal < 1:
+                        layer.putalpha(layer.getchannel("A").point(lambda alpha: round(alpha * reveal)))
                     drop = round((1 - reveal) * h * cue.get("drop", params.get("assembly_drop", .06))) if assembling else 0
                     image.alpha_composite(layer, (shift, drop))
         else:
