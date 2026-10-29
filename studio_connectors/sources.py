@@ -64,17 +64,29 @@ class Connectors:
 
     def config(self) -> dict:
         config = json.loads(self.config_path.read_text()) if self.config_path.exists() else {}
-        for k in ("pixabay_key", "pexels_key", "ai_key", "ai_base_url", "ai_model"):
+        for k in ("pixabay_key", "pexels_key", "ai_key", "ai_base_url", "ai_model", "paper_image_key", "paper_image_model"):
             value = os.environ.get("DOCOS_" + k.upper())
             if value:
                 config[k] = value
+        price = os.environ.get("DOCOS_PAPER_IMAGE_REQUEST_COST")
+        if price is not None:
+            config["paper_image_request_cost"] = float(price)
         return config
 
     def save(self, values: dict) -> None:
-        allowed = {"pixabay_key", "pexels_key", "ai_key", "ai_base_url", "ai_model", "ai_request_cost", "custom"}
+        allowed = {"pixabay_key", "pexels_key", "ai_key", "ai_base_url", "ai_model", "ai_request_cost", "paper_image_key", "paper_image_model", "paper_image_request_cost", "custom"}
         if not set(values) <= allowed:
             raise ValueError("Nieznane ustawienia połączeń")
         config = self.config()
+        from studio_core.paper_theatre_cutouts import MODELS
+        if "paper_image_model" in values and values["paper_image_model"] not in MODELS:
+            raise ValueError("Wybierz obsługiwany model transparent PNG")
+        if "paper_image_request_cost" in values and (
+            isinstance(values["paper_image_request_cost"], bool) or
+            not isinstance(values["paper_image_request_cost"], (int, float)) or
+            not 0 <= values["paper_image_request_cost"] <= 1000
+        ):
+            raise ValueError("Niepoprawny szacowany koszt generatora PNG")
         if "ai_request_cost" in values and (not isinstance(values["ai_request_cost"],(int,float)) or not 0<=values["ai_request_cost"]<=10000):
             raise ValueError("Niepoprawny szacowany koszt wywołania")
         for key, value in values.items():
