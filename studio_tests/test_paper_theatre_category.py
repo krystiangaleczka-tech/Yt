@@ -253,7 +253,7 @@ class PaperTheatreCategoryTests(unittest.TestCase):
         path = self.base + "/paper-theatre/" + shot["id"] + "/reference/"
         reference = self.png("draft-reference", background=True)
         prompt = self.client.post(path + "prompt", json={
-            "expected_revision": response.json()["revision"],
+            "expected_revision": self.client.get(self.base).json()["revision"],
             "brief": "Cesarz wydaje rozkaz", "style": "Papier ryżowy",
         }, headers=HEADERS)
         self.assertEqual(prompt.status_code, 200, prompt.text)
@@ -292,7 +292,7 @@ class PaperTheatreCategoryTests(unittest.TestCase):
             vision.return_value = self.asset_manifest()
             result = self.client.post(
                 self.base + "/paper-theatre/" + sid + "/reference/analyze",
-                json={"expected_revision": response.json()["revision"],
+                json={"expected_revision": self.client.get(self.base).json()["revision"],
                       "reference_asset_id": image,
                       "brief": "Chińska scena", "style": "Papier", "reference_notes": "Most z prawej"},
                 headers=HEADERS)
