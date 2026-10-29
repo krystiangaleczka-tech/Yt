@@ -20,6 +20,18 @@ from PIL import Image
 from .store import atomic_json, now
 from .models import uid
 
+def existing_cutouts(project, scene_id: str, reference_id: str, object_id: str) -> list:
+    """Previously generated variants are preserved, not charged for twice by accident."""
+    return [
+        asset for asset in project.assets
+        if asset.kind == "image"
+        and asset.provenance.get("kind") == "paper-theatre-cutout"
+        and asset.provenance.get("scene_id") == scene_id
+        and asset.provenance.get("reference_asset_id") == reference_id
+        and asset.provenance.get("object_id") == object_id
+    ]
+
+
 MODELS = ("gpt-image-2.5-sunburst", "gpt-image-2.5-flare")
 IMAGE_API_URL = "https://api.openai.com/v1/images/edits"
 MAX_REFERENCE_BYTES = 6_000_000
