@@ -20,7 +20,11 @@ type ObjectSpec = {
   x: number; y: number; width: number; z: number; asset_id: string;
   duration?: number;
 };
-type Manifest = { mode?: string; brief: string; style: string; objects: ObjectSpec[] };
+type Manifest = {
+  mode?: "asset-first" | "reference-guided";
+  brief: string; style: string; objects: ObjectSpec[];
+  reference_asset_id?: string; reference_notes?: string; reference_approved?: boolean;
+};
 type PromptResult = { id: string; name: string; prompt: string; group: string; asset_id: string };
 const DEFAULT_STYLE = "Hand-cut textured rice paper, warm imperial parchment palette, muted ink outlines, subtle fiber texture, paper shadow edges; consistent lighting from top-left.";
 
@@ -30,9 +34,10 @@ const textArea = (value: string, onChange: (value: string) => void, rows = 3) =>
 );
 
 export default function PaperTheatreAssetFirst({
-  scene, background, setBackground, onCreate,
+  scene, background, setBackground, onCreate, referenceMode = false,
 }: {
   scene?: Scene;
+  referenceMode?: boolean;
   background: string;
   setBackground: (value: string) => void;
   onCreate: () => void;
@@ -50,7 +55,14 @@ export default function PaperTheatreAssetFirst({
   const [groupGap, setGroupGap] = useState(.22);
   const [heroOutline, setHeroOutline] = useState(8);
   const [showPrompts, setShowPrompts] = useState(false);
+  const [referenceId, setReferenceId] = useState("");
+  const [referenceNotes, setReferenceNotes] = useState("");
+  const [referenceApproved, setReferenceApproved] = useState(false);
+  const [referencePrompt, setReferencePrompt] = useState("");
+  const [draftJobId, setDraftJobId] = useState("");
   const assets = project.assets.filter((asset) => asset.kind === "image" && asset.filename.toLowerCase().endsWith(".png"));
+  const references = project.assets.filter((asset) => asset.kind === "image" &&
+    /\.(png|jpe?g)$/i.test(asset.filename));
   const ready = manifest.objects.filter((obj) => obj.asset_id).length;
   const missing = manifest.objects.length - ready;
   const selectedIds = new Set(manifest.objects.map((obj) => obj.asset_id).filter(Boolean));
@@ -59,11 +71,36 @@ export default function PaperTheatreAssetFirst({
     setManifest(previous?.objects?.length
       ? { ...previous, objects: previous.objects.map((obj) => ({ ...obj })) }
       : { brief: scene?.narration || "", style: DEFAULT_STYLE, objects: [] });
+    const reference = scene?.generation?.paper_theatre_reference as
+      { asset_id?: string; approved?: boolean } | undefined;
+    setReferenceId(previous?.reference_asset_id || reference?.asset_id || "");
+    setReferenceNotes(previous?.reference_notes || "");
+    setReferenceApproved(previous?.reference_approved ?? reference?.approved ?? false);
     setIncoming("");
     setPromptSheet([]);
     setAssistantPrompt("");
     setShowPrompts(false);
   }, [scene?.id]);
+
+  useEffect(() => {
+    if (!draftJobId) return;
+    const job = studio.jobs.find((item) => item.id === draftJobId);
+    if (job?.status === "SUCCEEDED") {
+      setDraftJobId("");
+      void studio.reload();
+    } else if (job?.status === "FAILED" || job?.status === "CANCELLED") {
+      setDraftJobId("");
+      studio.notify(job.message || "Nie udało się przygotować draftu", true);
+    }
+  }, [draftJobId, studio.jobs]);
+
+  useEffect(() => {
+    const reference = scene?.generation?.paper_theatre_reference as { asset_id?: string } | undefined;
+    if (reference?.asset_id && !referenceId) {
+      setReferenceId(reference.asset_id);
+      setReferenceApproved(false);
+    }
+  }, [scene?.generation?.paper_theatre_reference, referenceId]);
 
   const setValue = (patch: Partial<Manifest>) => {
     setManifest((previous) => ({ ...previous, ...patch }));
@@ -95,10 +132,17 @@ export default function PaperTheatreAssetFirst({
       x: .5, y: .8, width: .18, z: 50, asset_id: "",
     }] }));
   };
+  const effectiveManifest = (): Manifest => ({
+    ...manifest,
+    mode: referenceMode ? "reference-guided" : "asset-first",
+    reference_asset_id: referenceMode ? referenceId : "",
+    reference_notes: referenceMode ? referenceNotes : "",
+    reference_approved: referenceMode ? referenceApproved : false,
+  });
   const params = () => ({
     expected_revision: project.revision,
     background_id: background,
-    manifest,
+    manifest: effectiveManifest(),
     gap, group_gap: groupGap, hero_outline_px: heroOutline,
   });
   const copy = (value: string) => studio.run(async () => {
@@ -107,12 +151,17 @@ export default function PaperTheatreAssetFirst({
   });
   const generateManifest = () => studio.run(async () => {
     if (!scene) throw new Error("Utwórz najpierw ujęcie Paper Theatre");
+    if (referenceMode && (!referenceId || !referenceApproved)) {
+      throw new Error("Najpierw wybierz i zaakceptuj draft referencyjny");
+    }
+    const route = referenceMode ? "reference/analyze" : "asset-first/propose";
     const result = await api<{ manifest: Manifest }>(
-      `/projects/${project.id}/paper-theatre/${scene.id}/asset-first/propose`,
+      `/projects/${project.id}/paper-theatre/${scene.id}/${route}`,
       { expected_revision: project.revision, action: "generate",
-        brief: manifest.brief, style: manifest.style });
+        brief: manifest.brief, style: manifest.style,
+        ...(referenceMode ? { reference_asset_id: referenceId, reference_notes: referenceNotes } : {}) });
     setValue(result.manifest);
-    studio.notify("Model zaproponował listę pojedynczych obiektów. Zweryfikuj ją przed zapisem.");
+    studio.notify("Model zaproponował osobne obiekty. Zweryfikuj je przed zapisem.");
   });
   const showAssistantPrompt = () => studio.run(async () => {
     if (!scene) throw new Error("Utwórz ujęcie");
@@ -133,6 +182,11 @@ export default function PaperTheatreAssetFirst({
         throw new Error("JSON musi zawierać brief, style i tablicę pojedynczych objects.");
       }
       setValue(data as Manifest);
+      if (referenceMode) {
+        setReferenceId(data.reference_asset_id || "");
+        setReferenceNotes(data.reference_notes || "");
+        setReferenceApproved(Boolean(data.reference_approved));
+      }
       studio.notify("Zaimportowano roboczą listę. Sprawdź i zapisz plan.");
     } catch (error) {
       studio.notify(error instanceof Error ? error.message : "Niepoprawny JSON", true);
@@ -140,6 +194,8 @@ export default function PaperTheatreAssetFirst({
   };
   const getPrompts = () => studio.run(async () => {
     if (!scene) throw new Error("Utwórz ujęcie");
+    if (referenceMode && (!referenceId || !referenceApproved))
+      throw new Error("Zaakceptuj draft, zanim przygotujesz prompty obiektów");
     const result = await api<{ manifest: Manifest; prompts: PromptResult[] }>(
       `/projects/${project.id}/paper-theatre/${scene.id}/asset-first/prompts`, params());
     setPromptSheet(result.prompts);
@@ -155,6 +211,8 @@ export default function PaperTheatreAssetFirst({
   });
   const assemble = () => studio.run(async () => {
     if (!scene) throw new Error("Utwórz ujęcie");
+    if (referenceMode && (!referenceId || !referenceApproved))
+      throw new Error("Przed złożeniem sceny trzeba zaakceptować szkic");
     await studio.mutate((p) => api<Project>(
       `/projects/${p.id}/paper-theatre/${scene.id}/asset-first/assemble`,
       { ...params(), expected_revision: p.revision }));
@@ -170,6 +228,32 @@ export default function PaperTheatreAssetFirst({
     }
     studio.notify("Wgrano PNG. Dopasuj je do obiektów z listy.");
   });
+  const requestDraftPrompt = () => studio.run(async () => {
+    if (!scene) throw new Error("Utwórz ujęcie");
+    const result = await api<{ prompt: string }>(
+      `/projects/${project.id}/paper-theatre/${scene.id}/reference/prompt`,
+      { expected_revision: project.revision, brief: manifest.brief, style: manifest.style });
+    setReferencePrompt(result.prompt);
+  });
+  const createDraft = () => studio.run(async () => {
+    if (!scene) throw new Error("Utwórz ujęcie");
+    const result = await api<{ id: string }>(
+      `/projects/${project.id}/paper-theatre/${scene.id}/reference/generate`,
+      { expected_revision: project.revision, brief: manifest.brief, style: manifest.style });
+    setDraftJobId(result.id);
+    studio.notify("Draft 512 × 288 trafił do kolejki generatora.");
+  });
+  const uploadReference = (files: FileList | null) => studio.run(async () => {
+    const file = files?.[0];
+    if (!file) return;
+    if (!["image/png", "image/jpeg"].includes(file.type))
+      throw new Error("Obraz poglądowy musi być PNG lub JPEG");
+    const response = await upload<{ project: Project; asset: { id: string } }>(
+      `/projects/${project.id}/media`, file);
+    studio.accept(response.project);
+    setReferenceId(response.asset.id);
+    setReferenceApproved(false);
+  });
   const updateObjectNumber = (obj: ObjectSpec, key: "x"|"y"|"width"|"z", value: number) => {
     modify(obj.id, { [key]: value });
   };
@@ -177,11 +261,11 @@ export default function PaperTheatreAssetFirst({
   return (
     <div className="production-grid">
       <section className="surface tool-panel">
-        <h2>01 · Zaplanuj scenę zanim powstaną obrazy</h2>
+        <h2>{referenceMode ? "02 · Obiekty na podstawie zatwierdzonego szkicu" : "01 · Zaplanuj scenę zanim powstaną obrazy"}</h2>
         <p className="small muted">
-          Asset-first: najpierw lista każdego obiektu, wspólny styl i dokładny
-          układ. Dopiero potem oddzielnie generowane przezroczyste PNG.
-          Nie rozcinamy już gotowej, spłaszczonej ilustracji.
+          {referenceMode
+            ? "Draft wskazuje kompozycję, proporcje i estetykę. Każdy obiekt generujemy osobno. Nie wycinamy pikseli z poglądowej ilustracji."
+            : "Najpierw lista każdego obiektu, wspólny styl i dokładny układ. Dopiero potem osobne przezroczyste PNG."}
         </p>
         {!scene && <Button primary icon={Plus} onClick={onCreate}>Nowe ujęcie Paper Theatre</Button>}
         <Field label="Co ma się dziać w tym ujęciu?">
@@ -190,8 +274,46 @@ export default function PaperTheatreAssetFirst({
         <Field label="Wspólny język wizualny dla wszystkich obiektów">
           {textArea(manifest.style, (style) => setValue({ style }), 3)}
         </Field>
+        {referenceMode && <div className="surface" style={{ padding: 12, marginBottom: 12 }}>
+          <h3>01 · Mały obraz poglądowy ze scenariusza</h3>
+          <p className="small muted">Najpierw szkic 16:9 całej sceny. Zaakceptowany obraz będzie wzorem kompozycji, nie źródłem wycinanych pikseli.</p>
+          <div className="button-row">
+            <Button onClick={requestDraftPrompt} disabled={!scene}>Przygotuj prompt szkicu</Button>
+            <Button onClick={createDraft} disabled={!scene || !!draftJobId}>Wygeneruj draft 512 × 288</Button>
+          </div>
+          {draftJobId && <p className="small muted">Generator pracuje: {draftJobId}. Wynik pojawi się w bibliotece.</p>}
+          {referencePrompt && <Field label="Prompt małego obrazu referencyjnego">
+            {textArea(referencePrompt, setReferencePrompt, 5)}
+            <Button icon={Copy} onClick={() => copy(referencePrompt)}>Kopiuj prompt</Button>
+          </Field>}
+          <Field label="Lub wgraj własny mały szkic PNG/JPEG">
+            <input type="file" accept="image/png,image/jpeg" onChange={(event) => uploadReference(event.target.files)} />
+          </Field>
+          <Field label="Wybrany obraz poglądowy">
+            <select value={referenceId} onChange={(event) => {
+              setReferenceId(event.target.value); setReferenceApproved(false);
+            }}>
+              <option value="">Wybierz draft z biblioteki</option>
+              {references.map((asset) => <option value={asset.id} key={asset.id}>{asset.name}</option>)}
+            </select>
+          </Field>
+          {referenceId && <>
+            <img alt="Obraz referencyjny całej sceny" src={mediaUrl(project.id, referenceId)}
+              style={{ width: "100%", borderRadius: 8 }} />
+            <Field label="Co z tego obrazu jest istotne dla kolejnych assetów?">
+              {textArea(referenceNotes, setReferenceNotes, 3)}
+            </Field>
+            <label className="field"><input type="checkbox" checked={referenceApproved}
+              onChange={(event) => setReferenceApproved(event.target.checked)} />
+              Akceptuję kompozycję. Obiekty będą generowane osobno, a nie wycinane z tego obrazu.
+            </label>
+          </>}
+        </div>}
         <div className="button-row">
-          <Button onClick={generateManifest} disabled={!scene}>AI: przygotuj listę obiektów</Button>
+          <Button onClick={generateManifest}
+            disabled={!scene || (referenceMode && (!referenceId || !referenceApproved))}>
+            {referenceMode ? "AI Vision: rozpoznaj obiekty ze szkicu" : "AI: przygotuj listę obiektów"}
+          </Button>
           <Button onClick={showAssistantPrompt} disabled={!scene}>Prompt dla innego AI</Button>
           <Button icon={Plus} onClick={addObject} disabled={manifest.objects.length >= 200}>Dodaj obiekt ręcznie</Button>
         </div>
@@ -214,7 +336,7 @@ export default function PaperTheatreAssetFirst({
         <div className="button-row">
           <Button onClick={saveManifest} disabled={!scene || !manifest.objects.length}>Zapisz listę obiektów</Button>
           <Button onClick={getPrompts} disabled={!scene || !manifest.objects.length}>Prompty dla każdego PNG</Button>
-          <Button onClick={() => saveText("paper-theatre-asset-first.json", JSON.stringify(manifest, null, 2), "application/json")}>
+          <Button onClick={() => saveText("paper-theatre-manifest.json", JSON.stringify(effectiveManifest(), null, 2), "application/json")}>
             Eksport JSON
           </Button>
         </div>
@@ -261,7 +383,7 @@ export default function PaperTheatreAssetFirst({
         <div style={{ position: "relative", aspectRatio: "16 / 9", overflow: "hidden",
                       border: "1px solid var(--border, #777)", borderRadius: 8,
                       background: "#c8b69c" }}>
-          {background && <img src={mediaUrl(project.id, background)} alt="Tło"
+          {(background || (referenceMode && referenceId)) && <img src={mediaUrl(project.id, background || referenceId)} alt={background ? "Tło" : "Draft referencyjny (tylko podgląd)"}
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />}
           {[...manifest.objects].filter((obj) => obj.asset_id)
             .sort((a, b) => a.z - b.z)
@@ -275,6 +397,7 @@ export default function PaperTheatreAssetFirst({
             ))}
         </div>
         <p className="small muted">
+          {referenceMode && !background ? "Pod spodem jest wyłącznie szkic poglądowy. Przed montażem wybierz osobne czyste tło. " : ""}
           Podgląd układu to mapa statyczna; ostateczne obcinanie przezroczystości,
           mechaniki wejść i kolejność Z są liczone przez renderer.
         </p>

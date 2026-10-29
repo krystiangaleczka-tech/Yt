@@ -79,7 +79,21 @@ def normalize_manifest(data: dict) -> dict:
         raise ValueError("Jedna najważniejsza postać musi wejść na końcu po pozostałych")
     # Group order = entrance order; z is strictly visual occlusion, not cue timing.
     objects.sort(key=lambda item: GROUP_INDEX[item["group"]])
-    return {"mode": "asset-first", "brief": brief.strip(), "style": style.strip(), "objects": objects}
+    mode = data.get("mode", "asset-first")
+    if mode not in ("asset-first", "reference-guided"):
+        raise ValueError("Nieznany tryb tworzenia sceny")
+    reference_id = data.get("reference_asset_id", "")
+    reference_notes = data.get("reference_notes", "")
+    reference_approved = data.get("reference_approved", False)
+    if not isinstance(reference_approved, bool):
+        raise ValueError("Akceptacja obrazu referencyjnego musi być true/false")
+    if not isinstance(reference_id, str) or len(reference_id) > 100:
+        raise ValueError("Niepoprawne ID obrazu referencyjnego")
+    if not isinstance(reference_notes, str) or len(reference_notes) > 3000:
+        raise ValueError("Notatki o kompozycji przekraczają limit")
+    return {"mode": mode, "brief": brief.strip(), "style": style.strip(), "objects": objects,
+            "reference_asset_id": reference_id, "reference_notes": reference_notes.strip(),
+            "reference_approved": reference_approved}
 
 
 def drafting_prompt(brief: str, style: str = DEFAULT_STYLE) -> str:
@@ -120,11 +134,13 @@ def drafting_prompt(brief: str, style: str = DEFAULT_STYLE) -> str:
 def image_prompts(manifest: dict) -> list[dict]:
     source = normalize_manifest(manifest)
     style = source["style"]
+    notes = source.get("reference_notes", "")
     prompts = []
     for obj in source["objects"]:
         prompts.append({
             "id": obj["id"], "name": obj["name"], "group": obj["group"],
-            "asset_id": obj["asset_id"], "placement": {
+            "asset_id": obj["asset_id"], "reference_asset_id": source.get("reference_asset_id", ""),
+            "placement": {
                 "x": obj["x"], "y": obj["y"], "width": obj["width"], "z": obj["z"]},
             "prompt": (
                 "ONE SINGLE ISOLATED PAPER CUTOUT OBJECT, not a complete scene. "
@@ -132,7 +148,9 @@ def image_prompts(manifest: dict) -> list[dict]:
                 "Output a real RGBA PNG with transparent background, no extra objects, "
                 "no surrounding scene, no background or text. Keep the entire silhouette "
                 "inside the canvas with a narrow alpha margin. Light and texture must "
-                "match all other objects in this shot."
+                "match all other objects in this shot. "
+                + ("Match the approved reference composition, costume design, palette and lighting. "
+                   "Reference notes: " + notes + ". " if source.get("reference_asset_id") else "")
             )
         })
     return prompts
@@ -143,6 +161,14 @@ def assemble_manifest(store, project, background_id: str, manifest: dict,
                       hero_outline_px: int = 8) -> dict:
     """Validate all linked PNGs and translate authored layout into real render cues."""
     data = normalize_manifest(manifest)
+    if data["mode"] == "reference-guided":
+        ref_id = data.get("reference_asset_id")
+        if not ref_id or not data["reference_approved"]:
+            raise ValueError("Wybierz i zaakceptuj obraz referencyjny przed składaniem sceny")
+        if ref_id == background_id or any(obj["asset_id"] == ref_id for obj in data["objects"]):
+            raise ValueError("Draft referencyjny nie może być tłem ani osobnym wycinkiem")
+        from .paper_theatre import _png
+        _png(store, project, ref_id)
     missing = [obj["name"] for obj in data["objects"] if not obj["asset_id"]]
     if missing:
         raise ValueError("Brak wygenerowanych PNG dla: " + ", ".join(missing[:8]))

@@ -44,6 +44,98 @@ def register(app, store, jobs, connectors, repo, callbacks):
         from studio_core.paper_theatre import GROUPS
         return [{"id": ident, "name": name, "rig": rig} for ident, name, rig in GROUPS]
 
+    @app.post("/api/projects/{pid}/paper-theatre/{sid}/reference/prompt")
+    def theatre_reference_prompt(pid: str, sid: str, body: dict):
+        from studio_core.paper_theatre_reference import draft_prompt
+        project = store.get(pid)
+        if int(body["expected_revision"]) != project.revision:
+            raise Conflict("Scena zmieniła się od przygotowania promptu")
+        scene = next((x for x in project.scenes if x.id == sid and x.template == "paper-theatre"), None)
+        if not scene:
+            raise ValueError("Wybierz scenę Paper Theatre")
+        return {"prompt": draft_prompt(scene, body.get("brief", ""), body.get("style", "")),
+                "source_scene_id": scene.id, "base_revision": project.revision,
+                "width": 512, "height": 288}
+
+    @app.post("/api/projects/{pid}/paper-theatre/{sid}/reference/generate")
+    def theatre_reference_generate(pid: str, sid: str, body: dict):
+        """Render a cheap 16:9 draft with the configured local image worker."""
+        from studio_core.paper_theatre_reference import draft_prompt
+        project = store.get(pid)
+        if int(body["expected_revision"]) != project.revision:
+            raise Conflict("Scena zmieniła się przed generowaniem draftu")
+        scene = next((x for x in project.scenes if x.id == sid and x.template == "paper-theatre"), None)
+        if not scene or scene.locked or scene.lock_media:
+            raise ValueError("Ujęcie Paper Theatre nie istnieje lub jest zablokowane")
+        python = Path(os.environ.get("DOCOS_IMAGE_PYTHON",
+                       repo / "pilot" / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")))
+        if not python.is_file():
+            raise ValueError("Ustaw DOCOS_IMAGE_PYTHON, aby wygenerować draft lokalnym modelem, albo wgraj obraz ręcznie")
+        prompt = draft_prompt(scene, body.get("brief", ""), body.get("style", ""))
+        active = [x for x in jobs.list(pid) if x["status"] in ("QUEUED", "RUNNING", "CANCEL_REQUESTED")]
+        if len(active) >= project.budget.get("max_jobs", 20):
+            raise ValueError("Osiągnięto limit zadań tego projektu")
+
+        def run(job_id, progress, cancel):
+            directory = store.folder(pid) / "jobs" / job_id
+            directory.mkdir(parents=True, exist_ok=True)
+            image = directory / "paper-theatre-draft.png"
+            log = directory / "worker.log"
+            cmd = [str(python), "-I", str(repo / "studio_workers" / "image_worker.py"), str(image),
+                   "--prompt", prompt, "--width", "512", "--height", "288",
+                   "--steps", "18", "--seed", "42"]
+            progress(.05, "Tworzenie miniatury kompozycji")
+            with log.open("w+") as stream:
+                process = subprocess.Popen(cmd, stdout=stream, stderr=stream)
+                while process.poll() is None:
+                    if cancel.wait(.25):
+                        process.terminate()
+                        try:
+                            process.wait(timeout=4)
+                        except subprocess.TimeoutExpired:
+                            process.kill()
+                            process.wait()
+                        raise InterruptedError()
+                if process.returncode or not image.is_file():
+                    stream.seek(0)
+                    raise ValueError("Generator draftu: " + stream.read()[-1200:])
+            progress(.85, "Zapis obrazu referencyjnego")
+            asset, _ = import_media(store, pid, image, "paper-theatre-reference-" + sid + ".png",
+                {"prompt": prompt, "provenance": {
+                    "kind": "paper-theatre-reference", "scene_id": sid,
+                    "source_revision": project.revision, "draft": True,
+                    "width": 512, "height": 288}})
+            current = store.get(pid)
+            def attach(p):
+                target = next((x for x in p.scenes if x.id == sid), None)
+                if target is not None and not target.locked and not target.lock_media:
+                    target.generation = {**target.generation,
+                        "paper_theatre_reference": {"asset_id": asset.id, "prompt": prompt,
+                            "source_revision": project.revision, "approved": False}}
+            store.mutate(pid, current.revision, attach)
+            return {"asset_id": asset.id, "scene_id": sid, "draft": True}
+        return jobs.submit(pid, project.revision, "image", run,
+            request={"action": "paper-theatre-draft", "scene_id": sid,
+                     "body": {"expected_revision": project.revision}},
+            snapshot=project.model_dump())
+
+    @app.post("/api/projects/{pid}/paper-theatre/{sid}/reference/analyze")
+    def theatre_reference_analyze(pid: str, sid: str, body: dict):
+        from studio_core.paper_theatre_reference import propose_objects_from_reference
+        project = store.get(pid)
+        if int(body["expected_revision"]) != project.revision:
+            raise Conflict("Plan odnosi się do poprzedniej rewizji")
+        scene = next((x for x in project.scenes if x.id == sid and x.template == "paper-theatre"), None)
+        if not scene:
+            raise ValueError("Wybierz ujęcie Paper Theatre")
+        ref_id = body.get("reference_asset_id", "")
+        if not isinstance(ref_id, str):
+            raise ValueError("Niepoprawny obraz referencyjny")
+        manifest = propose_objects_from_reference(connectors, store, project, scene,
+            ref_id, body.get("brief", ""), body.get("style", ""),
+            body.get("reference_notes", ""))
+        return {"manifest": manifest, "base_revision": project.revision}
+
     @app.post("/api/projects/{pid}/paper-theatre/{sid}/asset-first/propose")
     def theatre_asset_first_propose(pid: str, sid: str, body: dict):
         from studio_core.paper_theatre_asset_first import drafting_prompt, normalize_manifest
