@@ -54,8 +54,17 @@ pojedynczego PNG alpha w trybie Reference-to-layers przez OpenAI Images Edit API
 4. Wynik pozostaje **nieprzypisanym wariantem**: obejrzyj go, oceń styl i
    ręcznie powiąż z obiektem; wygenerowanie nie zmienia automatycznie
    montażu ani zatwierdzonych grafik.
-5. Jeżeli dostawca zwróci obraz bez alpha, zadanie kończy się błędem; nie
-   wycinamy fałszywego tła. Ręczny import PNG pozostaje dostępny bez klucza.
+5. Jeśli obiektów jest dużo, po akceptacji referencji możesz uruchomić
+   **serię maksymalnie 12 brakujących wycinków** w jednym zadaniu. UI
+   pokaże łączny szacowany koszt przed wysyłką i poprosi o potwierdzenie.
+   Każda warstwa jest generowana osobno i rezerwowana osobno; anulowanie
+   nie usuwa już zapisanych wariantów. Częściowe niepowodzenia są raportowane,
+   a gotowe pliki pozostają w bibliotece bez automatycznego przypisania.
+6. Wcześniej wygenerowany wariant nie jest naliczany ponownie przypadkowo:
+   wybierz go z biblioteki, a dodatkowy wariant zlecaj tylko świadomie,
+   osobnym przyciskiem z potwierdzeniem kosztu.
+7. Jeżeli dostawca zwróci obraz bez alpha, zadanie kończy się błędem;
+   nie wycinamy fałszywego tła. Ręczny import PNG działa bez klucza.
 
 Szacunek kosztu jest **rezerwowany przed żądaniem**, również w przypadku
 nieudanej próby, ponieważ dostawca może ją rozliczyć. Połączone konto API
@@ -92,7 +101,7 @@ ukończenia benchmarku 1:1.
 
 ### Pozostały zakres, którego nie wolno uznać za ukończony
 
-- Bezpośredni opcjonalny adapter API transparent PNG jest zaimplementowany. **Wciąż otwarte:** test z prawdziwym kontem, batch generation, kontrola stylu, jakościowa zgodność wszystkich obiektów i niezawodność na docelowym sprzęcie.
+- Bezpośredni opcjonalny adapter API transparent PNG jest zaimplementowany. **Wciąż otwarte:** test z prawdziwym kontem, spójność stylu, pełne automatyczne zatwierdzanie kompozycji, jakościowa zgodność wszystkich obiektów i niezawodność na docelowym sprzęcie. Batch (do 12) jest wdrożony jako oddzielne zadanie z kontrolą kosztu.
 - [ ] Referencyjna zgodność wygenerowanych osobno PNG z draftem nie jest jeszcze automatycznie oceniana; prompty niosą opis stylu i notatki, ale lokalny image worker nie używa wejścia obrazowego do sterowania generowaniem przez obraz. W razie potrzeby przekazuj draft do generatora obsługującego image-to-image/reference conditioning.
 - Weryfikacja jednolitości stylu między osobno wygenerowanymi obrazami; automatyczne wykrywanie wielu obiektów na jednej warstwie, kolizji i brakujących pikseli.
 - Przeciąganie, pivoty oraz podstawowy pędzel alpha są wdrożone; **profesjonalny edytor konturów/masek**, zaawansowane wypełnianie i dokładny **wielowarstwowy podgląd na żywo** nadal wymagają implementacji.
