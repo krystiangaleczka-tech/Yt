@@ -440,10 +440,10 @@ class PaperTheatreCategoryTests(unittest.TestCase):
         payload = {"expected_revision": created.json()["revision"],
                    "manifest": manifest, "object_id": "cloud"}
         denied = self.client.post(endpoint, json=payload, headers=HEADERS)
-        self.assertEqual(denied.status_code, 400, denied.text)
+        self.assertEqual(denied.status_code, 422, denied.text)
         manifest["reference_approved"] = True
         denied = self.client.post(endpoint, json=payload, headers=HEADERS)
-        self.assertEqual(denied.status_code, 400, denied.text)
+        self.assertEqual(denied.status_code, 422, denied.text)
         self.assertIn("klucz", denied.text)
 
 
