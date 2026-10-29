@@ -115,11 +115,11 @@ class ProductionTests(unittest.TestCase):
         for index,template in enumerate(TEMPLATES):
             name=template["id"];params={f["key"]:values.get(f["key"],f["default"]) for f in template["fields"]}
             asset=audio.id if name in ("waveform","spectrogram") else red.id
-            layers=[red.id,cutout.id] if name=="parallax" else [red.id,blue.id]
-            p.sequence.clips.append(Clip(track_id="v1",start=index*3,duration=3,template=name,parameters=params,asset_id=asset,asset_ids=layers if name in ("split","comparison","stack","parallax") else []))
+            layers=[red.id,cutout.id] if name in ("parallax","paper-theatre") else [red.id,blue.id]
+            p.sequence.clips.append(Clip(track_id="v1",start=index*3,duration=3,template=name,parameters=params,asset_id=asset,asset_ids=layers if name in ("split","comparison","stack","parallax","paper-theatre") else []))
         output=self.root/"catalog.mp4";render(self.store,p,output,lambda *_:None,threading.Event())
-        self.assertAlmostEqual(float(probe(output)["format"]["duration"]),2,places=1)
-        self.assertEqual(len(TEMPLATES),20)
+        self.assertAlmostEqual(float(probe(output)["format"]["duration"]),len(TEMPLATES)*3/fps(p),places=1)
+        self.assertIn("paper-theatre",{template["id"] for template in TEMPLATES})
 
     def test_range_cache_reuses_only_unchanged_ranges(self):
         p=self.project();p.sequence.width=240;p.sequence.height=144;p.sequence.clips=[Clip(track_id="v1",duration=150,template="title",parameters={"text":"First"}),Clip(track_id="v1",start=150,duration=30,template="title",parameters={"text":"Second"})]
