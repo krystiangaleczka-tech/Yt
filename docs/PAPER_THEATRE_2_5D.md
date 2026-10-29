@@ -2,6 +2,41 @@
 
 **Status:** odrębna kategoria Narzędzia produkcji → Paper Theatre 2.5D. Pierwsza implementacja kreatora, planowania sekwencji, walidacji osobnych PNG, renderowania mechanik, podglądu klatki i przekazania do Montażu. Nie mylić z automatycznym rozcinaniem jednolitej grafiki na sto profesjonalnych warstw.
 
+
+## Workflow domyślny: Asset-first (decyzja 29.10.2026)
+
+**Zmiana kluczowej kolejności produkcji:** nie generujemy kompletnej ilustracji do późniejszego wycinania. Najpierw powstaje ujęcie, jego storyboard/beat, **Scene Object Manifest** i spójny przewodnik stylu. Dopiero następnie generujemy odrębne PNG dla każdego obiektu. Na końcu precyzyjnie składamy je na osi czasu. To docelowe, domyślne zachowanie kategorii; wcześniejszy **Reference-to-layers** pozostaje trybem pomocniczym dla materiału już rozdzielonego.
+
+### Etapy
+
+1. **Shot brief i beat:** opis sceny/narracja z projektu, kadr i styl wizualny. Użytkownik może przygotować listę obiektów ręcznie, pobrać prompt dla innego AI albo poprosić podłączony model tekstowy o propozycję listy w JSON.
+2. **Scene Object Manifest:** każdy element jest niezależnym rekordem z `id`, `name`, `description`, `group`, `x`, `y`, `width`, `z`, `asset_id` (na początku pustym) i opcjonalnym `duration`. Grupy ustalają wejścia, **Z ustala przesłanianie**. `x` to środek poziomy, `y` to dolny punkt wycinka, `width` to część szerokości kadru.
+3. **Jedna linia artystyczna:** globalny `style` zasila wszystkie per-obiektowe prompty. Nie wolno dopuścić do postaci w innym oświetleniu, odcieniu papieru lub technice kreski niż reszta dioramy.
+4. **Generowanie pojedynczych zasobów:** osobny prompt dla każdej chmury, budynku, drzewa, monety i postaci. Generator musi zwrócić rzeczywisty **RGBA PNG** z przezroczystym tłem i jednym obiektem. Aplikacja przygotowuje i eksportuje prompty oraz wczytuje i wiąże gotowe PNG. **Nie deklarujemy automatycznego generowania alpha PNG**: obecny lokalny image worker nie zapewnia wiarygodnych wycinków, ten etap wymaga jeszcze integracji odpowiedniego modelu lub zewnętrznego generatora.
+5. **Scene Layout Planner:** render umieszcza obraz na podstawie współrzędnych i szerokości ze spisu; wycina przezroczyste marginesy, nie rozciąga obiektu i nie wymaga płótna wielkości całego filmu. Niezależne `z_index` odpowiada za to, co jest przed czym.
+6. **Staging i rigging:** `sky = hanging_drop`, `landscape/foundations = bottom_rise`, `vegetation/props/characters/hero = rake_lift`. Każdy ma osobny czas. Hero tylko jeden, na końcu, z mocnym obrysem.
+7. **Podgląd, poprawki i montaż:** najpierw plan i statyczna mapa kompozycji, następnie rzeczywiste klatki renderera, a dopiero potem eksport MP4.
+
+### Co jest wdrożone teraz
+
+- Domyślny panel **Asset-first** oraz zachowany osobny tryb **Reference-to-layers**.
+- Edycja listy obiektów, ich grup, opisów, współrzędnych X/Y, szerokości i głębi Z.
+- Zapis manifestu w `Scene.generation.paper_theatre_asset_first`; wersjonowanie razem z projektem bez nowego formatu pliku.
+- API przygotowywania promptów per obiekt, importowania własnej listy JSON i propozycji AI przez skonfigurowany model tekstowy (brak modelu oznacza brak propozycji, a nie wymyślone wyniki).
+- Wczytanie obrazów i przypisanie ich do obiektów, walidacja przeźroczystości i unikalności, składanie ujęcia i przekazanie do osi czasu.
+- Podgląd orientacyjnej sceny i rzeczywistego kompozytora; rozdzielenie kolejności wejść od przesłaniania przez Z.
+
+### Pozostały zakres, którego nie wolno uznać za ukończony
+
+- Bezpośrednia generacja jakościowych przezroczystych PNG z modelu obrazu, zamiast jedynie promptów i ręcznego importu.
+- Weryfikacja jednolitości stylu między osobno wygenerowanymi obrazami; automatyczne wykrywanie wielu obiektów na jednej warstwie, kolizji i brakujących pikseli.
+- Graficzna edycja pozycji przez przeciąganie, maski, pivoty per obiekt, wielowarstwowy preview na żywo.
+- Pełna ewaluacja benchmarku na materiale referencyjnym i zatwierdzony end-to-end eksport MP4.
+
+### Zasada jakości
+
+Asset-first usuwa problem prób odtwarzania zakrytych fragmentów z gotowego obrazu, ale **nie gwarantuje automatycznie jakości 100%**. Największe ryzyka przesuwają się na spójność stylu, proporcje i kompozycję. Zachowujemy ocenę 50% poprzedniego demo jako punkt wyjścia.
+
 ## Dlaczego ta kategoria jest osobna
 
 Referencja: papierowa diorama składana przed widzem, jak teatrzyk / scenografia na patyczkach i cieniutkich nitkach. Wersja demonstracyjna chińskiego imperium została oceniona przez właściciela projektu jako **około 50% zamierzonego efektu**, nie jako finalny benchmark jakości. W pierwszych podejściach kilka dużych fragmentów obrazu było przemieszczanych lub niewyraźnie maskowanych, zamiast poprawnego montażu wielu indywidualnych wycinków. **Nie używać tych rezultatów jako dowodu spełnienia jakości 1:1.**
