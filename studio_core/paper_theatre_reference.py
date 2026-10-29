@@ -25,7 +25,7 @@ def draft_prompt(scene, brief: str = "", style: str = DEFAULT_STYLE) -> str:
     if not context:
         raise ValueError("Scena wymaga opisu, narracji lub tytułu")
     return (
-        "Draft composition reference for a theatrical paper-cut documentary shot. "
+        "Draft composition reference for a theatrical paper-cut 2.5D story shot. "
         "ONE coherent complete 16:9 storyboard illustration with all planned "
         "objects in their desired FINAL positions. Stage, hierarchy, occlusion "
         "and proportions must be unambiguous. No texts, labels, watermark, "
