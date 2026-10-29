@@ -143,6 +143,9 @@ def build_command(store: ProjectStore, project: Project, output: Path, *, previe
                 if clip.rotation or any(k.property == "rotation" for k in clip.keyframes):
                     rotation = expression(clip, "rotation", rate)
                     chain += f",rotate='({rotation})*PI/180':ow='ceil(iw*1.42/2)*2':oh='ceil(ih*1.42/2)*2':c=none"
+                # FFmpeg may segfault when a dynamic scale feeds geq alpha on packed RGBA.
+                # Convert explicitly to planar GBR+alpha before geq (including fades/wipes).
+                chain += ",format=gbrap"
                 if any(k.property == "opacity" for k in clip.keyframes):
                     opacity = expression(clip, "opacity", rate, "T")
                     chain += f",geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='alpha(X,Y)*({opacity})'"
