@@ -50,7 +50,7 @@ def normalize_manifest(data: dict) -> dict:
             raise ValueError("Każdy obiekt wymaga unikalnego identyfikatora")
         if not isinstance(name, str) or not name.strip() or len(name) > 120:
             raise ValueError("Podaj nazwę każdego obiektu (maks. 120 znaków)")
-        if group not in GROUP_INDEX:
+        if not isinstance(group, str) or group not in GROUP_INDEX:
             raise ValueError("Nieznana grupa obiektu " + name)
         if not isinstance(description, str) or not description.strip() or len(description) > 1000:
             raise ValueError("Opis obiektu jest niepoprawny")
