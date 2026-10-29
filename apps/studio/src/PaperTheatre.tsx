@@ -42,7 +42,7 @@ export default function PaperTheatre() {
   const [gap, setGap] = useState(.12);
   const [groupGap, setGroupGap] = useState(.22);
   const [heroOutline, setHeroOutline] = useState(8);
-  const [workflow, setWorkflow] = useState<"asset-first" | "reference">("asset-first");
+  const [workflow, setWorkflow] = useState<"asset-first" | "reference">("reference");
   const [plan, setPlan] = useState<Plan | null>(null);
   const [posterSeconds, setPosterSeconds] = useState(0);
   const assets = project.assets.filter((asset) => asset.kind === "image" && asset.filename.toLowerCase().endsWith(".png"));
@@ -141,11 +141,11 @@ export default function PaperTheatre() {
       <div className="surface" style={{ padding: 12, marginBottom: 12 }}>
         <h2>Paper Theatre 2.5D · sposób przygotowania zasobów</h2>
         <div className="button-row">
+          <Button primary={workflow === "reference"} onClick={() => setWorkflow("reference")}>
+            Reference-to-layers · scena → draft → osobne PNG
+          </Button>
           <Button primary={workflow === "asset-first"} onClick={() => setWorkflow("asset-first")}>
             Asset-first · lista → obrazy → animacja
-          </Button>
-          <Button primary={workflow === "reference"} onClick={() => setWorkflow("reference")}>
-            Reference-to-layers · mam już PNG
           </Button>
         </div>
         {scenes.length > 0 && <Field label="Ujęcie">
@@ -158,11 +158,15 @@ export default function PaperTheatre() {
         </Field>}
         <Button icon={Plus} onClick={create}>Dodaj kolejne ujęcie Paper Theatre</Button>
       </div>
-      {workflow === "asset-first"
-        ? <PaperTheatreAssetFirst
-            scene={scene} background={background}
-            setBackground={setBackground} onCreate={create} />
-        : <div className="production-grid">
+      <PaperTheatreAssetFirst
+        key={workflow + (scene?.id || "")}
+        referenceMode={workflow === "reference"}
+        scene={scene}
+        background={background} setBackground={setBackground} onCreate={create}
+      />
+      {workflow === "reference" && <details className="surface" style={{ padding: 12, marginTop: 12 }}>
+        <summary>Zaawansowane: mam już ręcznie przygotowane warstwy PNG (poprzedni edytor)</summary>
+        <div className="production-grid">
       <section className="surface tool-panel">
         <h2>Paper Theatre 2.5D · osobna kategoria</h2>
         <p className="small muted">
@@ -278,7 +282,8 @@ export default function PaperTheatre() {
           </section>
         )}
       </section>
-    </div>}
+        </div>
+      </details>}
     </>
   );
 }
