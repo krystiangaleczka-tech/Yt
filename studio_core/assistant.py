@@ -107,5 +107,41 @@ def complete(connectors: Connectors, prompt: str, *,store=None,project=None) -> 
     raise ValueError("Połącz model w Ustawieniach albo skopiuj prompt do swojego AI i wklej odpowiedź JSON")
 
 
+def complete_vision(connectors: Connectors, prompt: str, images: list[bytes], *, store=None, project=None) -> str:
+    """Like complete(), with JPEG images. The CLI gets them inline (stream-json) and still has no tools."""
+    import base64
+    if store is not None and project is not None:
+        from .budget import reserve
+        reserve(store, project, connectors)
+    encoded = [base64.b64encode(image).decode() for image in images]
+    c = connectors.config()
+    if c.get("ai_base_url") and c.get("ai_model"):
+        url = public_url(c["ai_base_url"].rstrip("/") + "/chat/completions")
+        content = [{"type": "text", "text": prompt}] + [{"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + e}} for e in encoded]
+        with httpx.Client(timeout=180, follow_redirects=False) as client:
+            response = client.post(url, headers={"Authorization": "Bearer " + c.get("ai_key", "")},
+                                   json={"model": c["ai_model"], "messages": [{"role": "user", "content": content}], "temperature": .1})
+            response.raise_for_status()
+            return response.json()["choices"][0]["message"]["content"]
+    if shutil.which("claude"):
+        content = [{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": e}} for e in encoded] + [{"type": "text", "text": prompt}]
+        message = json.dumps({"type": "user", "message": {"role": "user", "content": content}})
+        with tempfile.TemporaryDirectory(prefix="docos-vision-") as folder:
+            result = subprocess.run(["claude", "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose", "--tools", ""],
+                                    input=message + "\n", capture_output=True, text=True, timeout=180, cwd=folder, check=False)
+        final = None
+        for line in result.stdout.splitlines():
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("type") == "result":
+                final = row
+        if not final or final.get("is_error"):
+            raise ValueError("Claude nie ocenił obrazu: " + str((final or {}).get("result") or result.stderr[-300:] or "brak odpowiedzi")[:600])
+        return final.get("result", "")
+    raise ValueError("Recenzja obrazu wymaga połączonego modelu z obsługą obrazów albo Claude CLI")
+
+
 def generate_proposal(connectors: Connectors, project: Project, command: str, selection: list[str]) -> dict:
     return parse_proposal(complete(connectors, editing_prompt(project, command, selection)), project, selection)

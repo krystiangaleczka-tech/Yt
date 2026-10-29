@@ -4,6 +4,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Eye,
   Clipboard,
   FlipHorizontal,
   LayoutGrid,
@@ -50,6 +51,7 @@ export type Proposal = {
   reason: string;
   issues?: string[];
   reviewed?: boolean;
+  vision_issues?: { area: string; problem: string }[];
   base_revision: number;
 };
 type Filter = "all" | "open" | "rework" | "approved";
@@ -79,6 +81,14 @@ export default function SceneBoard() {
     [busy, setBusy] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const [staging, setStaging] = useState<Record<string, string[]>>({});
+  type Sight = { area: string; problem: string };
+  const [looked, setLooked] = useState<Record<string, Sight[]>>({}),
+    [looking, setLooking] = useState(false);
+  // Results of the last "check all scenes" job, used until a scene is looked at again.
+  const visionJob = s.jobs
+    .filter((j) => j.project_id === p.id && j.kind === "vision" && j.status === "SUCCEEDED")
+    .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0];
+  const jobSights = (visionJob?.result as unknown as { reviews?: Record<string, { issues?: Sight[] }> } | null)?.reviews || {};
   useEffect(() => {
     if (p.channel_id && p.production_mode === "animation_2d")
       api<Record<string, string[]>>(`/projects/${p.id}/stage-scenes/review`).then(setStaging, () => undefined);
@@ -110,6 +120,25 @@ export default function SceneBoard() {
     [bank],
   );
   const approved = scenes.filter((x) => x.status === "approved").length;
+  const sight = scene
+    ? looked[scene.id]
+      ? { issues: looked[scene.id], fresh: true }
+      : jobSights[scene.id]?.issues
+        ? { issues: jobSights[scene.id].issues!, fresh: false }
+        : null
+    : null;
+  function look() {
+    if (!scene) return;
+    s.run(async () => {
+      setLooking(true);
+      try {
+        const result = await api<{ issues: Sight[] }>(`/projects/${p.id}/stage-scenes/${scene.id}/vision-review`, {});
+        setLooked((v) => ({ ...v, [scene.id]: result.issues }));
+      } finally {
+        setLooking(false);
+      }
+    });
+  }
 
   function send(operations: Record<string, unknown>[]) {
     return s.mutate((current) =>
@@ -180,6 +209,7 @@ export default function SceneBoard() {
         e.preventDefault();
         noteRef.current?.focus();
       } else if (k === "g") regenerate();
+      else if (k === "v") look();
       else return;
       e.preventDefault();
     }
@@ -267,6 +297,11 @@ export default function SceneBoard() {
               <span className={`status-dot ${x.status}`} title={statusLabels[x.status]} />
               <span className="scene-no">
                 {String(x.number).padStart(2, "0")}
+                {(looked[x.id] || jobSights[x.id]?.issues || []).length > 0 && (
+                  <span className="vision-mark" title={(looked[x.id] || jobSights[x.id]?.issues || []).map((i) => i.problem).join("\n")}>
+                    ◉
+                  </span>
+                )}
                 {(staging[x.id] || []).length > 0 && (
                   <span className="staging-mark" title={staging[x.id].join("\n")}>!</span>
                 )}
@@ -282,7 +317,7 @@ export default function SceneBoard() {
           )}
         </div>
         <p className="muted small scene-keys">
-          ↑↓ / J K — scena · A — zatwierdź · R — poprawka · G — regeneruj
+          ↑↓ / J K — scena · A — zatwierdź · R — poprawka · G — regeneruj · V — obejrzyj kadr
         </p>
       </aside>
       {!scene ? (
@@ -406,8 +441,45 @@ export default function SceneBoard() {
                 <Button icon={Sparkles} busy={busy} onClick={() => regenerate()}>
                   Regeneruj z AI <kbd>G</kbd>
                 </Button>
+                <Button icon={Eye} busy={looking} onClick={look}>
+                  Obejrzyj kadr (AI) <kbd>V</kbd>
+                </Button>
               </div>
             </div>
+            {sight && (
+              <div className="vision-review">
+                <strong>
+                  Recenzent obrazu{sight.fresh ? "" : " (z poprzedniego sprawdzenia)"}:{" "}
+                  {sight.issues.length ? `${sight.issues.length} uwag` : "bez uwag ✓"}
+                </strong>
+                {sight.issues.map((i) => (
+                  <p key={i.problem} className="continuity-warning small">
+                    <b>{i.area}:</b> {i.problem}
+                  </p>
+                ))}
+                {sight.issues.length > 0 && (
+                  <Button
+                    icon={RotateCcw}
+                    onClick={() =>
+                      s.run(async () => {
+                        await send([
+                          {
+                            type: "review",
+                            scene_id: scene.id,
+                            status: "rework",
+                            tags: [...new Set(sight.issues.map((i) => i.area))],
+                            note: sight.issues.map((i) => i.problem).join(" "),
+                          },
+                        ]);
+                        s.notify("Odesłano do poprawki z uwagami recenzenta obrazu");
+                      })
+                    }
+                  >
+                    Odeślij do poprawki z tymi uwagami
+                  </Button>
+                )}
+              </div>
+            )}
             {proposal && (
               <ProposalCard
                 scene={scene}
@@ -677,11 +749,15 @@ export function Stage({
           <span
             key={index}
             className={`stage-actor motion-${placed.motion || "idle"}`}
-            style={{
-              left: `${at.x * 100}%`,
-              top: `${at.y * 100}%`,
-              height: `${placed.scale * 100}%`,
-            }}
+            style={
+              {
+                left: `${at.x * 100}%`,
+                top: `${at.y * 100}%`,
+                height: `${placed.scale * 100}%`,
+                // Same walk length as the renderer: min(2.4 s, scene) at 0.45 s per step.
+                "--steps": Math.max(1, Math.round(Math.min(2.4, scene.seconds) / 0.45)),
+              } as CSSProperties
+            }
             onPointerDown={(e) => {
               if (!onPlace) return;
               e.currentTarget.setPointerCapture(e.pointerId);
@@ -804,6 +880,14 @@ export function ProposalCard({
       {(proposal.issues || []).map((issue) => (
         <p key={issue} className="continuity-warning small">Recenzent kadru: {issue}</p>
       ))}
+      {(proposal.vision_issues || []).map((issue) => (
+        <p key={issue.problem} className="continuity-warning small">
+          Recenzent obrazu — {issue.area}: {issue.problem}
+        </p>
+      ))}
+      {proposal.vision_issues && proposal.vision_issues.length === 0 && (
+        <p className="small muted">Recenzent obrazu obejrzał propozycję: bez uwag.</p>
+      )}
       <table className="proposal-diff">
         <tbody>
           {rows

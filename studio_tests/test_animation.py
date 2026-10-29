@@ -308,7 +308,8 @@ class AnimationTests(unittest.TestCase):
                            {'type': 'review', 'scene_id': three, 'status': 'approved'})
         answers = iter([json.dumps({'title': 'Jeden po poprawce', 'reason': 'ciemniej'}),
                         json.dumps({'characters': [{'character_id': 'chr_' + '0' * 16}]})])
-        with mock.patch('studio_api.animation.complete', side_effect=lambda *a, **k: next(answers)):
+        with mock.patch('studio_api.animation.complete', side_effect=lambda *a, **k: next(answers)), \
+             mock.patch('studio_api.animation.complete_vision', return_value='{"issues": []}'):
             job = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/rework-batch", json={}, headers=H))
             for _ in range(750):  # up to 15 s on a loaded machine
                 state = self.ok(self.client.get('/api/jobs/' + job['id']))
@@ -371,7 +372,8 @@ class AnimationTests(unittest.TestCase):
             prompts.append(prompt)
             return next(answers)
 
-        with mock.patch('studio_api.animation.complete', side_effect=fake):
+        with mock.patch('studio_api.animation.complete', side_effect=fake), \
+             mock.patch('studio_api.animation.complete_vision', return_value='{"issues": []}'):
             job = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/rework-batch", json={}, headers=H))
             for _ in range(750):  # up to 15 s on a loaded machine
                 state = self.ok(self.client.get('/api/jobs/' + job['id']))
@@ -430,6 +432,48 @@ class AnimationTests(unittest.TestCase):
         out = framing(image, 2, .9, .1)  # focus clamped so the crop stays inside: x 100-200, y 0-50
         self.assertEqual(out.getpixel((160, 50))[:3], (255, 0, 0))
         self.assertEqual(out.getpixel((40, 50))[:3], (255, 255, 255))
+
+
+    def test_vision_review_sends_stills_and_feeds_batch_rework(self):
+        cid = self.channel['id']
+        mara = self.character(cid)
+        state = {'name': 'Dzień', 'image': self.image(cid, png((200, 190, 170, 255), (160, 90))), 'floor_y': .78}
+        kitchen = self.ok(self.client.post(f'/api/channels/{cid}/locations', json={'name': 'Kuchnia', 'states': [state]}, headers=H))
+        placed = {'character_id': mara['id'], 'x': .5, 'y': .8, 'scale': .6}
+        film = self.scenes(self.film(), {'type': 'add', 'scene': {'title': 'Pierwsza', 'location_id': kitchen['id'], 'characters': [placed]}},
+                           {'type': 'add', 'scene': {'title': 'Druga', 'location_id': kitchen['id'], 'characters': [placed],
+                                                     'action': 'Mara trzyma butelkę', 'dialogue': [{'speaker': mara['id'], 'text': 'Water?'}]}})
+        first, second = (x['id'] for x in film['stage_scenes'])
+        calls = []
+
+        def seen(connectors, prompt, images, **kwargs):
+            calls.append((prompt, images))
+            return '{"ok": false, "issues": [{"area": "Postać/poza", "problem": "Mara nie trzyma butelki"}, {"area": "zły", "problem": "x"}]}'
+
+        with mock.patch('studio_api.animation.complete_vision', side_effect=seen):
+            review = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/{second}/vision-review", json={}, headers=H))
+        self.assertEqual(review['issues'][0], {'area': 'Postać/poza', 'problem': 'Mara nie trzyma butelki'})
+        self.assertEqual(review['issues'][1]['area'], 'Kadr')
+        prompt, images = calls[0]
+        self.assertEqual(len(images), 4)  # end of the previous scene + three stills
+        self.assertTrue(all(i[:2] == b'\xff\xd8' for i in images))
+        self.assertIn('Mara trzyma butelkę', prompt)
+        self.assertIn('previous scene', prompt)
+        film = self.scenes(film, {'type': 'review', 'scene_id': second, 'status': 'rework', 'note': 'ma trzymać butelkę'})
+        answers = iter([json.dumps({'title': 'Druga v1', 'reason': 'a'}), json.dumps({'title': 'Druga v2', 'reason': 'b'})])
+        looks = iter(['{"issues": [{"area": "Postać/poza", "problem": "nadal bez butelki"}]}', '{"issues": []}'])
+        with mock.patch('studio_api.animation.complete', side_effect=lambda *a, **k: next(answers)), \
+             mock.patch('studio_api.animation.complete_vision', side_effect=lambda *a, **k: next(looks)):
+            job = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/rework-batch", json={}, headers=H))
+            for _ in range(750):
+                state = self.ok(self.client.get('/api/jobs/' + job['id']))
+                if state['status'] in ('SUCCEEDED', 'FAILED'):
+                    break
+                time.sleep(.02)
+        proposal = state['result']['proposals'][0]
+        self.assertEqual((proposal['changes']['title'], proposal['vision_issues'], proposal['reviewed']), ('Druga v2', [], True))
+        self.assertEqual(self.store.get(film['id']).stage_scenes[1].title, 'Druga')
+        self.assertTrue(first)
 
 
 if __name__ == '__main__':

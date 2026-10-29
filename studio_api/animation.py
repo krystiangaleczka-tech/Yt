@@ -5,10 +5,10 @@ from pathlib import Path
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
 
-from studio_core.animation import (CONTENT_FIELDS, Cast, review_staging, DRAFT_VOICES, DraftVoices, MAX_IMAGE, apply_scene_operation, breakdown_prompt,
+from studio_core.animation import (CONTENT_FIELDS, Cast, StageScene, parse_vision, review_staging, vision_prompt, DRAFT_VOICES, DraftVoices, MAX_IMAGE, apply_scene_operation, breakdown_prompt,
                                    channel_bank, default_draft_voice, parse_breakdown, parse_regeneration, regeneration_prompt)
-from studio_core.assistant import complete
-from studio_core.animatic import Images, render_animatic
+from studio_core.assistant import complete, complete_vision
+from studio_core.animatic import Images, ordered_scenes, render_animatic, scene_frames
 from studio_core.store import Conflict, atomic_json
 
 
@@ -106,6 +106,47 @@ def register_animation(app, store, connectors, jobs):
             text = complete(connectors, regeneration_prompt(project, scene, characters, locations, str(body.get('instruction', ''))[:2000], items), store=store, project=project)
         return parse_regeneration(str(text), scene, characters, locations, items, project.stage_scenes) | {'base_revision': project.revision}
 
+    def look(project, scene, bank):
+        """Vision review of a scene (or a proposed version of it): stills of it and the end of the previous scene."""
+        images = Images(cast, project.channel_id)
+        order = ordered_scenes(project)
+        index = next((i for i, x in enumerate(order) if x.id == scene.id), -1)
+        previous = order[index - 1] if index > 0 else None
+        frames = (scene_frames(previous, bank, images, moments=(.95,)) if previous else []) + scene_frames(scene, bank, images)
+        text = complete_vision(connectors, vision_prompt(scene, bank[0], bank[1], bank[2], bool(previous)), frames, store=store, project=project)
+        return parse_vision(text)
+
+    @app.post('/api/projects/{pid}/stage-scenes/{sid}/vision-review')
+    def vision_review(pid: str, sid: str, body: dict):
+        project = store.get(pid)
+        return {'scene_id': sid, 'issues': look(project, scene_of(project, sid), channel_bank(cast, project, archived=True)),
+                'revision': project.revision}
+
+    @app.post('/api/projects/{pid}/stage-scenes/vision-review-all')
+    def vision_review_all(pid: str, body: dict):
+        project = store.get(pid)
+        bank = channel_bank(cast, project, archived=True)
+        targets = [s for s in ordered_scenes(project) if s.status != 'approved' or body.get('all')]
+        if not targets:
+            raise ValueError('Wszystkie sceny są zatwierdzone')
+
+        def task(job_id, progress, cancel):
+            reviews = {}
+            for done, scene in enumerate(targets):
+                if cancel.is_set():
+                    raise InterruptedError()
+                progress(done / len(targets), f'Ogląda scenę {scene.number} ({done + 1}/{len(targets)})')
+                try:
+                    reviews[scene.id] = {'issues': look(project, scene, bank)}
+                except InterruptedError:
+                    raise
+                except Exception as error:
+                    reviews[scene.id] = {'error': str(error)[:300]}
+            return {'reviews': reviews, 'revision': project.revision}
+
+        return jobs.submit(pid, project.revision, 'vision', task, heavy=False,
+                           request={'action': 'vision', 'body': body}, snapshot=project.model_dump())
+
     @app.post('/api/projects/{pid}/stage-scenes/rework-batch')
     def rework_batch(pid: str, body: dict):
         """AI proposals for every scene sent back for rework; nothing changes until the director accepts."""
@@ -136,6 +177,27 @@ def register_animation(app, store, connectors, jobs):
                                 proposal = second | {'reviewed': True}
                         except ValueError:
                             pass
+                    if body.get('vision', True) and not proposal['issues'] and not cancel.is_set():
+                        # Second reviewer looks at the rendered stills of the proposal.
+                        progress(done / len(targets), f'Scena {scene.number}: recenzent obrazu ogląda propozycję')
+                        bank = (characters, locations, items)
+                        candidate = StageScene.model_validate(scene.model_dump() | proposal['changes'])
+                        try:
+                            seen = look(project, candidate, bank)
+                        except (ValueError, OSError):
+                            seen = []
+                        if seen:
+                            note = 'The frame reviewer looked at your proposal and found: ' + ' '.join(i['problem'] for i in seen)
+                            try:
+                                text = complete(connectors, regeneration_prompt(project, scene, characters, locations, note, items), store=store, project=project)
+                                second = parse_regeneration(str(text), scene, characters, locations, items, project.stage_scenes)
+                                if not second['issues']:
+                                    seen_again = look(project, StageScene.model_validate(scene.model_dump() | second['changes']), bank)
+                                    if len(seen_again) < len(seen):
+                                        proposal, seen = second | {'reviewed': True}, seen_again
+                            except (ValueError, OSError):
+                                pass
+                        proposal['vision_issues'] = seen
                     proposals.append(proposal | {'number': scene.number, 'title': scene.title,
                                                  'before': scene.model_dump(include=set(CONTENT_FIELDS))})
                 except InterruptedError:

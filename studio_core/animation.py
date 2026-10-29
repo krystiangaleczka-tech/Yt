@@ -807,3 +807,47 @@ def review_staging(scene: StageScene, characters, locations, items=None, others=
             if .25 < share < .97:
                 issues.append(f"„{item.name}” wychodzi poza „{region.name}” na ścianę — przypisz go do tego obszaru.")
     return issues
+
+
+def vision_prompt(scene: StageScene, characters, locations, items=None, has_previous=False) -> str:
+    """Rubric for a model that looks at rendered stills of one scene."""
+    cast = ", ".join(f"{characters[c.character_id].name} ({characters[c.character_id].role or 'postać'})"
+                     for c in scene.characters if c.character_id in characters) or "brak"
+    lines = " / ".join(f"{'Narrator' if l.speaker == 'narrator' else getattr(characters.get(l.speaker), 'name', '?')}: {l.text}"
+                       for l in scene.dialogue if l.text.strip()) or "brak"
+    order = ("The FIRST image is the last frame of the previous scene (for continuity). " if has_previous else "") + \
+            "The next three images are the beginning, middle and end of this scene."
+    return f"""You are the film director's frame reviewer for a 2D stick-figure animated series. Stick figures and simple
+backgrounds are the intended style: do NOT complain about the drawing style itself. {order}
+
+Scene {scene.number}: {scene.title}. Time: {scene.story_time or '-'}.
+Intended action: {scene.action or '-'}
+Camera: {scene.camera or '-'}. Characters: {cast}. Spoken lines: {lines}
+
+Check what a viewer would notice:
+- Does each pose fit the action and the line (e.g. "holds a bottle" but no bottle; knocking but arm down)?
+- Faces/expressions that contradict the emotion; anatomy that looks broken or limbs in odd places.
+- Is the intended action actually readable in the pictures?
+- Scale and perspective: people too big/small for the room, floating above the floor, odd overlaps, things cut off badly.
+- Objects or effects in implausible places (a crack on a wall instead of glass, props floating).
+- Continuity with the previous scene's last frame (positions, damage, props, clothing, light) unless the story clearly changed it.
+- Framing: is the important thing visible and not hidden behind captions or frame edges?
+
+Answer only JSON: {{"ok": true|false, "issues": [{{"area": "Kadr"|"Postać/poza"|"Tło"|"Dialog"|"Tempo", "problem": "short, concrete, in Polish"}}]}}.
+List at most 5 real problems; an empty list when the scene works."""
+
+
+def parse_vision(text: str) -> list[dict]:
+    match = re.search(r"\{.*\}", text or "", re.S)
+    if not match:
+        raise ValueError("Recenzent obrazu nie zwrócił JSON")
+    try:
+        data = json.loads(match.group(0))
+    except json.JSONDecodeError as error:
+        raise ValueError("Recenzent obrazu zwrócił niepoprawny JSON") from error
+    issues = []
+    for row in data.get("issues", [])[:5]:
+        if isinstance(row, dict) and str(row.get("problem", "")).strip():
+            area = row.get("area") if row.get("area") in REVIEW_TAGS else "Kadr"
+            issues.append({"area": area, "problem": str(row["problem"]).strip()[:400]})
+    return issues

@@ -6495,8 +6495,12 @@ textarea::placeholder {
 .stage-frame.animate .motion-exit_right {
   animation: actor-exit-right min(2.4s, var(--dur)) ease-in calc(var(--dur) * 0.45) forwards;
 }
-.stage-frame.animate :is(.motion-enter_left, .motion-enter_right, .motion-exit_left, .motion-exit_right) img {
-  animation: actor-step 0.45s ease-in-out infinite;
+/* Steps only while walking: as many as fit in the walk, then the character stands still. */
+.stage-frame.animate :is(.motion-enter_left, .motion-enter_right) img {
+  animation: actor-step 0.45s ease-in-out var(--steps, 5);
+}
+.stage-frame.animate :is(.motion-exit_left, .motion-exit_right) img {
+  animation: actor-step 0.45s ease-in-out calc(var(--dur) * 0.45) var(--steps, 5);
 }
 @keyframes actor-breathe {
   50% {
@@ -6917,4 +6921,19 @@ textarea::placeholder {
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+.vision-review {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  justify-items: start;
+}
+.vision-mark {
+  margin-left: 4px;
+  color: var(--blue);
+  font-size: 11px;
 }

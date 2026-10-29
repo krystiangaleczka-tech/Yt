@@ -42,6 +42,16 @@ Każda scena i każda propozycja AI przechodzi przez recenzenta kadru, który sp
 - rekwizyt lub nakładka wychodzi poza obszar na ścianę,
 - postać jest wyższa niż kadr albo ma wyraźnie inną wielkość niż w pozostałych scenach w tej lokacji (zbliżenie zrobione powiększeniem postaci zamiast kamerą).
 
+### Recenzent obrazu (AI)
+
+Drugi recenzent ogląda obraz: aplikacja renderuje trzy klatki sceny (początek, środek, koniec, z kwestią mówioną w danej chwili) oraz ostatnią klatkę poprzedniej sceny i wysyła je do modelu z listą kontrolną. Sprawdza: czy poza pasuje do akcji i kwestii (np. „trzyma butelkę”, a butelki nie ma), mimikę i anatomię, czytelność akcji, skalę i perspektywę, przedmioty w dziwnych miejscach, ciągłość z poprzednią sceną i czy ważna rzecz nie jest zasłonięta. Prosty styl patyczaków jest zamierzony i nie jest oceniany.
+
+- **Obejrzyj kadr (AI)** w scenie (klawisz `V`) — uwagi pokazują się pod paskiem oceny; **Odeślij do poprawki z tymi uwagami** zamienia je w uwagę reżysera.
+- **Obejrzyj niezatwierdzone sceny (AI)** — zadanie w tle dla wszystkich niezatwierdzonych scen; lista scen pokazuje niebieski znacznik przy scenach z uwagami.
+- **Zbiorcza poprawka** po recenzji geometrii ogląda też obraz propozycji; przy uwagach daje AI jeszcze jedną próbę i zostawia lepszą wersję. Uwagi recenzenta obrazu widać przy propozycji.
+
+Działa z Claude CLI (obraz przekazywany w samej wiadomości, model nie ma dostępu do plików) albo z połączonym modelem obsługującym obrazy. Każda scena to jedno wywołanie modelu (kilkanaście sekund). Recenzent nie zastępuje Twojej oceny — może przeoczyć problem albo zgłosić coś zamierzonego.
+
 ### Kadr kamery
 
 Plan ogólny, średni, zbliżenie i detal to **kadr kamery** (zoom wokół wybranego punktu), a nie powiększanie postaci — postać ma w danej lokacji stałą wielkość. W inspektorze sceny wybierasz plan, a na podglądzie przesuwasz ramkę kadru (edytor pokazuje cały plan, ciemniejąc to, co poza kadrem). Animatik, miniatury storyboardu i MP4 pokazują już sam kadr; ruch kamery (najazd, panorama) działa wewnątrz kadru. Zasada trafia też do promptów AI.

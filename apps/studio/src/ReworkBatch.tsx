@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, SkipForward, Sparkles, X } from "lucide-react";
+import { Check, Eye, SkipForward, Sparkles, X } from "lucide-react";
 import { useStudio } from "./context";
 import { api } from "./api";
 import { Button } from "./components";
@@ -46,6 +46,10 @@ export function ReworkBatch({ bank, compact = false }: { bank: CastBank; compact
   const characters = useMemo(() => Object.fromEntries(bank.characters.map((c) => [c.id, c])), [bank]);
   const open = p.stage_scenes.filter((x) => x.status === "rework").length;
   const running = job && ["QUEUED", "RUNNING"].includes(job.status);
+  const visionJob = s.jobs
+    .filter((j) => j.project_id === p.id && j.kind === "vision")
+    .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0];
+  const looking = visionJob && ["QUEUED", "RUNNING"].includes(visionJob.status);
 
   function done(id: string) {
     const next = [...handled, id];
@@ -97,6 +101,21 @@ export function ReworkBatch({ bank, compact = false }: { bank: CastBank; compact
         {running
           ? `Poprawiam… ${job?.message || ""}`
           : `Popraw sceny do poprawki${open ? ` (${open})` : ""}`}
+      </Button>
+      <Button
+        icon={Eye}
+        subtle
+        busy={!!looking}
+        disabled={!!looking || !p.stage_scenes.some((x) => x.status !== "approved")}
+        title="AI obejrzy klatki każdej niezatwierdzonej sceny i wypisze, co widz zauważy"
+        onClick={() =>
+          s.run(async () => {
+            await api(`/projects/${p.id}/stage-scenes/vision-review-all`, {});
+            s.notify("Recenzent obrazu ogląda sceny — uwagi pojawią się przy scenach");
+          })
+        }
+      >
+        {looking ? `Ogląda… ${visionJob?.message || ""}` : "Obejrzyj niezatwierdzone sceny (AI)"}
       </Button>
       {job?.status === "FAILED" && <p className="manual-error small">Zbiorcza poprawka nie powiodła się: {job.message}</p>}
       {result && result.errors.length > 0 && queue.length === 0 && (

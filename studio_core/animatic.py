@@ -403,3 +403,18 @@ def render_animatic(project, bank, images, drafts_for, output: Path, progress, c
         encoder.stderr.close()
         audio_path.unlink(missing_ok=True)
     return {"duration": round(total, 3), "scenes": len(timeline), "frames": frames}
+
+
+def scene_frames(scene, bank, images, *, size=(640, 360), moments=(.15, .55, .95)) -> list[bytes]:
+    """JPEG stills of a scene (with the line spoken at that moment) for a vision reviewer."""
+    import io as _io
+    renderer = SceneRenderer(scene, bank, images, size)
+    spoken = [line for line in scene.dialogue if line.text.strip()]
+    frames = []
+    for moment in moments:
+        line = spoken[min(len(spoken) - 1, int(moment * len(spoken)))] if spoken else None
+        frame = renderer.frame(moment, scene.seconds, line.text if line else None)
+        data = _io.BytesIO()
+        frame.save(data, "JPEG", quality=82)
+        frames.append(data.getvalue())
+    return frames
