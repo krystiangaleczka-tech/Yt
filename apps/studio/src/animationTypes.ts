@@ -202,7 +202,7 @@ export type StageScene = {
   dialogue: DialogueLine[];
   sound: { ambience: string; music: string; sfx: string[] };
   audio?: SoundCue[];
-  motion?: { camera: CameraMove; strength: number };
+  motion?: { camera: CameraMove; strength: number; zoom?: number; focus_x?: number; focus_y?: number };
   seconds: number;
   status: SceneStatus;
   reviews: {

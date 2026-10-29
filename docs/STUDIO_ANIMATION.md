@@ -39,7 +39,12 @@ Każda scena i każda propozycja AI przechodzi przez recenzenta kadru, który sp
 - osoba za szybą jest dużo mniejsza niż postacie w kadrze,
 - stopy nad linią podłogi (postać lewituje),
 - postać stoi na tle okna, ale nie jest do niego przypisana,
-- rekwizyt lub nakładka wychodzi poza obszar na ścianę.
+- rekwizyt lub nakładka wychodzi poza obszar na ścianę,
+- postać jest wyższa niż kadr albo ma wyraźnie inną wielkość niż w pozostałych scenach w tej lokacji (zbliżenie zrobione powiększeniem postaci zamiast kamerą).
+
+### Kadr kamery
+
+Plan ogólny, średni, zbliżenie i detal to **kadr kamery** (zoom wokół wybranego punktu), a nie powiększanie postaci — postać ma w danej lokacji stałą wielkość. W inspektorze sceny wybierasz plan, a na podglądzie przesuwasz ramkę kadru (edytor pokazuje cały plan, ciemniejąc to, co poza kadrem). Animatik, miniatury storyboardu i MP4 pokazują już sam kadr; ruch kamery (najazd, panorama) działa wewnątrz kadru. Zasada trafia też do promptów AI.
 
 Uwagi są widoczne pod tytułem sceny (lista scen ma przy nich czerwony znacznik) i przy propozycjach. Trafiają też do promptu AI. W zbiorczej poprawce propozycja odrzucona przez recenzenta wraca raz do AI z jego uwagami; dostajesz wersję z mniejszą liczbą problemów i informację, że była poprawiana. Recenzent nie ogląda pikseli — sprawdza położenie i proporcje, więc wymaga ustawionej podłogi i obszarów.
 

@@ -104,7 +104,7 @@ def register_animation(app, store, connectors, jobs):
         text = body.get('response')
         if not text:
             text = complete(connectors, regeneration_prompt(project, scene, characters, locations, str(body.get('instruction', ''))[:2000], items), store=store, project=project)
-        return parse_regeneration(str(text), scene, characters, locations, items) | {'base_revision': project.revision}
+        return parse_regeneration(str(text), scene, characters, locations, items, project.stage_scenes) | {'base_revision': project.revision}
 
     @app.post('/api/projects/{pid}/stage-scenes/rework-batch')
     def rework_batch(pid: str, body: dict):
@@ -124,14 +124,14 @@ def register_animation(app, store, connectors, jobs):
                 progress(done / len(targets), f'Scena {scene.number} ({done + 1}/{len(targets)})')
                 try:
                     text = complete(connectors, regeneration_prompt(project, scene, characters, locations, '', items), store=store, project=project)
-                    proposal = parse_regeneration(str(text), scene, characters, locations, items)
+                    proposal = parse_regeneration(str(text), scene, characters, locations, items, project.stage_scenes)
                     if proposal['issues'] and not cancel.is_set():
                         # The staging reviewer found problems: one more pass with its notes before the director sees it.
                         progress(done / len(targets), f'Scena {scene.number}: recenzent kadru odesłał propozycję do poprawki')
                         retry_note = 'Your previous proposal was rejected by the staging reviewer: ' + ' '.join(proposal['issues'])
                         try:
                             text = complete(connectors, regeneration_prompt(project, scene, characters, locations, retry_note, items), store=store, project=project)
-                            second = parse_regeneration(str(text), scene, characters, locations, items)
+                            second = parse_regeneration(str(text), scene, characters, locations, items, project.stage_scenes)
                             if len(second['issues']) < len(proposal['issues']):
                                 proposal = second | {'reviewed': True}
                         except ValueError:
@@ -152,7 +152,7 @@ def register_animation(app, store, connectors, jobs):
         """Staging reviewer for every scene: {scene_id: [issues]}."""
         project = store.get(pid)
         characters, locations, items = channel_bank(cast, project, archived=True)
-        return {scene.id: review_staging(scene, characters, locations, items) for scene in project.stage_scenes}
+        return {scene.id: review_staging(scene, characters, locations, items, project.stage_scenes) for scene in project.stage_scenes}
 
     def beat_of(project, bid):
         beat = next((b for b in project.beats if b.id == bid), None)
@@ -174,7 +174,7 @@ def register_animation(app, store, connectors, jobs):
         text = body.get('response')
         if not text:
             text = complete(connectors, breakdown_prompt(project, beat, characters, locations, str(body.get('instruction', ''))[:2000], items), store=store, project=project)
-        return parse_breakdown(str(text), beat, characters, locations, items) | {'base_revision': project.revision}
+        return parse_breakdown(str(text), beat, characters, locations, items, project.stage_scenes) | {'base_revision': project.revision}
 
     @app.post('/api/projects/{pid}/stage-scenes/{sid}/draft-voice')
     def draft_voice(pid: str, sid: str, body: dict):

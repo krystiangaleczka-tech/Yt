@@ -403,5 +403,34 @@ class AnimationTests(unittest.TestCase):
         self.assertEqual(frame.getpixel((160, 120)), (255, 255, 255))   # below the sill: clipped away
 
 
+    def test_reviewer_flags_a_giant_instead_of_a_camera_close_up(self):
+        cid = self.channel['id']
+        leo = self.character(cid)
+        state = {'name': 'Dzień', 'image': self.image(cid, png((200, 190, 170, 255), (160, 90))), 'floor_y': .78}
+        kitchen = self.ok(self.client.post(f'/api/channels/{cid}/locations', json={'name': 'Kuchnia', 'states': [state]}, headers=H))
+        base = {'location_id': kitchen['id']}
+        normal = {'character_id': leo['id'], 'x': .5, 'y': .8, 'scale': .6}
+        film = self.scenes(self.film(), {'type': 'add', 'scene': base | {'title': 'A', 'characters': [normal]}},
+                           {'type': 'add', 'scene': base | {'title': 'B', 'characters': [normal | {'x': .3}]}},
+                           {'type': 'add', 'scene': base | {'title': 'Olbrzym', 'characters': [normal | {'y': 1.0, 'scale': 1.0}]}},
+                           {'type': 'add', 'scene': base | {'title': 'Zbliżenie', 'characters': [normal],
+                                                            'motion': {'zoom': 2.2, 'focus_x': .5, 'focus_y': .4}}})
+        review = self.ok(self.client.get(f"/api/projects/{film['id']}/stage-scenes/review"))
+        giant, close = (review[s['id']] for s in film['stage_scenes'][2:])
+        self.assertTrue(any('wyższy niż kadr' in i for i in giant), giant)
+        self.assertTrue(any('inną wielkość' in i for i in giant), giant)
+        self.assertEqual(close, [])
+
+    def test_framing_crops_around_the_focus(self):
+        from PIL import Image as PILImage
+        from studio_core.animatic import framing
+        image = PILImage.new('RGBA', (200, 100), (255, 255, 255, 255))
+        image.paste((255, 0, 0, 255), (150, 0, 200, 50))  # red top-right quarter
+        self.assertEqual(framing(image, 1, .5, .5), image)
+        out = framing(image, 2, .9, .1)  # focus clamped so the crop stays inside: x 100-200, y 0-50
+        self.assertEqual(out.getpixel((160, 50))[:3], (255, 0, 0))
+        self.assertEqual(out.getpixel((40, 50))[:3], (255, 255, 255))
+
+
 if __name__ == '__main__':
     unittest.main()

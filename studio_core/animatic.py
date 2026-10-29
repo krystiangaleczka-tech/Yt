@@ -176,6 +176,17 @@ def transform(layer: Image.Image, scale, dx, dy, size):
     return layer.transform(size, Image.EXTENT, box, Image.BILINEAR)
 
 
+def framing(image: Image.Image, zoom, fx, fy):
+    """Camera framing: crop around the focus point (kept inside the frame) and scale back to full size."""
+    if zoom <= 1:
+        return image
+    w, h = image.size
+    cw, ch = w / zoom, h / zoom
+    cx = min(max(fx * w, cw / 2), w - cw / 2)
+    cy = min(max(fy * h, ch / 2), h - ch / 2)
+    return image.transform(image.size, Image.EXTENT, (cx - cw / 2, cy - ch / 2, cx + cw / 2, cy + ch / 2), Image.BICUBIC)
+
+
 class SceneRenderer:
     def __init__(self, scene, bank, images, size):
         self.scene, self.images, self.size = scene, images, size
@@ -277,6 +288,8 @@ class SceneRenderer:
             elif move == "push_in":
                 fscale = scale * (1 + .12 * strength * ease(t))
             out.alpha_composite(transform(self.foreground, fscale, fdx, dy, self.size))
+        motion = self.scene.motion
+        out = framing(out, motion.zoom, motion.focus_x, motion.focus_y)
         if self.night:
             out.alpha_composite(Image.new("RGBA", self.size, (10, 16, 40, 46)))
         if caption:

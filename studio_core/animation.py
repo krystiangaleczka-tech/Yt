@@ -231,6 +231,10 @@ class SceneSound(Model):
 class SceneMotion(Model):
     camera: Literal["static", "push_in", "pull_out", "pan_left", "pan_right", "shake"] = "static"
     strength: float = Field(default=.5, ge=0, le=1)
+    # Framing: close-ups crop the frame (zoom around a focus point); characters keep their scale.
+    zoom: float = Field(default=1, ge=1, le=4)
+    focus_x: float = Field(default=.5, ge=0, le=1)
+    focus_y: float = Field(default=.5, ge=0, le=1)
 
 
 class Review(Model):
@@ -275,11 +279,13 @@ CONTENT_FIELDS = ("title", "story_time", "location_id", "location_state_id", "ch
 STAGING_RULES = """Staging rules (a reviewer checks them): feet stand on the state's floor_y unless the character is cropped by the frame bottom (y > 1) or by a region.
 Anyone seen through a window, doorway or mirror gets that region_id: they are clipped to it, keep a realistic scale similar to the other characters (scale 0.5-0.7)
 and usually show from the waist or chest up (their feet line far below the region's bottom edge). Never shrink a person to fit a whole body inside a window.
+Close-ups and medium shots are CAMERA framing (motion.zoom with focus_x/focus_y on the subject), never a bigger character:
+a character keeps the same scale as in the other scenes of the same location, standing on the floor line.
 Cracks, stains and reflections on glass get the window's region_id so they never spill onto the wall."""
 SCHEMA_HINT = """characters: [{"character_id","pose_id","x" 0-1,"y" feet line (0-1.6, >1 = cropped by frame bottom),"scale" (height as a fraction of the frame),"flip","region_id" (optional, clips to a state region),"motion": "idle"|"still"|"enter_left"|"enter_right"|"exit_left"|"exit_right"}];
 props: [{"item_id","variant_id","x","y" centre,"scale","rotation","layer": "behind"|"front","motion": "none"|"appear"|"fade_in","at" 0-1,"region_id" (optional clip)}] — props and overlays persist between scenes until the story removes them;
 audio: [{"sound_id" (sfx or ambience from the bank),"at" 0-1 moment for effects,"volume" 0-2}];
-motion: {"camera": "static"|"push_in"|"pull_out"|"pan_left"|"pan_right"|"shake", "strength" 0-1}; dialogue: [{"speaker","text","direction"}]; sound: {"ambience","music","sfx":[]}."""
+motion: {"camera": "static"|"push_in"|"pull_out"|"pan_left"|"pan_right"|"shake", "strength" 0-1, "zoom" 1-4 (framing: 1 wide, 1.6 medium, 2.2 close-up), "focus_x","focus_y" 0-1 (centre of the framing)}; dialogue: [{"speaker","text","direction"}]; sound: {"ambience","music","sfx":[]}."""
 # Organisation, not content: moving a scene between beats does not reopen its review.
 SCENE_FIELDS = CONTENT_FIELDS + ("beat_id",)
 
@@ -561,7 +567,7 @@ def regeneration_prompt(project, scene: StageScene, characters, locations, instr
     neighbours = [s for s in project.stage_scenes if abs(s.number - scene.number) == 1]
     last = scene.reviews[-1] if scene.reviews else None
     feedback = "; ".join(filter(None, [", ".join(last.tags) if last else "", last.note if last else "", instruction]))
-    current_issues = review_staging(scene, characters, locations, items)
+    current_issues = review_staging(scene, characters, locations, items, project.stage_scenes)
     current = scene.model_dump(include=set(CONTENT_FIELDS))
     return f"""You are the scene director of a 2D animated series. Rewrite ONE scene according to the director's feedback.
 Film: {project.title}. Language of narration and dialogue: {project.language}.
@@ -579,7 +585,7 @@ Return only JSON with keys: {", ".join(CONTENT_FIELDS)}, and "reason" (one sente
 {STAGING_RULES}"""
 
 
-def parse_regeneration(text: str, scene: StageScene, characters, locations, items=None) -> dict:
+def parse_regeneration(text: str, scene: StageScene, characters, locations, items=None, others=()) -> dict:
     match = re.search(r"\{.*\}", text or "", re.S)
     if not match:
         raise ValueError("Odpowiedź AI nie zawiera JSON sceny")
@@ -595,7 +601,7 @@ def parse_regeneration(text: str, scene: StageScene, characters, locations, item
     candidate = StageScene.model_validate(scene.model_dump() | changes)
     validate_scene(candidate, characters, locations, items)
     return {"scene_id": scene.id, "changes": candidate.model_dump(include=set(CONTENT_FIELDS)), "reason": reason,
-            "issues": review_staging(candidate, characters, locations, items)}
+            "issues": review_staging(candidate, characters, locations, items, others)}
 
 
 def bank_summary(characters, locations, items=None):
@@ -632,7 +638,7 @@ Return only JSON: {{"reason": "one sentence", "scenes": [{{{", ".join(f'"{k}"' f
 {STAGING_RULES}"""
 
 
-def parse_breakdown(text: str, beat, characters, locations, items=None) -> dict:
+def parse_breakdown(text: str, beat, characters, locations, items=None, others=()) -> dict:
     match = re.search(r"\{.*\}", text or "", re.S)
     if not match:
         raise ValueError("Odpowiedź AI nie zawiera JSON scen")
@@ -653,7 +659,7 @@ def parse_breakdown(text: str, beat, characters, locations, items=None) -> dict:
                 line.pop("id", None)
         scene = StageScene.model_validate(values | {"number": number})
         validate_scene(scene, characters, locations, items)
-        scenes.append(scene.model_dump(include=set(CONTENT_FIELDS)) | {"beat_id": beat.id, "issues": review_staging(scene, characters, locations, items)})
+        scenes.append(scene.model_dump(include=set(CONTENT_FIELDS)) | {"beat_id": beat.id, "issues": review_staging(scene, characters, locations, items, others)})
     return {"beat_id": beat.id, "scenes": scenes, "reason": str(data.get("reason", ""))[:500]}
 
 
@@ -732,7 +738,7 @@ def scene_state(scene, locations):
     return next((s for s in location.states if s.id == scene.location_state_id), None) or next((s for s in location.states if s.image), None)
 
 
-def review_staging(scene: StageScene, characters, locations, items=None) -> list[str]:
+def review_staging(scene: StageScene, characters, locations, items=None, others=()) -> list[str]:
     """Staging reviewer: geometry checks a human director would catch at a glance.
 
     Boxes are in frame fractions; image aspect converts height (scale) to width on a 16:9 frame.
@@ -769,6 +775,15 @@ def review_staging(scene: StageScene, characters, locations, items=None) -> list
             continue
         if floor is not None and placed.y < floor - .04 and placed.y <= 1:
             issues.append(f"{character.name} wisi w powietrzu — stopy powyżej podłogi. Opuść postać na linię podłogi.")
+        if box[1] < .01:
+            issues.append(f"{character.name} jest wyższy niż kadr — zbliżenie rób kadrem kamery (zoom), nie powiększaniem postaci.")
+        usual = sorted(c.scale for other in others if other.id != scene.id and other.location_id == scene.location_id
+                       for c in other.characters if c.character_id == placed.character_id and not c.region_id)
+        if usual:
+            median = usual[len(usual) // 2]
+            if placed.scale > median * 1.35 or placed.scale < median / 1.35:
+                issues.append(f"{character.name} ma {placed.scale / median:.1f}× inną wielkość niż w pozostałych scenach w tej lokacji — "
+                              f"zachowaj skalę postaci, a bliższy kadr ustaw kamerą (zoom).")
         for inside in regions.values():
             if overlap(box, inside) > .7:
                 issues.append(f"{character.name} stoi na tle „{inside.name}”, ale nie jest do niego przypisana — "

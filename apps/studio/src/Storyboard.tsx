@@ -422,6 +422,7 @@ export default function Storyboard() {
               channelId={p.channel_id}
               lineIndex={lineIndex}
               animate={playing && !preparing}
+              framed
             />
           ) : (
             <Empty title="Animatik jest pusty" children="Dodaj beaty i sceny poniżej." />

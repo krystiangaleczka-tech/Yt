@@ -6873,3 +6873,48 @@ textarea::placeholder {
   display: flex;
   gap: 6px;
 }
+
+.stage-camera {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+}
+.stage-framing {
+  position: absolute;
+  z-index: 4;
+  border: 2px dashed var(--accent);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.stage-framing.movable {
+  pointer-events: auto;
+  cursor: move;
+}
+.stage-framing span {
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+}
+.framing-presets {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.framing-presets button {
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.framing-presets button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}

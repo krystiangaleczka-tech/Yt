@@ -313,6 +313,7 @@ export default function SceneBoard() {
               bank={bank}
               channelId={p.channel_id}
               animate={previewRun > 0}
+              onFrame={(focus) => update({ motion: { camera: "static", strength: 0.5, ...scene.motion, ...focus } })}
               onPlace={previewRun ? undefined : (placed) => update({ characters: placed })}
               onPlaceProps={previewRun ? undefined : (props) => update({ props })}
             />
@@ -520,6 +521,8 @@ export function Stage({
   lineIndex = 0,
   compact = false,
   animate = false,
+  framed = animate || compact,
+  onFrame,
 }: {
   scene: StageScene;
   bank: CastBank;
@@ -530,6 +533,9 @@ export function Stage({
   compact?: boolean;
   /** Play camera and character motion over the scene's duration (animatic / preview). */
   animate?: boolean;
+  /** Show the camera framing (zoom); the editor shows the whole set with a framing box instead. */
+  framed?: boolean;
+  onFrame?: (focus: { focus_x: number; focus_y: number }) => void;
 }) {
   const frame = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{
@@ -546,6 +552,15 @@ export function Stage({
     location?.states.find((st) => st.image);
   const line = compact ? undefined : scene.dialogue[lineIndex];
   const camera = scene.motion?.camera || "static";
+  const zoom = scene.motion?.zoom || 1;
+  const [framing, setFraming] = useState<{ x: number; y: number } | null>(null);
+  // Keep the framing inside the set, like the renderer does.
+  const clampFocus = (v: number) => Math.min(Math.max(v, 0.5 / zoom), 1 - 0.5 / zoom);
+  const fx = clampFocus(framing?.x ?? scene.motion?.focus_x ?? 0.5);
+  const fy = clampFocus(framing?.y ?? scene.motion?.focus_y ?? 0.5);
+  const cameraStyle = {
+    transform: `scale(${zoom}) translate(${(0.5 - fx) * 100}%, ${(0.5 - fy) * 100}%)`,
+  } as CSSProperties;
   const motionStyle = {
     "--dur": `${scene.seconds}s`,
     "--s": scene.motion?.strength ?? 0.5,
@@ -640,6 +655,7 @@ export function Stage({
         setDrag(null);
       }}
     >
+      <div className="stage-camera" style={framed ? cameraStyle : undefined}>
       <div className={`stage-world cam-${camera}`}>
       {state?.image ? (
         <img className="stage-bg" src={castImage(channelId, state.image.file)} alt="" />
@@ -696,6 +712,32 @@ export function Stage({
         <img className="stage-fg" src={castImage(channelId, state.foreground.file)} alt="" />
       )}
       </div>
+      </div>
+      {!framed && zoom > 1 && (
+        <div
+          className={`stage-framing ${onFrame ? "movable" : ""}`}
+          style={{
+            left: `${(fx - 0.5 / zoom) * 100}%`,
+            top: `${(fy - 0.5 / zoom) * 100}%`,
+            width: `${100 / zoom}%`,
+            height: `${100 / zoom}%`,
+          }}
+          onPointerDown={(e) => {
+            if (!onFrame) return;
+            e.stopPropagation();
+            e.currentTarget.setPointerCapture(e.pointerId);
+            setFraming(position(e));
+          }}
+          onPointerMove={(e) => framing && setFraming(position(e))}
+          onPointerUp={() => {
+            if (!framing || !onFrame) return;
+            onFrame({ focus_x: Math.round(framing.x * 1000) / 1000, focus_y: Math.round(framing.y * 1000) / 1000 });
+            setFraming(null);
+          }}
+        >
+          <span>kadr kamery ×{zoom.toFixed(1)}</span>
+        </div>
+      )}
       {line?.text && (
         <div className="stage-caption">
           {speaker && <strong>{speaker}: </strong>}
@@ -1183,6 +1225,27 @@ function SceneInspector({
           onCommit={(camera) => update({ camera })}
         />
       </Field>
+      <Field label={`Kadr kamery: ${framingName(scene.motion?.zoom || 1)}`}>
+        <div className="framing-presets">
+          {[
+            ["Ogólny", 1],
+            ["Średni", 1.6],
+            ["Zbliżenie", 2.2],
+            ["Detal", 3.2],
+          ].map(([label, z]) => (
+            <button
+              key={label}
+              className={Math.abs((scene.motion?.zoom || 1) - Number(z)) < 0.05 ? "active" : ""}
+              onClick={() =>
+                update({ motion: { camera: "static", strength: 0.5, ...scene.motion, zoom: Number(z) } })
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <span className="muted small">Zbliżenie robi kamera — postać zostaje w swojej skali. Ramkę kadru przesuwasz na podglądzie.</span>
+      </Field>
       <div className="two-fields">
         <Field label="Ruch kamery">
           <select
@@ -1392,4 +1455,8 @@ function continuity(scene: StageScene, before: StageScene | undefined, bank: Cas
       warnings.push(`${name(actor.character_id)} zmienia strój względem poprzedniej sceny.`);
   }
   return warnings;
+}
+
+function framingName(zoom: number) {
+  return zoom < 1.3 ? "plan ogólny" : zoom < 1.9 ? "plan średni" : zoom < 2.8 ? "zbliżenie" : "detal";
 }
