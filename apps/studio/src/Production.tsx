@@ -178,6 +178,14 @@ export function ShotTools() {
       }),
     );
   }
+  function moveLayer(assetId: string, neighborId: string) {
+    const next = [...(scene?.asset_ids || [])];
+    const from = next.indexOf(assetId);
+    const to = next.indexOf(neighborId);
+    if (from < 0 || to < 0) return;
+    [next[from], next[to]] = [next[to], next[from]];
+    change({ asset_ids: next });
+  }
   if (!scene) return <p>Dodaj pierwsze ujęcie w Generowaniu.</p>;
   return (
     <div className="production-grid">
@@ -359,6 +367,40 @@ export function ShotTools() {
               </label>
             ))}
         </div>
+        {scene.template === "parallax" && (
+          <>
+            <h3>Kolejność dokładania elementów</h3>
+            <p className="small muted">
+              Główny materiał to tło. Każda następna wybrana warstwa pojawia się
+              po poprzedniej. Parametry wejścia i indywidualne momenty ustaw
+              w formularzu typu ujęcia po lewej.
+            </p>
+            {(scene.asset_ids || [])
+              .filter((assetId) => assetId !== scene.asset_id)
+              .map((assetId, layerIndex, ordered) => (
+                <div className="button-row" key={assetId}>
+                  <span className="small">
+                    {layerIndex + 1}.{" "}
+                    {p.assets.find((asset) => asset.id === assetId)?.name || assetId}
+                  </span>
+                  <Button
+                    icon={ArrowUp}
+                    disabled={layerIndex === 0}
+                    onClick={() => moveLayer(assetId, ordered[layerIndex - 1])}
+                  >
+                    Wyżej
+                  </Button>
+                  <Button
+                    icon={ArrowDown}
+                    disabled={layerIndex === ordered.length - 1}
+                    onClick={() => moveLayer(assetId, ordered[layerIndex + 1])}
+                  >
+                    Niżej
+                  </Button>
+                </div>
+              ))}
+          </>
+        )}
         <h3>Fakty wykorzystane w ujęciu</h3>
         <div className="tool-options">
           {p.facts.map((f) => (
