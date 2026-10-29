@@ -31,6 +31,11 @@ TEMPLATES = [
     {"id": "qa", "name": "Pytanie i odpowiedź", "fields": [field("question", "Pytanie"), field("answer", "Odpowiedź / dosłowny cytat"), field("author", "Źródło odpowiedzi"), CAPTION]},
     {"id": "slogan", "name": "Hasło kinetyczne", "fields": [TEXT, CAPTION]},
     {"id": "cards", "name": "Karty informacji", "fields": [field("items", "Karty [tekst,…]", "json", []), CAPTION]},
+    {"id": "paper-theatre", "name": "Paper Theatre 2.5D · teatr wycinków", "fields": [
+        field("depth", "Mikroruch głębi", "number", .015, min=0, max=.3),
+        field("layer_cues", "Plan wycinków (tworzony w osobnej kategorii)", "json", []),
+        CAPTION,
+    ], "note": "Specjalny format Paper Theatre: każdy obiekt to osobny PNG z przezroczystością, osobne grupy wejść oraz ostatni bohater z większym obrysem. Edytuj w zakładce Paper Theatre 2.5D."},
     {"id": "parallax", "name": "Parallax z warstw", "fields": [
         field("depth", "Głębokość ruchu", "number", .06, min=0, max=.3),
         field("assembly_start", "Początek dokładania warstw (s)", "number", 0, min=0, max=3600),
@@ -43,7 +48,7 @@ TEMPLATES = [
 ]
 CATALOG = {item["id"]: item for item in TEMPLATES}
 LEGACY = {"ARCHIWUM": "media", "AI_OBRAZ": "media", "DOKUMENT": "document", "TYTUŁ": "title", "CYTAT": "quote", "PRASA": "press", "PODPIS": "lower-third", "LICZNIK": "counter", "OŚ_CZASU": "timeline", "MAPA": "map", "DIAGRAM": "diagram", "WAVEFORM": "waveform", "SPEKTRO": "spectrogram", "LUPA": "loupe", "SPLIT": "split", "PORÓWNANIE": "comparison", "STOS": "stack", "QA": "qa", "HASŁO": "slogan"}
-MEDIA_TEMPLATES = {"media", "document", "lower-third", "loupe", "split", "comparison", "stack", "parallax", "waveform", "spectrogram"}
+MEDIA_TEMPLATES = {"media", "document", "lower-third", "loupe", "split", "comparison", "stack", "parallax", "paper-theatre", "waveform", "spectrogram"}
 
 
 def validate_parameters(template: str, parameters: dict) -> dict:
@@ -77,13 +82,14 @@ def validate_parameters(template: str, parameters: dict) -> dict:
         ids={n["id"] for n in nodes}
         if len(ids)!=len(nodes) or any(not isinstance(e,list) or len(e)!=2 or any(v not in ids for v in e) for e in result["edges"]): raise ValueError("Połączenia diagramu muszą wskazywać istniejące, unikalne węzły")
     if template=="timeline" and any(not isinstance(e,dict) or not isinstance(e.get("date",""),str) or not isinstance(e.get("text",""),str) for e in result["events"]): raise ValueError("Wydarzenia wymagają tekstowych pól date i text")
-    if template=="parallax":
+    if template in ("parallax", "paper-theatre"):
         seen_layers = set()
         allowed = {
             "layer", "start", "duration", "drop", "depth", "rig",
             "overshoot", "settle_duration", "string_visible", "string_length",
             "swing_deg", "swing_decay", "pivot_x", "pivot_y", "start_rotation",
             "overshoot_rotation", "stick_visible", "stick_length",
+            "group", "outline_px", "outline_color",
         }
         numeric = {
             "start": (0, 3600), "duration": (0, 10), "drop": (0, .3),
@@ -91,7 +97,7 @@ def validate_parameters(template: str, parameters: dict) -> dict:
             "string_length": (0, 1), "swing_deg": (0, 20),
             "swing_decay": (0, 10), "pivot_x": (0, 1), "pivot_y": (0, 1),
             "start_rotation": (0, 90), "overshoot_rotation": (-20, 20),
-            "stick_length": (0, 1),
+            "stick_length": (0, 1), "outline_px": (0, 24),
         }
         for cue in result["layer_cues"]:
             if not isinstance(cue, dict) or not set(cue) <= allowed:
@@ -105,6 +111,15 @@ def validate_parameters(template: str, parameters: dict) -> dict:
             for key, (low, high) in numeric.items():
                 if key in cue and not number(cue[key], low, high):
                     raise ValueError("Niepoprawna wartość " + key + " dla warstwy " + str(layer))
+            if "group" in cue and (not isinstance(cue["group"], str) or cue["group"] not in
+                                   ("sky", "landscape", "foundations", "vegetation", "props", "characters", "hero")):
+                raise ValueError("Nieznana grupa scenografii Paper Theatre")
+            if "outline_color" in cue and (not isinstance(cue["outline_color"], str) or
+                                           not re.fullmatch(r"#[0-9a-fA-F]{6}", cue["outline_color"])):
+                raise ValueError("Kolor obrysu musi mieć format #RRGGBB")
+            if "outline_px" in cue and (isinstance(cue["outline_px"], bool) or
+                                      not isinstance(cue["outline_px"], int)):
+                raise ValueError("Obrys musi mieć całkowitą liczbę pikseli")
             for key in ("string_visible", "stick_visible"):
                 if key in cue and not isinstance(cue[key], bool):
                     raise ValueError("Pole " + key + " wymaga true/false")
