@@ -5,6 +5,7 @@ import { api, mediaUrl, saveText, upload, id as makeId } from "./api";
 import { useStudio } from "./context";
 import { Button, Field, NumberField } from "./components";
 import type { Project, Scene } from "./types";
+import PaperCutoutMaskEditor from "./PaperCutoutMaskEditor";
 
 const GROUPS = [
   ["sky", "Niebo · osobne chmury/słońce"],
@@ -64,6 +65,7 @@ export default function PaperTheatreAssetFirst({
   const [referencePrompt, setReferencePrompt] = useState("");
   const [draftJobId, setDraftJobId] = useState("");
   const [selectedObjectId, setSelectedObjectId] = useState("");
+  const [maskObjectId, setMaskObjectId] = useState("");
   const assets = project.assets.filter((asset) => asset.kind === "image" && asset.filename.toLowerCase().endsWith(".png"));
   const references = project.assets.filter((asset) => asset.kind === "image" &&
     /\.(png|jpe?g)$/i.test(asset.filename));
@@ -257,6 +259,16 @@ export default function PaperTheatreAssetFirst({
     studio.accept(response.project);
     setReferenceId(response.asset.id);
     setReferenceApproved(false);
+  });
+  const saveCutoutMask = (obj: ObjectSpec, png: Blob) => studio.run(async () => {
+    if (!scene || !obj.asset_id) throw new Error("Wybierz wycinek i ujęcie");
+    const file = new File([png], obj.id + "-mask.png", { type: "image/png" });
+    const result = await upload<{ project: Project; asset: { id: string } }>(
+      `/projects/${project.id}/media`, file);
+    studio.accept(result.project);
+    modify(obj.id, { asset_id: result.asset.id });
+    setMaskObjectId("");
+    studio.notify("Nowa maska alpha zapisana jako osobny PNG. Oryginał pozostał w bibliotece.");
   });
   const updateObjectNumber = (obj: ObjectSpec, key: "x"|"y"|"width"|"z"|"pivot_x"|"pivot_y", value: number) => {
     modify(obj.id, { [key]: value });
@@ -488,6 +500,14 @@ export default function PaperTheatreAssetFirst({
                         .map((asset) => <option key={asset.id} value={asset.id}>{asset.name}</option>)}
                     </select>
                   </Field>
+                  {obj.asset_id && <>
+                    <Button onClick={() => setMaskObjectId(maskObjectId === obj.id ? "" : obj.id)}>
+                      {maskObjectId === obj.id ? "Zamknij maskę" : "Edytuj maskę PNG"}
+                    </Button>
+                    {maskObjectId === obj.id && <PaperCutoutMaskEditor
+                      key={obj.asset_id} src={mediaUrl(project.id, obj.asset_id)}
+                      onSave={(png) => saveCutoutMask(obj, png)} />}
+                  </>}
                   <div className="two-fields">
                     <NumberField label="X · środek (0–1)" value={obj.x} min={0} max={1} step={.01}
                       onCommit={(value) => updateObjectNumber(obj, "x", value)} />
