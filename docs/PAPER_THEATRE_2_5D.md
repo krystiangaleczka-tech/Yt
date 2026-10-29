@@ -16,6 +16,11 @@ w istniejącym systemie redakcyjnym, niezależnie od sposobu wizualizacji.
 
 ### Aktualizacja 30.10.2026: edycja pozycji i walidacja
 
+- Wgranie paczki PNG o nazwach identycznych z ID obiektów przypisuje je
+  automatycznie, bez nadpisywania wcześniej wybranych materiałów.
+- Podstawowy edytor maski alpha pozwala usuwać piksele pędzlem,
+  przywracać wyłącznie piksele z oryginału, cofać pociągnięcia i
+  eksportować nowy PNG bez niszczenia źródła.
 - Obiekty w kreatorze można przeciągać na mapie kompozycji; klawiatura:
   strzałki co 0,01, Shift + strzałki co 0,05 znormalizowanego kadru.
 - Każdy obiekt ma własny pivot X/Y (0–1) i mechanikę wejścia (opcjonalnie
@@ -26,9 +31,9 @@ w istniejącym systemie redakcyjnym, niezależnie od sposobu wizualizacji.
   nie precyzyjna detekcja kolizji klatka po klatce, i nie powód, żeby
   odrzucać poprawną, zamierzoną okluzję.
 - Schematyczny podgląd React nie zastępuje dokładnej klatki z renderera.
-  Automatyczne image-to-image, gwarantowane generowanie alpha PNG, edytor
-  masek, naprawianie pikseli i akceptacja jakości wizualnej nadal wymagają
-  dalszych wdrożeń i rzeczywistych testów.
+  Automatyczne image-to-image, gwarantowane generowanie alpha PNG, precyzyjny
+  edytor wektorowych masek, rekonstrukcja ukrytych pikseli i akceptacja jakości
+  wizualnej nadal wymagają dalszych wdrożeń i rzeczywistych testów.
 
 ## Workflow domyślny: Reference-to-layers (aktualizacja 29.10.2026)
 
@@ -61,7 +66,7 @@ w istniejącym systemie redakcyjnym, niezależnie od sposobu wizualizacji.
 - Bezpośrednia generacja jakościowych przezroczystych PNG z modelu obrazu, zamiast jedynie promptów i ręcznego importu.
 - [ ] Referencyjna zgodność wygenerowanych osobno PNG z draftem nie jest jeszcze automatycznie oceniana; prompty niosą opis stylu i notatki, ale lokalny image worker nie używa wejścia obrazowego do sterowania generowaniem przez obraz. W razie potrzeby przekazuj draft do generatora obsługującego image-to-image/reference conditioning.
 - Weryfikacja jednolitości stylu między osobno wygenerowanymi obrazami; automatyczne wykrywanie wielu obiektów na jednej warstwie, kolizji i brakujących pikseli.
-- Przeciąganie i pivoty są wdrożone; **edytor masek** oraz dokładny **wielowarstwowy podgląd na żywo** nadal wymagają implementacji.
+- Przeciąganie, pivoty oraz podstawowy pędzel alpha są wdrożone; **profesjonalny edytor konturów/masek**, zaawansowane wypełnianie i dokładny **wielowarstwowy podgląd na żywo** nadal wymagają implementacji.
 - Pełna ewaluacja benchmarku na materiale referencyjnym i zatwierdzony end-to-end eksport MP4.
 
 ### Zasada jakości
@@ -90,7 +95,7 @@ Kluczowa różnica: jeden obiekt = jeden wyodrębniony, przezroczysty PNG + indy
 ## Zasady zasobów
 
 - Do kreatora wgraj **osobny PNG z alpha dla każdego najmniejszego elementu**.
-- Tło i wszystkie PNG muszą mieć **identyczne wymiary płótna**, żeby utrzymać precyzyjne współrzędne. Wycinek ma przezroczyste otoczenie.
+- W starszym ręcznym edytorze PNG muszą mieć **identyczne wymiary płótna**; w nowym Asset-first i Reference-to-layers obiekty mogą mieć własne wymiary i są ustawiane przez X/Y/szerokość. Wszystkie wycinki muszą zawierać prawdziwą przezroczystość.
 - Każdy plik wycinka powinien zawierać **dokładnie jeden obiekt**. Automatyczny raport wskazuje podejrzanie wielkie obszary, ale nie potrafi jeszcze wykryć połączonych obiektów w jednej masce.
 - Wcześniejszy materiał źródłowy to **pojedynczy spłaszczony PNG**, więc ukryte tekstury pod postaciami i drzewami **nie istnieją**. Bez nowych danych/silniejszej segmentacji i inpaintingu nie da się zagwarantować identycznych rekonstrukcji.
 - Zakaz udawania, że pocięcie prostokątów lub rozmazany fragment tła jest gotową segmentacją 1:1.
