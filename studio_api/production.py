@@ -44,6 +44,84 @@ def register(app, store, jobs, connectors, repo, callbacks):
         from studio_core.paper_theatre import GROUPS
         return [{"id": ident, "name": name, "rig": rig} for ident, name, rig in GROUPS]
 
+    @app.post("/api/projects/{pid}/paper-theatre/{sid}/asset-first/propose")
+    def theatre_asset_first_propose(pid: str, sid: str, body: dict):
+        from studio_core.paper_theatre_asset_first import drafting_prompt, normalize_manifest
+        from studio_core.assistant import complete
+        project = store.get(pid)
+        if project.revision != int(body["expected_revision"]):
+            raise Conflict("Projekt zmienił się od czasu przygotowania planu")
+        scene = next((x for x in project.scenes if x.id == sid and x.template == "paper-theatre"), None)
+        if scene is None: raise ValueError("Wybierz ujęcie Paper Theatre")
+        prompt = drafting_prompt(body.get("brief", ""), body.get("style", ""))
+        action = body.get("action", "prompt")
+        if action == "prompt":
+            return {"prompt": prompt, "base_revision": project.revision}
+        if action != "generate":
+            raise ValueError("Nieznane działanie planera Asset-first")
+        output = complete(connectors, prompt, store=store, project=project)
+        clean = re.sub(r"^\\s*```(?:json)?\\s*|\\s*```\\s*$", "", output.strip())
+        try:
+            value = normalize_manifest(json.loads(clean))
+        except (ValueError, TypeError, json.JSONDecodeError) as error:
+            raise ValueError("AI zwróciło niepoprawny plan obiektów: " + str(error)) from error
+        return {"manifest": value, "base_revision": project.revision}
+
+    @app.post("/api/projects/{pid}/paper-theatre/{sid}/asset-first/prompts")
+    def theatre_asset_first_prompts(pid: str, sid: str, body: dict):
+        from studio_core.paper_theatre_asset_first import normalize_manifest, image_prompts
+        project = store.get(pid)
+        if project.revision != int(body["expected_revision"]):
+            raise Conflict("Projekt zmienił się od czasu przygotowania promptów")
+        if not any(x.id == sid and x.template == "paper-theatre" for x in project.scenes):
+            raise ValueError("Wybierz ujęcie Paper Theatre")
+        manifest = normalize_manifest(body.get("manifest", {}))
+        return {"manifest": manifest, "prompts": image_prompts(manifest)}
+
+    @app.post("/api/projects/{pid}/paper-theatre/{sid}/asset-first/save")
+    def theatre_asset_first_save(pid: str, sid: str, body: dict):
+        from studio_core.paper_theatre_asset_first import normalize_manifest
+        manifest = normalize_manifest(body.get("manifest", {}))
+        def save(project):
+            scene = next((x for x in project.scenes if x.id == sid and x.template == "paper-theatre"), None)
+            if scene is None or scene.locked or scene.lock_media:
+                raise ValueError("Nie ma edytowalnego ujęcia Paper Theatre")
+            assigned = [o["asset_id"] for o in manifest["objects"] if o["asset_id"]]
+            if any(a not in {asset.id for asset in project.assets} for a in assigned):
+                raise ValueError("Plan zawiera nieznany identyfikator pliku")
+            scene.generation = {**scene.generation, "paper_theatre_asset_first": manifest}
+        return store.mutate(pid, int(body["expected_revision"]), save)
+
+    @app.post("/api/projects/{pid}/paper-theatre/{sid}/asset-first/assemble")
+    def theatre_asset_first_assemble(pid: str, sid: str, body: dict):
+        from studio_core.paper_theatre_asset_first import normalize_manifest, assemble_manifest
+        manifest = normalize_manifest(body.get("manifest", {}))
+        def assemble(project):
+            scene = next((x for x in project.scenes if x.id == sid and x.template == "paper-theatre"), None)
+            if scene is None or scene.locked or scene.lock_media:
+                raise ValueError("Nie ma edytowalnego ujęcia Paper Theatre")
+            p = assemble_manifest(store, project, body.get("background_id", ""), manifest,
+                                  gap=body.get("gap", .12),
+                                  group_gap=body.get("group_gap", .22),
+                                  hero_outline_px=body.get("hero_outline_px", 8))
+            required = math.ceil(p["total_seconds"] * fps(project))
+            if scene.duration < required:
+                if scene.lock_timing or any(c.scene_id == sid for c in project.sequence.clips):
+                    raise ValueError("Wydłuż istniejące ujęcie w Montażu; plan Asset-first się nie mieści")
+                scene.duration = required
+            scene.asset_id = p["background_id"]
+            scene.asset_ids = p["asset_ids"]
+            scene.animation = "static"
+            # No hidden motion from a legacy preset: the manifest owns composition.
+            scene.parameters = {"depth": 0, "layer_cues": p["layer_cues"]}
+            scene.generation = {**scene.generation,
+                "paper_theatre_asset_first": manifest,
+                "paper_theatre_report": {
+                    "cutouts": p["cutouts"], "warnings": p["warnings"],
+                    "hero_last": p["hero_last"], "reference_match_confirmed": False,
+                    "mode": "asset-first"}}
+        return store.mutate(pid, int(body["expected_revision"]), assemble)
+
     @app.post("/api/projects/{pid}/paper-theatre/scenes")
     def theatre_new_scene(pid: str, body: dict):
         from studio_core.models import Scene
