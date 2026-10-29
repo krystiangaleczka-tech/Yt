@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import {
   Check,
   ChevronDown,
@@ -48,6 +48,8 @@ export type Proposal = {
   scene_id: string;
   changes: Partial<StageScene>;
   reason: string;
+  issues?: string[];
+  reviewed?: boolean;
   base_revision: number;
 };
 type Filter = "all" | "open" | "rework" | "approved";
@@ -76,6 +78,11 @@ export default function SceneBoard() {
     [manual, setManual] = useState<{ prompt: string; response: string; error: string } | null>(null),
     [busy, setBusy] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
+  const [staging, setStaging] = useState<Record<string, string[]>>({});
+  useEffect(() => {
+    if (p.channel_id && p.production_mode === "animation_2d")
+      api<Record<string, string[]>>(`/projects/${p.id}/stage-scenes/review`).then(setStaging, () => undefined);
+  }, [p.revision, bank]);
   const [previewRun, setPreviewRun] = useState(0);
   const previewTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
@@ -258,7 +265,12 @@ export default function SceneBoard() {
               onClick={() => setSelected(x.id)}
             >
               <span className={`status-dot ${x.status}`} title={statusLabels[x.status]} />
-              <span className="scene-no">{String(x.number).padStart(2, "0")}</span>
+              <span className="scene-no">
+                {String(x.number).padStart(2, "0")}
+                {(staging[x.id] || []).length > 0 && (
+                  <span className="staging-mark" title={staging[x.id].join("\n")}>!</span>
+                )}
+              </span>
               <span className="scene-item-text">
                 <strong>{x.title}</strong>
                 <span className="muted small">{x.action || "—"}</span>
@@ -291,6 +303,9 @@ export default function SceneBoard() {
             <h2 className="scene-heading">{scene.title}</h2>
             {continuity(scene, scenes[scenes.findIndex((x) => x.id === scene.id) - 1], bank).map((w) => (
               <p key={w} className="continuity-warning small">Ciągłość: {w}</p>
+            ))}
+            {(staging[scene.id] || []).map((w) => (
+              <p key={w} className="continuity-warning small">Recenzent kadru: {w}</p>
             ))}
             <Stage
               key={scene.id + previewRun}
@@ -539,6 +554,28 @@ export function Stage({
     line && line.speaker !== "narrator"
       ? bank.characters.find((c) => c.id === line.speaker)?.name
       : "";
+  const regions = Object.fromEntries((state?.regions || []).map((r) => [r.id, r]));
+  /** Elements assigned to a region (window, doorway) are clipped to it; inside, coordinates stay frame-relative. */
+  function clip(regionId: string | undefined, key: string, element: ReactNode) {
+    const r = regionId ? regions[regionId] : undefined;
+    if (!r) return element;
+    const w = r.x1 - r.x0,
+      h = r.y1 - r.y0;
+    return (
+      <div
+        key={key}
+        className="stage-clip"
+        style={{ left: `${r.x0 * 100}%`, top: `${r.y0 * 100}%`, width: `${w * 100}%`, height: `${h * 100}%` }}
+      >
+        <div
+          className="stage-clip-inner"
+          style={{ left: `${(-r.x0 / w) * 100}%`, top: `${(-r.y0 / h) * 100}%`, width: `${100 / w}%`, height: `${100 / h}%` }}
+        >
+          {element}
+        </div>
+      </div>
+    );
+  }
   function renderProps(layer: StageProp["layer"]) {
     return (scene.props || []).map((placed, index) => {
       if (placed.layer !== layer) return null;
@@ -547,7 +584,7 @@ export function Stage({
         item?.variants.find((v) => v.id === placed.variant_id) || item?.variants[0];
       if (!variant) return null;
       const at = drag?.kind === "prop" && drag.index === index ? drag : placed;
-      return (
+      return clip(placed.region_id, "propclip" + index, (
         <span
           key={"prop" + index}
           className={`stage-prop layer-${layer} prop-${placed.motion}`}
@@ -569,7 +606,7 @@ export function Stage({
         >
           <img src={castImage(channelId, variant.image.file)} alt={item?.name} draggable={false} />
         </span>
-      );
+      ));
     });
   }
   function position(e: ReactPointerEvent) {
@@ -620,7 +657,7 @@ export function Stage({
           character?.poses.find((x) => x.id === character.default_pose_id) ||
           character?.poses[0];
         const at = drag?.kind === "actor" && drag.index === index ? drag : placed;
-        return pose ? (
+        return pose ? clip(placed.region_id, "actorclip" + index, (
           <span
             key={index}
             className={`stage-actor motion-${placed.motion || "idle"}`}
@@ -644,7 +681,7 @@ export function Stage({
               style={{ transform: `scaleX(${placed.flip ? -1 : 1})` }}
             />
           </span>
-        ) : (
+        )) : (
           <span
             key={index}
             className="stage-missing"
@@ -719,6 +756,12 @@ export function ProposalCard({
         <strong>Propozycja AI</strong>
         {proposal.reason && <span className="muted small">{proposal.reason}</span>}
       </div>
+      {proposal.reviewed && (
+        <p className="small muted">Recenzent kadru odesłał pierwszą wersję; to poprawiona propozycja.</p>
+      )}
+      {(proposal.issues || []).map((issue) => (
+        <p key={issue} className="continuity-warning small">Recenzent kadru: {issue}</p>
+      ))}
       <table className="proposal-diff">
         <tbody>
           {rows
@@ -762,6 +805,8 @@ function SceneInspector({
   move: (delta: number) => void;
 }) {
   const location = bank.locations.find((l) => l.id === scene.location_id);
+  const stateRegions =
+    (location?.states.find((st) => st.id === scene.location_state_id) || location?.states[0])?.regions || [];
   const active = bank.characters.filter((c) => !c.archived);
   const costumesFor = (characterId: string) =>
     (bank.items || []).filter(
@@ -909,6 +954,21 @@ function SceneInspector({
                   ))}
                 </select>
               )}
+              {stateRegions.length > 0 && (
+                <select
+                  aria-label="Obszar"
+                  className="placed-motion"
+                  value={placed.region_id || ""}
+                  onChange={(e) => setPlaced(index, { region_id: e.target.value })}
+                >
+                  <option value="">W kadrze (bez przycinania)</option>
+                  {stateRegions.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      Widać przez: {r.name}
+                    </option>
+                  ))}
+                </select>
+              )}
               <select
                 aria-label="Ruch postaci"
                 className="placed-motion"
@@ -1012,6 +1072,20 @@ function SceneInspector({
                 <option value="behind">Za postaciami</option>
                 <option value="front">Przed postaciami</option>
               </select>
+              {stateRegions.length > 0 && (
+                <select
+                  aria-label="Obszar rekwizytu"
+                  value={placed.region_id || ""}
+                  onChange={(e) => setProp(index, { region_id: e.target.value })}
+                >
+                  <option value="">Bez przycinania</option>
+                  {stateRegions.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      Tylko w: {r.name}
+                    </option>
+                  ))}
+                </select>
+              )}
               <select
                 aria-label="Pojawienie"
                 value={placed.motion}

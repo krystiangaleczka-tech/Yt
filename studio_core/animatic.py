@@ -186,6 +186,7 @@ class SceneRenderer:
         self.background = images.get(state.image.file, h, w) if state and state.image else Image.new("RGBA", size, (40, 42, 48, 255))
         self.foreground = images.get(state.foreground.file, h, w) if state and state.foreground else None
         self.night = bool(state and state.time_of_day == "night")
+        self.regions = {r.id: r for r in (state.regions if state else [])}
         self.actors = []
         for placed in scene.characters:
             character = characters.get(placed.character_id)
@@ -242,17 +243,28 @@ class SceneRenderer:
         top = placed.y * h - im.height - lift * im.height
         canvas.alpha_composite(im, (round(x * w - im.width / 2), round(top)))
 
+    def clipped(self, world, placed, draw):
+        """Draw an element; when it belongs to a region (window, doorway) keep only the part inside it."""
+        region = self.regions.get(getattr(placed, "region_id", ""))
+        if not region:
+            return draw(world)
+        w, h = self.size
+        layer = Image.new("RGBA", self.size, (0, 0, 0, 0))
+        draw(layer)
+        box = (round(region.x0 * w), round(region.y0 * h), round(region.x1 * w), round(region.y1 * h))
+        world.alpha_composite(layer.crop(box), box[:2])
+
     def frame(self, t, seconds, caption):
         w, h = self.size
         world = self.background.copy()
         for placed, im in self.props:
             if placed.layer == "behind":
-                self.prop(world, placed, im, t, seconds)
+                self.clipped(world, placed, lambda c, placed=placed, im=im: self.prop(c, placed, im, t, seconds))
         for placed, im in self.actors:
-            self.actor(world, placed, im, t, seconds)
+            self.clipped(world, placed, lambda c, placed=placed, im=im: self.actor(c, placed, im, t, seconds))
         for placed, im in self.props:
             if placed.layer == "front":
-                self.prop(world, placed, im, t, seconds)
+                self.clipped(world, placed, lambda c, placed=placed, im=im: self.prop(c, placed, im, t, seconds))
         move, strength = self.scene.motion.camera, self.scene.motion.strength
         scale, dx, dy = camera(move, strength, t)
         if move == "shake":

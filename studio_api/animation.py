@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
 
-from studio_core.animation import (CONTENT_FIELDS, Cast, DRAFT_VOICES, DraftVoices, MAX_IMAGE, apply_scene_operation, breakdown_prompt,
+from studio_core.animation import (CONTENT_FIELDS, Cast, review_staging, DRAFT_VOICES, DraftVoices, MAX_IMAGE, apply_scene_operation, breakdown_prompt,
                                    channel_bank, default_draft_voice, parse_breakdown, parse_regeneration, regeneration_prompt)
 from studio_core.assistant import complete
 from studio_core.animatic import Images, render_animatic
@@ -125,6 +125,17 @@ def register_animation(app, store, connectors, jobs):
                 try:
                     text = complete(connectors, regeneration_prompt(project, scene, characters, locations, '', items), store=store, project=project)
                     proposal = parse_regeneration(str(text), scene, characters, locations, items)
+                    if proposal['issues'] and not cancel.is_set():
+                        # The staging reviewer found problems: one more pass with its notes before the director sees it.
+                        progress(done / len(targets), f'Scena {scene.number}: recenzent kadru odesłał propozycję do poprawki')
+                        retry_note = 'Your previous proposal was rejected by the staging reviewer: ' + ' '.join(proposal['issues'])
+                        try:
+                            text = complete(connectors, regeneration_prompt(project, scene, characters, locations, retry_note, items), store=store, project=project)
+                            second = parse_regeneration(str(text), scene, characters, locations, items)
+                            if len(second['issues']) < len(proposal['issues']):
+                                proposal = second | {'reviewed': True}
+                        except ValueError:
+                            pass
                     proposals.append(proposal | {'number': scene.number, 'title': scene.title,
                                                  'before': scene.model_dump(include=set(CONTENT_FIELDS))})
                 except InterruptedError:
@@ -135,6 +146,13 @@ def register_animation(app, store, connectors, jobs):
 
         return jobs.submit(pid, project.revision, 'rework', task, heavy=False,
                            request={'action': 'rework', 'body': body}, snapshot=project.model_dump())
+
+    @app.get('/api/projects/{pid}/stage-scenes/review')
+    def staging_review(pid: str):
+        """Staging reviewer for every scene: {scene_id: [issues]}."""
+        project = store.get(pid)
+        characters, locations, items = channel_bank(cast, project, archived=True)
+        return {scene.id: review_staging(scene, characters, locations, items) for scene in project.stage_scenes}
 
     def beat_of(project, bid):
         beat = next((b for b in project.beats if b.id == bid), None)

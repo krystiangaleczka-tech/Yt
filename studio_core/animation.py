@@ -77,6 +77,22 @@ class Character(Model):
         return self
 
 
+class Region(Model):
+    """Named part of a background (window, doorway, mirror): elements assigned to it are clipped to it."""
+    id: str = Field(default_factory=lambda: uid("reg_"), pattern=r"^reg_[a-f0-9]{16}$")
+    name: str = Field(min_length=1, max_length=60)
+    x0: float = Field(ge=0, le=1)
+    y0: float = Field(ge=0, le=1)
+    x1: float = Field(ge=0, le=1)
+    y1: float = Field(ge=0, le=1)
+
+    @model_validator(mode="after")
+    def ordered(self):
+        if self.x1 - self.x0 < .01 or self.y1 - self.y0 < .01:
+            raise ValueError("Obszar musi mieć dodatnią szerokość i wysokość")
+        return self
+
+
 class LocationState(Model):
     id: str = Field(default_factory=lambda: uid("lst_"), pattern=r"^lst_[a-f0-9]{16}$")
     name: str = Field(min_length=1, max_length=80)
@@ -85,6 +101,9 @@ class LocationState(Model):
     image: CastImage | None = None
     # Optional transparent layer drawn in front of the characters (2.5D depth, parallax).
     foreground: CastImage | None = None
+    # Where feet touch the floor (fraction of frame height); lets the reviewer spot floating characters.
+    floor_y: float | None = Field(default=None, ge=0, le=1)
+    regions: list[Region] = Field(default_factory=list, max_length=20)
 
 
 class Location(Model):
@@ -181,17 +200,19 @@ class StageProp(Model):
     layer: Literal["behind", "front"] = "behind"
     motion: Literal["none", "appear", "fade_in"] = "none"
     at: float = Field(default=.5, ge=0, le=1)  # moment of appear / fade as a fraction of the scene
+    region_id: str = Field(default="", pattern=r"^(reg_[a-f0-9]{16})?$")
 
 
 class StageCharacter(Model):
     character_id: str = Field(pattern=r"^chr_[a-f0-9]{16}$")
     pose_id: str = ""
     x: float = Field(default=.5, ge=0, le=1)
-    y: float = Field(default=.92, ge=0, le=1)
+    y: float = Field(default=.92, ge=0, le=1.6)  # feet line; below 1 = cropped by the frame bottom
     scale: float = Field(default=.6, ge=.05, le=2)
     flip: bool = False
     motion: Literal["idle", "still", "enter_left", "enter_right", "exit_left", "exit_right"] = "idle"
     costume_id: str = Field(default="", pattern=r"^(item_[a-f0-9]{16})?$")
+    region_id: str = Field(default="", pattern=r"^(reg_[a-f0-9]{16})?$")
 
 
 class DialogueLine(Model):
@@ -251,8 +272,12 @@ class StageScene(Model):
 
 
 CONTENT_FIELDS = ("title", "story_time", "location_id", "location_state_id", "characters", "props", "action", "camera", "motion", "dialogue", "sound", "audio", "seconds")
-SCHEMA_HINT = """characters: [{"character_id","pose_id","x" 0-1,"y" 0-1 baseline,"scale","flip","motion": "idle"|"still"|"enter_left"|"enter_right"|"exit_left"|"exit_right"}];
-props: [{"item_id","variant_id","x","y","scale","rotation","layer": "behind"|"front","motion": "none"|"appear"|"fade_in","at" 0-1}] — props and overlays persist between scenes until the story removes them;
+STAGING_RULES = """Staging rules (a reviewer checks them): feet stand on the state's floor_y unless the character is cropped by the frame bottom (y > 1) or by a region.
+Anyone seen through a window, doorway or mirror gets that region_id: they are clipped to it, keep a realistic scale similar to the other characters (scale 0.5-0.7)
+and usually show from the waist or chest up (their feet line far below the region's bottom edge). Never shrink a person to fit a whole body inside a window.
+Cracks, stains and reflections on glass get the window's region_id so they never spill onto the wall."""
+SCHEMA_HINT = """characters: [{"character_id","pose_id","x" 0-1,"y" feet line (0-1.6, >1 = cropped by frame bottom),"scale" (height as a fraction of the frame),"flip","region_id" (optional, clips to a state region),"motion": "idle"|"still"|"enter_left"|"enter_right"|"exit_left"|"exit_right"}];
+props: [{"item_id","variant_id","x","y" centre,"scale","rotation","layer": "behind"|"front","motion": "none"|"appear"|"fade_in","at" 0-1,"region_id" (optional clip)}] — props and overlays persist between scenes until the story removes them;
 audio: [{"sound_id" (sfx or ambience from the bank),"at" 0-1 moment for effects,"volume" 0-2}];
 motion: {"camera": "static"|"push_in"|"pull_out"|"pan_left"|"pan_right"|"shake", "strength" 0-1}; dialogue: [{"speaker","text","direction"}]; sound: {"ambience","music","sfx":[]}."""
 # Organisation, not content: moving a scene between beats does not reopen its review.
@@ -420,6 +445,14 @@ def validate_scene(scene: StageScene, characters: dict[str, Character], location
             raise ValueError(f"Scena {scene.number}: stan nie należy do wybranej lokacji")
     elif scene.location_state_id:
         raise ValueError(f"Scena {scene.number}: wybierz lokację stanu")
+    state = None
+    if scene.location_id:
+        location = locations[scene.location_id]
+        state = next((s for s in location.states if s.id == scene.location_state_id), None) or (location.states[0] if location.states else None)
+    regions = {r.id for r in (state.regions if state else [])}
+    for placed in [*scene.characters, *scene.props]:
+        if placed.region_id and placed.region_id not in regions:
+            raise ValueError(f"Scena {scene.number}: obszar nie należy do stanu lokacji tej sceny")
     for placed in scene.characters:
         character = characters.get(placed.character_id)
         if not character:
@@ -528,6 +561,7 @@ def regeneration_prompt(project, scene: StageScene, characters, locations, instr
     neighbours = [s for s in project.stage_scenes if abs(s.number - scene.number) == 1]
     last = scene.reviews[-1] if scene.reviews else None
     feedback = "; ".join(filter(None, [", ".join(last.tags) if last else "", last.note if last else "", instruction]))
+    current_issues = review_staging(scene, characters, locations, items)
     current = scene.model_dump(include=set(CONTENT_FIELDS))
     return f"""You are the scene director of a 2D animated series. Rewrite ONE scene according to the director's feedback.
 Film: {project.title}. Language of narration and dialogue: {project.language}.
@@ -538,9 +572,11 @@ BANK: {json.dumps(bank, ensure_ascii=False)}
 NEIGHBOUR SCENES: {json.dumps([s.model_dump(include={"number", "title", "story_time", "action"}) for s in neighbours], ensure_ascii=False)}
 CURRENT SCENE {scene.number}: {json.dumps(current, ensure_ascii=False)}
 DIRECTOR FEEDBACK: {feedback or "Make the scene clearer and more cinematic."}
+STAGING REVIEWER (fix all of these): {"; ".join(current_issues) or "no issues"}
 
 Return only JSON with keys: {", ".join(CONTENT_FIELDS)}, and "reason" (one sentence explaining the change).
-{SCHEMA_HINT}"""
+{SCHEMA_HINT}
+{STAGING_RULES}"""
 
 
 def parse_regeneration(text: str, scene: StageScene, characters, locations, items=None) -> dict:
@@ -558,7 +594,8 @@ def parse_regeneration(text: str, scene: StageScene, characters, locations, item
             line.pop("id", None)
     candidate = StageScene.model_validate(scene.model_dump() | changes)
     validate_scene(candidate, characters, locations, items)
-    return {"scene_id": scene.id, "changes": candidate.model_dump(include=set(CONTENT_FIELDS)), "reason": reason}
+    return {"scene_id": scene.id, "changes": candidate.model_dump(include=set(CONTENT_FIELDS)), "reason": reason,
+            "issues": review_staging(candidate, characters, locations, items)}
 
 
 def bank_summary(characters, locations, items=None):
@@ -567,7 +604,8 @@ def bank_summary(characters, locations, items=None):
                    "variants": [{"id": v.id, "name": v.name} for v in i.variants]} for i in (items or {}).values() if isinstance(i, Item)],
         "sounds": [{"id": i.id, "kind": i.kind, "name": i.name, "seconds": i.duration} for i in (items or {}).values() if isinstance(i, Sound) and i.kind != "music"],
         "characters": [{"id": c.id, "name": c.name, "role": c.role, "description": c.description, "poses": [{"id": p.id, "name": p.name, "view": p.view} for p in c.poses]} for c in characters.values()],
-        "locations": [{"id": loc.id, "name": loc.name, "description": loc.description, "states": [{"id": s.id, "name": s.name, "time_of_day": s.time_of_day} for s in loc.states]} for loc in locations.values()],
+        "locations": [{"id": loc.id, "name": loc.name, "description": loc.description, "states": [{"id": s.id, "name": s.name, "time_of_day": s.time_of_day, "floor_y": s.floor_y,
+                                 "regions": [r.model_dump() for r in s.regions]} for s in loc.states]} for loc in locations.values()],
     }
 
 
@@ -590,7 +628,8 @@ SCENES ALREADY IN THIS BEAT: {json.dumps(existing, ensure_ascii=False)}
 DIRECTOR NOTES: {instruction or "none"}
 
 Return only JSON: {{"reason": "one sentence", "scenes": [{{{", ".join(f'"{k}"' for k in CONTENT_FIELDS)}}}]}}.
-{SCHEMA_HINT}"""
+{SCHEMA_HINT}
+{STAGING_RULES}"""
 
 
 def parse_breakdown(text: str, beat, characters, locations, items=None) -> dict:
@@ -614,7 +653,7 @@ def parse_breakdown(text: str, beat, characters, locations, items=None) -> dict:
                 line.pop("id", None)
         scene = StageScene.model_validate(values | {"number": number})
         validate_scene(scene, characters, locations, items)
-        scenes.append(scene.model_dump(include=set(CONTENT_FIELDS)) | {"beat_id": beat.id})
+        scenes.append(scene.model_dump(include=set(CONTENT_FIELDS)) | {"beat_id": beat.id, "issues": review_staging(scene, characters, locations, items)})
     return {"beat_id": beat.id, "scenes": scenes, "reason": str(data.get("reason", ""))[:500]}
 
 
@@ -684,3 +723,72 @@ def default_draft_voice(speaker: str, characters: dict) -> str:
     pool = [v for v in DRAFT_VOICES if v != "am_michael"]
     order = sorted(characters)
     return pool[order.index(speaker) % len(pool)] if speaker in order else "am_adam"
+
+
+def scene_state(scene, locations):
+    location = locations.get(scene.location_id)
+    if not location:
+        return None
+    return next((s for s in location.states if s.id == scene.location_state_id), None) or next((s for s in location.states if s.image), None)
+
+
+def review_staging(scene: StageScene, characters, locations, items=None) -> list[str]:
+    """Staging reviewer: geometry checks a human director would catch at a glance.
+
+    Boxes are in frame fractions; image aspect converts height (scale) to width on a 16:9 frame.
+    """
+    items = items or {}
+    state = scene_state(scene, locations)
+    regions = {r.id: r for r in (state.regions if state else [])}
+    floor = state.floor_y if state else None
+    issues, people = [], []
+
+    def overlap(box, region):
+        w = max(0, min(box[2], region.x1) - max(box[0], region.x0))
+        h = max(0, min(box[3], region.y1) - max(box[1], region.y0))
+        area = (box[2] - box[0]) * (box[3] - box[1])
+        return w * h / area if area else 0
+
+    for placed in scene.characters:
+        character = characters.get(placed.character_id)
+        pose = character and (next((p for p in character.poses if p.id == placed.pose_id), None)
+                              or next((p for p in character.poses if p.id == character.default_pose_id), None)
+                              or (character.poses[0] if character.poses else None))
+        if not pose:
+            continue
+        width = placed.scale * pose.image.width / pose.image.height * 9 / 16
+        box = (placed.x - width / 2, placed.y - placed.scale, placed.x + width / 2, placed.y)
+        people.append((character.name, placed, box))
+        region = regions.get(placed.region_id)
+        if region:
+            if box[3] <= region.y1 + .02 and box[1] >= region.y0 - .02:
+                issues.append(f"{character.name} mieści się cała w „{region.name}” — wygląda jak miniatura. "
+                              f"Powiększ postać do skali innych postaci i pokaż ją od pasa w górę (dół zasłoni rama).")
+            if box[1] > region.y1 or box[3] < region.y0 or box[0] > region.x1 or box[2] < region.x0:
+                issues.append(f"{character.name} jest poza obszarem „{region.name}” — nie będzie widoczna.")
+            continue
+        if floor is not None and placed.y < floor - .04 and placed.y <= 1:
+            issues.append(f"{character.name} wisi w powietrzu — stopy powyżej podłogi. Opuść postać na linię podłogi.")
+        for inside in regions.values():
+            if overlap(box, inside) > .7:
+                issues.append(f"{character.name} stoi na tle „{inside.name}”, ale nie jest do niego przypisana — "
+                              f"jeśli ma być za szybą, wybierz ten obszar i powiększ postać.")
+    free = [p for p in people if not p[1].region_id]
+    for name, placed, _ in people:
+        if placed.region_id and free:
+            biggest = max(free, key=lambda p: p[1].scale)
+            if placed.scale < biggest[1].scale * .75:
+                issues.append(f"{name} jest dużo mniejsza niż {biggest[0]} — osoba tuż za szybą powinna mieć podobną skalę.")
+    for placed in scene.props:
+        item = items.get(placed.item_id)
+        variant = item and (next((v for v in item.variants if v.id == placed.variant_id), None) or (item.variants[0] if item.variants else None))
+        if not variant or placed.region_id:
+            continue
+        height = placed.scale
+        width = height * variant.image.width / variant.image.height * 9 / 16
+        box = (placed.x - width / 2, placed.y - height / 2, placed.x + width / 2, placed.y + height / 2)
+        for region in regions.values():
+            share = overlap(box, region)
+            if .25 < share < .97:
+                issues.append(f"„{item.name}” wychodzi poza „{region.name}” na ścianę — przypisz go do tego obszaru.")
+    return issues

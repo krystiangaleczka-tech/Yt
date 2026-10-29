@@ -27,6 +27,22 @@ Lokacja ma opis układu (gdzie drzwi, okno, zlew) i **stany**: to samo miejsce w
 
 Zapis wpisu wymaga zgodnej rewizji. Gdy ktoś (albo inne okno) zmienił wpis wcześniej, aplikacja odrzuci zapis zamiast nadpisać zmiany. Archiwizacja ukrywa wpis z wyboru w nowych scenach.
 
+### Obszary i podłoga lokacji
+
+W stanie lokacji (Pracownia → Lokacje → „Obszary i podłoga”) rysujesz prostokąty na tle — szybę okna, drzwi, lustro — i klikasz linię podłogi. Postać albo rekwizyt przypisany w scenie do obszaru („Widać przez: Okno”) jest do niego przycinany w podglądzie i w MP4. Dzięki temu osoba za oknem ma normalną skalę i jest widoczna od pasa czy piersi w górę, a pęknięcie szyby nie wychodzi na ścianę.
+
+### Recenzent kadru
+
+Każda scena i każda propozycja AI przechodzi przez recenzenta kadru, który sprawdza geometrię i opisuje problemy po polsku:
+
+- postać cała mieści się w oknie (miniatura zamiast osoby za szybą) albo jest poza swoim obszarem,
+- osoba za szybą jest dużo mniejsza niż postacie w kadrze,
+- stopy nad linią podłogi (postać lewituje),
+- postać stoi na tle okna, ale nie jest do niego przypisana,
+- rekwizyt lub nakładka wychodzi poza obszar na ścianę.
+
+Uwagi są widoczne pod tytułem sceny (lista scen ma przy nich czerwony znacznik) i przy propozycjach. Trafiają też do promptu AI. W zbiorczej poprawce propozycja odrzucona przez recenzenta wraca raz do AI z jego uwagami; dostajesz wersję z mniejszą liczbą problemów i informację, że była poprawiana. Recenzent nie ogląda pikseli — sprawdza położenie i proporcje, więc wymaga ustawionej podłogi i obszarów.
+
 ### Rekwizyty, kostiumy i nakładki
 
 Trzeci bank kanału ma trzy rodzaje elementów:

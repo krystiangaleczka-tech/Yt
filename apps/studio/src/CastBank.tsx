@@ -16,6 +16,7 @@ import { api, upload } from "./api";
 import { Button, Empty, Field, IconButton, SectionHead } from "./components";
 import { castAudio, castImage, itemCategoryLabels, soundKindLabels, viewLabels } from "./animationTypes";
 import type {
+  Region,
   CastBank as Bank,
   CastImage,
   Character,
@@ -718,6 +719,19 @@ function LocationEditor({
                 value={st.description}
                 onChange={(e) => setState(st.id, { description: e.target.value })}
               />
+              {st.image && (
+                <details className="state-regions">
+                  <summary>
+                    Obszary i podłoga ({(st.regions || []).length} obszarów
+                    {st.floor_y != null ? ", podłoga ustawiona" : ""})
+                  </summary>
+                  <RegionEditor
+                    channelId={channelId}
+                    state={st}
+                    change={(patch) => setState(st.id, patch)}
+                  />
+                </details>
+              )}
               <div className="state-fg">
                 {st.foreground ? (
                   <>
@@ -1126,6 +1140,102 @@ function SoundEditor({
           Zapisz
         </Button>
       </div>
+    </div>
+  );
+}
+
+/** Draw regions (window, doorway) and the floor line on a state's background, in the same 16:9 crop as scenes. */
+function RegionEditor({
+  channelId,
+  state,
+  change,
+}: {
+  channelId: string;
+  state: LocationState;
+  change: (patch: Partial<LocationState>) => void;
+}) {
+  const [mode, setMode] = useState<"region" | "floor">("region");
+  const [draft, setDraft] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
+  const regions = state.regions || [];
+  const at = (e: React.PointerEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    return {
+      x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)),
+      y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)),
+    };
+  };
+  const round = (v: number) => Math.round(v * 1000) / 1000;
+  const box = (d: NonNullable<typeof draft>) => ({
+    x0: round(Math.min(d.x0, d.x1)),
+    y0: round(Math.min(d.y0, d.y1)),
+    x1: round(Math.max(d.x0, d.x1)),
+    y1: round(Math.max(d.y0, d.y1)),
+  });
+  return (
+    <div className="region-editor">
+      <div className="button-row">
+        <Button subtle={mode !== "region"} primary={mode === "region"} onClick={() => setMode("region")}>
+          Rysuj obszar
+        </Button>
+        <Button subtle={mode !== "floor"} primary={mode === "floor"} onClick={() => setMode("floor")}>
+          Ustaw podłogę
+        </Button>
+        <span className="muted small">
+          {mode === "region"
+            ? "Przeciągnij prostokąt na szybie okna, drzwiach, lustrze — postać przypisana do obszaru będzie nim przycięta."
+            : "Kliknij na wysokości, na której stoją stopy postaci."}
+        </span>
+      </div>
+      <div
+        className="region-canvas"
+        onPointerDown={(e) => {
+          const p = at(e);
+          if (mode === "floor") return change({ floor_y: round(p.y) });
+          e.currentTarget.setPointerCapture(e.pointerId);
+          setDraft({ x0: p.x, y0: p.y, x1: p.x, y1: p.y });
+        }}
+        onPointerMove={(e) => draft && setDraft({ ...draft, x1: at(e).x, y1: at(e).y })}
+        onPointerUp={() => {
+          if (!draft) return;
+          const b = box(draft);
+          setDraft(null);
+          if (b.x1 - b.x0 < 0.02 || b.y1 - b.y0 < 0.02) return;
+          const region: Region = {
+            id: "reg_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16),
+            name: regions.length ? `Obszar ${regions.length + 1}` : "Okno",
+            ...b,
+          };
+          change({ regions: [...regions, region] });
+        }}
+      >
+        <img src={castImage(channelId, state.image!.file)} alt="" draggable={false} />
+        {[...regions, ...(draft ? [{ id: "draft", name: "", ...box(draft) }] : [])].map((r) => (
+          <span
+            key={r.id}
+            className="region-box"
+            style={{ left: `${r.x0 * 100}%`, top: `${r.y0 * 100}%`, width: `${(r.x1 - r.x0) * 100}%`, height: `${(r.y1 - r.y0) * 100}%` }}
+          >
+            {r.name}
+          </span>
+        ))}
+        {state.floor_y != null && (
+          <span className="floor-line" style={{ top: `${state.floor_y * 100}%` }}>
+            podłoga
+          </span>
+        )}
+      </div>
+      {regions.map((r) => (
+        <div key={r.id} className="region-row">
+          <input
+            aria-label="Nazwa obszaru"
+            value={r.name}
+            onChange={(e) =>
+              change({ regions: regions.map((x) => (x.id === r.id ? { ...x, name: e.target.value } : x)) })
+            }
+          />
+          <IconButton icon={Trash2} label="Usuń obszar" onClick={() => change({ regions: regions.filter((x) => x.id !== r.id) })} />
+        </div>
+      ))}
     </div>
   );
 }

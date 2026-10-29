@@ -324,5 +324,84 @@ class AnimationTests(unittest.TestCase):
         self.assertTrue(mara)
 
 
+    def test_staging_reviewer_and_regions(self):
+        cid = self.channel['id']
+        mara = self.character(cid)  # pose 40x80 px
+        crack = self.ok(self.client.post(f'/api/channels/{cid}/items', json={'name': 'Pęknięcie', 'category': 'overlay',
+                                                                            'variants': [{'name': 'a', 'image': self.image(cid, png(size=(80, 80)))}]}, headers=H))
+        window = {'id': 'reg_' + 'a' * 16, 'name': 'Okno', 'x0': .38, 'y0': .18, 'x1': .62, 'y1': .51}
+        state = {'name': 'Dzień', 'image': self.image(cid, png((200, 190, 170, 255), (160, 90))), 'floor_y': .78, 'regions': [window]}
+        kitchen = self.ok(self.client.post(f'/api/channels/{cid}/locations', json={'name': 'Kuchnia', 'states': [state]}, headers=H))
+        film = self.film()
+        base = {'location_id': kitchen['id'], 'location_state_id': kitchen['states'][0]['id']}
+        leo = {'character_id': mara['id'], 'x': .8, 'y': .9, 'scale': .6}
+        tiny = {'character_id': mara['id'], 'x': .5, 'y': .5, 'scale': .3, 'region_id': window['id']}
+        film = self.scenes(film, {'type': 'add', 'scene': base | {'title': 'Źle', 'characters': [tiny, leo | {'y': .6}],
+                                                                  'props': [{'item_id': crack['id'], 'x': .6, 'y': .2, 'scale': .3}]}},
+                           {'type': 'add', 'scene': base | {'title': 'Dobrze', 'characters': [tiny | {'y': .82, 'scale': .6}, leo],
+                                                            'props': [{'item_id': crack['id'], 'x': .55, 'y': .3, 'scale': .3, 'region_id': window['id']}]}})
+        review = self.ok(self.client.get(f"/api/projects/{film['id']}/stage-scenes/review"))
+        bad, good = (review[s['id']] for s in film['stage_scenes'])
+        self.assertTrue(any('miniatura' in i for i in bad), bad)
+        self.assertTrue(any('wisi w powietrzu' in i for i in bad), bad)
+        self.assertTrue(any('mniejsza' in i for i in bad), bad)
+        self.assertTrue(any('wychodzi poza' in i for i in bad), bad)
+        self.assertEqual(good, [])
+        wrong_region = self.client.post(f"/api/projects/{film['id']}/stage-scenes", json={'expected_revision': film['revision'], 'operations': [
+            {'type': 'add', 'scene': {'characters': [tiny | {'region_id': 'reg_' + 'b' * 16}]}}]}, headers=H)
+        self.assertEqual(wrong_region.status_code, 422)
+        prompt = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/{film['stage_scenes'][0]['id']}/prompt", json={}, headers=H))['prompt']
+        self.assertIn('wisi w powietrzu', prompt)
+        self.assertIn('region_id', prompt)
+
+    def test_batch_rework_retries_once_when_the_reviewer_objects(self):
+        cid = self.channel['id']
+        mara = self.character(cid)
+        state = {'name': 'Dzień', 'image': self.image(cid, png((200, 190, 170, 255), (160, 90))), 'floor_y': .78}
+        kitchen = self.ok(self.client.post(f'/api/channels/{cid}/locations', json={'name': 'Kuchnia', 'states': [state]}, headers=H))
+        film = self.scenes(self.film(), {'type': 'add', 'scene': {'title': 'Scena', 'location_id': kitchen['id']}})
+        scene = film['stage_scenes'][0]['id']
+        film = self.scenes(film, {'type': 'review', 'scene_id': scene, 'status': 'rework', 'note': 'dodaj Marę'})
+        floating = {'characters': [{'character_id': mara['id'], 'y': .5}], 'reason': 'pierwsza'}
+        grounded = {'characters': [{'character_id': mara['id'], 'y': .8}], 'reason': 'druga'}
+        prompts = []
+        answers = iter([json.dumps(floating), json.dumps(grounded)])
+
+        def fake(connectors, prompt, **kwargs):
+            prompts.append(prompt)
+            return next(answers)
+
+        with mock.patch('studio_api.animation.complete', side_effect=fake):
+            job = self.ok(self.client.post(f"/api/projects/{film['id']}/stage-scenes/rework-batch", json={}, headers=H))
+            for _ in range(200):
+                state = self.ok(self.client.get('/api/jobs/' + job['id']))
+                if state['status'] in ('SUCCEEDED', 'FAILED'):
+                    break
+                time.sleep(.02)
+        proposal = state['result']['proposals'][0]
+        self.assertEqual(proposal['reason'], 'druga')
+        self.assertEqual(proposal['issues'], [])
+        self.assertTrue(proposal['reviewed'])
+        self.assertIn('rejected by the staging reviewer', prompts[1])
+
+    def test_renderer_clips_region_elements(self):
+        from studio_core.animatic import Images, SceneRenderer
+        from studio_core.animation import StageScene
+        cid = self.channel['id']
+        mara = self.character(cid)
+        window = {'id': 'reg_' + 'c' * 16, 'name': 'Okno', 'x0': .4, 'y0': .2, 'x1': .6, 'y1': .5}
+        state = {'name': 'Dzień', 'image': self.image(cid, png((255, 255, 255, 255), (160, 90))), 'regions': [window]}
+        kitchen = self.ok(self.client.post(f'/api/channels/{cid}/locations', json={'name': 'Kuchnia', 'states': [state]}, headers=H))
+        film = self.film()
+        bank = self.app.state.cast
+        from studio_core.animation import channel_bank
+        project = self.store.get(film['id'])
+        scene = StageScene(location_id=kitchen['id'], location_state_id=kitchen['states'][0]['id'],
+                           characters=[{'character_id': mara['id'], 'x': .5, 'y': .9, 'scale': .8, 'region_id': window['id'], 'motion': 'still'}])
+        frame = SceneRenderer(scene, channel_bank(bank, project), Images(bank, cid), (320, 180)).frame(.5, 2, None)
+        self.assertNotEqual(frame.getpixel((160, 70)), (255, 255, 255))  # inside the window: the character shows
+        self.assertEqual(frame.getpixel((160, 120)), (255, 255, 255))   # below the sill: clipped away
+
+
 if __name__ == '__main__':
     unittest.main()

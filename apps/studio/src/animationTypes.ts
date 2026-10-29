@@ -48,7 +48,10 @@ export type LocationState = {
   time_of_day: "" | "day" | "dusk" | "night";
   image: CastImage | null;
   foreground?: CastImage | null;
+  floor_y?: number | null;
+  regions?: Region[];
 };
+export type Region = { id: string; name: string; x0: number; y0: number; x1: number; y1: number };
 export type Location = {
   id: string;
   revision: number;
@@ -89,6 +92,7 @@ export type StageProp = {
   layer: "behind" | "front";
   motion: "none" | "appear" | "fade_in";
   at: number;
+  region_id?: string;
 };
 export const propMotionLabels: Record<StageProp["motion"], string> = {
   none: "Jest od początku",
@@ -144,6 +148,7 @@ export type StageCharacter = {
   flip: boolean;
   motion?: ActorMotion;
   costume_id?: string;
+  region_id?: string;
 };
 export type ActorMotion =
   | "idle"
