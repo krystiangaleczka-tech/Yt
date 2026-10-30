@@ -3,6 +3,43 @@
 **Status:** niezależna od gatunku technika ujęcia w kategorii Narzędzia produkcji → Paper Theatre 2.5D. Pierwsza implementacja kreatora, planowania sekwencji, walidacji osobnych PNG, renderowania mechanik, podglądu klatki i przekazania do Montażu. Nie mylić z automatycznym rozcinaniem jednolitej grafiki na sto profesjonalnych warstw.
 
 
+### Rozetnij ponownie · czyste wycinki na papierze (30.10.2026)
+
+Panel **Rozetnij ponownie** pod kreatorem Paper Theatre wycina na nowo każdy obiekt
+istniejącego ujęcia po jego prawdziwym konturze. Działa lokalnie i bezpłatnie
+w środowisku modeli obrazu (`pilot/.venv`, `DOCOS_IMAGE_PYTHON`): MobileSAM
+(kontury) i LaMa (zasłonięta scenografia), oba na licencji Apache‑2.0. Wagi
+(~245 MB) pobierają się raz do `pilot/models/paper-cutout/` (lub
+`DOCOS_CUTOUT_MODELS`) i są sprawdzane SHA‑256. Zadanie idzie przez kolejkę
+modeli, więc nie startuje równolegle z SD 1.5 ani lektorem. Pomiar na CPU:
+MobileSAM ~1,1 GB RAM, LaMa na wycinku ~1,3 GB. Modele nie są w pamięci
+jednocześnie, więc całość mieści się na MacBooku z 8 GB.
+
+Zasady produkcji (wytyczne właściciela):
+
+- **Jeden obiekt = jeden PNG po prawdziwym konturze.** Bez wielokątów, kawałków nieba w chmurach i owali w monetach.
+- **Start z samego papieru.** Tło to proceduralny papier w kolorze dotychczasowego tła. Wszystko inne wjeżdża jako wycinek.
+  Piksele, które nie należą do żadnego obiektu (niebo, rzeka, ściany), stają się osobnymi wycinkami „reszta sceny”
+  wchodzącymi jako pierwsze (`z_index` od −100). Można je też dołączyć do najbliższej scenografii albo zostawić papier.
+- **Pod postaciami nic nie jest rozmywane ani dorysowywane.** Warstwa za postacią ma pustą dziurę; do wejścia postaci widać papier.
+- **Dopełnienie tylko scenografii zasłoniętej przez późniejszą scenografię/rekwizyty** (np. pełne koło słońca za chmurami).
+- **Ostatnia klatka = źródło piksel w piksel** (po usunięciu szwów i zaznaczonych smug). Raport podaje średnią różnicę i liczbę pikseli > 20.
+- **Plan wejść się nie zmienia.** Nowe PNG trafiają do biblioteki jako nowe assety. Scena zmienia się dopiero po
+  „Zastosuj nowe wycinki” (podmiana ID, istniejące cue bez zmian, dopisane cue tylko dla nowych obiektów i reszty sceny).
+  „Przywróć poprzednie wycinki” odtwarza stary stan.
+
+Edycja konturu na ostatniej klatce: zielony punkt = obiekt, czerwony (Shift lub „−”) = tło, ramka przeciąganiem.
+Postaciom zaznacza się osobno głowę, tułów, rękaw i dłoń, bo każdy punkt postaci jest osobnym zapytaniem MobileSAM.
+„Przesłanianie” rozstrzyga, który obiekt jest bliżej widza, gdy maski się nakładają. „Obiekt, którego nie ma w planie”
+dodaje własny wycinek (np. wiązkę bambusa przed bohaterem). Narzędzie „Smuga” zaznacza zapieczone w źródle mgiełki
+do usunięcia. Arkusz kontroli pokazuje każdy obiekt z zielonym konturem.
+
+Ograniczenia: rozdzielczość wycinków jest taka jak źródła. Automatyczne kontury (ramka z dotychczasowego PNG + najgłębszy
+punkt) są punktem wyjścia; przy wielokątnych wycinkach wymagają poprawienia punktów. Obrys bohatera z cue (`outline_px`)
+nadal idzie po alpha, więc na granicy z postaciami stojącymi przed bohaterem rysuje linię. Rozwiązaniem jest `z_index`
+w cue bohatera, którego panel nie zmienia samodzielnie. Środowisko modeli z nowymi pakietami (`mobile_sam`, `timm`,
+`torchvision`, `opencv-python-headless`) przetestowano w Linuksie (Python 3.13, torch 2.15). Na macOS nie było testu.
+
 ### Korekta ruchu wycinanek, 30.10.2026
 
 Na podstawie audytu 15-sekundowego przykładu (16025.mp4) stwierdzono fragmentaryczne odsłanianie krajobrazu między 0–6 s, pustą sylwetkę między 7–12 s i niewystarczająco czytelne wejście bohaterów między 10–13 s. Sam MP4 jest **spłaszczonym wynikiem**, nie zestawem źródłowych PNG alpha; nie da się z niego wiarygodnie odtworzyć zasłoniętych fragmentów każdej wycinanki.

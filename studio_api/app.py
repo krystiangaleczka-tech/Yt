@@ -482,6 +482,8 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     from .development import register_development
     register_development(app,store,connectors)
     register(app,store,jobs,connectors,REPO,{"render":start_render,"generate":generate,"writer":writing,"fetch":fetch_medium,"motion":motion_render})
+    from .paper_recut import register_recut
+    register_recut(app, store, jobs, REPO)
     dist = REPO / "apps" / "studio" / "dist"
     if dist.exists():
         app.mount("/", StaticFiles(directory=dist, html=True), name="studio")

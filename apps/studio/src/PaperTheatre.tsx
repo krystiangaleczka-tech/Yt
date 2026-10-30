@@ -6,6 +6,7 @@ import { Button, Field, NumberField } from "./components";
 import type { Project, Scene } from "./types";
 import { fps } from "./timing";
 import PaperTheatreAssetFirst from "./PaperTheatreAssetFirst";
+import PaperTheatreRecut from "./PaperTheatreRecut";
 
 const GROUPS = [
   ["sky", "01 · Niebo: każda chmura, słońce, księżyc"],
@@ -170,6 +171,7 @@ export default function PaperTheatre() {
         scene={scene}
         background={background} setBackground={setBackground} onCreate={create}
       />
+      {scene?.asset_id && (scene.asset_ids?.length || 0) > 0 && <PaperTheatreRecut key={scene.id} scene={scene} />}
       {workflow === "reference" && <details className="surface" style={{ padding: 12, marginTop: 12 }}>
         <summary>Zaawansowane: mam już ręcznie przygotowane warstwy PNG (poprzedni edytor)</summary>
         <div className="production-grid">
