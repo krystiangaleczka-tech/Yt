@@ -156,7 +156,7 @@ def image_prompts(manifest: dict) -> list[dict]:
                 + obj["description"] + ". Consistent art direction: " + style + ". "
                 + ("Use a very bold, continuous dark-ink contour along the full character silhouette. "
                    if obj["group"] in ("characters", "hero") else "")
-                "Output a real RGBA PNG with transparent background, no extra objects, "
+                + "Output a real RGBA PNG with transparent background, no extra objects, "
                 "no surrounding scene, no background or text. Keep the entire silhouette "
                 "inside the canvas with a narrow alpha margin. Light and texture must "
                 "match all other objects in this shot. "
