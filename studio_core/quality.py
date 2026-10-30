@@ -20,6 +20,10 @@ def check_project(store, project):
     from .exports import used_asset_ids
     used=used_asset_ids(project)
     for scene in project.scenes:
+        if scene.template == "paper-theatre":
+            from .paper_theatre_review import status, requires_review
+            if requires_review(scene) and not status(store, project, scene)["approved"]:
+                add("paper_review:"+scene.id, scene.title+": porównaj z referencją i zatwierdź układ w etapie Scenograf", "error", scene.id)
         if not scene.asset_id and scene.template in MEDIA_TEMPLATES:
             add("media:"+scene.id, scene.title+": brak wybranego materiału", scene_id=scene.id)
         state = voice_state(project, scene)

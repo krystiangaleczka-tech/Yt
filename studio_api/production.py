@@ -375,6 +375,7 @@ def register(app, store, jobs, connectors, repo, callbacks):
             scene.parameters = {"depth": 0, "layer_cues": p["layer_cues"]}
             scene.generation = {**scene.generation,
                 "paper_theatre_asset_first": manifest,
+                "paper_theatre_settings": {"gap": body.get("gap", .12), "group_gap": body.get("group_gap", .22), "hero_outline_px": body.get("hero_outline_px", 8)},
                 "paper_theatre_report": {
                     "cutouts": p["cutouts"], "warnings": p["warnings"],
                     "hero_last": p["hero_last"], "reference_match_confirmed": False,
@@ -388,6 +389,7 @@ def register(app, store, jobs, connectors, repo, callbacks):
             start=max((scene.start + scene.duration for scene in project.scenes), default=0)
             scene=Scene(title="Paper Theatre 2.5D", start=start, duration=round(20*fps(project)),
                         animation="static", template="paper-theatre",
+                        generation={"paper_theatre_workflow": {"require_layout_review": True}},
                         parameters={"depth": .015, "layer_cues": []})
             project.scenes.append(scene)
         return store.mutate(pid, int(body["expected_revision"]), create)

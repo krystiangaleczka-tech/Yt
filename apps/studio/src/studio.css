@@ -6937,3 +6937,16 @@ textarea::placeholder {
   color: var(--blue);
   font-size: 11px;
 }
+
+.paper-review { padding: 20px; margin: 16px 0; }
+.paper-review-pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 12px 0; }
+.paper-review figure { min-width: 0; margin: 0; }
+.paper-review figcaption { padding: 8px 0; color: var(--muted); }
+.paper-review figure > img { display: block; width: 100%; }
+.paper-review-frame { position: relative; overflow: hidden; background: #29251f; }
+.paper-review-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.paper-review-reference { pointer-events: none; }
+.paper-review-check { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.paper-review-check input { width: auto; }
+.paper-review-issues article { border-left: 3px solid var(--accent); padding: 8px 12px; margin: 8px 0; }
+@media(max-width: 800px) { .paper-review-pair { grid-template-columns: 1fr; } }

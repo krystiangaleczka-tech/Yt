@@ -105,6 +105,12 @@ class PaperTheatreCategoryTests(unittest.TestCase):
         self.assertEqual(chosen["asset_ids"][-1],self.hero)
         self.assertGreater(chosen["duration"],0)
         self.assertFalse(updated["sequence"]["clips"])
+        review_path = self.base+"/paper-theatre/"+scene["id"]+"/review/"
+        reviewed = self.client.post(review_path+"preview", json={"expected_revision":updated["revision"]}, headers=HEADERS).json()
+        state = self.client.get(review_path.rstrip("/")).json()
+        updated = self.client.post(review_path+"decision", json={"expected_revision":reviewed["revision"],
+            "decision":"approve", "signature":state["signature"], "image_sha256":state["preview"]["image_sha256"],
+            "checks":["proportions","placement","contacts"]}, headers=HEADERS).json()
         timeline=self.client.post(self.base+"/scenes/"+scene["id"]+"/to-timeline",
                                   json={"expected_revision":updated["revision"]},headers=HEADERS)
         self.assertEqual(timeline.status_code,200,timeline.text)

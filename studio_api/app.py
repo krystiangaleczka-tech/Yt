@@ -64,6 +64,8 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     app.state.store = store; app.state.jobs = jobs; app.state.connectors = connectors
     workspace = Workspace(store)
     app.state.workspace = workspace
+    from studio_api.paper_review import register_paper_review
+    register_paper_review(app, store, connectors)
     register_workspace(app, workspace)
     register_animation(app, store, connectors, jobs)
     motion_render=register_inserts(app, store, jobs, connectors)
@@ -159,6 +161,9 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     def scene_to_timeline(project_id: str, scene_id: str, body: dict):
         def add(p):
             scene = next(s for s in p.scenes if s.id == scene_id)
+            if scene.template == "paper-theatre":
+                from studio_core.paper_theatre_review import require_approved
+                require_approved(store, p, scene)
             if not scene.asset_id and scene.template == "media":
                 raise ValueError("Najpierw wybierz materiał do ujęcia")
             clips = [c for c in p.sequence.clips if c.scene_id == scene_id and c.track_id == "v1"]
@@ -333,6 +338,8 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
         if body.get("operations"):
             proposal=parse_proposal(json.dumps({"description":"Podgląd propozycji","operations":body["operations"]}),p,scope_selection(p,body))
             apply_operations(p,proposal["operations"],"ai")
+        from studio_core.paper_theatre_review import require_export_approval
+        require_export_approval(store, p)
         preview = body.get("quality", "preview") == "preview"
         final = body.get("mode") == "final"
         if final and body.get("operations"): raise ValueError("Najpierw przyjmij propozycję przed eksportem publikacyjnym")
