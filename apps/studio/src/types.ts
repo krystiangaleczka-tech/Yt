@@ -2,6 +2,7 @@ import type { MusicCue, ProductionMode, StageScene } from "./animationTypes";
 import type { MotionInsert } from "./motion/types";
 import type { Development } from "./developmentTypes";
 import type { ResourceLink } from "./workspaceTypes";
+import type { FrameAnnotation } from "./frameAnnotations";
 export type Fact = {
   id: string;
   claim: string;
@@ -196,6 +197,7 @@ export type Project = {
   film_format: string;
   production_mode: ProductionMode;
   stage_scenes: StageScene[];
+  frame_annotations?: FrameAnnotation[];
   music_cues?: MusicCue[];
   workspace_snapshot: Record<string, unknown>;
   resource_links: ResourceLink[];

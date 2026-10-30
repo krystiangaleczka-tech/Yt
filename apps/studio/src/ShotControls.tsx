@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
+import {
+  MessageSquare,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+} from "lucide-react";
 import { IconButton } from "./components";
 import { time } from "./timing";
+import { annotationGroups } from "./frameAnnotations";
+import type { FrameAnnotation } from "./frameAnnotations";
 
 export function useShotPlayback(
   total: number,
@@ -121,6 +129,8 @@ export function ShotTimeline({
   onSelect,
   onSeek,
   onMove,
+  annotations = [],
+  onAnnotationSelect,
 }: {
   rows: ShotTrack[];
   seconds: number;
@@ -130,6 +140,8 @@ export function ShotTimeline({
   onSelect: (id: string) => void;
   onSeek: (frame: number) => void;
   onMove?: (id: string, seconds: number) => void;
+  annotations?: FrameAnnotation[];
+  onAnnotationSelect?: (note: FrameAnnotation) => void;
 }) {
   const [drag, setDrag] = useState<{
     id: string;
@@ -139,6 +151,11 @@ export function ShotTimeline({
     at: number;
   } | null>(null);
   const duration = Math.max(0.001, seconds);
+  const groups = annotationGroups(
+    annotations,
+    rate,
+    Math.max(1, Math.round(seconds * rate)),
+  );
   return (
     <section
       className="shot-timeline surface"
@@ -160,6 +177,36 @@ export function ShotTimeline({
                   {(seconds * part).toFixed(1)} s
                 </span>
               ))}
+            </div>
+          </div>
+          <div className="shot-track shot-annotations-track">
+            <span className="shot-track-name small muted">UWAGI</span>
+            <div className="shot-annotation-lane">
+              {groups.map(([at, notes]) => (
+                <button
+                  key={at}
+                  className={`shot-annotation-marker ${at === frame ? "active" : ""}`}
+                  aria-label={`Uwagi: klatka ${at + 1} (${notes.length})`}
+                  title={`Klatka ${at + 1} · ${notes.map((note) => note.text).join("\n")}`}
+                  style={{ left: `${(at / (duration * rate)) * 100}%` }}
+                  onClick={() => {
+                    onSeek(at);
+                    onAnnotationSelect?.(notes[0]);
+                  }}
+                >
+                  <MessageSquare size={14} />
+                  {notes.length > 1 && <span>{notes.length}</span>}
+                </button>
+              ))}
+              {!groups.length && (
+                <span className="small muted">
+                  Zaznacz miejsce markerem na podglądzie klatki.
+                </span>
+              )}
+              <span
+                className="shot-lane-playhead"
+                style={{ left: `${(frame / rate / duration) * 100}%` }}
+              />
             </div>
           </div>
           {rows.map((row) => {

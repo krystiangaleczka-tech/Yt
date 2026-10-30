@@ -86,6 +86,29 @@ warstwy i wejścia rekwizytów/dźwięków; rozkład dialogów jest szacunkowy.
 200 ujęć naraz, do 8 MB). Import dodaje nowe identyfikatory; użyte zasoby muszą
 już istnieć w filmie lub banku kanału.
 
+### Uwagi markerem do konkretnej klatki
+
+W edytorze ujęcia zatrzymaj lub przewiń timeline, wybierz **Marker + uwaga**
+i zakreśl miejsce myszą, palcem lub rysikiem. Po podniesieniu markera otwiera się
+dymek komentarza. **Zapisz uwagę** (lub Ctrl/Cmd+Enter) zachowuje tekst i ślad
+markera przy tej jednej klatce tego ujęcia. Można dorysować kolejne zaznaczenia
+przed zapisaniem tej samej uwagi.
+
+Oś ma osobny wiersz **UWAGI** z punktowymi znacznikami, bez rozciągania komentarza
+na zakres czasu. Kliknięcie znacznika zatrzymuje podgląd na właściwej klatce
+i otwiera komentarz. Zaznaczenie jest widoczne tylko na tej klatce po zatrzymaniu;
+lista „Uwagi ujęcia” pozwala wracać do wszystkich zapisanych uwag. Komentarz
+można poprawić lub usunąć, a kilka uwag tej samej klatki tworzy jeden znacznik
+z licznikiem. Numer w interfejsie zaczyna się od 1.
+
+Uwagi zapisują się w projekcie i jego archiwum razem z ujęciem, lokalnym numerem
+klatki, bazą FPS oraz współrzędnymi zaznaczenia. Zachowują pozycję po zmianie
+rozmiaru podglądu. Po zmianie FPS wskazują najbliższą klatkę w tym samym momencie.
+Wpisy poza skróconym ujęciem pozostają zapisane, ale nie mają znacznika na jego
+aktualnej osi. Nieukończony szkic komentarza jest pamiętany w tej przeglądarce.
+Adnotacje są warstwą recenzji: nie trafiają do MP4 i nie zmieniają zatwierdzenia
+ani blokad zawartości ujęcia.
+
 ## Źródła i książki
 
 | Dostawca | Zakres |

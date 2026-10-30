@@ -22,6 +22,8 @@ import {
   NumberField,
 } from "./components";
 import SceneBoard from "./SceneBoard";
+import FrameReview from "./FrameReview";
+import { annotationFrame } from "./frameAnnotations";
 import PaperTheatre from "./PaperTheatre";
 import Preview from "./Preview";
 import { LiveScene } from "./paperTheatreRenderer";
@@ -95,12 +97,28 @@ function MediaShotEditor({ scene }: { scene: Scene }) {
     p = s.project!,
     rate = fps(p);
   const [selected, setSelected] = useState("background");
+  const [selectedNote, setSelectedNote] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"composition" | "setup">("composition");
   const file = useRef<HTMLInputElement>(null);
   const playback = useShotPlayback(scene.duration, rate, scene.id, true);
   const paper =
     scene.template === "paper-theatre" || scene.template === "parallax";
+  const [posterLoaded, setPosterLoaded] = useState("");
+  const posterNeeded = !!scene.template && scene.template !== "media" && !paper;
+  const wantedPosterFrame = playback.playing
+    ? Math.floor(playback.frame / Math.max(1, Math.round(rate / 2))) *
+      Math.max(1, Math.round(rate / 2))
+    : playback.frame;
+  const [posterFrame, setPosterFrame] = useState(wantedPosterFrame);
+  useEffect(() => {
+    if (!posterNeeded) return;
+    const timer = window.setTimeout(
+      () => setPosterFrame(wantedPosterFrame),
+      playback.playing ? 0 : 120,
+    );
+    return () => window.clearTimeout(timer);
+  }, [posterNeeded, wantedPosterFrame, playback.playing]);
   const layerIds = paperLayerIds(scene),
     cues = paperCues(scene);
   const cueIndex = selected.startsWith("paper:")
@@ -459,46 +477,82 @@ function MediaShotEditor({ scene }: { scene: Scene }) {
                   {p.sequence.width} × {p.sequence.height}
                 </span>
               </div>
-              <div className="shot-canvas">
-                {paper ? (
-                  <LayeredShotCanvas
-                    project={p}
-                    scene={scene}
-                    frame={playback.frame}
-                  />
-                ) : scene.template && scene.template !== "media" ? (
-                  <img
-                    alt="Podgląd ujęcia"
-                    src={`/api/projects/${p.id}/scenes/${scene.id}/poster?revision=${p.revision}&frame=${Math.floor(playback.frame / Math.max(1, Math.round(rate / 2))) * Math.max(1, Math.round(rate / 2))}`}
-                  />
-                ) : (
-                  <Preview
-                    project={preview}
-                    frame={playback.frame}
-                    playing={playback.playing}
-                    onFrame={playback.setFrame}
-                    onEnded={() => playback.setPlaying(false)}
-                  />
-                )}
-                {(paper || (scene.template && scene.template !== "media")) && (
-                  <div className="shot-overlay-preview">
+              <FrameReview
+                sceneId={scene.id}
+                frame={playback.frame}
+                total={scene.duration}
+                rate={rate}
+                playing={playback.playing}
+                ready={
+                  !posterNeeded ||
+                  posterLoaded === `${p.revision}:${playback.frame}`
+                }
+                onPause={() => playback.setPlaying(false)}
+                onSeek={playback.seek}
+                selectedId={selectedNote}
+                onSelect={setSelectedNote}
+              >
+                <div className="shot-canvas">
+                  {paper ? (
+                    <LayeredShotCanvas
+                      project={p}
+                      scene={scene}
+                      frame={playback.frame}
+                    />
+                  ) : scene.template && scene.template !== "media" ? (
+                    <img
+                      alt="Podgląd ujęcia"
+                      src={`/api/projects/${p.id}/scenes/${scene.id}/poster?revision=${p.revision}&frame=${posterFrame}`}
+                      onLoad={(event) => {
+                        const src = new URL(
+                          event.currentTarget.currentSrc ||
+                            event.currentTarget.src,
+                        );
+                        setPosterLoaded(
+                          `${src.searchParams.get("revision")}:${src.searchParams.get("frame")}`,
+                        );
+                      }}
+                      onError={() => {
+                        playback.setPlaying(false);
+                        s.notify(
+                          "Nie udało się wczytać wybranej klatki.",
+                          true,
+                        );
+                      }}
+                    />
+                  ) : (
                     <Preview
                       project={preview}
                       frame={playback.frame}
                       playing={playback.playing}
                       onFrame={playback.setFrame}
                       onEnded={() => playback.setPlaying(false)}
-                      transparent
                     />
-                  </div>
-                )}
-                {!scene.asset_id && (
-                  <div className="shot-empty-preview">
-                    <ImageIcon size={32} />
-                    <span>Wybierz obraz lub tło z assetów</span>
-                  </div>
-                )}
-              </div>
+                  )}
+                  {(paper ||
+                    (scene.template && scene.template !== "media")) && (
+                    <div className="shot-overlay-preview">
+                      <Preview
+                        project={preview}
+                        frame={playback.frame}
+                        playing={playback.playing}
+                        onFrame={playback.setFrame}
+                        onEnded={() => playback.setPlaying(false)}
+                        transparent
+                      />
+                    </div>
+                  )}
+                  {!scene.asset_id &&
+                    (!scene.template ||
+                      scene.template === "media" ||
+                      paper) && (
+                      <div className="shot-empty-preview">
+                        <ImageIcon size={32} />
+                        <span>Wybierz obraz lub tło z assetów</span>
+                      </div>
+                    )}
+                </div>
+              </FrameReview>
               <ShotTransport
                 playback={playback}
                 total={scene.duration}
@@ -514,6 +568,13 @@ function MediaShotEditor({ scene }: { scene: Scene }) {
               onSelect={selectLayer}
               onSeek={playback.seek}
               onMove={moveLayer}
+              annotations={(p.frame_annotations || []).filter(
+                (note) => note.scene_id === scene.id,
+              )}
+              onAnnotationSelect={(note) => {
+                playback.seek(annotationFrame(note, rate));
+                setSelectedNote(note.id);
+              }}
             />
           </main>
           <aside className="shot-layers">

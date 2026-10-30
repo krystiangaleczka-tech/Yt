@@ -62,6 +62,8 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     app = FastAPI(title="DocOS Studio", version="0.2.0", lifespan=lifespan)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "[::1]", "testserver"])
     app.state.store = store; app.state.jobs = jobs; app.state.connectors = connectors
+    from studio_api.annotations import register_annotations
+    register_annotations(app, store)
     workspace = Workspace(store)
     app.state.workspace = workspace
     from studio_api.paper_review import register_paper_review

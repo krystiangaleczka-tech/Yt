@@ -49,6 +49,8 @@ import { fps } from "./timing";
 import StageAssets from "./StageAssets";
 import { ShotTimeline, ShotTransport, useShotPlayback } from "./ShotControls";
 import type { ShotTrack } from "./ShotControls";
+import FrameReview from "./FrameReview";
+import { annotationFrame } from "./frameAnnotations";
 
 export type Proposal = {
   scene_id: string;
@@ -114,6 +116,7 @@ export default function SceneBoard({ shotId }: { shotId?: string } = {}) {
   const rate = fps(p);
   const playback = useShotPlayback(Math.max(1, Math.round((scene?.seconds || 1) * rate)), rate, scene?.id || "");
   const [selectedLayer, setSelectedLayer] = useState("background");
+  const [selectedNote, setSelectedNote] = useState<string | null>(null);
   useEffect(() => {
     if (scene) localStorage.setItem("docos:stage:" + p.id, scene.id);
     setTags([]);
@@ -370,6 +373,8 @@ export default function SceneBoard({ shotId }: { shotId?: string } = {}) {
             {(staging[scene.id] || []).map((w) => (
               <p key={w} className="continuity-warning small">Recenzent kadru: {w}</p>
             ))}
+            <FrameReview key={scene.id} sceneId={scene.id} frame={playback.frame} total={Math.max(1, Math.round(scene.seconds * rate))} rate={rate} playing={playback.playing}
+              onPause={() => playback.setPlaying(false)} onSeek={playback.seek} selectedId={selectedNote} onSelect={setSelectedNote}>
             <Stage
               key={scene.id}
               scene={scene}
@@ -382,8 +387,11 @@ export default function SceneBoard({ shotId }: { shotId?: string } = {}) {
               onPlace={playback.playing ? undefined : (placed) => update({ characters: placed })}
               onPlaceProps={playback.playing ? undefined : (props) => update({ props })}
             />
+            </FrameReview>
             <ShotTransport playback={playback} total={Math.max(1, Math.round(scene.seconds * rate))} rate={rate} />
             <ShotTimeline rows={tracks} seconds={scene.seconds} frame={playback.frame} rate={rate} selected={selectedLayer} onSelect={selectLayer} onSeek={playback.seek}
+              annotations={(p.frame_annotations || []).filter((note) => note.scene_id === scene.id)}
+              onAnnotationSelect={(note) => { playback.seek(annotationFrame(note, rate)); setSelectedNote(note.id); }}
               onMove={(id, seconds) => {
                 if (id.startsWith("prop:")) update({ props: (scene.props || []).map((prop, i) => i === Number(id.slice(5)) ? { ...prop, at: seconds / scene.seconds } : prop) });
                 if (id.startsWith("audio:")) update({ audio: (scene.audio || []).map((cue, i) => i === Number(id.slice(6)) ? { ...cue, at: seconds / scene.seconds } : cue) });
