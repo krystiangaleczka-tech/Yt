@@ -3,6 +3,42 @@
 **Status:** niezależna od gatunku technika ujęcia w kategorii Narzędzia produkcji → Paper Theatre 2.5D. Pierwsza implementacja kreatora, planowania sekwencji, walidacji osobnych PNG, renderowania mechanik, podglądu klatki i przekazania do Montażu. Nie mylić z automatycznym rozcinaniem jednolitej grafiki na sto profesjonalnych warstw.
 
 
+### Podgląd na żywo i szybszy eksport, 30.10.2026
+
+Iteracja nie wymaga już renderu MP4. Wąskim gardłem nie był wybór biblioteki
+(Three.js / PixiJS / Remotion), tylko renderer Pythona, który w każdej klatce
+liczył od nowa rzeczy stałe: obrys postaci (`MaxFilter`, ~1 s na postać na
+klatkę), obrót i rozmycie cienia na pełnym płótnie dla każdej warstwy.
+
+- **Podgląd na żywo** (prawa kolumna panelu, nad mapą kompozycji): Canvas 2D,
+  odtwarzanie, przewijanie, klatka po klatce. Pokazuje **bieżące, niezapisane
+  zmiany** (harmonogram z planera przez `POST /paper-theatre/{sid}/preview`,
+  który niczego nie zapisuje; przeciągnięte pozycje nakładane są od razu) albo
+  **zapisane ujęcie** z przełącznikiem „dokładna klatka z renderera MP4”.
+- **Jedna logika ruchu, dwa języki:** `rig_motion()` w
+  `studio_timeline/paper_theatre.py` i `apps/studio/src/paperTheatreMotion.ts`
+  liczą te same liczby (pozycje, kąty, czasy). Oba testy porównują je z
+  `apps/studio/tests/fixtures/paper-theatre-motion.json` (1430 przypadków).
+  Po zmianie rigu: popraw obie strony i uruchom
+  `python3 scripts/paper_theatre_motion_fixture.py`.
+- **Granica podglądu:** geometria i czas są identyczne z eksportem, piksele
+  nie — przeglądarka inaczej skaluje i rozmywa cień. Dokładną klatkę zawsze
+  daje renderer.
+- **Eksport ~10× szybszy przy tych samych pikselach:** `composite_rig()` liczy
+  stałe rzeczy raz na render i pracuje na obszarze wycinka zamiast całego kadru.
+  `rig_image()` zostaje wzorcem; `studio_tests/test_paper_theatre_speed.py`
+  porównuje oba co do bitu. Jedyny wyjątek: wycinek na nitce, którego wahnięcie
+  zanikło poniżej 0,001°, może mieć pojedyncze piksele różne o 1–2/255
+  (zaokrąglenie ostatniego bitu przy próbkowaniu bicubic), poniżej szumu H.264.
+- Klucze cache szablonów i miniatur obejmują teraz także `paper_theatre.py`,
+  więc zmiana rigu nie zostawi starego MP4 w cache.
+
+**Następne kroki (niezrobione):** podgląd na żywo ujęć Paper Theatre w
+głównym podglądzie Montażu; polecenia AI zmieniające cue (JSON patch zamiast
+nowej sceny); opcjonalny eksport szkicu z przeglądarki (WebCodecs). Three.js
+ma sens dopiero przy prawdziwym ruchu kamery w 3D — obecne rigi są płaskie.
+
+
 ### Korekta ruchu wycinanek, 30.10.2026
 
 Na podstawie audytu 15-sekundowego przykładu (16025.mp4) stwierdzono fragmentaryczne odsłanianie krajobrazu między 0–6 s, pustą sylwetkę między 7–12 s i niewystarczająco czytelne wejście bohaterów między 10–13 s. Sam MP4 jest **spłaszczonym wynikiem**, nie zestawem źródłowych PNG alpha; nie da się z niego wiarygodnie odtworzyć zasłoniętych fragmentów każdej wycinanki.

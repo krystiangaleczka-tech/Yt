@@ -5,7 +5,7 @@ import os
 from studio_core.freshness import fingerprint
 from studio_core.models import fps
 from studio_core.templates import validate_parameters
-from .templates import MediaFrames,paint,FONT,LAND,font_hash
+from .templates import MediaFrames,paint,FONT,LAND,font_hash,renderer_hash
 
 
 def poster(store,project,clip,frame=0):
@@ -17,8 +17,7 @@ def poster(store,project,clip,frame=0):
         if asset.id in ids:
             path=store.folder(project.id)/"media"/asset.filename;stat=path.stat()
             files.append([asset.id,asset.sha256,stat.st_size,stat.st_mtime_ns])
-    code=Path(__file__).with_name("templates.py")
-    key=fingerprint({"renderer":hashlib.sha256(code.read_bytes()).hexdigest(),"land":hashlib.sha256(LAND.read_bytes()).hexdigest(),"clip":clip.model_dump(),"frame":frame,"assets":files,"style":project.channel_profile,"font":font_hash()})
+    key=fingerprint({"renderer":renderer_hash(),"land":hashlib.sha256(LAND.read_bytes()).hexdigest(),"clip":clip.model_dump(),"frame":frame,"assets":files,"style":project.channel_profile,"font":font_hash()})
     folder=store.root/"cache/posters";folder.mkdir(parents=True,exist_ok=True);output=folder/(key+".png")
     if output.is_file():return output
     width=min(640,project.sequence.width);height=max(2,round(width*project.sequence.height/project.sequence.width))

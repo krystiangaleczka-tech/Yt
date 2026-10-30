@@ -17,7 +17,25 @@ from studio_core.freshness import fingerprint
 from studio_core.media import asset_path, probe
 from studio_core.templates import validate_parameters
 from studio_core.models import fps
-from .paper_theatre import rig_image, layout_cutout
+from .paper_theatre import composite_rig, layout_cutout
+
+PAPER_THEATRE = Path(__file__).with_name("paper_theatre.py")
+
+
+def renderer_hash():
+    """Render caches must follow the paper rigs too, not only this file."""
+    return fingerprint({"templates": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                        "paper_theatre": hashlib.sha256(PAPER_THEATRE.read_bytes()).hexdigest()})
+
+
+def _rig_memo(media, index, raw, cue, w, h):
+    """Per-layer cache for one MediaFrames; None for moving (video) layers."""
+    streams = getattr(media, "streams", None)
+    if streams is not None and (index >= len(streams) or streams[index] is not None):
+        return None
+    store = media.__dict__.setdefault("_paper_rig_memo", {})
+    key = (index, id(raw), w, h, json.dumps(cue, sort_keys=True))
+    return store.setdefault(key, {})
 
 FONT = Path(__file__).resolve().parents[1] / "pilot/fonts/Montserrat.ttf"
 FONTS={"montserrat":FONT,"courier":FONT.with_name("CourierPrime-Regular.ttf"),"courier-bold":FONT.with_name("CourierPrime-Bold.ttf")}
@@ -156,19 +174,23 @@ def paint(clip, params, media, n, w, h, rate, style=None):
                 layer = media.frame(i, n)
                 if layer:
                     duration = cue.get("duration", params.get("assembly_duration", .35))
-                    if kind == "paper-theatre" and "layout_x" in cue:
-                        layer = layout_cutout(layer, cue, w, h)
-                    else:
-                        layer = layer.resize((w, h))
                     depth = cue.get("depth", i)
                     shift = round((phase - .5) * w * params.get("depth", .06) * depth)
                     rig = cue.get("rig", "sequential")
                     if rig != "sequential":
-                        image.alpha_composite(
-                            rig_image(layer, rig, cue, seconds - start, duration),
-                            (shift, 0),
-                        )
+                        # Same pixels as alpha_composite(rig_image(...)); the
+                        # frame-sized layer is only built once per render.
+                        raw = layer
+                        full = ((lambda: layout_cutout(raw, cue, w, h))
+                                if kind == "paper-theatre" and "layout_x" in cue
+                                else (lambda: raw.resize((w, h))))
+                        composite_rig(image, full, rig, cue, seconds - start, duration,
+                                      (shift, 0), _rig_memo(media, i, raw, cue, w, h), (w, h))
                         continue
+                    if kind == "paper-theatre" and "layout_x" in cue:
+                        layer = layout_cutout(layer, cue, w, h)
+                    else:
+                        layer = layer.resize((w, h))
                     # Legacy sequential entrance intentionally stays pixel-compatible.
                     reveal = 1.0
                     if assembling:
@@ -275,7 +297,7 @@ def template_video(store, project, clip, w, h, rate, cancel=None):
     params=validate_parameters(clip.template,clip.parameters)
     ids=set(clip.asset_ids+([clip.asset_id] if clip.asset_id else []))
     assets=[a.model_dump() for a in project.assets if a.id in ids]
-    key=fingerprint({"renderer":hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),"land":hashlib.sha256(LAND.read_bytes()).hexdigest(),"clip":clip.model_dump(),"assets":assets,"size":[w,h,rate],"style":project.channel_profile,"font":font_hash()})
+    key=fingerprint({"renderer":renderer_hash(),"land":hashlib.sha256(LAND.read_bytes()).hexdigest(),"clip":clip.model_dump(),"assets":assets,"size":[w,h,rate],"style":project.channel_profile,"font":font_hash()})
     folder=store.root/"cache/templates"; folder.mkdir(parents=True,exist_ok=True)
     path=folder/(key+".mp4")
     if path.is_file(): return path

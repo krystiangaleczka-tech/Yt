@@ -6,6 +6,9 @@ import { useStudio } from "./context";
 import { Button, Field, NumberField } from "./components";
 import type { Project, Scene } from "./types";
 import PaperCutoutMaskEditor from "./PaperCutoutMaskEditor";
+import PaperTheatreLive, { type LiveSource } from "./PaperTheatreLive";
+import type { Cue } from "./paperTheatreMotion";
+import { fps } from "./timing";
 
 const GROUPS = [
   ["sky", "Niebo · osobne chmury/słońce"],
@@ -30,6 +33,16 @@ type Manifest = {
   reference_asset_id?: string; reference_notes?: string; reference_approved?: boolean;
 };
 type PromptResult = { id: string; name: string; prompt: string; group: string; asset_id: string };
+type DraftPlan = { asset_ids: string[]; layer_cues: Cue[]; total_seconds: number };
+// Same mapping as assemble_manifest(): what the planner would receive.
+const toLayer = (obj: ObjectSpec) => ({
+  asset_id: obj.asset_id, group: obj.group,
+  ...(obj.pivot_x !== undefined ? { pivot_x: obj.pivot_x } : {}),
+  ...(obj.pivot_y !== undefined ? { pivot_y: obj.pivot_y } : {}),
+  ...(obj.rig ? { rig: obj.rig } : {}),
+  layout_x: obj.x, layout_y: obj.y, layout_width: obj.width, z_index: Math.round(obj.z),
+  ...(obj.duration !== undefined ? { duration: obj.duration } : {}),
+});
 const DEFAULT_STYLE = "Hand-cut textured paper, coordinated muted palette, subtle ink outlines, visible paper fibers and shadows; one coherent light direction. Adapt era and color scheme to the story.";
 
 const groupName = (key: string) => GROUPS.find(([id]) => id === key)?.[1] || key;
@@ -82,6 +95,11 @@ export default function PaperTheatreAssetFirst({
     asset.provenance?.reference_asset_id === referenceId &&
     asset.provenance?.object_id === obj.id);
   const missingWithNoVariant = manifest.objects.filter((obj) => !obj.asset_id && !candidateFor(obj));
+  const [draftPlan, setDraftPlan] = useState<DraftPlan | null>(null);
+  const [draftState, setDraftState] = useState("");
+  const [liveSaved, setLiveSaved] = useState(false);
+  const manifestRef = useRef(manifest);
+  manifestRef.current = manifest;
 
   useEffect(() => {
     setManifest(previous?.objects?.length
@@ -358,6 +376,60 @@ Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana 
     setMaskObjectId("");
     studio.notify("Nowa maska alpha zapisana jako osobny PNG. Oryginał pozostał w bibliotece.");
   });
+  // Live preview of unsaved edits: the planner (POST /preview, saves nothing)
+  // gives exact entrance timing; dragged positions are overlaid at once.
+  const rate = fps(project);
+  const linked = manifest.objects.filter((obj) => obj.asset_id);
+  const timingKey = JSON.stringify([scene?.id, project.revision, background, gap, groupGap, heroOutline,
+    // Positions are overlaid locally, so dragging does not wait for the server.
+    linked.map((obj) => [obj.asset_id, obj.group, obj.pivot_x, obj.pivot_y, obj.rig, obj.duration])]);
+  useEffect(() => {
+    if (!scene || !background || !linked.length) { setDraftPlan(null); setDraftState(""); return; }
+    let alive = true;
+    setDraftState("przeliczam harmonogram…");
+    const handle = window.setTimeout(() => {
+      api<DraftPlan>(`/projects/${project.id}/paper-theatre/${scene.id}/preview`, {
+        expected_revision: project.revision, background_id: background,
+        layers: manifestRef.current.objects.filter((obj) => obj.asset_id).map(toLayer),
+        gap, group_gap: groupGap, hero_outline_px: Math.round(heroOutline),
+      }).then((plan) => { if (alive) { setDraftPlan(plan); setDraftState(""); } })
+        .catch((reason) => { if (alive) setDraftState(reason instanceof Error ? reason.message : String(reason)); });
+    }, 250);
+    return () => { alive = false; window.clearTimeout(handle); };
+  }, [timingKey]);
+  const frameSize = { width: project.sequence.width, height: project.sequence.height, fps: rate };
+  const draftSource: LiveSource | null = draftPlan && scene && background ? {
+    label: "Bieżące zmiany (niezapisane)",
+    def: {
+      ...frameSize, template: "paper-theatre",
+      durationFrames: Math.max(scene.duration, Math.ceil(draftPlan.total_seconds * rate)),
+      background: mediaUrl(project.id, background),
+      layers: draftPlan.asset_ids.map((assetId) => mediaUrl(project.id, assetId)),
+      params: { depth: 0, caption: "", layer_cues: draftPlan.layer_cues.map((cue, index) => {
+        const obj = manifest.objects.find((item) => item.asset_id === draftPlan.asset_ids[index]);
+        return obj ? { ...cue, layout_x: obj.x, layout_y: obj.y, layout_width: obj.width, z_index: Math.round(obj.z) } : cue;
+      }) },
+    },
+  } : null;
+  const savedLayers = (() => {
+    const seen = new Set([scene?.asset_id]);
+    return (scene?.asset_ids || []).filter((assetId) => !seen.has(assetId) && !!seen.add(assetId));
+  })();
+  const savedSource: LiveSource | null = scene?.asset_id && savedLayers.length ? {
+    label: "Zapisane ujęcie",
+    def: {
+      ...frameSize, template: scene.template || "paper-theatre", durationFrames: scene.duration,
+      background: mediaUrl(project.id, scene.asset_id),
+      layers: savedLayers.map((assetId) => mediaUrl(project.id, assetId)),
+      params: { depth: .015, caption: "", ...scene.parameters },
+    },
+    exactFrame: (frame) => `/api/projects/${project.id}/scenes/${scene.id}/poster?revision=${project.revision}&frame=${frame}`,
+  } : null;
+  const liveSource = (liveSaved ? savedSource || draftSource : draftSource || savedSource);
+  const liveHint = draftState || (!scene ? "Utwórz ujęcie Paper Theatre" : !background
+    ? "Wybierz czyste tło, aby oglądać bieżące zmiany" : !linked.length
+      ? "Przypisz PNG do obiektów, aby oglądać bieżące zmiany" : "");
+
   const updateObjectNumber = (obj: ObjectSpec, key: "x"|"y"|"width"|"z"|"pivot_x"|"pivot_y", value: number) => {
     modify(obj.id, { [key]: value });
   };
@@ -495,6 +567,11 @@ Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana 
         <p className="small muted">Obrys bohatera, kolejność wejść i wzajemne przesłanianie są zachowane w kompozytorze MP4. Scenę dodaj do montażu po sprawdzeniu klatek.</p>
       </section>
       <section className="surface tool-panel">
+        <PaperTheatreLive source={liveSource} status={liveHint} />
+        {draftSource && savedSource && <div className="button-row" style={{ marginTop: -8, marginBottom: 12 }}>
+          <Button primary={!liveSaved} onClick={() => setLiveSaved(false)}>Bieżące zmiany</Button>
+          <Button primary={liveSaved} onClick={() => setLiveSaved(true)}>Zapisane ujęcie (z dokładną klatką)</Button>
+        </div>}
         <h2>Mapa kompozycji i obiektów</h2>
         <div style={{ position: "relative", aspectRatio: "16 / 9", overflow: "hidden",
                       border: "1px solid var(--border, #777)", borderRadius: 8,
