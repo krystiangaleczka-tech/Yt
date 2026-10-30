@@ -10,7 +10,8 @@ Iteracja nie wymaga już renderu MP4. Wąskim gardłem nie był wybór bibliotek
 liczył od nowa rzeczy stałe: obrys postaci (`MaxFilter`, ~1 s na postać na
 klatkę), obrót i rozmycie cienia na pełnym płótnie dla każdej warstwy.
 
-- **Podgląd na żywo** (prawa kolumna panelu, nad mapą kompozycji): Canvas 2D,
+- **Podgląd na żywo** (podzakładka „Podgląd na żywo” obok „Edycja” w panelu
+  Paper Theatre; obie zakładki dzielą stan, więc niezapisane zmiany są widoczne): Canvas 2D,
   odtwarzanie, przewijanie, klatka po klatce. Pokazuje **bieżące, niezapisane
   zmiany** (harmonogram z planera przez `POST /paper-theatre/{sid}/preview`,
   który niczego nie zapisuje; przeciągnięte pozycje nakładane są od razu) albo

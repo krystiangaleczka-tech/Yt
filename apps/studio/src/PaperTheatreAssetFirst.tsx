@@ -101,6 +101,8 @@ export default function PaperTheatreAssetFirst({
   const [draftPlan, setDraftPlan] = useState<DraftPlan | null>(null);
   const [draftState, setDraftState] = useState("");
   const [liveSaved, setLiveSaved] = useState(false);
+  // Sub-tabs share this component's state, so unsaved edits stay visible.
+  const [view, setView] = useState<"edit" | "live">("edit");
   const manifestRef = useRef(manifest);
   manifestRef.current = manifest;
 
@@ -398,6 +400,7 @@ Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana 
     // Positions are overlaid locally, so dragging does not wait for the server.
     linked.map((obj) => [obj.asset_id, obj.group, obj.pivot_x, obj.pivot_y, obj.rig, obj.duration])]);
   useEffect(() => {
+    if (view !== "live") return; // the planner reads every PNG: only while watching
     if (!scene || !background || !linked.length) { setDraftPlan(null); setDraftState(""); return; }
     let alive = true;
     setDraftState("przeliczam harmonogram…");
@@ -410,7 +413,7 @@ Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana 
         .catch((reason) => { if (alive) setDraftState(reason instanceof Error ? reason.message : String(reason)); });
     }, 250);
     return () => { alive = false; window.clearTimeout(handle); };
-  }, [timingKey]);
+  }, [timingKey, view]);
   const frameSize = { width: project.sequence.width, height: project.sequence.height, fps: rate };
   const draftSource: LiveSource | null = draftPlan && scene && background ? {
     label: "Bieżące zmiany (niezapisane)",
@@ -470,7 +473,29 @@ Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana 
     });
   };
 
+  const tabs = (
+    <div className="filter-pills" role="tablist" aria-label="Widok ujęcia Paper Theatre">
+      {([["edit", "Edycja"], ["live", "Podgląd na żywo"]] as const).map(([key, label]) => (
+        <button key={key} type="button" role="tab" aria-selected={view === key}
+          className={view === key ? "active" : ""} onClick={() => setView(key)}>{label}</button>
+      ))}
+    </div>
+  );
+
+  if (view === "live") return (<>
+    {tabs}
+    <section className="surface tool-panel" style={{ maxWidth: 1200 }}>
+      <PaperTheatreLive source={liveSource} status={liveHint} />
+      {draftSource && savedSource && <div className="button-row" style={{ marginTop: -8 }}>
+        <Button primary={!liveSaved} onClick={() => setLiveSaved(false)}>Bieżące zmiany</Button>
+        <Button primary={liveSaved} onClick={() => setLiveSaved(true)}>Zapisane ujęcie (z dokładną klatką)</Button>
+      </div>}
+      <p className="small muted">Zmiany wprowadzasz w zakładce Edycja; tutaj widać je od razu, także przed zapisem.</p>
+    </section>
+  </>);
+
   return (<>
+    {tabs}
     <PaperTheatreReview scene={scene} onCompare={compare} dirty={dirty} />
     <div className="production-grid">
       <section className="surface tool-panel">
@@ -594,11 +619,6 @@ Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana 
         <p className="small muted">Ten krok przygotowuje klatkę do oceny. Montaż i MP4 wymagają osobnej akceptacji autora w etapie Scenograf.</p>
       </section>
       <section className="surface tool-panel">
-        <PaperTheatreLive source={liveSource} status={liveHint} />
-        {draftSource && savedSource && <div className="button-row" style={{ marginTop: -8, marginBottom: 12 }}>
-          <Button primary={!liveSaved} onClick={() => setLiveSaved(false)}>Bieżące zmiany</Button>
-          <Button primary={liveSaved} onClick={() => setLiveSaved(true)}>Zapisane ujęcie (z dokładną klatką)</Button>
-        </div>}
         <h2>Położenie i skala pojedynczych obiektów</h2>
         <h2>Mapa kompozycji i obiektów</h2>
         <div style={{ position: "relative", aspectRatio: "16 / 9", overflow: "hidden",
