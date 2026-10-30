@@ -52,7 +52,8 @@ import type { ProductionMode } from "./animationTypes";
 const MotionEditor = lazy(() => import("./MotionEditor"));
 const WorkspaceView = lazy(() => import("./WorkspacePage"));
 const CastBankView = lazy(() => import("./CastBank"));
-const SceneBoard = lazy(() => import("./SceneBoard"));
+const Scenes = lazy(() => import("./Scenes"));
+const ShotEditor = lazy(() => import("./ShotEditor"));
 const Storyboard = lazy(() => import("./Storyboard"));
 
 const steps: { id: Page; label: string; icon: LucideIcon }[] = [
@@ -61,6 +62,7 @@ const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "story", label: "Historia", icon: GitBranch },
   { id: "script", label: "Scenariusz", icon: FileText },
   { id: "generation", label: "Generowanie", icon: Clapperboard },
+  { id: "scenes", label: "Sceny", icon: LayoutGrid },
   { id: "editing", label: "Montaż", icon: SlidersHorizontal },
   { id: "export", label: "Eksport", icon: ArrowUpRight },
 ];
@@ -84,7 +86,7 @@ function Shell() {
     [mobileNav, setMobileNav] = useState(false),
     [newOpen, setNewOpen] = useState(false);
   const modeSteps = s.mode === "animation_2d" ? animationSteps : steps;
-  const step = [...modeSteps, ...animationSteps].find((x) => x.id === s.page);
+  const step = [...modeSteps, ...animationSteps].find((x) => x.id === (s.page === "shot-editor" ? "scenes" : s.page));
   function switchMode(next: ProductionMode) {
     if (next === s.mode) return;
     s.setMode(next);
@@ -146,7 +148,11 @@ function Shell() {
       />
     ) : s.page === "scenes" ? (
       <Suspense fallback={<div className="page-content">Ładowanie scen…</div>}>
-        <SceneBoard />
+        <Scenes key={s.project.id} />
+      </Suspense>
+    ) : s.page === "shot-editor" ? (
+      <Suspense fallback={<div className="page-content">Ładowanie edytora ujęcia…</div>}>
+        <ShotEditor />
       </Suspense>
     ) : s.page === "storyboard" ? (
       <Suspense fallback={<div className="page-content">Ładowanie storyboardu…</div>}>
@@ -304,8 +310,8 @@ function Shell() {
           {modeSteps.map((item, index) => (
             <button
               key={item.id}
-              className={`nav-item ${s.page === item.id ? "active" : ""}`}
-              aria-current={s.page === item.id ? "page" : undefined}
+              className={`nav-item ${s.page === item.id || (s.page === "shot-editor" && item.id === "scenes") ? "active" : ""}`}
+              aria-current={s.page === item.id || (s.page === "shot-editor" && item.id === "scenes") ? "page" : undefined}
               onClick={() => navigate(item.id)}
               title={item.label}
             >

@@ -27,6 +27,7 @@ export type Page =
   | "cast"
   | "locations"
   | "scenes"
+  | "shot-editor"
   | "storyboard"
   | "props"
   | "sounds";
@@ -95,6 +96,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
   function close() {
     ref.current = null;
     setProject(null);
+    setTargetScene(null);
     localStorage.removeItem("docos:last-project");
   }
   function setMode(next: ProductionMode) {
@@ -134,6 +136,8 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       ref.current = null;
       accept(p);
       const remembered = localStorage.getItem("docos:page:" + id);
+      const rememberedShot = localStorage.getItem("docos:shot:" + id);
+      setTargetScene(rememberedShot && [...p.scenes, ...p.stage_scenes].some((scene) => scene.id === rememberedShot) ? rememberedShot : null);
       const pages: Page[] = [
         "idea",
         "facts",
@@ -156,6 +160,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
         "cast",
         "locations",
         "scenes",
+        "shot-editor",
         "storyboard",
         "props",
         "sounds",
@@ -178,6 +183,10 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     setHealth(await api<Health>("/health"));
     await reloadList();
   }
+  useEffect(() => {
+    if (project && targetScene && [...project.scenes, ...project.stage_scenes].some((scene) => scene.id === targetScene))
+      localStorage.setItem("docos:shot:" + project.id, targetScene);
+  }, [project?.id, targetScene]);
   // Claude and other windows edit the same film through the API: pick up newer revisions.
   useEffect(() => {
     const timer = setInterval(() => {
@@ -269,7 +278,11 @@ export function StudioProvider({ children }: { children: ReactNode }) {
           list.find((x) => (x.production_mode || "documentary") === mode)?.id;
         if (chosen) {
           const p = await api<Project>("/projects/" + chosen);
-          if (active) accept(p);
+          if (active) {
+            accept(p);
+            const rememberedShot = localStorage.getItem("docos:shot:" + p.id);
+            setTargetScene(rememberedShot && [...p.scenes, ...p.stage_scenes].some((scene) => scene.id === rememberedShot) ? rememberedShot : null);
+          }
           const remembered =
             requested.get("page") || localStorage.getItem("docos:page:" + p.id);
           if (active && remembered) setPage(remembered as Page);

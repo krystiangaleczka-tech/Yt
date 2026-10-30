@@ -368,7 +368,8 @@ export default function Storyboard() {
   });
   function openScene(scene: StageScene) {
     localStorage.setItem("docos:stage:" + p.id, scene.id);
-    s.setPage("scenes");
+    s.setTargetScene(scene.id);
+    s.setPage("shot-editor");
   }
   const saveBeats = (next: Beat[]) => s.run(() => s.patch({ beats: next }));
   const sceneOps = (operations: Record<string, unknown>[]) =>

@@ -62,6 +62,8 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     app = FastAPI(title="DocOS Studio", version="0.2.0", lifespan=lifespan)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "[::1]", "testserver"])
     app.state.store = store; app.state.jobs = jobs; app.state.connectors = connectors
+    from studio_api.annotations import register_annotations
+    register_annotations(app, store)
     workspace = Workspace(store)
     app.state.workspace = workspace
     from studio_api.paper_review import register_paper_review
@@ -170,6 +172,7 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
             existing = clips[0] if clips else None
             if existing:
                 ops = [{"type": "update_clip", "clip_id": c.id, "changes": {"asset_id": scene.asset_id, "template": scene.template, "parameters": scene.parameters, "asset_ids": scene.asset_ids, "fact_ids": scene.fact_ids,
+                        **({"title": scene.title, "animation": scene.animation} if body.get("sync_shot") else {}),
                         **({"start": scene.start, "duration": scene.duration} if len(clips) == 1 and body.get("sync_timing") else {})}} for c in clips]
             else:
                 ops = [{"type": "add_clip", "clip": Clip(track_id="v1", scene_id=scene.id, asset_id=scene.asset_id, title=scene.title,

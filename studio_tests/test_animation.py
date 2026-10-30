@@ -122,6 +122,17 @@ class AnimationTests(unittest.TestCase):
         moved = self.client.post(f"/api/projects/{film['id']}/workspace/context", json={'expected_revision': film['revision'], 'channel_id': self.other['id']}, headers=H)
         self.assertEqual(moved.status_code, 422)
 
+    def test_director_notes_persist_without_reopening_an_approved_scene(self):
+        film = self.scenes(self.film(), {'type': 'add', 'scene': {'title': 'Ujęcie'}})
+        sid = film['stage_scenes'][0]['id']
+        film = self.scenes(film, {'type': 'review', 'scene_id': sid, 'status': 'approved'})
+        film = self.scenes(film, {'type': 'update', 'scene_id': sid, 'changes': {'director_notes': 'Chmury po jednej.'}})
+        reopened = self.ok(self.client.get(f"/api/projects/{film['id']}"))
+        self.assertEqual(reopened['stage_scenes'][0]['director_notes'], 'Chmury po jednej.')
+        self.assertEqual(reopened['stage_scenes'][0]['status'], 'approved')
+        film = self.scenes(film, {'type': 'update', 'scene_id': sid, 'changes': {'action': 'Wchodzi postać.'}})
+        self.assertEqual(film['stage_scenes'][0]['status'], 'review')
+
     def test_regeneration_is_a_validated_proposal(self):
         mara, kitchen = self.character(self.channel['id']), self.location(self.channel['id'])
         film = self.scenes(self.film(), {'type': 'add', 'scene': {'title': 'Woda', 'location_id': kitchen['id']}})

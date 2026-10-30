@@ -60,6 +60,55 @@ Profil kanału zapisuje styl narracji i obrazów, referencje, kolor oraz krój n
 
 Blokady obejmują całe ujęcie lub osobno narrację, czas i media. Są egzekwowane również dla powiązanych klipów i AI. Przekazanie do montażu jawnie zmienia medium/parametry; generowanie wariantu nie rusza ręcznych cięć i ruchu. Zmiana długości ręcznie pociętego ujęcia wymaga pracy na osi.
 
+## Sceny i edycja pojedynczego ujęcia
+
+Zakładka **Sceny** pokazuje ujęcia całego odcinka w wierszach: numer, miniatura,
+opis, dialog lub narracja, metryka i uwagi reżysera. Obejmuje sceny z bankiem
+postaci, zdjęcia, wideo i Paper Theatre. Opis oraz uwagi są zapisywane osobno
+od promptu obrazu. Notatka reżysera nie zmienia statusu zatwierdzonej sceny 2D.
+
+Kliknięcie miniatury lub wiersza otwiera **edytor tego ujęcia**: assety po lewej,
+podgląd na środku, timeline pod podglądem i warstwy z właściwościami po prawej.
+Przycisk „Wszystkie sceny” wraca do listy; strzałki przechodzą do sąsiedniego
+ujęcia. Wybrane ujęcie jest pamiętane po odświeżeniu przeglądarki.
+
+Podgląd Paper Theatre korzysta z Canvas i zapisanych czasów wejść. Można
+przewijać klatki, zmieniać pozycje, rozmiar i Z wycinka, a blok warstwy na osi
+przeciągnąć, aby zmienić moment wejścia. Dotychczasowy proces przygotowania,
+generowania i akceptacji wycinków jest w zakładce „Przygotowanie warstw”.
+„Zastosuj do montażu” przekazuje zapisane ujęcie do głównej sekwencji, zachowując
+wymaganą ocenę Paper Theatre. Podgląd Canvas pozostaje podglądem roboczym.
+
+W scenach 2D assety pochodzą z banku kanału. Przeciąganie postaci i rekwizytów
+w kadrze oraz ich dotychczasowe właściwości pozostają dostępne. Timeline pokazuje
+warstwy i wejścia rekwizytów/dźwięków; rozkład dialogów jest szacunkowy.
+„Importuj sceny” przyjmuje JSON z listą `scenes` albo `stage_scenes` (maksymalnie
+200 ujęć naraz, do 8 MB). Import dodaje nowe identyfikatory; użyte zasoby muszą
+już istnieć w filmie lub banku kanału.
+
+### Uwagi markerem do konkretnej klatki
+
+W edytorze ujęcia zatrzymaj lub przewiń timeline, wybierz **Marker + uwaga**
+i zakreśl miejsce myszą, palcem lub rysikiem. Po podniesieniu markera otwiera się
+dymek komentarza. **Zapisz uwagę** (lub Ctrl/Cmd+Enter) zachowuje tekst i ślad
+markera przy tej jednej klatce tego ujęcia. Można dorysować kolejne zaznaczenia
+przed zapisaniem tej samej uwagi.
+
+Oś ma osobny wiersz **UWAGI** z punktowymi znacznikami, bez rozciągania komentarza
+na zakres czasu. Kliknięcie znacznika zatrzymuje podgląd na właściwej klatce
+i otwiera komentarz. Zaznaczenie jest widoczne tylko na tej klatce po zatrzymaniu;
+lista „Uwagi ujęcia” pozwala wracać do wszystkich zapisanych uwag. Komentarz
+można poprawić lub usunąć, a kilka uwag tej samej klatki tworzy jeden znacznik
+z licznikiem. Numer w interfejsie zaczyna się od 1.
+
+Uwagi zapisują się w projekcie i jego archiwum razem z ujęciem, lokalnym numerem
+klatki, bazą FPS oraz współrzędnymi zaznaczenia. Zachowują pozycję po zmianie
+rozmiaru podglądu. Po zmianie FPS wskazują najbliższą klatkę w tym samym momencie.
+Wpisy poza skróconym ujęciem pozostają zapisane, ale nie mają znacznika na jego
+aktualnej osi. Nieukończony szkic komentarza jest pamiętany w tej przeglądarce.
+Adnotacje są warstwą recenzji: nie trafiają do MP4 i nie zmieniają zatwierdzenia
+ani blokad zawartości ujęcia.
+
 ## Źródła i książki
 
 | Dostawca | Zakres |

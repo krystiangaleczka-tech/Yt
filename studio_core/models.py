@@ -9,6 +9,7 @@ from .inserts import MotionInsert
 from .development import Development, migrate_ideas
 from .workspace_models import ResourceLink
 from .animation import StageScene, ProductionMode, MusicCue
+from .annotations import FrameAnnotation
 
 
 class Fact(Model):
@@ -111,6 +112,8 @@ class Scene(Model):
     id: str = Field(default_factory=lambda: uid("scene_"))
     title: str = "Nowe ujęcie"
     narration: str = ""
+    description: str = Field(default="", max_length=3000)
+    director_notes: str = Field(default="", max_length=3000)
     start: int = Field(default=0, ge=0)
     duration: int = Field(default=180, ge=1)
     timing: Literal["estimated", "measured"] = "estimated"
@@ -240,6 +243,7 @@ class Project(Model):
     film_format: str = ""
     production_mode: ProductionMode = "documentary"
     stage_scenes: list[StageScene] = Field(default_factory=list, max_length=2000)
+    frame_annotations: list[FrameAnnotation] = Field(default_factory=list, max_length=5000)
     music_cues: list[MusicCue] = Field(default_factory=list, max_length=500)
     workspace_snapshot: dict[str, Any] = Field(default_factory=dict)
     resource_links: list[ResourceLink] = Field(default_factory=list)
@@ -267,7 +271,7 @@ class Project(Model):
                 raise ValueError("Limity budżetu muszą być nieujemnymi liczbami")
         if not 1<=self.budget.get("max_jobs",20)<=100 or not 1<=self.budget.get("max_seconds",3600)<=21600:
             raise ValueError("Limit zadań: 1–100; limit czasu: 1–21600 sekund")
-        for name in ("facts", "sources", "scenes", "assets", "beats", "inserts", "stage_scenes"):
+        for name in ("facts", "sources", "scenes", "assets", "beats", "inserts", "stage_scenes", "frame_annotations"):
             ids = [x.id for x in getattr(self, name)]
             if len(ids) != len(set(ids)):
                 raise ValueError(f"Powtórzone identyfikatory: {name}")

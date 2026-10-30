@@ -258,6 +258,7 @@ class StageScene(Model):
     characters: list[StageCharacter] = Field(default_factory=list, max_length=8)
     props: list[StageProp] = Field(default_factory=list, max_length=20)
     action: str = Field(default="", max_length=3000)
+    director_notes: str = Field(default="", max_length=3000)
     camera: str = Field(default="", max_length=300)
     dialogue: list[DialogueLine] = Field(default_factory=list, max_length=40)
     sound: SceneSound = Field(default_factory=SceneSound)
@@ -286,8 +287,8 @@ SCHEMA_HINT = """characters: [{"character_id","pose_id","x" 0-1,"y" feet line (0
 props: [{"item_id","variant_id","x","y" centre,"scale","rotation","layer": "behind"|"front","motion": "none"|"appear"|"fade_in","at" 0-1,"region_id" (optional clip)}] — props and overlays persist between scenes until the story removes them;
 audio: [{"sound_id" (sfx or ambience from the bank),"at" 0-1 moment for effects,"volume" 0-2}];
 motion: {"camera": "static"|"push_in"|"pull_out"|"pan_left"|"pan_right"|"shake", "strength" 0-1, "zoom" 1-4 (framing: 1 wide, 1.6 medium, 2.2 close-up), "focus_x","focus_y" 0-1 (centre of the framing)}; dialogue: [{"speaker","text","direction"}]; sound: {"ambience","music","sfx":[]}."""
-# Organisation, not content: moving a scene between beats does not reopen its review.
-SCENE_FIELDS = CONTENT_FIELDS + ("beat_id",)
+# Organisation, not content: beat assignment and director notes do not reopen a review.
+SCENE_FIELDS = CONTENT_FIELDS + ("beat_id", "director_notes")
 
 
 def read_image(content: bytes) -> tuple[bytes, CastImage, str]:
