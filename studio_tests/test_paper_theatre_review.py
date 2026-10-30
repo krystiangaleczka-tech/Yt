@@ -126,3 +126,26 @@ class PaperReviewTests(unittest.TestCase):
         self.approve()
         self.post(self.route+'/review/decision',{'expected_revision':self.get()['revision'],'decision':'revise','notes':'Popraw blat'})
         self.assertEqual(self.timeline().status_code,422)
+
+    def test_legacy_manual_and_muted_shots_do_not_block_other_workflows(self):
+        p = self.app.state.store.get(self.pid)
+        s = p.scenes[0]
+        s.generation = {}
+        self.assertFalse(review.requires_review(s))
+        review.require_approved(self.app.state.store, p, s)
+        s.generation['paper_theatre_workflow'] = {'require_layout_review': True}
+        p.sequence.clips.append(Clip(track_id='v1', scene_id=s.id, template='paper-theatre'))
+        p.sequence.tracks[0].muted = True
+        review.require_export_approval(self.app.state.store, p)
+
+    def test_accepted_recut_uses_actual_layers_not_historical_manifest(self):
+        p = self.app.state.store.get(self.pid)
+        def accept_recut(p):
+            s = p.scenes[0]
+            s.generation['paper_theatre_recut'] = {'applied': True, 'result': {
+                'map': {self.cloud:self.cloud}, 'background':self.bg, 'extra':[], 'leftovers':[]}}
+            s.generation['paper_theatre_asset_first']['objects'][0]['asset_id'] = self.bg
+        self.app.state.store.mutate(self.pid, p.revision, accept_recut)
+        state = self.preview()
+        self.assertFalse(state['approved'])
+        self.assertEqual(self.approve(state).status_code, 200)

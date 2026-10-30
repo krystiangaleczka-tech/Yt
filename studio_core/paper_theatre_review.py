@@ -22,6 +22,13 @@ def manifest(scene):
     return scene.generation.get('paper_theatre_asset_first', {})
 
 
+def requires_review(scene):
+    # Existing manually authored layer shots keep working. Reference reconstruction
+    # and shots deliberately entering the review workflow require an author's decision.
+    return (manifest(scene).get('mode') == 'reference-guided' or KEY in scene.generation or
+            scene.generation.get('paper_theatre_workflow', {}).get('require_layout_review') is True)
+
+
 def signature(store, project, scene):
     ref = manifest(scene).get('reference_asset_id') or scene.generation.get('paper_theatre_reference', {}).get('asset_id')
     ids = set(scene.asset_ids + ([scene.asset_id] if scene.asset_id else []) + ([ref] if ref else []))
@@ -56,6 +63,13 @@ def validate_assembled(scene):
     if scene.template != 'paper-theatre' or not scene.asset_id or not scene.asset_ids:
         raise ValueError('Najpierw złóż scenę z osobnych PNG')
     data = manifest(scene)
+    recut = scene.generation.get('paper_theatre_recut', {})
+    if recut.get('applied'):
+        result = recut.get('result', {})
+        ids = set(result.get('map', {}).values()) | {e['asset_id'] for e in result.get('extra', []) + result.get('leftovers', [])}
+        if ids != set(scene.asset_ids) or result.get('background') != scene.asset_id:
+            raise ValueError('Scena różni się od przyjętych wycinków. Sprawdź aktualne warstwy po rozcięciu')
+        return  # Recut deliberately retains the original planning manifest as history.
     if data.get('objects'):
         cues = {c['layer']: c for c in scene.parameters.get('layer_cues', [])}
         by_asset = {aid: cues.get(i + 1, {}) for i, aid in enumerate(scene.asset_ids)}
@@ -152,6 +166,8 @@ def vision_review(connectors, store, project, scene):
 
 
 def require_approved(store, project, scene):
+    if not requires_review(scene):
+        return
     validate_assembled(scene)
     if not status(store, project, scene)['approved']:
         raise ValueError('Paper Theatre: autor musi zaakceptować aktualny układ w etapie Scenograf przed montażem lub MP4: ' + scene.title)
@@ -159,12 +175,16 @@ def require_approved(store, project, scene):
 
 def require_export_approval(store, project):
     scenes = {s.id: s for s in project.scenes}
+    solo = any(t.solo for t in project.sequence.tracks)
+    visible = {t.id for t in project.sequence.tracks if not t.muted and (not solo or t.solo)}
     for clip in project.sequence.clips:
-        if clip.template != 'paper-theatre':
+        if clip.template != 'paper-theatre' or clip.track_id not in visible:
             continue
         scene = scenes.get(clip.scene_id)
         if not scene:
-            raise ValueError('Powiąż klip Paper Theatre z ujęciem i zatwierdź układ w etapie Scenograf')
+            continue  # Older free-standing timeline layers have no reconstruction workflow.
+        if not requires_review(scene):
+            continue
         require_approved(store, project, scene)
         if (clip.asset_id, clip.asset_ids, {k:v for k,v in clip.parameters.items() if not k.startswith('_')}) != (scene.asset_id, scene.asset_ids, scene.parameters):
             raise ValueError('Paper Theatre: warstwy w montażu różnią się od zatwierdzonej sceny. Zastosuj aktualne ujęcie ponownie')

@@ -233,6 +233,7 @@ def render_full(store: ProjectStore, project: Project, output: Path, progress, c
 
 def render(store, project, output, progress, cancel, preview=False, start_frame=0, end_frame=None):
     from studio_core.paper_theatre_review import require_export_approval
-    require_export_approval(store, project)
+    if end_frame is None or end_frame - start_frame > 1:
+        require_export_approval(store, project)
     from .cache import render_cached
     return render_cached(store, project, output, progress, cancel, preview, start_frame, end_frame)

@@ -35,7 +35,7 @@ export default function PaperTheatre() {
   const studio = useStudio();
   const project = studio.project!;
   const scenes = project.scenes.filter((shot) => shot.template === "paper-theatre");
-  const [sceneId, setSceneId] = useState(scenes[0]?.id || "");
+  const [sceneId, setSceneId] = useState(studio.targetScene || scenes[0]?.id || "");
   const scene: Scene | undefined = scenes.find((item) => item.id === sceneId) || scenes[0];
   const [background, setBackground] = useState("");
   const [layers, setLayers] = useState<Layer[]>([]);
@@ -46,6 +46,11 @@ export default function PaperTheatre() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [posterSeconds, setPosterSeconds] = useState(0);
   const assets = project.assets.filter((asset) => asset.kind === "image" && asset.filename.toLowerCase().endsWith(".png"));
+
+  useEffect(() => { setBackground(scene?.asset_id || ""); }, [scene?.asset_id]);
+  useEffect(() => {
+    if (studio.targetScene && scenes.some(s => s.id === studio.targetScene)) setSceneId(studio.targetScene);
+  }, [studio.targetScene]);
 
   useEffect(() => {
     const savedMode = (scene?.generation?.paper_theatre_asset_first as

@@ -62,7 +62,7 @@ export default function PaperTheatreReview({ scene, dirty, onCompare }: {
     <p>To klatka z tego samego kompozytora co film: z przycięciem alfa, właściwą skalą i kolejnością warstw.</p>
     <p className="small muted">Akceptacja referencji określa wzór. Dopiero tutaj zatwierdzasz scenę z osobnych PNG. Zgodność oceniaj wizualnie; nie podajemy niezmierzonego procentu podobieństwa.</p>
     <div className="button-row">
-      <Button primary onClick={onCompare} disabled={!scene}>Zapisz układ i przygotuj porównanie</Button>
+      <Button primary onClick={onCompare} disabled={!scene}>{dirty ? "Zapisz układ i przygotuj porównanie" : "Porównaj zapisany układ z referencją"}</Button>
       <strong role="status">{dirty ? "Niezapisane zmiany — przygotuj nową klatkę" : approved ? "Układ zaakceptowany przez autora" : review?.stale ? "Układ zmieniony — poprzednia akceptacja jest nieaktualna" : "Układ czeka na ocenę autora"}</strong>
     </div>
     {error && <p role="alert">{error}</p>}

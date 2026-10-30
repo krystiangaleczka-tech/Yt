@@ -386,7 +386,20 @@ Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana 
     });
   };
 
-  return (
+  const dirty = entranceDirty || background !== (scene?.asset_id || "") ||
+    JSON.stringify(effectiveManifest()) !== JSON.stringify(previous || {});
+  const compare = () => {
+    if (dirty) { assemble(); return; }
+    studio.run(async () => {
+      if (!scene) throw new Error("Utwórz ujęcie");
+      await studio.mutate(p => api<Project>(
+        `/projects/${p.id}/paper-theatre/${scene.id}/review/preview`,
+        { expected_revision: p.revision }));
+    });
+  };
+
+  return (<>
+    <PaperTheatreReview scene={scene} onCompare={compare} dirty={dirty} />
     <div className="production-grid">
       <section className="surface tool-panel">
         <h2>{referenceMode ? "02 · Obiekty na podstawie zatwierdzonego szkicu" : "01 · Zaplanuj scenę zanim powstaną obrazy"}</h2>
@@ -509,8 +522,6 @@ Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana 
         <p className="small muted">Ten krok przygotowuje klatkę do oceny. Montaż i MP4 wymagają osobnej akceptacji autora w etapie Scenograf.</p>
       </section>
       <section className="surface tool-panel">
-        <PaperTheatreReview scene={scene} onCompare={assemble} dirty={entranceDirty || background !== (scene?.asset_id || "") ||
-          JSON.stringify(effectiveManifest()) !== JSON.stringify(previous || {})} />
         <h2>Położenie i skala pojedynczych obiektów</h2>
         <h2>Mapa kompozycji i obiektów</h2>
         <div style={{ position: "relative", aspectRatio: "16 / 9", overflow: "hidden",
@@ -677,5 +688,5 @@ Rzeczywiste naliczenie zależy od dostawcy. Żadna warstwa nie zostanie wybrana 
         })}
       </section>
     </div>
-  );
+  </>);
 }

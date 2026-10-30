@@ -178,3 +178,44 @@ Zmiany przechowywane są w istniejącym projekcie jako `Scene(template="paper-th
 ### Nie dopowiadać sukcesu
 
 Stan wdrożenia nowej kategorii ≠ 100% jakości wizualnej. Ocena 50% dotyczy dotychczasowego demo. Nowy format jest narzędziem do dalszej poprawy, a nie dowodem finalnego efektu. Nie deklarować zgodności 1:1 bez kompletnego zestawu assetów i oceny rzeczywistego eksportu.
+
+## Scenograf: najpierw porównanie, potem decyzja autora (30.10.2026)
+
+Paper Theatre pozostaje warsztatem scenografii. Montaż składa kompletne ujęcie:
+po zatwierdzeniu rozmieszczenia można dodać głos, dymki/plansze, nakładki,
+dźwięk i ruch klipów. Z inspektora klipu Paper Theatre można wrócić bezpośrednio
+do scenografii przez **Scenograf · układ i porównanie z referencją**.
+
+1. Ustal referencję i przygotuj osobne wycinki. Zgoda na wzór kompozycji nie jest
+   zgodą na wynik złożenia PNG.
+2. Ustaw obiekty istniejącym edytorem przeciągania, masek, skali, pivotów i Z.
+   Edytor przycina PNG do rzeczywistego obrysu alfa, tak jak renderer.
+3. **Złóż układ i pokaż porównanie** przygotowuje pojedynczą klatkę właściwego
+   kompozytora, po zakończeniu wejść. Nie tworzy MP4. **Porównaj zapisany układ**
+   ocenia aktualne warstwy i nie składa starego manifestu na nowo, co ma znaczenie
+   po przyjęciu wycinków z „Rozetnij ponownie”.
+4. W Scenografie porównaj obrazy obok siebie albo nakładką z regulacją widoczności.
+   Opcjonalny przycisk **Scenograf AI** wysyła oba obrazy do połączonego modelu
+   obsługującego obrazy lub Claude CLI. Wynik zawiera konkretne rozbieżności
+   i zalecane poprawki. Brak dostawcy lub jego błąd jest pokazywany jako błąd,
+   nigdy jako udana ocena. Uwagi modelu wymagają weryfikacji człowieka.
+5. Autor sprawdza proporcje, położenie/przesłanianie i styki (np. pióra z księgą),
+   odsyła układ do poprawy albo jawnie akceptuje pokazany wynik. Akceptacja
+   krytycznych uwag wymaga opisania świadomego odstępstwa. Model nie akceptuje
+   pracy za autora. Nie ma deklarowanego wyniku „95% podobieństwa”.
+6. Dopiero potem przekaż scenę do Montażu i oceniaj kompletne ujęcie z ruchem,
+   dialogami i nakładkami przed eksportem.
+
+Akceptacja jest związana z treścią plików, referencją, układem, cue, rozmiarem
+kadru, stylem oraz wersją kompozytora. Po ich zmianie potrzebne są nowe porównanie
+oraz decyzja. Niezwiązana zmiana tytułu projektu nie unieważnia oceny obrazu.
+Ręcznie pocięte klipy mogą zachować własne cięcia; warstwy na osi muszą odpowiadać
+zatwierdzonej scenografii. Akceptacja układu nie jest oceną historycznej prawdziwości
+ani automatycznym zatwierdzeniem późniejszych nakładek, dialogów i ruchu kamery.
+
+Ochrona API obejmuje przekazanie scenografii do montażu i eksport MP4 (również
+roboczy). Pojedyncze klatki kontrolne pozostają dostępne. Dotyczy nowych scen,
+rekonstrukcji `reference-guided` i scen świadomie włączonych do recenzji. Starsze,
+ręcznie przygotowane warstwy bez tego workflow zachowują poprzednie działanie;
+wyciszone ścieżki nie blokują renderu pozostałej części filmu. Nie nadpisuje się
+starych eksportów ani nie oznacza ich jako zaakceptowanych.
