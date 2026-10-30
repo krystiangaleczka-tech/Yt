@@ -151,7 +151,7 @@ def image_prompts(manifest: dict) -> list[dict]:
             "placement": {
                 "x": obj["x"], "y": obj["y"], "width": obj["width"], "z": obj["z"]},
             "prompt": (
-                "ONE SINGLE COMPLETE, COHESIVE PAPER CUTOUT OBJECT, not a scene, "
+                "ONE SINGLE ISOLATED, COMPLETE, COHESIVE PAPER CUTOUT OBJECT, not a scene, "
                 "not image fragments, patchwork tiles or partially revealed sections. "
                 + obj["description"] + ". Consistent art direction: " + style + ". "
                 + ("Use a very bold, continuous dark-ink contour along the full character silhouette. "

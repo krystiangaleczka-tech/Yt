@@ -137,7 +137,10 @@ def rig_image(source: Image.Image, rig: str, cue: dict, elapsed: float, duration
         anchor_y = round(pivot_y)
         anchor_x = round(pivot_x)
         if cue.get("string_visible", False) and anchor_y > 0:
-            retract = _clamp((elapsed - duration) / max(.001, settle_length))
+            # Explicit legacy string_length cues kept the cord in the final frame.
+            # New planned cues omit that key and release it after landing.
+            retract = (0.0 if "string_length" in cue else
+                       _clamp((elapsed - duration) / max(.001, settle_length)))
             alpha = round(190 * (1 - retract))
             if alpha > 0:
                 ImageDraw.Draw(canvas).line(
