@@ -70,9 +70,20 @@ def main() -> int:
     lines = [json.dumps(case, ensure_ascii=False, separators=(",", ":")) for case in vectors()]
     text = ('{"generator":"scripts/paper_theatre_motion_fixture.py","cases":[\n'
             + ",\n".join(lines) + "\n]}\n")
+    def equivalent(a, b):
+        # libm differs by a few ulps between macOS and Linux; geometry is unchanged.
+        if isinstance(a, float) and isinstance(b, float):
+            import math
+            return math.isclose(a, b, rel_tol=1e-12, abs_tol=1e-12)
+        if isinstance(a, dict) and isinstance(b, dict):
+            return a.keys() == b.keys() and all(equivalent(a[k], b[k]) for k in a)
+        if isinstance(a, list) and isinstance(b, list):
+            return len(a) == len(b) and all(equivalent(x, y) for x, y in zip(a, b))
+        return a == b
+
     if "--check" in sys.argv:
         current = FIXTURE.read_text(encoding="utf-8") if FIXTURE.is_file() else ""
-        if current != text:
+        if not current or not equivalent(json.loads(current), json.loads(text)):
             print("Fixture is stale: run python3 scripts/paper_theatre_motion_fixture.py")
             return 1
         print("Fixture up to date:", FIXTURE.relative_to(ROOT))
