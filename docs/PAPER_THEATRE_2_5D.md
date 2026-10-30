@@ -3,6 +3,16 @@
 **Status:** niezależna od gatunku technika ujęcia w kategorii Narzędzia produkcji → Paper Theatre 2.5D. Pierwsza implementacja kreatora, planowania sekwencji, walidacji osobnych PNG, renderowania mechanik, podglądu klatki i przekazania do Montażu. Nie mylić z automatycznym rozcinaniem jednolitej grafiki na sto profesjonalnych warstw.
 
 
+### Korekta ruchu wycinanek, 30.10.2026
+
+Na podstawie audytu 15-sekundowego przykładu (16025.mp4) stwierdzono fragmentaryczne odsłanianie krajobrazu między 0–6 s, pustą sylwetkę między 7–12 s i niewystarczająco czytelne wejście bohaterów między 10–13 s. Sam MP4 jest **spłaszczonym wynikiem**, nie zestawem źródłowych PNG alpha; nie da się z niego wiarygodnie odtworzyć zasłoniętych fragmentów każdej wycinanki.
+
+- W domyślnym presetcie wszystkie elementy scenografii jadą **w całości** na widocznej nitce od sufitu. Nitka pozostaje przymocowana do górnej krawędzi obiektu i znika po zakończeniu osadzania, pozostawiając punkcik mocowania. Nie używa się animowanego ujawniania fragmentów.
+- Postacie nadal korzystają z `rake_lift`, ale wejście jest wolniejsze, z wyraźniejszym pochyleniem i wychyleniem końcowym. Dolna kotwica pozostaje w miejscu.
+- Każda postać otrzymuje gruby ciemnobrązowy kontur (domyślnie 12 px), bohater główny 16 px. Poszerzony kontur jest uwzględniany przy obracaniu, by nie obcinać go na granicy sprite'a.
+- Każde wejście wymaga **osobnego, kompletnego PNG alpha** z ukrytymi pod okluzją częściami. Dotychczasowe ostrzeżenia o rozłącznych fragmentach alpha nadal obowiązują: należy je sprawdzić i wymienić wadliwe zasoby, a nie maskować ich animacją.
+- Zmiany obejmują przyszłe rendery i ponowny render scen na podstawie indywidualnych warstw. Nie rekonstruują automatycznie już wyeksportowanego, spłaszczonego MP4.
+
 ## Zastosowanie: niezależny styl realizacji ujęcia
 
 **Paper Theatre 2.5D nie jest typem filmu ani gatunkiem dokumentalnym.**
@@ -85,7 +95,7 @@ ukończenia benchmarku 1:1.
 4. **Jedna linia artystyczna:** globalny `style` zasila wszystkie per-obiektowe prompty. Nie wolno dopuścić do postaci w innym oświetleniu, odcieniu papieru lub technice kreski niż reszta dioramy.
 5. **Generowanie pojedynczych zasobów:** osobny prompt dla każdej chmury, budynku, drzewa, monety i postaci. Generator musi zwrócić rzeczywisty **RGBA PNG** z przezroczystym tłem i jednym obiektem. Aplikacja przygotowuje i eksportuje prompty oraz wczytuje i wiąże gotowe PNG. **Lokalny image worker nadal nie zapewnia generacji alpha PNG.** Osobny opcjonalny adapter zewnętrznego API jest dostępny po konfiguracji własnego klucza i wymaga weryfikacji rzeczywistego wyniku przez autora.
 6. **Scene Layout Planner:** render umieszcza obraz na podstawie współrzędnych i szerokości ze spisu; wycina przezroczyste marginesy, nie rozciąga obiektu i nie wymaga płótna wielkości całego filmu. Niezależne `z_index` odpowiada za to, co jest przed czym.
-7. **Staging i rigging:** `sky = hanging_drop`, `landscape/foundations = bottom_rise`, `vegetation/props/characters/hero = rake_lift`. Każdy ma osobny czas. Hero tylko jeden, na końcu, z mocnym obrysem.
+7. **Staging i rigging:** `sky/landscape/foundations/vegetation/props = hanging_drop` (pełny obiekt zjeżdża na nitce od górnej krawędzi, kołysze się, zatrzymuje i zostaje przypięty); `characters/hero = rake_lift` (kartonowa figurka składa się wokół dolnego punktu podparcia i staje pionowo). `bottom_rise` pozostaje opcjonalnym ruchem wybranym ręcznie. Każdy obiekt ma osobny czas. Hero wchodzi ostatni, a wszystkie postacie mają wyraźny ciemny obrys; hero jeszcze grubszy.
 8. **Podgląd, poprawki i montaż:** najpierw plan i statyczna mapa kompozycji, następnie rzeczywiste klatki renderera, a dopiero potem eksport MP4.
 
 ### Co jest wdrożone teraz

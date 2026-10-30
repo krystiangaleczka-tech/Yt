@@ -18,18 +18,18 @@ from .paper_theatre_quality import alpha_diagnostics, layout_warnings
 
 GROUPS = (
     ("sky", "Niebo · słońce, księżyc, chmury", "hanging_drop"),
-    ("landscape", "Krajobraz · góry, doliny", "bottom_rise"),
-    ("foundations", "Fundamenty i architektura", "bottom_rise"),
-    ("vegetation", "Roślinność · każde drzewo osobno", "rake_lift"),
-    ("props", "Rekwizyty i posągi", "rake_lift"),
+    ("landscape", "Krajobraz · góry, doliny", "hanging_drop"),
+    ("foundations", "Fundamenty i architektura", "hanging_drop"),
+    ("vegetation", "Roślinność · każde drzewo osobno", "hanging_drop"),
+    ("props", "Rekwizyty i posągi", "hanging_drop"),
     ("characters", "Postacie · każda oddzielnie", "rake_lift"),
     ("hero", "Najważniejsza postać · ostatnia", "rake_lift"),
 )
 GROUP_INDEX = {item[0]: i for i, item in enumerate(GROUPS)}
 GROUP_RIG = {item[0]: item[2] for item in GROUPS}
-DEFAULT_DURATION = {"sky": .42, "landscape": .45, "foundations": .5,
-                    "vegetation": .33, "props": .3, "characters": .32, "hero": .55}
-DEFAULT_SETTLE = .14
+DEFAULT_DURATION = {"sky": .6, "landscape": .64, "foundations": .68,
+                    "vegetation": .56, "props": .55, "characters": .68, "hero": .95}
+DEFAULT_SETTLE = .22
 MAX_CUTOUTS = 500
 
 
@@ -57,7 +57,7 @@ def _png(store, project, asset_id: str, *, cutout: bool = False) -> dict:
 
 
 def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
-         group_gap: float = .22, hero_outline_px: int = 8) -> dict:
+         group_gap: float = .22, hero_outline_px: int = 16) -> dict:
     """Return a deterministic plan, without editing project state."""
     if not isinstance(background_id, str) or not background_id:
         raise ValueError("Wybierz osobne tło sceny bez postaci i rekwizytów")
@@ -130,14 +130,18 @@ def plan(store, project, background_id: str, layers: list, *, gap: float = .12,
             "depth": round(1 + GROUP_INDEX[group] * .3, 2),
         }
         if cue["rig"] == "hanging_drop":
-            cue.update(string_visible=True, string_length=.16, swing_deg=1.8,
-                       swing_decay=.9, overshoot=.025)
+            cue.update(string_visible=True, swing_deg=3.2,
+                       swing_decay=1.1, overshoot=.025)
         if cue["rig"] == "rake_lift":
             cue.update(pivot_x=.5, pivot_y=1, start_rotation=82,
                        overshoot_rotation=-5, stick_visible=True, stick_length=.1)
+        if group in ("characters", "hero"):
+            # Silhouettes must remain readable against busy architecture.
+            cue.update(outline_px=max(6, round(hero_outline_px * .75)),
+                       outline_color="#362820")
         if group == "hero":
             cue.update(start_rotation=88, duration=duration,
-                       outline_px=hero_outline_px, outline_color="#e7c26d")
+                       outline_px=hero_outline_px, outline_color="#362820")
         if cue["rig"] == "bottom_rise":
             cue["overshoot"] = .018
         if item["layout"]:

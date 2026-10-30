@@ -41,7 +41,7 @@ export default function PaperTheatre() {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [gap, setGap] = useState(.12);
   const [groupGap, setGroupGap] = useState(.22);
-  const [heroOutline, setHeroOutline] = useState(8);
+  const [heroOutline, setHeroOutline] = useState(16);
   const [workflow, setWorkflow] = useState<"asset-first" | "reference">("reference");
   const [plan, setPlan] = useState<Plan | null>(null);
   const [posterSeconds, setPosterSeconds] = useState(0);

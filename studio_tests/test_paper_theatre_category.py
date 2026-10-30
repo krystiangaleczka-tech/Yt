@@ -77,8 +77,10 @@ class PaperTheatreCategoryTests(unittest.TestCase):
                             for a,b in zip(cues,cues[1:])))
         self.assertEqual(cues[-1]["rig"],"rake_lift")
         self.assertEqual(cues[0]["rig"],"hanging_drop")
-        self.assertEqual(cues[1]["rig"],"bottom_rise")
-        self.assertEqual(cues[-1]["outline_px"],8)
+        self.assertEqual(cues[1]["rig"],"hanging_drop")
+        self.assertTrue(cues[1]["string_visible"])
+        self.assertEqual(cues[-1]["outline_px"],16)
+        self.assertEqual(cues[-2]["outline_px"],12)
         self.assertFalse(scheduled["quality"]["reference_match_confirmed"])
 
     def test_create_preview_commit_and_timeline_are_independent(self):
