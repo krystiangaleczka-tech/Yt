@@ -375,6 +375,7 @@ def register(app, store, jobs, connectors, repo, callbacks):
             scene.parameters = {"depth": 0, "layer_cues": p["layer_cues"]}
             scene.generation = {**scene.generation,
                 "paper_theatre_asset_first": manifest,
+                "paper_theatre_settings": {"gap": body.get("gap", .12), "group_gap": body.get("group_gap", .22), "hero_outline_px": body.get("hero_outline_px", 8)},
                 "paper_theatre_report": {
                     "cutouts": p["cutouts"], "warnings": p["warnings"],
                     "hero_last": p["hero_last"], "reference_match_confirmed": False,
