@@ -447,5 +447,66 @@ class PaperTheatreCategoryTests(unittest.TestCase):
         self.assertIn("klucz", denied.text)
 
 
+    def test_cutout_batch_is_cost_limited_and_never_selects_assets(self):
+        import time
+        from unittest.mock import patch
+        project = self.app.state.store.get(self.project["id"])
+        current = self.app.state.store.mutate(project.id, project.revision,
+            lambda p: p.budget.update({"max_cost": .15}))
+        self.app.state.connectors.save({
+            "paper_image_key": "test-api-key",
+            "paper_image_model": "gpt-image-2.5-sunburst",
+            "paper_image_request_cost": .03,
+        })
+        created = self.client.post(self.base + "/paper-theatre/scenes",
+            json={"expected_revision": current.revision}, headers=HEADERS)
+        self.assertEqual(created.status_code, 200, created.text)
+        scene_id = created.json()["scenes"][-1]["id"]
+        manifest = self.asset_manifest()
+        manifest.update(mode="reference-guided", reference_asset_id=self.background,
+                        reference_approved=True)
+        for row in manifest["objects"]:
+            if row["id"] in ("cloud", "wall"):
+                row["asset_id"] = ""
+        endpoint = self.base + "/paper-theatre/" + scene_id + "/cutouts/batch-generate"
+        payload = {"expected_revision": created.json()["revision"], "manifest": manifest,
+                   "object_ids": ["cloud", "wall"]}
+        invalid = {**payload, "object_ids": ["cloud"] * 13}
+        self.assertEqual(self.client.post(endpoint, json=invalid, headers=HEADERS).status_code, 422)
+        image = Image.new("RGBA", (128, 128), (0, 0, 0, 0))
+        ImageDraw.Draw(image).rectangle((32, 15, 95, 111), fill=(255, 44, 3, 255))
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        with patch("studio_core.paper_theatre_cutouts.generate_cutout_png",
+                   return_value=buffer.getvalue()) as generator:
+            result = self.client.post(endpoint, json=payload, headers=HEADERS)
+            self.assertEqual(result.status_code, 200, result.text)
+            job_id = result.json()["id"]
+            for _ in range(120):
+                job = self.app.state.jobs.get(job_id)
+                if job["status"] in ("SUCCEEDED", "FAILED", "CANCELLED"):
+                    break
+                time.sleep(.025)
+        self.assertEqual(job["status"], "SUCCEEDED", job["message"])
+        self.assertEqual(len(job["result"]["asset_ids"]), 2)
+        self.assertEqual(generator.call_count, 2)
+        fresh = self.app.state.store.get(project.id)
+        self.assertEqual(len(fresh.assets), len(project.assets) + 2)
+        self.assertEqual(len([row for row in fresh.assets if
+            row.provenance.get("kind") == "paper-theatre-cutout"]), 2)
+        # New variants are only in the media bank until a human links them.
+        self.assertEqual(len([x for x in fresh.scenes if x.id == scene_id]), 1)
+        self.assertFalse(fresh.scenes[-1].asset_id)
+        import json
+        spending = json.loads((self.app.state.store.folder(project.id) /
+                               "spending.json").read_text())
+        self.assertEqual(len(spending), 2)
+        # The same object IDs may not be charged again without explicit variants.
+        payload["expected_revision"] = fresh.revision
+        denied = self.client.post(endpoint, json=payload, headers=HEADERS)
+        self.assertEqual(denied.status_code, 422)
+        self.assertIn("wariant", denied.text.lower())
+
+
 if __name__=="__main__":
     unittest.main()
