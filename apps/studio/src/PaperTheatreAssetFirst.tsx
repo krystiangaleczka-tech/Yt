@@ -4,6 +4,7 @@ import { api, mediaUrl, saveText, upload, id as makeId } from "./api";
 import { useStudio } from "./context";
 import { Button, Field, NumberField } from "./components";
 import type { Project, Scene } from "./types";
+import PaperTheatreReview from "./PaperTheatreReview";
 
 const GROUPS = [
   ["sky", "Niebo · osobne chmury/słońce"],
@@ -60,6 +61,7 @@ export default function PaperTheatreAssetFirst({
   const [referenceApproved, setReferenceApproved] = useState(false);
   const [referencePrompt, setReferencePrompt] = useState("");
   const [draftJobId, setDraftJobId] = useState("");
+  const [entranceDirty, setEntranceDirty] = useState(false);
   const assets = project.assets.filter((asset) => asset.kind === "image" && asset.filename.toLowerCase().endsWith(".png"));
   const references = project.assets.filter((asset) => asset.kind === "image" &&
     /\.(png|jpe?g)$/i.test(asset.filename));
@@ -76,6 +78,11 @@ export default function PaperTheatreAssetFirst({
     setReferenceId(previous?.reference_asset_id || reference?.asset_id || "");
     setReferenceNotes(previous?.reference_notes || "");
     setReferenceApproved(previous?.reference_approved ?? reference?.approved ?? false);
+    const settings = scene?.generation?.paper_theatre_settings as { gap?: number; group_gap?: number; hero_outline_px?: number } | undefined;
+    setGap(settings?.gap ?? .12);
+    setGroupGap(settings?.group_gap ?? .22);
+    setHeroOutline(settings?.hero_outline_px ?? 8);
+    setEntranceDirty(false);
     setIncoming("");
     setPromptSheet([]);
     setAssistantPrompt("");
@@ -213,11 +220,17 @@ export default function PaperTheatreAssetFirst({
     if (!scene) throw new Error("Utwórz ujęcie");
     if (referenceMode && (!referenceId || !referenceApproved))
       throw new Error("Przed złożeniem sceny trzeba zaakceptować szkic");
-    await studio.mutate((p) => api<Project>(
+    const assembled = await studio.mutate((p) => api<Project>(
       `/projects/${p.id}/paper-theatre/${scene.id}/asset-first/assemble`,
       { ...params(), expected_revision: p.revision }));
+    const saved = assembled.scenes.find(s => s.id === scene.id)?.generation?.paper_theatre_asset_first as Manifest | undefined;
+    if (saved) setManifest(saved);
+    setEntranceDirty(false);
     studio.setTargetScene(scene.id);
-    studio.notify("Scena złożona z osobnych PNG. Teraz sprawdź podgląd klatek i zastosuj ujęcie w Montażu.");
+    await studio.mutate((p) => api<Project>(
+      `/projects/${p.id}/paper-theatre/${scene.id}/review/preview`,
+      { expected_revision: p.revision }));
+    studio.notify("Przygotowano rzeczywistą klatkę. Porównaj z referencją i przekaż autorowi do oceny.");
   });
   const addUploaded = (files: FileList | null) => studio.run(async () => {
     if (!files) return;
@@ -366,41 +379,22 @@ export default function PaperTheatreAssetFirst({
         </Field>
         <div className="two-fields">
           <NumberField label="Przerwa między obiektami (s)" value={gap} min={0} max={5}
-            step={.01} onCommit={setGap} />
+            step={.01} onCommit={(v) => { setGap(v); setEntranceDirty(true); }} />
           <NumberField label="Przerwa między grupami (s)" value={groupGap} min={0} max={5}
-            step={.01} onCommit={setGroupGap} />
+            step={.01} onCommit={(v) => { setGroupGap(v); setEntranceDirty(true); }} />
           <NumberField label="Obrys głównej postaci (px)" value={heroOutline} min={1} max={24}
-            step={1} onCommit={setHeroOutline} />
+            step={1} onCommit={(v) => { setHeroOutline(v); setEntranceDirty(true); }} />
         </div>
         <p><strong>{ready}/{manifest.objects.length}</strong> obiektów powiązanych z grafikami. Brakuje: {missing}.</p>
         <Button primary onClick={assemble} disabled={!scene || !background || !!missing || !manifest.objects.length}>
-          Złóż scenę z osobnych grafik
+          Złóż układ i pokaż porównanie
         </Button>
-        <p className="small muted">Obrys bohatera, kolejność wejść i wzajemne przesłanianie są zachowane w kompozytorze MP4. Scenę dodaj do montażu po sprawdzeniu klatek.</p>
+        <p className="small muted">Ten krok przygotowuje klatkę do oceny. Montaż i MP4 wymagają osobnej akceptacji autora w etapie Scenograf.</p>
       </section>
       <section className="surface tool-panel">
-        <h2>Mapa kompozycji i obiektów</h2>
-        <div style={{ position: "relative", aspectRatio: "16 / 9", overflow: "hidden",
-                      border: "1px solid var(--border, #777)", borderRadius: 8,
-                      background: "#c8b69c" }}>
-          {(background || (referenceMode && referenceId)) && <img src={mediaUrl(project.id, background || referenceId)} alt={background ? "Tło" : "Draft referencyjny (tylko podgląd)"}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />}
-          {[...manifest.objects].filter((obj) => obj.asset_id)
-            .sort((a, b) => a.z - b.z)
-            .map((obj) => (
-              <img key={obj.id} src={mediaUrl(project.id, obj.asset_id)}
-                alt={obj.name} title={obj.name}
-                style={{ position: "absolute", left: `${obj.x * 100}%`,
-                  bottom: `${(1 - obj.y) * 100}%`, width: `${obj.width * 100}%`,
-                  height: "auto", transform: "translateX(-50%)",
-                  objectFit: "contain" }} />
-            ))}
-        </div>
-        <p className="small muted">
-          {referenceMode && !background ? "Pod spodem jest wyłącznie szkic poglądowy. Przed montażem wybierz osobne czyste tło. " : ""}
-          Podgląd układu to mapa statyczna; ostateczne obcinanie przezroczystości,
-          mechaniki wejść i kolejność Z są liczone przez renderer.
-        </p>
+        <PaperTheatreReview scene={scene} onCompare={assemble} dirty={entranceDirty || background !== (scene?.asset_id || "") ||
+          JSON.stringify(effectiveManifest()) !== JSON.stringify(previous || {})} />
+        <h2>Położenie i skala pojedynczych obiektów</h2>
         {GROUPS.map(([group, title]) => {
           const objects = manifest.objects.filter((obj) => obj.group === group);
           return (

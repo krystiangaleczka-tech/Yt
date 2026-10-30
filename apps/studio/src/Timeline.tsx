@@ -481,6 +481,11 @@ export default function Timeline() {
           />
         ) : (
           <section className="clip-inspector surface">
+            {active?.template === "paper-theatre" && active.scene_id && (
+              <Button onClick={() => { s.setTargetScene(active.scene_id!); s.setPage("paper-theatre"); }}>
+                Scenograf · układ i porównanie z referencją
+              </Button>
+            )}
             {active &&
               p.assets.find((a) => a.id === active.asset_id)?.provenance
                 .kind === "remotion" &&
