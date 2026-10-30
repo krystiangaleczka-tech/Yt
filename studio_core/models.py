@@ -111,6 +111,8 @@ class Scene(Model):
     id: str = Field(default_factory=lambda: uid("scene_"))
     title: str = "Nowe ujęcie"
     narration: str = ""
+    description: str = Field(default="", max_length=3000)
+    director_notes: str = Field(default="", max_length=3000)
     start: int = Field(default=0, ge=0)
     duration: int = Field(default=180, ge=1)
     timing: Literal["estimated", "measured"] = "estimated"

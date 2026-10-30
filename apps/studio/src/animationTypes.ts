@@ -198,6 +198,7 @@ export type StageScene = {
   characters: StageCharacter[];
   props?: StageProp[];
   action: string;
+  director_notes?: string;
   camera: string;
   dialogue: DialogueLine[];
   sound: { ambience: string; music: string; sfx: string[] };

@@ -16,12 +16,14 @@ export default function Preview({
   playing,
   onFrame,
   onEnded,
+  transparent = false,
 }: {
   project: Project;
   frame: number;
   playing: boolean;
   onFrame: (frame: number) => void;
   onEnded: () => void;
+  transparent?: boolean;
 }) {
   const studio = useStudio(),
     proxyChecked = useRef(new Set<string>()),
@@ -30,8 +32,8 @@ export default function Preview({
     images = useRef(new Map<string, HTMLImageElement>()),
     videos = useRef(new Map<string, HTMLVideoElement>()),
     audios = useRef(new Map<string, HTMLAudioElement>()),
-    current = useRef({ project, frame, playing, onFrame, onEnded });
-  current.current = { project, frame, playing, onFrame, onEnded };
+    current = useRef({ project, frame, playing, onFrame, onEnded, transparent });
+  current.current = { project, frame, playing, onFrame, onEnded, transparent };
   function playbackError(error: unknown) {
     current.current.onEnded();
     const blocked =
@@ -51,8 +53,11 @@ export default function Preview({
     if (!ctx) return;
     const W = node.width,
       H = node.height;
-    ctx.fillStyle = "#101318";
-    ctx.fillRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H);
+    if (!current.current.transparent) {
+      ctx.fillStyle = "#101318";
+      ctx.fillRect(0, 0, W, H);
+    }
     const rate = fps(p),
       assets = new Map(p.assets.map((a) => [a.id, a]));
     const primary = primaryAudioClip(p, at),

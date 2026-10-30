@@ -8,6 +8,7 @@ import {
   Clipboard,
   FlipHorizontal,
   LayoutGrid,
+  Layers3,
   MapPinned,
   Music2,
   Play,
@@ -44,6 +45,10 @@ import type {
   SoundCue,
 } from "./animationTypes";
 import type { Project } from "./types";
+import { fps } from "./timing";
+import StageAssets from "./StageAssets";
+import { ShotTimeline, ShotTransport, useShotPlayback } from "./ShotControls";
+import type { ShotTrack } from "./ShotControls";
 
 export type Proposal = {
   scene_id: string;
@@ -66,7 +71,7 @@ const typing = (target: EventTarget | null) =>
   (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
     target.isContentEditable);
 
-export default function SceneBoard() {
+export default function SceneBoard({ shotId }: { shotId?: string } = {}) {
   const s = useStudio();
   const p = s.project!;
   const [bank, setBank] = useState<CastBank>({ characters: [], locations: [] }),
@@ -93,8 +98,6 @@ export default function SceneBoard() {
     if (p.channel_id && p.production_mode === "animation_2d")
       api<Record<string, string[]>>(`/projects/${p.id}/stage-scenes/review`).then(setStaging, () => undefined);
   }, [p.revision, bank]);
-  const [previewRun, setPreviewRun] = useState(0);
-  const previewTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
     if (p.channel_id)
       s.run(async () => setBank(await api<CastBank>(`/channels/${p.channel_id}/cast`)));
@@ -107,7 +110,10 @@ export default function SceneBoard() {
         ? x.status === "review" || x.status === "draft"
         : x.status === filter,
   );
-  const scene = scenes.find((x) => x.id === selected) || visible[0] || scenes[0];
+  const scene = scenes.find((x) => x.id === (shotId || selected)) || visible[0] || scenes[0];
+  const rate = fps(p);
+  const playback = useShotPlayback(Math.max(1, Math.round((scene?.seconds || 1) * rate)), rate, scene?.id || "");
+  const [selectedLayer, setSelectedLayer] = useState("background");
   useEffect(() => {
     if (scene) localStorage.setItem("docos:stage:" + p.id, scene.id);
     setTags([]);
@@ -115,6 +121,7 @@ export default function SceneBoard() {
     setProposal(null);
     setManual(null);
   }, [scene?.id]);
+  useEffect(() => setSelectedLayer("background"), [scene?.id]);
   const characters = useMemo(
     () => Object.fromEntries(bank.characters.map((c) => [c.id, c])),
     [bank],
@@ -154,7 +161,10 @@ export default function SceneBoard() {
     const list = visible.length ? visible : scenes;
     const index = list.findIndex((x) => x.id === scene?.id);
     const target = list[Math.max(0, Math.min(list.length - 1, index + delta))];
-    if (target) setSelected(target.id);
+    if (target) {
+      setSelected(target.id);
+      if (shotId) s.setTargetScene(target.id);
+    }
   }
   function review(status: "approved" | "rework") {
     if (!scene) return;
@@ -172,7 +182,7 @@ export default function SceneBoard() {
     });
   }
   function instruction() {
-    return [tags.join(", "), note].filter(Boolean).join(" — ");
+    return [scene?.director_notes, tags.join(", "), note].filter(Boolean).join(" — ");
   }
   function regenerate(response?: string) {
     if (!scene) return;
@@ -233,9 +243,27 @@ export default function SceneBoard() {
         children="Sceny korzystają z postaci i lokacji banku kanału. Ustaw kanał w Narzędziach produkcji → Kontekst i zasoby filmu."
       />
     );
+  const tracks: ShotTrack[] = scene ? [
+    { id: "background", name: "Tło", start: 0, duration: scene.seconds },
+    ...scene.characters.map((actor, i) => ({ id: `actor:${i}`, name: characters[actor.character_id]?.name || `Postać ${i + 1}`, start: 0, duration: scene.seconds })),
+    ...(scene.props || []).map((prop, i) => ({ id: `prop:${i}`, name: bank.items?.find((item) => item.id === prop.item_id)?.name || `Rekwizyt ${i + 1}`,
+      start: prop.motion === "none" ? 0 : prop.at * scene.seconds, duration: scene.seconds * (prop.motion === "none" ? 1 : 1 - prop.at), movable: prop.motion !== "none" })),
+    ...scene.dialogue.map((line, i) => ({ id: `dialogue:${i}`, name: `Dialog: ${line.text || i + 1}`, start: i / scene.dialogue.length * scene.seconds, duration: scene.seconds / scene.dialogue.length, kind: "audio" as const })),
+    ...(scene.audio || []).map((cue, i) => {
+      const sound = bank.sounds?.find((item) => item.id === cue.sound_id);
+      const at = sound?.kind === "sfx" ? cue.at * scene.seconds : 0;
+      return { id: `audio:${i}`, name: sound?.name || `Dźwięk ${i + 1}`, start: at,
+        duration: sound?.kind === "sfx" ? Math.min(scene.seconds - at, sound.duration) : scene.seconds,
+        kind: "audio" as const, movable: sound?.kind === "sfx" };
+    }),
+  ] : [];
+  function selectLayer(id: string) {
+    setSelectedLayer(id);
+    document.getElementById("stage-layer-" + id)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
   return (
-    <div className="scene-board">
-      <aside className="scene-list">
+    <div className={`scene-board ${shotId ? "shot-workspace stage-shot-workspace" : ""}`}>
+      {shotId && scene ? <StageAssets scene={scene} bank={bank} channelId={p.channel_id} update={update} /> : <aside className="scene-list">
         <div className="scene-list-head">
           <div>
             <strong>Sceny</strong>
@@ -319,7 +347,7 @@ export default function SceneBoard() {
         <p className="muted small scene-keys">
           ↑↓ / J K — scena · A — zatwierdź · R — poprawka · G — regeneruj · V — obejrzyj kadr
         </p>
-      </aside>
+      </aside>}
       {!scene ? (
         <Empty
           icon={LayoutGrid}
@@ -343,28 +371,24 @@ export default function SceneBoard() {
               <p key={w} className="continuity-warning small">Recenzent kadru: {w}</p>
             ))}
             <Stage
-              key={scene.id + previewRun}
+              key={scene.id}
               scene={scene}
               bank={bank}
               channelId={p.channel_id}
-              animate={previewRun > 0}
+              timeSeconds={playback.frame / rate}
+              framed={playback.playing}
+              lineIndex={Math.min(scene.dialogue.length - 1, Math.floor(playback.frame / rate / scene.seconds * scene.dialogue.length))}
               onFrame={(focus) => update({ motion: { camera: "static", strength: 0.5, ...scene.motion, ...focus } })}
-              onPlace={previewRun ? undefined : (placed) => update({ characters: placed })}
-              onPlaceProps={previewRun ? undefined : (props) => update({ props })}
+              onPlace={playback.playing ? undefined : (placed) => update({ characters: placed })}
+              onPlaceProps={playback.playing ? undefined : (props) => update({ props })}
             />
-            <div className="scene-preview-row">
-              <Button
-                icon={Play}
-                subtle
-                onClick={() => {
-                  setPreviewRun((n) => n + 1);
-                  clearTimeout(previewTimer.current);
-                  previewTimer.current = setTimeout(() => setPreviewRun(0), scene.seconds * 1000 + 400);
-                }}
-              >
-                Podgląd ruchu ({scene.seconds} s)
-              </Button>
-            </div>
+            <ShotTransport playback={playback} total={Math.max(1, Math.round(scene.seconds * rate))} rate={rate} />
+            <ShotTimeline rows={tracks} seconds={scene.seconds} frame={playback.frame} rate={rate} selected={selectedLayer} onSelect={selectLayer} onSeek={playback.seek}
+              onMove={(id, seconds) => {
+                if (id.startsWith("prop:")) update({ props: (scene.props || []).map((prop, i) => i === Number(id.slice(5)) ? { ...prop, at: seconds / scene.seconds } : prop) });
+                if (id.startsWith("audio:")) update({ audio: (scene.audio || []).map((cue, i) => i === Number(id.slice(6)) ? { ...cue, at: seconds / scene.seconds } : cue) });
+              }} />
+            {scene.dialogue.length > 0 && <p className="small muted">Czasy dialogów na osi są szacunkowe.</p>}
             <div className="scene-facts">
               {scene.action && <p>{scene.action}</p>}
               {scene.camera && (
@@ -557,6 +581,9 @@ export default function SceneBoard() {
             scene={scene}
             sceneBefore={scenes[scenes.findIndex((x) => x.id === scene.id) - 1]}
             bank={bank}
+            layers={tracks}
+            selectedLayer={selectedLayer}
+            selectLayer={selectLayer}
             beats={p.beats}
             update={update}
             remove={() =>
@@ -593,6 +620,7 @@ export function Stage({
   lineIndex = 0,
   compact = false,
   animate = false,
+  timeSeconds,
   framed = animate || compact,
   onFrame,
 }: {
@@ -605,6 +633,8 @@ export function Stage({
   compact?: boolean;
   /** Play camera and character motion over the scene's duration (animatic / preview). */
   animate?: boolean;
+  /** A controlled, paused CSS animation makes seeking independent of wall-clock time. */
+  timeSeconds?: number;
   /** Show the camera framing (zoom); the editor shows the whole set with a framing box instead. */
   framed?: boolean;
   onFrame?: (focus: { focus_x: number; focus_y: number }) => void;
@@ -636,6 +666,7 @@ export function Stage({
   const motionStyle = {
     "--dur": `${scene.seconds}s`,
     "--s": scene.motion?.strength ?? 0.5,
+    "--shot-time": `${timeSeconds || 0}s`,
   } as CSSProperties;
   const speaker =
     line && line.speaker !== "narrator"
@@ -706,7 +737,7 @@ export function Stage({
   return (
     <div
       ref={frame}
-      className={`stage-frame ${state?.time_of_day === "night" ? "night" : ""} ${compact ? "compact" : ""} ${animate ? "animate" : ""}`}
+      className={`stage-frame ${state?.time_of_day === "night" ? "night" : ""} ${compact ? "compact" : ""} ${animate || timeSeconds !== undefined ? "animate" : ""} ${timeSeconds !== undefined ? "scrubbed" : ""}`}
       style={motionStyle}
       onPointerMove={(e) => {
         if (!drag) return;
@@ -921,6 +952,9 @@ function SceneInspector({
   update,
   remove,
   move,
+  layers,
+  selectedLayer,
+  selectLayer,
 }: {
   scene: StageScene;
   sceneBefore?: StageScene;
@@ -929,6 +963,9 @@ function SceneInspector({
   update: (changes: Partial<StageScene>) => void;
   remove: () => void;
   move: (delta: number) => void;
+  layers: ShotTrack[];
+  selectedLayer: string;
+  selectLayer: (id: string) => void;
 }) {
   const location = bank.locations.find((l) => l.id === scene.location_id);
   const stateRegions =
@@ -958,12 +995,16 @@ function SceneInspector({
       dialogue: scene.dialogue.map((d, i) => (i === index ? { ...d, ...patch } : d)),
     });
   return (
-    <aside className="scene-inspector">
+    <aside className="scene-inspector shot-layers">
+      <div className="shot-panel-heading"><strong><Layers3 size={16} /> Warstwy</strong><span className="badge quiet">{layers.length}</span></div>
+      <div className="shot-layer-list">{[...layers].reverse().map((layer) => <button key={layer.id} className={selectedLayer === layer.id ? "active" : ""} onClick={() => selectLayer(layer.id)}><Layers3 size={14} /><span>{layer.name}</span></button>)}</div>
+      <h2>Metryka i właściwości</h2>
       <div className="inspector-row">
         <IconButton icon={ChevronUp} label="Przesuń wyżej" onClick={() => move(-1)} />
         <IconButton icon={ChevronDown} label="Przesuń niżej" onClick={() => move(1)} />
         <IconButton icon={Trash2} label="Usuń scenę" onClick={remove} />
       </div>
+      <div id="stage-layer-background" />
       <Field label="Beat historii">
         <select
           value={scene.beat_id}
@@ -1039,7 +1080,7 @@ function SceneInspector({
         {scene.characters.map((placed, index) => {
           const character = bank.characters.find((c) => c.id === placed.character_id);
           return (
-            <div key={index} className="placed-row">
+            <div key={index} id={`stage-layer-actor:${index}`} className={`placed-row ${selectedLayer === `actor:${index}` ? "selected-layer-properties" : ""}`}>
               <select
                 aria-label="Postać"
                 value={placed.character_id}
@@ -1161,7 +1202,7 @@ function SceneInspector({
         {props.map((placed, index) => {
           const item = bank.items?.find((i) => i.id === placed.item_id);
           return (
-            <div key={index} className="prop-row">
+            <div key={index} id={`stage-layer-prop:${index}`} className={`prop-row ${selectedLayer === `prop:${index}` ? "selected-layer-properties" : ""}`}>
               <select
                 aria-label="Rekwizyt"
                 value={placed.item_id}
@@ -1302,6 +1343,9 @@ function SceneInspector({
           onCommit={(action) => update({ action })}
         />
       </Field>
+      <Field label="Uwagi reżysera">
+        <CommitText multiline value={scene.director_notes || ""} onCommit={(director_notes) => update({ director_notes })} />
+      </Field>
       <Field label="Kamera — opis kadru">
         <CommitText
           value={scene.camera}
@@ -1371,7 +1415,7 @@ function SceneInspector({
       <div className="inspector-section">
         <strong>Narracja i dialog</strong>
         {scene.dialogue.map((line, index) => (
-          <div key={line.id || index} className="line-row">
+          <div key={line.id || index} id={`stage-layer-dialogue:${index}`} className={`line-row ${selectedLayer === `dialogue:${index}` ? "selected-layer-properties" : ""}`}>
             <div className="line-top">
               <select
                 aria-label="Mówca"
@@ -1421,7 +1465,7 @@ function SceneInspector({
         {cues.map((cue, index) => {
           const sound = sceneSounds.find((x) => x.id === cue.sound_id);
           return (
-            <div key={index} className="cue-row">
+            <div key={index} id={`stage-layer-audio:${index}`} className={`cue-row ${selectedLayer === `audio:${index}` ? "selected-layer-properties" : ""}`}>
               <select
                 aria-label="Dźwięk"
                 value={cue.sound_id}

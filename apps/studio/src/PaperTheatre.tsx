@@ -31,12 +31,12 @@ type Plan = {
   quality: Record<string, boolean>;
 };
 
-export default function PaperTheatre() {
+export default function PaperTheatre({ shotId, embedded = false }: { shotId?: string; embedded?: boolean } = {}) {
   const studio = useStudio();
   const project = studio.project!;
   const scenes = project.scenes.filter((shot) => shot.template === "paper-theatre");
   const [sceneId, setSceneId] = useState(studio.targetScene || scenes[0]?.id || "");
-  const scene: Scene | undefined = scenes.find((item) => item.id === sceneId) || scenes[0];
+  const scene: Scene | undefined = shotId ? scenes.find((item) => item.id === shotId) : scenes.find((item) => item.id === sceneId) || scenes[0];
   const [background, setBackground] = useState("");
   const [layers, setLayers] = useState<Layer[]>([]);
   const [gap, setGap] = useState(.12);
@@ -159,7 +159,7 @@ export default function PaperTheatre() {
             Asset-first · lista → obrazy → animacja
           </Button>
         </div>
-        {scenes.length > 0 && <Field label="Ujęcie">
+        {!embedded && scenes.length > 0 && <Field label="Ujęcie">
           <select value={scene?.id || ""} onChange={(event) => {
             setSceneId(event.target.value);
             studio.setTargetScene(event.target.value);
@@ -167,7 +167,7 @@ export default function PaperTheatre() {
             {scenes.map((shot) => <option key={shot.id} value={shot.id}>{shot.title}</option>)}
           </select>
         </Field>}
-        <Button icon={Plus} onClick={create}>Dodaj kolejne ujęcie Paper Theatre</Button>
+        {!embedded && <Button icon={Plus} onClick={create}>Dodaj kolejne ujęcie Paper Theatre</Button>}
       </div>
       <PaperTheatreAssetFirst
         key={workflow + (scene?.id || "")}

@@ -60,6 +60,32 @@ Profil kanału zapisuje styl narracji i obrazów, referencje, kolor oraz krój n
 
 Blokady obejmują całe ujęcie lub osobno narrację, czas i media. Są egzekwowane również dla powiązanych klipów i AI. Przekazanie do montażu jawnie zmienia medium/parametry; generowanie wariantu nie rusza ręcznych cięć i ruchu. Zmiana długości ręcznie pociętego ujęcia wymaga pracy na osi.
 
+## Sceny i edycja pojedynczego ujęcia
+
+Zakładka **Sceny** pokazuje ujęcia całego odcinka w wierszach: numer, miniatura,
+opis, dialog lub narracja, metryka i uwagi reżysera. Obejmuje sceny z bankiem
+postaci, zdjęcia, wideo i Paper Theatre. Opis oraz uwagi są zapisywane osobno
+od promptu obrazu. Notatka reżysera nie zmienia statusu zatwierdzonej sceny 2D.
+
+Kliknięcie miniatury lub wiersza otwiera **edytor tego ujęcia**: assety po lewej,
+podgląd na środku, timeline pod podglądem i warstwy z właściwościami po prawej.
+Przycisk „Wszystkie sceny” wraca do listy; strzałki przechodzą do sąsiedniego
+ujęcia. Wybrane ujęcie jest pamiętane po odświeżeniu przeglądarki.
+
+Podgląd Paper Theatre korzysta z Canvas i zapisanych czasów wejść. Można
+przewijać klatki, zmieniać pozycje, rozmiar i Z wycinka, a blok warstwy na osi
+przeciągnąć, aby zmienić moment wejścia. Dotychczasowy proces przygotowania,
+generowania i akceptacji wycinków jest w zakładce „Przygotowanie warstw”.
+„Zastosuj do montażu” przekazuje zapisane ujęcie do głównej sekwencji, zachowując
+wymaganą ocenę Paper Theatre. Podgląd Canvas pozostaje podglądem roboczym.
+
+W scenach 2D assety pochodzą z banku kanału. Przeciąganie postaci i rekwizytów
+w kadrze oraz ich dotychczasowe właściwości pozostają dostępne. Timeline pokazuje
+warstwy i wejścia rekwizytów/dźwięków; rozkład dialogów jest szacunkowy.
+„Importuj sceny” przyjmuje JSON z listą `scenes` albo `stage_scenes` (maksymalnie
+200 ujęć naraz, do 8 MB). Import dodaje nowe identyfikatory; użyte zasoby muszą
+już istnieć w filmie lub banku kanału.
+
 ## Źródła i książki
 
 | Dostawca | Zakres |

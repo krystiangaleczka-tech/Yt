@@ -32,6 +32,28 @@ class APITests(unittest.TestCase):
     def test_cross_site_form_mutation_rejected(self):
         self.assertEqual(self.client.post("/api/projects", json={"title": "Attack"}).status_code, 403)
 
+    def test_shot_description_notes_and_reapplying_motion(self):
+        uploaded = self.client.post(self.base + '/media', files={'file': ('blue.png', self.image(), 'image/png')}, headers=HEADERS).json()
+        from studio_core.models import Scene
+        scene = Scene(title='Kadr', asset_id=uploaded['asset']['id'], prompt='Prompt obrazu', description='Opis akcji', director_notes='Wolny najazd')
+        project = self.app.state.store.patch(self.p['id'], uploaded['project']['revision'], {'scenes': [scene.model_dump()]})
+        response = self.client.post(self.base + f'/scenes/{scene.id}/to-timeline', json={'expected_revision': project.revision, 'sync_shot': True}, headers=HEADERS)
+        self.assertEqual(response.status_code, 200, response.text)
+        first = response.json()
+        self.assertEqual(first['scenes'][0]['description'], 'Opis akcji')
+        project = self.app.state.store.patch(self.p['id'], first['revision'], {'scenes': [scene.model_dump() | {'title': 'Poprawiony kadr', 'animation': 'pan-right'}]})
+        default = self.client.post(self.base + f'/scenes/{scene.id}/to-timeline', json={'expected_revision': project.revision}, headers=HEADERS)
+        self.assertEqual(default.status_code, 200, default.text)
+        self.assertEqual(default.json()['sequence']['clips'][0]['animation'], 'zoom-in')
+        response = self.client.post(self.base + f'/scenes/{scene.id}/to-timeline', json={'expected_revision': default.json()['revision'], 'sync_shot': True}, headers=HEADERS)
+        self.assertEqual(response.status_code, 200, response.text)
+        saved = self.client.get(self.base).json()
+        self.assertEqual(saved['scenes'][0]['prompt'], 'Prompt obrazu')
+        self.assertEqual(saved['scenes'][0]['director_notes'], 'Wolny najazd')
+        self.assertEqual(len(saved['sequence']['clips']), 1)
+        self.assertEqual(saved['sequence']['clips'][0]['animation'], 'pan-right')
+        self.assertEqual(saved['sequence']['clips'][0]['title'], 'Poprawiony kadr')
+
     def test_upload_and_range_file_response(self):
         result = self.client.post(self.base + "/media", files={"file": ("ocean.png", self.image(), "image/png")}, headers=HEADERS)
         self.assertEqual(result.status_code, 200, result.text)

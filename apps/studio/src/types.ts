@@ -56,6 +56,8 @@ export type Scene = {
   id: string;
   title: string;
   narration: string;
+  description?: string;
+  director_notes?: string;
   start: number;
   duration: number;
   timing: "estimated" | "measured";
