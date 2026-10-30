@@ -18,10 +18,10 @@ class PaperTheatreMotionTests(unittest.TestCase):
         cue = {"string_visible": True, "swing_deg": 0, "overshoot": 0,
                "settle_duration": .22}
         mid = rig_image(sprite, "hanging_drop", cue, .30, .65)
-        self.assertGreater(mid.getpixel((112, 8))[3], 0)
+        self.assertGreater(mid.getpixel((113, 8))[3], 0)
         self.assertGreater(mid.getbbox()[3] - mid.getbbox()[1], 40)
         end = rig_image(sprite, "hanging_drop", cue, 1.0, .65)
-        self.assertEqual(end.getpixel((112, 8))[3], 0)
+        self.assertEqual(end.getpixel((113, 8))[3], 0)
         self.assertGreater(end.getpixel((112, 100))[3], 0)
 
     def test_contour_survives_standee_rotation(self):
