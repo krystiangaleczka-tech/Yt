@@ -103,7 +103,10 @@ def rig_image(source: Image.Image, rig: str, cue: dict, elapsed: float, duration
     if elapsed < 0 or bounds is None:
         return canvas
     if cue.get("outline_px"):
-        source = _outlined(source, int(cue["outline_px"]), cue.get("outline_color", "#e7c26d"))
+        source = _outlined(source, int(cue["outline_px"]), cue.get("outline_color", "#362820"))
+        # Outlining expands the visible silhouette. Recompute bounds before
+        # rotating/cropping or the thick border will be cut back off.
+        bounds = _bbox(source)
     if rig == "static":
         return source.copy()
 
@@ -113,31 +116,44 @@ def rig_image(source: Image.Image, rig: str, cue: dict, elapsed: float, duration
     overshoot = float(cue.get("overshoot", .03))
 
     if rig == "hanging_drop":
-        # At t=0 the whole cutout is above the top edge, not merely faded out.
+        # The *whole* alpha sprite travels from above the frame. Never reveal
+        # it with a mosaic wipe, patches, or a changing source mask.
         travel = bounds[3] + max(2, round(height * .06))
         dy = -travel * (1 - ease) + overshoot * height * progress ** 6
         if elapsed >= duration:
             dy = overshoot * height * _settle(elapsed, duration, settle_length)
-        sprite = _place(source, round(dy))
-        swing = float(cue.get("swing_deg", 2.0))
-        decay = float(cue.get("swing_decay", .7))
-        angle = swing * math.sin(elapsed * 7.0) * math.exp(-decay * elapsed)
+        swing = float(cue.get("swing_deg", 3.0))
+        decay = float(cue.get("swing_decay", 1.1))
+        angle = swing * math.sin(elapsed * 8.0) * math.exp(-decay * elapsed)
         pivot_x = (bounds[0] + bounds[2]) / 2
         pivot_y = bounds[1] + dy
+        sprite = _place(source, round(dy))
         if angle:
             sprite = sprite.rotate(angle, resample=RESAMPLE, center=(pivot_x, pivot_y))
         _shadow(canvas, sprite)
-        canvas.alpha_composite(sprite)
-        if cue.get("string_visible", False):
-            # End just before the cutout, never paint through its opaque paper.
-            end_y = round(pivot_y)
-            end_x = round(pivot_x)
-            span = round(float(cue.get("string_length", .16)) * height)
-            if span > 0 and end_y > 0:
+
+        # The cord must visibly CONNECT the ceiling and the moving cutout.
+        # Draw behind paper, and retract it only after the cutout has landed.
+        anchor_y = round(pivot_y)
+        anchor_x = round(pivot_x)
+        if cue.get("string_visible", False) and anchor_y > 0:
+            retract = _clamp((elapsed - duration) / max(.001, settle_length))
+            alpha = round(190 * (1 - retract))
+            if alpha > 0:
                 ImageDraw.Draw(canvas).line(
-                    (end_x, max(0, end_y - span), end_x, max(0, end_y - 1)),
-                    fill=(80, 66, 51, 150), width=max(1, round(width / 900)),
+                    (anchor_x, 0, anchor_x, min(height - 1, anchor_y)),
+                    fill=(62, 49, 38, alpha),
+                    width=max(2, round(width / 720)),
                 )
+        canvas.alpha_composite(sprite)
+        # A stationary ink pin is left when the cord has been released.
+        if cue.get("string_visible", False) and elapsed >= duration and 0 <= anchor_y < height:
+            radius = max(2, round(width / 480))
+            ImageDraw.Draw(canvas).ellipse(
+                (anchor_x - radius, anchor_y - radius,
+                 anchor_x + radius, anchor_y + radius),
+                fill=(50, 36, 28, 230),
+            )
         return canvas
 
     if rig == "bottom_rise":
@@ -173,8 +189,9 @@ def rig_image(source: Image.Image, rig: str, cue: dict, elapsed: float, duration
             stretched,
             (round(bounds[0]), round(foot_y - py * sprite_height)),
         )
-        # A small sideways lean suggests the cutout is settling on its base.
-        lean = -pitch * .09
+        # Turn a flattened cardboard standee upright around its foot.
+        # The stronger sideways lean exposes the hinge instead of a pop-in.
+        lean = -pitch * .22
         if lean:
             sprite = sprite.rotate(lean, resample=RESAMPLE, center=(foot_x, foot_y))
         _shadow(canvas, sprite)

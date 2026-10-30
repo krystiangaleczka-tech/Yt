@@ -57,7 +57,7 @@ export default function PaperTheatreAssetFirst({
   const [assistantPrompt, setAssistantPrompt] = useState("");
   const [gap, setGap] = useState(.12);
   const [groupGap, setGroupGap] = useState(.22);
-  const [heroOutline, setHeroOutline] = useState(8);
+  const [heroOutline, setHeroOutline] = useState(16);
   const [showPrompts, setShowPrompts] = useState(false);
   const [referenceId, setReferenceId] = useState("");
   const [referenceNotes, setReferenceNotes] = useState("");

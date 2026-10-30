@@ -151,8 +151,11 @@ def image_prompts(manifest: dict) -> list[dict]:
             "placement": {
                 "x": obj["x"], "y": obj["y"], "width": obj["width"], "z": obj["z"]},
             "prompt": (
-                "ONE SINGLE ISOLATED PAPER CUTOUT OBJECT, not a complete scene. "
+                "ONE SINGLE COMPLETE, COHESIVE PAPER CUTOUT OBJECT, not a scene, "
+                "not image fragments, patchwork tiles or partially revealed sections. "
                 + obj["description"] + ". Consistent art direction: " + style + ". "
+                + ("Use a very bold, continuous dark-ink contour along the full character silhouette. "
+                   if obj["group"] in ("characters", "hero") else "")
                 "Output a real RGBA PNG with transparent background, no extra objects, "
                 "no surrounding scene, no background or text. Keep the entire silhouette "
                 "inside the canvas with a narrow alpha margin. Light and texture must "
@@ -166,7 +169,7 @@ def image_prompts(manifest: dict) -> list[dict]:
 
 def assemble_manifest(store, project, background_id: str, manifest: dict,
                       *, gap: float = .12, group_gap: float = .22,
-                      hero_outline_px: int = 8) -> dict:
+                      hero_outline_px: int = 16) -> dict:
     """Validate all linked PNGs and translate authored layout into real render cues."""
     data = normalize_manifest(manifest)
     if data["mode"] == "reference-guided":
