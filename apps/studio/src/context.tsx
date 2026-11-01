@@ -7,6 +7,8 @@ import type { ProductionMode } from "./animationTypes";
 export type Page =
   | "projects"
   | "bible"
+  | "project-setup"
+  | "idea-flow"
   | "master-story"
   | "acts"
   | "sequences"
@@ -146,7 +148,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       const rememberedShot = localStorage.getItem("docos:shot:" + id);
       setTargetScene(rememberedShot && [...p.scenes, ...p.stage_scenes].some((scene) => scene.id === rememberedShot) ? rememberedShot : null);
       const pages: Page[] = [
-        "bible", "master-story", "acts", "sequences", "script-flow", "scene-plan", "continuity",
+        "bible", "project-setup", "idea-flow", "master-story", "acts", "sequences", "script-flow", "scene-plan", "continuity",
         "idea",
         "facts",
         "story",
@@ -176,7 +178,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       setPage(
         pages.includes(remembered as Page)
           ? (remembered as Page)
-          : "idea",
+          : "project-setup",
       );
     } finally {
       setLoading(false);
