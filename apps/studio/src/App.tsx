@@ -61,8 +61,8 @@ const Storyboard = lazy(() => import("./Storyboard"));
 
 const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "bible", label: "Story Bible", icon: BookOpen },
-  { id: "projects", label: "Projekt", icon: FolderOpen },
-  { id: "idea", label: "Pomysł i tytuł", icon: Compass },
+  { id: "project-setup", label: "Projekt", icon: FolderOpen },
+  { id: "idea-flow", label: "Pomysł i tytuł", icon: Compass },
   { id: "master-story", label: "Master Story", icon: GitBranch },
   { id: "acts", label: "Akty", icon: Layers3 },
   { id: "sequences", label: "Sekwencje", icon: FileText },
@@ -117,7 +117,7 @@ function Shell() {
   async function openCreated(p: Project) {
     await s.load(p.id);
     await s.reloadList();
-    s.setPage("idea");
+    s.setPage("project-setup");
     s.notify("Utworzono osobny film");
   }
   const globalPage = (workspacePages as readonly string[]).includes(s.page);
@@ -143,7 +143,7 @@ function Shell() {
           </Button>
         }
       />
-    ) : (["bible", "master-story", "acts", "sequences", "script-flow", "scene-plan", "continuity"] as string[]).includes(s.page) ? (
+    ) : (["bible", "project-setup", "idea-flow", "master-story", "acts", "sequences", "script-flow", "scene-plan", "continuity"] as string[]).includes(s.page) ? (
       <Suspense fallback={<div className="page-content">Otwieram etap produkcji…</div>}>
         <FilmFlow page={s.page as FlowPage} />
       </Suspense>
