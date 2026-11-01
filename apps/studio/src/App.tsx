@@ -110,9 +110,6 @@ function Shell() {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem("docos-theme", theme);
   }, [theme]);
-  const running = s.jobs.filter((j) =>
-    ["RUNNING", "QUEUED", "CANCEL_REQUESTED"].includes(j.status),
-  ).length;
   const navigate = (page: Page) => {
     s.setPage(page);
     setMobileNav(false);
