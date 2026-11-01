@@ -4,7 +4,6 @@ import { useStudio } from "./context";
 import { api } from "./api";
 import { makeScene } from "./Generation";
 import { Button, SectionHead } from "./components";
-import type { Project } from "./types";
 import {
   bibleFields, chosen, flowFrom, isApproved, isReady, newNode, newVariant, stageSignature,
   type FlowData, type FlowNode, type FlowReview, type FlowStage,
