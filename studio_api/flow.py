@@ -17,7 +17,7 @@ def _chosen(node):
 
 
 def flow_prompt(project, kind: str, target_id: str = "", instruction: str = "") -> str:
-    if kind not in {"master", "act", "sequences", "outlines", "script", "review"}:
+    if kind not in {"ideas", "master", "act", "sequences", "outlines", "script", "review"}:
         raise ValueError("Nieznany etap generowania")
     flow = project.legacy.get("production_flow", {})
     if not isinstance(flow, dict):
@@ -46,6 +46,11 @@ def flow_prompt(project, kind: str, target_id: str = "", instruction: str = "") 
         for x in outlines
     ]
     tasks = {
+        "ideas": (
+            "Na podstawie briefu zaproponuj 3-5 różnych pomysłów na TEN odcinek dla wskazanej widowni. "
+            "Zwróć tablicę JSON: "
+            '[{"title":"...","description":"pytanie i krótka obietnica filmu"}].'
+        ),
         "master": (
             "Zaproponuj 3-5 różniących się konstrukcją WERSJI TEJ SAMEJ PEŁNEJ HISTORII, "
             "każda ma otwarcie, konflikt, rozwój, punkt zwrotny, kulminację i payoff. "
@@ -93,6 +98,7 @@ def flow_prompt(project, kind: str, target_id: str = "", instruction: str = "") 
             raise ValueError("Najpierw wybierz i opisz akt")
     context = {
         "title": project.title, "channel": project.channel, "language": project.language,
+        "brief": project.development.model_dump(exclude={"ideas"}),
         "minutes": project.development.target_minutes, "factual": flow.get("factual", project.production_mode == "documentary"),
         "master_story": _chosen(flow.get("master", {})),
         "story_card": project.story, "bible": flow.get("bible", {}),
