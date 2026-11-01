@@ -4,6 +4,7 @@ import { useStudio } from "./context";
 import { api } from "./api";
 import { makeScene } from "./Generation";
 import { blankIdea } from "./developmentTypes";
+import type { Project } from "./types";
 import type { Page } from "./context";
 import { Button, SectionHead } from "./components";
 import {
