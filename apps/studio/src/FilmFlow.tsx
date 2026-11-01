@@ -148,7 +148,7 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
       if (ai.kind === "ideas") {
         const rows = optionsFrom(cleanJson(answer), 8);
         s.run(async () => { await s.patch(current => ({ development: { ...current.development,
-          ideas: [...current.development.ideas, ...rows.map(row => ({ ...blankIdea(), title: row.title, question: row.description, origin: "ai" as const }))] } })); });
+          ideas: [...current.development.ideas, ...rows.map(row => ({ ...blankIdea(), title: row.title, question: row.description.slice(0, 1500), origin: "ai" as const }))] } })); });
       } else if (ai.kind === "script") {
         const text = answer.trim();
         if (!text) throw new Error("Scenariusz jest pusty.");
@@ -220,6 +220,60 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
         return { scenes: [...current.scenes, ...shots] };
       });
       s.notify("Scenariusz tego aktu przeniesiono do ujęć.");
+    });
+  }
+  function applyOutlines() {
+    if (!act || !isApproved(flow, "outlines")) {
+      s.notify("Najpierw zatwierdź aktualny plan scen.", true);
+      return;
+    }
+    const plan = flow.sequences.filter(x => x.actId === act.id).flatMap(sequence =>
+      flow.outlines.filter(x => x.sectionId === sequence.id).map(outline => ({
+        outline, sequence, selected: chosen(outline),
+      })));
+    if (!plan.length || plan.some(x => !x.selected?.description.trim())) {
+      s.notify("Wszystkie sceny aktu muszą mieć wybraną wersję.", true);
+      return;
+    }
+    s.run(async () => {
+      await s.patch(current => {
+        const existing = current.scenes.filter(shot => shot.legacy.flow_act_id === act.id);
+        if (existing.length && existing.length !== plan.length)
+          throw new Error(`Scenariusz ma ${existing.length} akapitów, plan ma ${plan.length} scen. Dopasuj ich liczbę przed synchronizacją, aby nie stracić narracji.`);
+        if (existing.some(shot => shot.locked))
+          throw new Error("Odblokuj ujęcia tego aktu przed synchronizacją.");
+        const fps = current.sequence.fps_num / current.sequence.fps_den;
+        let cursor = Math.max(0, ...current.scenes.map(x => x.start + x.duration));
+        if (!existing.length) {
+          const shots = plan.map(({ outline, sequence, selected }) => {
+            const shot = makeScene(cursor);
+            shot.title = selected!.title;
+            shot.prompt = selected!.description;
+            shot.search_query = selected!.title;
+            shot.duration = Math.max(1, Math.round(outline.seconds * fps));
+            shot.legacy = { ...shot.legacy, flow_act_id: act.id, flow_section_id: sequence.id, flow_outline_id: outline.id };
+            cursor += shot.duration;
+            return shot;
+          });
+          return { scenes: [...current.scenes, ...shots] };
+        }
+        const ids = existing.map(shot => shot.id);
+        const byId = new Map(ids.map((id, i) => [id, plan[i]]));
+        return { scenes: current.scenes.map(shot => {
+          const item = byId.get(shot.id);
+          if (!item) return shot;
+          if (shot.legacy.flow_outline_id && shot.legacy.flow_outline_id !== item.outline.id)
+            throw new Error("Kolejność planu zmieniła się po synchronizacji ujęć. Zaktualizuj ręcznie istniejące sceny.");
+          return {
+            ...shot,
+            title: shot.title.startsWith((chosen(act)?.title || "Akt") + " ·") ? item.selected!.title : shot.title,
+            prompt: shot.prompt || item.selected!.description,
+            search_query: shot.search_query || item.selected!.title,
+            legacy: { ...shot.legacy, flow_section_id: item.sequence.id, flow_outline_id: item.outline.id },
+          };
+        }) };
+      });
+      s.notify("Plan scen przypisany do ujęć. Narracja i materiały zostały zachowane.");
     });
   }
   const stage = stageForPage[page];
@@ -391,6 +445,7 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
         <div className="flow-actions">
           <Button icon={Plus} disabled={!section} onClick={() => saved(f => { if (section) f.outlines.push({ ...newNode("Nowa scena"), sectionId: section.id, seconds: 60 }); })}>Dodaj scenę</Button>
           <Button icon={Sparkles} disabled={!section} onClick={() => openAI("outlines", section?.id)}>AI: wersje scen</Button>
+          <Button primary icon={Check} disabled={!isApproved(flow, "outlines")} onClick={applyOutlines}>Przenieś plan do ujęć</Button>
           <Button onClick={() => s.setPage("scenes")}>Otwórz istniejący edytor scen</Button>
         </div>
       </>}
