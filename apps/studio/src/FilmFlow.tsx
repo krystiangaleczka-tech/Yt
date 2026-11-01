@@ -3,6 +3,8 @@ import { ArrowDown, ArrowRight, ArrowUp, Check, Copy, Plus, Sparkles, Trash2, Al
 import { useStudio } from "./context";
 import { api } from "./api";
 import { makeScene } from "./Generation";
+import { blankIdea } from "./developmentTypes";
+import type { Page } from "./context";
 import { Button, SectionHead } from "./components";
 import {
   bibleFields, chosen, flowFrom, isApproved, isReady, newNode, newVariant, stageSignature,
@@ -10,13 +12,13 @@ import {
 } from "./flowTypes";
 import "./FilmFlow.css";
 
-export type FlowPage = "bible" | "master-story" | "acts" | "sequences" | "scene-plan" | "script-flow" | "continuity";
+export type FlowPage = "bible" | "project-setup" | "idea-flow" | "master-story" | "acts" | "sequences" | "scene-plan" | "script-flow" | "continuity";
 const nextPage: Record<FlowPage, string> = {
-  bible: "idea", "master-story": "acts", acts: "sequences",
+  bible: "project-setup", "project-setup": "idea-flow", "idea-flow": "master-story", "master-story": "acts", acts: "sequences",
   sequences: "script-flow", "script-flow": "scene-plan",
   "scene-plan": "scenes", continuity: "export",
 };
-type AIKind = "master" | "act" | "sequences" | "outlines" | "script" | "review";
+type AIKind = "ideas" | "master" | "act" | "sequences" | "outlines" | "script" | "review";
 type AIRequest = { kind: AIKind; targetId?: string };
 const stageForPage: Partial<Record<FlowPage, FlowStage>> = {
   "master-story": "master", acts: "acts", sequences: "sequences", "scene-plan": "outlines",
@@ -95,6 +97,7 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
   const [instruction, setInstruction] = useState(""), [answer, setAnswer] = useState(""), [prompt, setPrompt] = useState("");
   const [responseRevision, setResponseRevision] = useState<number | null>(null), [busy, setBusy] = useState(false);
   const [scriptDraft, setScriptDraft] = useState("");
+  const [ownIdea, setOwnIdea] = useState("");
   const act = flow.acts.find(a => a.id === activeAct) || flow.acts[0];
   const sections = flow.sequences.filter(x => x.actId === act?.id);
   const section = flow.sequences.find(x => x.id === activeSection) || sections[0];
@@ -110,12 +113,14 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
   const changeNode = (collection: "acts" | "sequences" | "outlines", id: string, edit: (n: FlowNode) => void) =>
     saved(f => { const n = f[collection].find(x => x.id === id); if (n) edit(n); });
   const title = ({
-    bible: "Story Bible", "master-story": "Master Story", acts: "Akty filmu",
+    bible: "Story Bible", "project-setup": "Twój film", "idea-flow": "Pomysł na odcinek", "master-story": "Master Story", acts: "Akty filmu",
     sequences: "Sekwencje i podrozdziały", "script-flow": "Scenariusz aktu po akcie",
     "scene-plan": "Plan scen", continuity: "Continuity Editor",
   } as Record<FlowPage, string>)[page];
   const subtitle = ({
     bible: "Centralna pamięć filmu. Korzystają z niej agenci AI we wszystkich następnych etapach.",
+    "project-setup": "Jeden projekt, jeden film. Na początek tylko tytuł, kanał i krótki opis.",
+    "idea-flow": "Napisz własny pomysł, wklej opis albo wygeneruj kilka propozycji i wybierz jedną.",
     "master-story": "Najpierw cała 36-minutowa historia, dopiero potem małe fragmenty.",
     acts: "Przygotuj warianty otwarcia, rozwinięcia i finału. Wybierz po jednej wersji.",
     sequences: "Każdy akt dzielimy na rozdziały i podrozdziały, bez utraty całości fabuły.",
@@ -139,7 +144,11 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
     if (!ai) return;
     if (responseRevision !== p.revision) { s.notify("Projekt zmienił się. Pobierz aktualną odpowiedź AI.", true); return; }
     try {
-      if (ai.kind === "script") {
+      if (ai.kind === "ideas") {
+        const rows = optionsFrom(cleanJson(answer), 8);
+        s.run(async () => { await s.patch(current => ({ development: { ...current.development,
+          ideas: [...current.development.ideas, ...rows.map(row => ({ ...blankIdea(), title: row.title, question: row.description, origin: "ai" as const }))] } })); });
+      } else if (ai.kind === "script") {
         const text = answer.trim();
         if (!text) throw new Error("Scenariusz jest pusty.");
         saved(f => { f.scripts[ai.targetId || ""] = text.slice(0, 30000); });
@@ -233,7 +242,73 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
           <textarea rows={6} key={entry.key + p.revision} defaultValue={flow.bible[entry.key]}
             onBlur={e => { if (e.target.value !== flow.bible[entry.key]) saved(f => { f.bible[entry.key] = e.target.value; }); }} />
         </section>)}</div>
-        <div className="flow-actions"><Button primary icon={ArrowRight} onClick={() => s.setPage("idea")}>Dalej: pomysł</Button></div>
+        <div className="flow-actions"><Button primary icon={ArrowRight} onClick={() => s.setPage("project-setup")}>Dalej: projekt</Button></div>
+      </>}
+      {page === "project-setup" && <>
+        <section className="flow-card">
+          <h3>Podstawowe informacje</h3>
+          <div className="flow-grid">
+            <label>Tytuł roboczy filmu
+              <input defaultValue={p.title} key={p.id + ":title"}
+                onBlur={e => { const value = e.target.value.trim(); if (value && value !== p.title) s.run(() => s.patch({ title: value })); }} />
+            </label>
+            <label>Kanał
+              <input value={p.channel} readOnly title="Kanał wybrano przy tworzeniu filmu" />
+            </label>
+            <label>Długość docelowa (minuty)
+              <input type="number" min={1} max={360} defaultValue={p.development.target_minutes}
+                onBlur={e => { const minutes = Math.max(1, Math.min(360, Number(e.target.value) || 15)); if (minutes !== p.development.target_minutes) s.run(() => s.patch(current => ({ development: { ...current.development, target_minutes: minutes } }))); }} />
+            </label>
+            <label>Odbiorcy filmu
+              <textarea rows={2} defaultValue={p.development.audience}
+                onBlur={e => { if (e.target.value !== p.development.audience) s.run(() => s.patch(current => ({ development: { ...current.development, audience: e.target.value } }))); }} />
+            </label>
+          </div>
+          <p className="muted small">Projekt ma już swój kanał i styl produkcji. Możesz wrócić do tych ustawień później.</p>
+          <div className="flow-actions">
+            <Button onClick={() => s.setPage("projects")}>Wszystkie projekty</Button>
+            <Button primary icon={ArrowRight} onClick={() => s.setPage("idea-flow")}>Dalej: pomysł</Button>
+          </div>
+        </section>
+      </>}
+      {page === "idea-flow" && <>
+        <section className="flow-card">
+          <h3>O czym opowiesz?</h3>
+          <label>Temat / zarys filmu
+            <textarea rows={4} defaultValue={p.development.topic_area}
+              placeholder="Np. Dlaczego cesarz Qin zjednoczył Chiny?"
+              onBlur={e => { if (e.target.value !== p.development.topic_area) s.run(() => s.patch(current => ({ development: { ...current.development, topic_area: e.target.value } }))); }} />
+          </label>
+          <div className="flow-actions"><Button icon={Sparkles} onClick={() => openAI("ideas")}>Wygeneruj 3–5 pomysłów</Button></div>
+        </section>
+        <section className="flow-card"><h3>Dodaj własny pomysł</h3>
+          <div className="flow-inline-actions">
+            <input value={ownIdea} onChange={e => setOwnIdea(e.target.value)} placeholder="Krótki tytuł lub pomysł…" />
+            <Button icon={Plus} disabled={!ownIdea.trim()} onClick={() => {
+              const value = ownIdea.trim(); setOwnIdea("");
+              s.run(() => s.patch(current => ({ development: { ...current.development,
+                ideas: [...current.development.ideas, { ...blankIdea(), title: value }] } })));
+            }}>Dodaj</Button>
+          </div>
+        </section>
+        <div className="flow-grid">
+          {p.development.ideas.map((idea, index) => <section key={idea.id} className="flow-card">
+            <small>WARIANT {index + 1}{idea.origin === "ai" ? " · AI" : ""}</small>
+            <h3>{idea.title}</h3>
+            <p>{idea.question || idea.angle || "Własny pomysł, do rozwinięcia w Master Story."}</p>
+            <Button primary={p.development.selected_idea_id === idea.id}
+              onClick={() => s.run(() => s.mutate(current => api<Project>(
+                `/projects/${current.id}/development/select`,
+                { expected_revision: current.revision, idea_id: idea.id })))}>
+              {p.development.selected_idea_id === idea.id ? "Wybrany pomysł ✓" : "Wybierz pomysł"}
+            </Button>
+          </section>)}
+        </div>
+        <div className="flow-actions">
+          <Button onClick={() => s.setPage("idea")}>Zaawansowane porównanie pomysłów</Button>
+          <Button primary disabled={!p.development.selected_idea_id} icon={ArrowRight}
+            onClick={() => s.setPage("master-story")}>Dalej: Master Story</Button>
+        </div>
       </>}
       {page === "master-story" && <>
         {p.development.selected_story_id && <div className="flow-explainer">
@@ -333,10 +408,10 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
             <span className="muted">Etap jest roboczy. Możesz wrócić do niego później.</span>}</div>
         <div className="flow-actions">
           <Button disabled={!isReady(flow, stage) || isApproved(flow, stage)} icon={Check} onClick={() => approve(stage)}>Zatwierdź etap</Button>
-          <Button primary icon={ArrowRight} onClick={() => s.setPage(nextPage[page] as never)}>Dalej</Button>
+          <Button primary icon={ArrowRight} onClick={() => s.setPage(nextPage[page] as Page)}>Dalej</Button>
         </div>
       </div>}
-      {(page === "script-flow" || page === "continuity") && <div className="flow-footer"><Button primary icon={ArrowRight} onClick={() => s.setPage(nextPage[page] as never)}>Dalej</Button></div>}
+      {(page === "script-flow" || page === "continuity") && <div className="flow-footer"><Button primary icon={ArrowRight} onClick={() => s.setPage(nextPage[page] as Page)}>Dalej</Button></div>}
       {ai && <div className="flow-modal-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setAI(null); }}>
         <section className="flow-modal" role="dialog" aria-modal="true" aria-label="Generowanie AI">
           <div className="flow-card-head"><h2>AI · {ai.kind}</h2><button onClick={() => setAI(null)} aria-label="Zamknij">×</button></div>
