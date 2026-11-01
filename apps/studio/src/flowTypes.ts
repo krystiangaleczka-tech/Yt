@@ -18,6 +18,7 @@ export type FlowReview = { id: string; agent: string; verdict: string; issues: s
 export type FlowData = {
   version: 1;
   factual: boolean;
+  sourceIdeaId: string;
   bible: Record<BibleKey, string>;
   master: FlowNode;
   acts: FlowNode[];
@@ -40,6 +41,7 @@ export function flowFrom(project: Project): FlowData {
   const initial: FlowData = {
     version: 1,
     factual: project.production_mode === "documentary",
+    sourceIdeaId: project.development?.selected_idea_id || "",
     bible: { characters: "", chronology: "", narration: "", visuals: "", facts: "", transitions: "" },
     master: { id: "master", variants: [], selected: null },
     acts: ["Otwarcie", "Rozwinięcie", "Finał"].map(newNode),
@@ -54,6 +56,7 @@ export function flowFrom(project: Project): FlowData {
   const value = saved as Partial<FlowData>;
   return {
     ...initial, ...value,
+    sourceIdeaId: project.development?.selected_idea_id || "",
     bible: { ...initial.bible, ...value.bible },
     scripts: { ...initial.scripts, ...value.scripts },
     approved: { ...initial.approved, ...value.approved },
@@ -71,7 +74,7 @@ export function stageSignature(flow: FlowData, stage: FlowStage): string {
   const acts = flow.acts.map((x) => ({ id: x.id, selected: chosen(x) }));
   const sequences = flow.sequences.map((x) => ({ id: x.id, actId: x.actId, seconds: x.seconds, selected: chosen(x) }));
   const outlines = flow.outlines.map((x) => ({ id: x.id, sectionId: x.sectionId, seconds: x.seconds, selected: chosen(x) }));
-  const payload = { master, ...(stage !== "master" ? { acts } : {}),
+  const payload = { sourceIdeaId: flow.sourceIdeaId, bible: flow.bible, factual: flow.factual, master, ...(stage !== "master" ? { acts } : {}),
     ...(["sequences", "outlines"].includes(stage) ? { sequences } : {}),
     ...(stage === "outlines" ? { outlines } : {}) };
   return JSON.stringify(payload);
