@@ -7,7 +7,7 @@ import { Button, SectionHead } from "./components";
 import type { Project } from "./types";
 import {
   bibleFields, chosen, flowFrom, isApproved, isReady, newNode, newVariant, stageSignature,
-  type FlowData, type FlowNode, type FlowReview, type FlowSection, type FlowOutline, type FlowStage,
+  type FlowData, type FlowNode, type FlowReview, type FlowStage,
 } from "./flowTypes";
 import "./FilmFlow.css";
 
