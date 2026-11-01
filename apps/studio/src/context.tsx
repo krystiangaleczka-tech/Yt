@@ -6,6 +6,15 @@ import type { ProductionMode } from "./animationTypes";
 
 export type Page =
   | "projects"
+  | "bible"
+  | "project-setup"
+  | "idea-flow"
+  | "master-story"
+  | "acts"
+  | "sequences"
+  | "script-flow"
+  | "scene-plan"
+  | "continuity"
   | "idea"
   | "facts"
   | "story"
@@ -81,7 +90,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     [projects, setProjects] = useState<ProjectSummary[]>([]),
     [jobs, setJobs] = useState<Job[]>([]),
     [health, setHealth] = useState<Health | null>(null),
-    [page, setPage] = useState<Page>("generation"),
+    [page, setPage] = useState<Page>("projects"),
     [loading, setLoading] = useState(true),
     [saving, setSaving] = useState(false),
     [saveError, setSaveError] = useState(false),
@@ -139,6 +148,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       const rememberedShot = localStorage.getItem("docos:shot:" + id);
       setTargetScene(rememberedShot && [...p.scenes, ...p.stage_scenes].some((scene) => scene.id === rememberedShot) ? rememberedShot : null);
       const pages: Page[] = [
+        "bible", "project-setup", "idea-flow", "master-story", "acts", "sequences", "script-flow", "scene-plan", "continuity",
         "idea",
         "facts",
         "story",
@@ -168,9 +178,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       setPage(
         pages.includes(remembered as Page)
           ? (remembered as Page)
-          : p.production_mode === "animation_2d"
-            ? "scenes"
-            : "generation",
+          : "project-setup",
       );
     } finally {
       setLoading(false);
