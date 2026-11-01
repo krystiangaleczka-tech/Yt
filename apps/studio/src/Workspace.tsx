@@ -267,7 +267,7 @@ export function NewFilmModal({
       open={open}
       onClose={close}
       title="Nowy film"
-      description="Osobny projekt. Treść, fakty i materiały dobierzesz już podczas pracy nad nim."
+      description="Na początek wystarczą tytuł roboczy, kanał i tryb produkcji. Resztę ustawisz później."
     >
       <form
         onSubmit={(e) => {
@@ -295,7 +295,7 @@ export function NewFilmModal({
           });
         }}
       >
-        {textField("Nazwa robocza — możesz ustalić później", title, setTitle)}
+        {textField("Tytuł roboczy odcinka", title, setTitle)}
         <Field
           label="Tryb produkcji"
           hint={
@@ -315,8 +315,7 @@ export function NewFilmModal({
             ))}
           </select>
         </Field>
-        <div className="two-fields">
-          <Field label="Kanał">
+                  <Field label="Kanał">
             <select
               value={channel}
               onChange={(e) => {
@@ -334,52 +333,13 @@ export function NewFilmModal({
               ))}
             </select>
           </Field>
-          <Field label="Kategoria">
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="">Bez kategorii</option>
-              {data.categories
-                .filter((c) => !c.channel_id || c.channel_id === channel)
-                .map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-            </select>
-          </Field>
-        </div>
-        <Field label="Szablon startowy — opcjonalnie">
-          <select
-            value={template}
-            onChange={(e) => setTemplate(e.target.value)}
-          >
-            <option value="">Pusty film</option>
-            {data.resources
-              .filter((r) => r.kind === "template")
-              .map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.title}
-                </option>
-              ))}
-          </select>
-        </Field>
-        <div className="two-fields">
-          <Field label="Język">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-            >
-              <option value="">
-                Z profilu ({preview?.preset.language || "pl"})
-              </option>
-              <option value="pl">Polski</option>
-              <option value="en">English</option>
-            </select>
-          </Field>
-          {textField("Format, np. śledztwo / wyjaśnienie", format, setFormat)}
-        </div>
+
+        <details className="advanced">
+          <summary>Więcej ustawień (opcjonalnie)</summary>
+          <div className="two-fields">
+${advanced}
+          </div>
+        </details>
         <div className="workspace-start-summary">
           <strong>Na starcie: 0 faktów · 0 źródeł · 0 mediów</strong>
           <p>
