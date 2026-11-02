@@ -17,7 +17,7 @@ def _chosen(node):
 
 
 def flow_prompt(project, kind: str, target_id: str = "", instruction: str = "") -> str:
-    if kind not in {"ideas", "master", "act", "sequences", "outlines", "script", "review"}:
+    if kind not in {"ideas", "master", "act", "sequences", "outlines", "script", "review", "direction"}:
         raise ValueError("Nieznany etap generowania")
     flow = project.legacy.get("production_flow", {})
     if not isinstance(flow, dict):
@@ -30,7 +30,9 @@ def flow_prompt(project, kind: str, target_id: str = "", instruction: str = "") 
         target = next((x for x in acts if x.get("id") == target_id), None)
     elif kind == "outlines":
         target = next((x for x in sections if x.get("id") == target_id), None)
-    if kind in {"act", "script", "sequences", "outlines"} and not target:
+    elif kind == "direction":
+        target = next((x for x in outlines if x.get("id") == target_id), None)
+    if kind in {"act", "script", "sequences", "outlines", "direction"} and not target:
         raise ValueError("Wybierz akt lub sekwencję")
     if kind == "script" and flow.get("factual", project.production_mode == "documentary") and not any(
         f.status == "VERIFIED" and (f.url or f.source_id) for f in project.facts
@@ -81,6 +83,23 @@ def flow_prompt(project, kind: str, target_id: str = "", instruction: str = "") 
             "Objętość dopasuj do planowanych minut aktu (ok. 150 słów/min). "
             "Zwróć wyłącznie tekst lektora, bez JSON."
         ),
+        "direction": (
+            "Jesteś reżyserem i montażystą. Dla WYBRANEJ SCENY rozpisz cele dramaturgiczne, wiedzę widza i bohatera, "
+            "mapę napięcia (0-10), dźwięk oraz shot listę z czasami. Nie zmieniaj fabuły ani zakończenia. "
+            "Dobieraj rytm do emocji: cisza i długie holdy bywają skuteczniejsze niż szybkie cięcia. "
+            "Zwróć WYŁĄCZNIE poprawny obiekt JSON bez markdown: "
+            '{"patternId":"rapid-intercut","notes":"...",'
+            '"beats":[{"title":"...","goal":"...","tensionBefore":3,"tensionAfter":6,"viewerKnows":"...",'
+            '"characterKnows":"...","soundCue":"...","patternId":"rapid-intercut"}],'
+            '"shots":[{"beatIndex":0,"typeId":"medium","title":"...","description":"...",'
+            '"duration":2.5,"transition":"cut","sound":"..."}]}. '
+            "beatIndex to numer beatu od ZERA. Shot typeId TYLKO z: establishing, wide, medium, close-up, "
+            "extreme-close-up, insert, pov, reaction, reverse, over-shoulder, tracking, static-hold, "
+            "cutaway, low-angle, high-angle, detail. Zachowaj sumaryczny czas ujęć zbliżony do target.seconds. "
+            "Wzorce możliwe do wyboru: rapid-intercut, shot-reverse, slow-burn, jumpscare, false-relief, "
+            "reveal, investigation, chase, parallel, aftermath, emotional, exposition, evidence, anticipation. "
+            "Nie dodawaj fikcyjnych źródeł lub faktów do materiału dokumentalnego."
+        ),
         "review": (
             "Wykonaj niejednomyślną, konkretną recenzję filmu YouTube jako 6 agentów: "
             "Reżyser (inscenizacja, rytm, wizualizacja), Redaktor scenariusza (logika, struktura, powtórzenia), "
@@ -105,6 +124,7 @@ def flow_prompt(project, kind: str, target_id: str = "", instruction: str = "") 
         "all_acts": selected_acts, "all_sequences": selected_sections,
         "scene_outlines": selected_outlines,
         "scripted_acts": {k: str(v)[:16000] for k, v in flow.get("scripts", {}).items()},
+        "director_plans": flow.get("director", {}).get("plans", {}),
         "rendered_shots": [{"title": x.title, "narration": x.narration[:600], "start": x.start} for x in project.scenes[:300]],
         "facts": [
             {"id": f.id, "claim": f.claim, "status": f.status, "source": f.source, "url": f.url}
