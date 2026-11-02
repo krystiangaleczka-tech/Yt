@@ -88,7 +88,7 @@ export function sceneSourceSignature(flow: FlowData, outlineId: string): string 
 }
 /** Signatures include upstream approved selections, so stale approvals remain visibly stale. */
 export function stageSignature(flow: FlowData, stage: FlowStage): string {
-  if (stage === "direction") return JSON.stringify({ outlines: stageSignature(flow, "outlines"), plans: flow.director.plans });
+  if (stage === "direction") return JSON.stringify({ outlines: stageSignature(flow, "outlines"), sources: flow.outlines.map(x => sceneSourceSignature(flow, x.id)), plans: flow.director.plans });
   const master = chosen(flow.master);
   const acts = flow.acts.map((x) => ({ id: x.id, selected: chosen(x) }));
   const sequences = flow.sequences.map((x) => ({ id: x.id, actId: x.actId, seconds: x.seconds, selected: chosen(x) }));
