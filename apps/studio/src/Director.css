@@ -16,7 +16,6 @@
 .director-beats{display:grid;gap:8px;margin-top:16px}
 .director-beats details{padding:12px;border:1px solid var(--border,rgba(128,128,128,.25));border-radius:12px}
 .director-beats summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
-.director-beats details>label{margin-top:12px}
 .director-tension-inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
 .director-tension-inputs input{accent-color:#80a9f8;padding:0;border:0}
 .director-bars{display:grid;gap:4px;margin:12px 0 20px}
@@ -38,5 +37,19 @@
 .director-chipline span{font-size:10px;padding:4px 7px;border-radius:20px;background:var(--input-bg,rgba(128,128,128,.16))}
 .director-library-create{display:flex;gap:10px;align-items:center;margin-top:10px}
 .director-library-create input{flex:1}
+.director-topbar-actions{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.director-topbar-actions>label{display:grid;gap:5px;font-size:12px;font-weight:650;min-width:180px}
+.director-stale{display:grid;gap:8px;padding:12px;border:1px dashed var(--warning,#c9a14a);border-radius:10px}
+.director-warn{color:var(--warning,#c9a14a);opacity:1}
+.director-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11px;opacity:.85;margin-top:8px}
+.director-legend span{display:inline-flex;align-items:center;gap:6px}
+.director-legend i,.director-dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.director-legend i{margin-right:0}
+.director-badge{margin-left:8px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--input-bg,rgba(128,128,128,.16));vertical-align:middle}
+.director-shot-editor .flow-actions button:disabled{opacity:.4;cursor:not-allowed}
+.director-pattern-editor{display:grid;gap:10px}
+.director-pattern-editor select{margin-top:8px}
+.director-chipline span{display:inline-flex;align-items:center;gap:4px}
+.director-chipline button{border:0;background:transparent;color:inherit;cursor:pointer;padding:0;display:inline-flex;opacity:.7}
 @media(max-width:1100px){.director-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.director-guidance,.director-shot-fields{grid-template-columns:1fr}.director-bar-row{grid-template-columns:83px minmax(30px,1fr) minmax(110px,1.7fr);gap:5px}.director-bar-name{font-size:11px}.director-time{font-size:9px}.director-library-create{flex-wrap:wrap}}

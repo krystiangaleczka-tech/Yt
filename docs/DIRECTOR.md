@@ -15,7 +15,12 @@ edytor scen, generator ujęć, timeline i montaż.
 
 ## Model danych
 
-Wszystkie dane w projekcie: `legacy.production_flow.director`:
+Wszystkie dane w projekcie: `legacy.production_flow.director`. Cały plan filmu (Story Bible, Master Story,
+akty, sekwencje, plan scen i reżyseria) zapisuje się wyłącznie przez `PUT /api/projects/{id}/flow`
+(`expected_revision` + `flow`). Endpoint waliduje kształt i limity (`studio_core/production_flow.py`),
+zmienia tylko `legacy.production_flow`, zwraca 409 przy nieaktualnej rewizji i trafia do historii Cofnij.
+Ogólny `PATCH /api/projects/{id}` celowo nie przyjmuje `legacy`.
+
 - `mode`: `auto | guided | manual`
 - `plans[outlineId]`: sourceSignature, patternId, mode, notes, beats[], shots[]
 - `customPatterns[]`: wzorce własne dla tego projektu.
@@ -24,19 +29,28 @@ Beat: `goal, tensionBefore, tensionAfter, viewerKnows, characterKnows, soundCue,
 Shot: `beatId, typeId, title, description, duration, transition, sound`. Długości są w **sekundach**,
 a istniejące sceny używają **klatek** (konwersja z FPS podczas przenoszenia).
 Zatwierdzenie `approved.direction` zawiera podpis całego planu i zatwierdzonych scen.
+Podpisy to krótkie skróty (`v2:…`) liczone z JSON o posortowanych kluczach, więc nie kopiują
+całej historii do `project.json` i nie zależą od kolejności pól po zapisie.
 
 `sceneSourceSignature` zawiera wybrany outline, sekwencję, akt, jego scenariusz,
-Story Bible i Master Story. Po ich zmianie plan staje się nieaktualny. Zmiana
+Story Bible i Master Story. Po ich zmianie plan staje się nieaktualny (⚠ na liście scen).
+Możesz go przeliczyć albo — jeśli zmiana nie wpływa na rytm — kliknąć **Plan nadal pasuje —
+oznacz jako aktualny** (lub zbiorczo **Zachowaj wszystkie nieaktualne plany**). Zmiana
 któregokolwiek ujęcia unieważnia zatwierdzenie reżyserii.
 
 ## Zasady bezpieczeństwa materiałów
 
 - AI zwraca **wyłącznie propozycję**. Endpoint `POST /api/projects/{id}/flow/ai/direction/generate`
-  niczego nie zapisuje. Dopiero świadoma akcja użytkownika przez PATCH zapisuje plan.
+  niczego nie zapisuje. Odpowiedź jest najpierw walidowana, a zapis przez endpoint flow odbywa się
+  tylko, gdy opis sceny nie zmienił się w trakcie generowania. Zastąpienie istniejącego planu
+  (AI lub „Przelicz”) wymaga potwierdzenia; **Cofnij ostatnią zmianę** przywraca poprzednią wersję.
+- AI dostaje opis wybranej sceny, kontekst historii, plany sąsiednich scen i własne wzorce projektu,
+  a nie shot listy całego filmu.
 - Odpowiedź AI jest walidowana: maksymalnie 24 beaty, 90 ujęć, znane typy ujęć,
   dodatnie długości i połączenia shot → beat.
 - Generowanie brakujących planów nie nadpisuje istniejących, nawet nieaktualnych.
-- Przeniesienie planów do scen **pomija outline z istniejącymi ujęciami**,
+- Przeniesienie planów do scen idzie w kolejności filmu (akt → sekwencja → scena) i
+  **pomija outline z istniejącymi ujęciami** oraz akty zaimportowane bezpośrednio ze scenariusza,
   zachowując ręczne korekty, narzędzia i materiały. Jeśli wszystkie outline mają ujęcia,
   operacja jest zatrzymywana, a nie tworzy duplikatów.
 - Zmiana opisów scen, beatów i planów nie usuwa już wygenerowanych kadrów.
@@ -51,8 +65,10 @@ Rapid Intercutting, Shot/Reverse Shot, Slow Burn, Jumpscare, False Relief,
 Delayed Reveal, Investigation, Chase, Parallel Action, Aftermath, Emotional Pause,
 Visual Exposition, Evidence Montage, Anticipation/Payoff.
 
-Własne wzorce są zapisywane w aktualnym filmie. Katalog otwiera się z zakładki
-**Biblioteka wzorców i ujęć** na ekranie reżyserii.
+Własne wzorce są zapisywane w aktualnym filmie i można je edytować (nazwa, cel, kiedy użyć,
+rytm, sekwencja ujęć, krzywa napięcia). Katalog otwiera się z zakładki
+**Biblioteka wzorców i ujęć** na ekranie reżyserii. Wbudowane wzorce i 16 rodzajów ujęć są
+dostępne w każdym projekcie.
 
 ## Zakres
 
