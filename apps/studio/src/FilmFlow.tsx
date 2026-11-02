@@ -423,8 +423,8 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
           <div className="flow-actions">
             <Button onClick={() => saved(f => { if (act) f.scripts[act.id] = scriptDraft; })}>Zapisz scenariusz</Button>
             <Button icon={Sparkles} onClick={() => openAI("script", act?.id)}>AI: napisz ten akt</Button>
-            <Button primary disabled={!script.trim() || p.scenes.some(x => x.legacy.flow_act_id === act?.id)} onClick={importScript}>
-              Przenieś do ujęć
+            <Button disabled={!script.trim() || p.scenes.some(x => x.legacy.flow_act_id === act?.id)} onClick={importScript}>
+              Bezpośredni import do ujęć (pomija reżyserię)
             </Button>
           </div>
           {p.scenes.some(x => x.legacy.flow_act_id === act?.id) && <p className="flow-warning">Ten akt ma już ujęcia. Ponowny import nie nadpisze Twojej pracy.</p>}
@@ -445,8 +445,8 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
         <div className="flow-actions">
           <Button icon={Plus} disabled={!section} onClick={() => saved(f => { if (section) f.outlines.push({ ...newNode("Nowa scena"), sectionId: section.id, seconds: 60 }); })}>Dodaj scenę</Button>
           <Button icon={Sparkles} disabled={!section} onClick={() => openAI("outlines", section?.id)}>AI: wersje scen</Button>
-          <Button primary icon={Check} disabled={!isApproved(flow, "outlines")} onClick={applyOutlines}>Przenieś plan do ujęć</Button>
-          <Button onClick={() => s.setPage("director")}>Dalej: reżyseria i mapa napięcia</Button>
+          <Button primary icon={ArrowRight} onClick={() => s.setPage("director")}>Dalej: reżyseria i mapa napięcia</Button>
+          <Button icon={Check} disabled={!isApproved(flow, "outlines")} onClick={applyOutlines}>Bezpośrednio do ujęć (pomija reżyserię)</Button>
           <Button onClick={() => s.setPage("scenes")}>Otwórz istniejący edytor scen</Button>
         </div>
       </>}
