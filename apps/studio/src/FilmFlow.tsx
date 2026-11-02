@@ -17,7 +17,7 @@ export type FlowPage = "bible" | "project-setup" | "idea-flow" | "master-story" 
 const nextPage: Record<FlowPage, string> = {
   bible: "project-setup", "project-setup": "idea-flow", "idea-flow": "master-story", "master-story": "acts", acts: "sequences",
   sequences: "script-flow", "script-flow": "scene-plan",
-  "scene-plan": "scenes", continuity: "export",
+  "scene-plan": "director", continuity: "export",
 };
 type AIKind = "ideas" | "master" | "act" | "sequences" | "outlines" | "script" | "review";
 type AIRequest = { kind: AIKind; targetId?: string };
@@ -446,6 +446,7 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
           <Button icon={Plus} disabled={!section} onClick={() => saved(f => { if (section) f.outlines.push({ ...newNode("Nowa scena"), sectionId: section.id, seconds: 60 }); })}>Dodaj scenę</Button>
           <Button icon={Sparkles} disabled={!section} onClick={() => openAI("outlines", section?.id)}>AI: wersje scen</Button>
           <Button primary icon={Check} disabled={!isApproved(flow, "outlines")} onClick={applyOutlines}>Przenieś plan do ujęć</Button>
+          <Button onClick={() => s.setPage("director")}>Dalej: reżyseria i mapa napięcia</Button>
           <Button onClick={() => s.setPage("scenes")}>Otwórz istniejący edytor scen</Button>
         </div>
       </>}
