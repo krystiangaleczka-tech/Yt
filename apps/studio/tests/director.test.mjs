@@ -51,6 +51,10 @@ test("Reapproval depends on original story and each planned scene", () => {
   reopened.outlines[0].variants[0].description = "Inna scena, inne zagrożenie.";
   assert.equal(isReady(reopened, "direction"), false);
   assert.equal(isApproved(reopened, "direction"), false);
+  const scripted = flowFrom({...project, legacy: {production_flow: structuredClone(flow)}});
+  scripted.scripts[scripted.acts[0].id] = "Nagle odezwał się głośny telefon.";
+  assert.equal(isReady(scripted, "direction"), false);
+  assert.equal(isApproved(scripted, "direction"), false);
 });
 test("AI response is validated and binds beats to approved source scene", () => {
   const flow = completeFlow(), outline = flow.outlines[0];
