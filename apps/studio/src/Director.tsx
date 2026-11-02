@@ -9,7 +9,7 @@ import type { FlowData } from "./flowTypes";
 import {
   buildAutoPlan, directorPatterns, parseDirectorAI, patternById, shotKinds, clampTension,
 } from "./directorTypes";
-import type { DirectorBeat, DirectorPattern, DirectorShot, DirectorMode, SceneDirection } from "./directorTypes";
+import type { DirectorBeat, DirectorShot, DirectorMode, SceneDirection } from "./directorTypes";
 import "./Director.css";
 
 function key() { return crypto.randomUUID(); }
