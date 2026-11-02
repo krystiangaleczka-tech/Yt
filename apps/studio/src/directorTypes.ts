@@ -1,5 +1,5 @@
 import type { FlowData, FlowOutline } from "./flowTypes";
-import { chosen, sceneSourceSignature } from "./flowTypes";
+import { chosen, sceneSourceSignature } from "./flowTypes.ts";
 
 export type DirectorMode = "auto" | "guided" | "manual";
 export type ShotKind = { id: string; name: string; usage: string };
