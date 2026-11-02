@@ -1,6 +1,7 @@
 import type { Project } from "./types";
+import type { DirectorState } from "./directorTypes";
 
-export type FlowStage = "master" | "acts" | "sequences" | "outlines";
+export type FlowStage = "master" | "acts" | "sequences" | "outlines" | "direction";
 export type FlowVariant = { id: string; title: string; description: string };
 export type FlowNode = { id: string; variants: FlowVariant[]; selected: string | null };
 export type FlowSection = FlowNode & { actId: string; seconds: number };
@@ -27,6 +28,7 @@ export type FlowData = {
   scripts: Record<string, string>;
   approved: Partial<Record<FlowStage, string>>;
   reviews: FlowReview[];
+  director: DirectorState;
 };
 export const newVariant = (title = "", description = ""): FlowVariant =>
   ({ id: crypto.randomUUID(), title, description });
@@ -50,6 +52,7 @@ export function flowFrom(project: Project): FlowData {
     scripts: {},
     approved: {},
     reviews: [],
+    director: { mode: "auto", plans: {}, customPatterns: [] },
   };
   const saved = project.legacy.production_flow;
   if (!saved || typeof saved !== "object" || Array.isArray(saved)) return initial;
@@ -64,12 +67,28 @@ export function flowFrom(project: Project): FlowData {
     sequences: Array.isArray(value.sequences) ? value.sequences : initial.sequences,
     outlines: Array.isArray(value.outlines) ? value.outlines : initial.outlines,
     reviews: Array.isArray(value.reviews) ? value.reviews : initial.reviews,
+    director: {
+      mode: ["auto", "guided", "manual"].includes(value.director?.mode || "") ? value.director!.mode : "auto",
+      plans: value.director?.plans && typeof value.director.plans === "object" ? value.director.plans : {},
+      customPatterns: Array.isArray(value.director?.customPatterns) ? value.director.customPatterns : [],
+    },
     master: value.master || initial.master,
   };
 }
-export const stageOrder: FlowStage[] = ["master", "acts", "sequences", "outlines"];
+export const stageOrder: FlowStage[] = ["master", "acts", "sequences", "outlines", "direction"];
+/** Ties each director plan to the chosen scene, act, script and Story Bible. */
+export function sceneSourceSignature(flow: FlowData, outlineId: string): string {
+  const outline = flow.outlines.find(x => x.id === outlineId);
+  const section = flow.sequences.find(x => x.id === outline?.sectionId);
+  const act = flow.acts.find(x => x.id === section?.actId);
+  return JSON.stringify({ outline: outline ? { id: outline.id, selected: chosen(outline), seconds: outline.seconds } : null,
+    section: section ? { id: section.id, selected: chosen(section) } : null,
+    act: act ? { id: act.id, selected: chosen(act), script: flow.scripts[act.id] || "" } : null,
+    bible: flow.bible, master: chosen(flow.master), factual: flow.factual });
+}
 /** Signatures include upstream approved selections, so stale approvals remain visibly stale. */
 export function stageSignature(flow: FlowData, stage: FlowStage): string {
+  if (stage === "direction") return JSON.stringify({ outlines: stageSignature(flow, "outlines"), sources: flow.outlines.map(x => sceneSourceSignature(flow, x.id)), plans: flow.director.plans });
   const master = chosen(flow.master);
   const acts = flow.acts.map((x) => ({ id: x.id, selected: chosen(x) }));
   const sequences = flow.sequences.map((x) => ({ id: x.id, actId: x.actId, seconds: x.seconds, selected: chosen(x) }));
@@ -87,6 +106,13 @@ export function isReady(flow: FlowData, stage: FlowStage) {
   if (stage === "acts") return isApproved(flow, "master") && populated(flow.acts);
   if (stage === "sequences") return isApproved(flow, "acts") && populated(flow.sequences) &&
     flow.acts.every(act => flow.sequences.some(section => section.actId === act.id));
+  if (stage === "direction") return isApproved(flow, "outlines") && flow.outlines.length > 0 &&
+    flow.outlines.every(x => {
+      const plan = flow.director.plans[x.id];
+      return Boolean(plan && plan.sourceSignature === sceneSourceSignature(flow, x.id) &&
+        plan.beats.length > 0 && plan.shots.length > 0 &&
+        plan.shots.every(shot => shot.duration >= 0.1 && plan.beats.some(beat => beat.id === shot.beatId)));
+    });
   return isApproved(flow, "sequences") && populated(flow.outlines) &&
     flow.sequences.every(section => flow.outlines.some(outline => outline.sectionId === section.id));
 }

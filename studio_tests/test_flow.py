@@ -62,6 +62,20 @@ class FlowTests(unittest.TestCase):
         self.assertIn("Wariant", r.json()["response"])
         self.assertEqual(self.store.get(before.id).revision, before.revision)
 
+    def test_director_prompt_knows_selected_scene_and_does_not_mutate(self):
+        project = self.project.model_copy(deep=True)
+        project.legacy["production_flow"]["outlines"] = [{
+            "id": "o1", "sectionId": "s1", "seconds": 12,
+            "variants": [{"id": "v3", "title": "Telefon", "description": "Telefon dzwoni, zombie patrzą w okno."}],
+            "selected": "v3",
+        }]
+        prompt = flow_prompt(project, "direction", "o1", "Cisza przed zaskoczeniem")
+        self.assertIn("Telefon dzwoni, zombie patrzą w okno", prompt)
+        self.assertIn("shot", prompt.lower())
+        self.assertIn("Cisza przed zaskoczeniem", prompt)
+        with self.assertRaises(ValueError):
+            flow_prompt(project, "direction", "wrong")
+
     def test_invalid_target_is_rejected(self):
         r = self.client.post(f"/api/projects/{self.project.id}/flow/ai/act/prompt",
                              json={"target_id": "nonexistent"}, headers=H)

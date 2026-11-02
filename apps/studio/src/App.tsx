@@ -53,6 +53,7 @@ import type { ProductionMode } from "./animationTypes";
 
 const MotionEditor = lazy(() => import("./MotionEditor"));
 const FilmFlow = lazy(() => import("./FilmFlow"));
+const Director = lazy(() => import("./Director"));
 const WorkspaceView = lazy(() => import("./WorkspacePage"));
 const CastBankView = lazy(() => import("./CastBank"));
 const Scenes = lazy(() => import("./Scenes"));
@@ -68,6 +69,7 @@ const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "sequences", label: "Sekwencje", icon: FileText },
   { id: "script-flow", label: "Scenariusz", icon: FileText },
   { id: "scene-plan", label: "Plan scen", icon: Clapperboard },
+  { id: "director", label: "Reżyseria i napięcie", icon: SlidersHorizontal },
   { id: "scenes", label: "Sceny / Canvas", icon: LayoutGrid },
   { id: "generation", label: "Ujęcia", icon: Film },
   { id: "editing", label: "Montaż", icon: SlidersHorizontal },
@@ -146,6 +148,10 @@ function Shell() {
     ) : (["bible", "project-setup", "idea-flow", "master-story", "acts", "sequences", "script-flow", "scene-plan", "continuity"] as string[]).includes(s.page) ? (
       <Suspense fallback={<div className="page-content">Otwieram etap produkcji…</div>}>
         <FilmFlow page={s.page as FlowPage} />
+      </Suspense>
+    ) : s.page === "director" ? (
+      <Suspense fallback={<div className="page-content">Ładowanie reżyserii…</div>}>
+        <Director />
       </Suspense>
     ) : s.page === "scenes" ? (
       <Suspense fallback={<div className="page-content">Ładowanie scen…</div>}>
@@ -263,7 +269,7 @@ function Shell() {
               <item.icon size={18} />
               <span>{item.label}</span>
               {!collapsed && (
-                <small>{item.id === "bible" ? "00" : String(index).padStart(2, "0")}{filmFlow && (item.id === "master-story" ? isApproved(filmFlow, "master") : item.id === "acts" ? isApproved(filmFlow, "acts") : item.id === "sequences" ? isApproved(filmFlow, "sequences") : item.id === "scene-plan" ? isApproved(filmFlow, "outlines") : false) ? " ✓" : ""}</small>
+                <small>{item.id === "bible" ? "00" : String(index).padStart(2, "0")}{filmFlow && (item.id === "master-story" ? isApproved(filmFlow, "master") : item.id === "acts" ? isApproved(filmFlow, "acts") : item.id === "sequences" ? isApproved(filmFlow, "sequences") : item.id === "scene-plan" ? isApproved(filmFlow, "outlines") : item.id === "director" ? isApproved(filmFlow, "direction") : false) ? " ✓" : ""}</small>
               )}
             </button>
           ))}
