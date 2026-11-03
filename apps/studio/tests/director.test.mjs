@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { flowFrom, newVariant, stageSignature, isApproved, isReady, chosen } from "../src/flowTypes.ts";
-import { buildAutoPlan, choosePattern, directorPatterns, parseDirectorAI, shotKinds } from "../src/directorTypes.ts";
+import { flowFrom, newVariant, stageSignature, isApproved, isReady, chosen, orderedOutlines, sceneSourceSignature, stableJson } from "../src/flowTypes.ts";
+import { buildAutoPlan, choosePattern, directorLimits, directorPatterns, extractJsonObject, parseDirectorAI, shotKinds } from "../src/directorTypes.ts";
 
 const project = { production_mode: "animation_2d", development: { selected_idea_id: "" }, legacy: {} };
 function completeFlow() {
@@ -67,4 +67,60 @@ test("AI response is validated and binds beats to approved source scene", () => 
   assert.equal(plan.sourceSignature,buildAutoPlan(flow,outline).sourceSignature);
   assert.throws(() => parseDirectorAI(JSON.stringify({...valid,shots:[{...valid.shots[0],typeId:"fake"}]}),flow,outline,"auto"),/Nieznany typ/);
   assert.throws(() => parseDirectorAI(JSON.stringify({...valid,shots:[{...valid.shots[0],duration:-2}]}),flow,outline,"auto"),/czas ujęcia/);
+});
+
+function reorderKeys(value) {
+  if (Array.isArray(value)) return value.map(reorderKeys);
+  if (value && typeof value === "object")
+    return Object.fromEntries(Object.keys(value).reverse().map(k => [k, reorderKeys(value[k])]));
+  return value;
+}
+test("Approvals are compact and survive a server round trip with different key order", () => {
+  const flow = completeFlow();
+  flow.bible.characters = "Lekarz ".repeat(5000);
+  assert.equal(isApproved(flow, "master"), false, "Story Bible change makes approvals stale");
+  for (const stage of ["master", "acts", "sequences", "outlines"]) flow.approved[stage] = stageSignature(flow, stage);
+  for (const row of flow.outlines) flow.director.plans[row.id] = buildAutoPlan(flow, row);
+  flow.approved.direction = stageSignature(flow, "direction");
+  assert.ok(flow.approved.direction.length < 60, "signature must not copy the whole story into project.json");
+  assert.ok(Object.values(flow.director.plans).every(plan => plan.sourceSignature.length < 60));
+  const reopened = flowFrom({ ...project, legacy: { production_flow: reorderKeys(JSON.parse(JSON.stringify(flow))) } });
+  for (const stage of ["master", "acts", "sequences", "outlines", "direction"])
+    assert.equal(isApproved(reopened, stage), true, stage);
+  reopened.director.plans[reopened.outlines[0].id].shots[0].duration += 1;
+  assert.equal(isApproved(reopened, "direction"), false, "any shot edit invalidates the approval");
+});
+test("Stable JSON ignores key order but not values", () => {
+  assert.equal(stableJson({ b: 1, a: [1, { d: 2, c: 3 }] }), stableJson({ a: [1, { c: 3, d: 2 }], b: 1 }));
+  assert.notEqual(stableJson({ a: [1, 2] }), stableJson({ a: [2, 1] }));
+});
+test("Scene source signature changes with scene, act script and Story Bible", () => {
+  const flow = completeFlow(), id = flow.outlines[0].id, before = sceneSourceSignature(flow, id);
+  flow.bible.visuals = "Zielone światło";
+  assert.notEqual(sceneSourceSignature(flow, id), before);
+});
+test("Scenes are listed in film order (act, sequence, scene), not creation order", () => {
+  const flow = completeFlow();
+  flow.outlines.reverse();
+  const ordered = orderedOutlines(flow).map(x => x.sectionId);
+  assert.deepEqual(ordered, flow.sequences.map(x => x.id));
+  flow.outlines.push({ id: "orphan", sectionId: "missing", seconds: 5, variants: [], selected: null });
+  assert.equal(orderedOutlines(flow).at(-1).id, "orphan");
+});
+test("Auto plan respects backend field limits for long scene descriptions", () => {
+  const flow = completeFlow(), outline = flow.outlines[0];
+  chosen(outline).description = "Bardzo długi opis sceny. ".repeat(1000);
+  const plan = buildAutoPlan(flow, outline, "guided", "", "x".repeat(9000));
+  assert.ok(plan.shots.every(s => s.description.length <= directorLimits.description));
+  assert.ok(plan.notes.length <= directorLimits.notes);
+  assert.ok(plan.shots.some(s => s.description.startsWith("To, co widzi bohater")) || plan.shots.length > 0);
+});
+test("AI answer may be fenced or wrapped in a short explanation", () => {
+  const body = { beats: [{ title: "A", tensionBefore: 2, tensionAfter: 5 }], shots: [{ beatIndex: 0, typeId: "pov", duration: 2 }] };
+  assert.deepEqual(extractJsonObject("Oto plan:\n```json\n" + JSON.stringify(body) + "\n```\nPowodzenia!"), body);
+  assert.throws(() => extractJsonObject("Nie mogę pomóc."), /JSON/);
+  assert.throws(() => extractJsonObject("{ zepsuty json }"), /JSON/);
+  const flow = completeFlow();
+  const plan = parseDirectorAI("Plan:\n" + JSON.stringify(body), flow, flow.outlines[0], "guided");
+  assert.equal(plan.shots[0].typeId, "pov");
 });

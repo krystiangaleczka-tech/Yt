@@ -59,6 +59,9 @@ export const directorPatterns: DirectorPattern[] = [
   { id: "evidence", name: "Evidence Montage", purpose: "Weryfikowalne fakty pokazane jako śledztwo.", cue: "Dokument, źródło, mapa lub historia.", rhythm: "Czytelny dowód → kontekst → wniosek.", shots: ["establishing","detail","insert","medium","cutaway"], tension: [2,4,5,6] },
   { id: "anticipation", name: "Anticipation / Payoff", purpose: "Zapowiedź skutku i jego opóźnione ujawnienie.", cue: "Widz widzi ryzyko zanim bohater zareaguje.", rhythm: "Detal zapowiedzi, pauza, reakcja, payoff.", shots: ["insert","pov","static-hold","reaction","reverse"], tension: [3,5,8,9] },
 ];
+/** Field limits mirrored by the backend flow validator (studio_core/production_flow.py). */
+export const directorLimits = { title: 300, goal: 4000, knows: 2000, sound: 1000, description: 3000, notes: 5000, shots: 240 } as const;
+export const transitions = ["cut", "smash-cut", "match-cut", "dissolve", "dip", "whip", "flash"];
 export const clampTension = (n: number) => Math.max(0, Math.min(10, Math.round(Number.isFinite(n) ? n : 0)));
 export function patternById(id: string, custom: DirectorPattern[] = []): DirectorPattern {
   return [...custom, ...directorPatterns].find(p => p.id === id) || directorPatterns[0];
@@ -110,16 +113,28 @@ export function buildAutoPlan(
   const shots: DirectorShot[] = kinds.map((kind, i) => ({
     id: uid(), beatId: beats[Math.min(beats.length - 1, Math.floor(i * beats.length / count))].id,
     typeId: kind, title: shotKinds.find(x => x.id === kind)?.name || "Ujęcie",
-    description: description || "Pokazać wydarzenie zgodnie z beatem.",
+    description: (shotKinds.find(x => x.id === kind)?.usage + " " + (description || "Pokazać wydarzenie zgodnie z beatem."))
+      .slice(0, directorLimits.description),
     duration: duration[i], transition: "cut", sound: "",
   }));
   return {
     outlineId: outline.id, sourceSignature: sceneSourceSignature(flow, outline.id),
-    patternId: selected.id, mode, notes: guidance, beats, shots,
+    patternId: selected.id, mode, notes: guidance.slice(0, directorLimits.notes), beats, shots,
   };
 }
+/** Accepts plain JSON, fenced JSON or JSON surrounded by a short explanation. */
+export function extractJsonObject(raw: string): Record<string, unknown> {
+  const text = raw.trim().replace(/^\`\`\`(?:json)?\s*/i, "").replace(/\s*\`\`\`$/, "");
+  const start = text.indexOf("{"), end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) throw new Error("AI nie zwróciło obiektu JSON z planem reżyserii.");
+  let value: unknown;
+  try { value = JSON.parse(text.slice(start, end + 1)); }
+  catch { throw new Error("Odpowiedź AI nie jest poprawnym JSON. Wygeneruj ponownie albo użyj planu automatycznego."); }
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("AI powinno zwrócić obiekt JSON.");
+  return value as Record<string, unknown>;
+}
 export function parseDirectorAI(raw: string, flow: FlowData, outline: FlowOutline, mode: DirectorMode): SceneDirection {
-  const json = JSON.parse(raw.trim().replace(/^\`\`\`(?:json)?\s*/, "").replace(/\s*\`\`\`$/, "")) as Record<string, unknown>;
+  const json = extractJsonObject(raw);
   if (!json || !Array.isArray(json.beats) || !Array.isArray(json.shots) ||
       json.beats.length < 1 || json.beats.length > 24 || json.shots.length < 1 || json.shots.length > 90)
     throw new Error("AI powinno zwrócić 1–24 beatów i 1–90 ujęć w JSON.");
@@ -133,7 +148,7 @@ export function parseDirectorAI(raw: string, flow: FlowData, outline: FlowOutlin
       viewerKnows: String(x.viewerKnows || "").slice(0, 600),
       characterKnows: String(x.characterKnows || "").slice(0, 600),
       soundCue: String(x.soundCue || "").slice(0, 250),
-      patternId: String(x.patternId || json.patternId || "anticipation"),
+      patternId: String(x.patternId || json.patternId || "anticipation").slice(0, 160),
     };
   });
   const shots = json.shots.map((v, i) => {
@@ -154,7 +169,7 @@ export function parseDirectorAI(raw: string, flow: FlowData, outline: FlowOutlin
   });
   return {
     outlineId: outline.id, sourceSignature: sceneSourceSignature(flow, outline.id),
-    patternId: String(json.patternId || "anticipation"), mode,
+    patternId: String(json.patternId || "anticipation").slice(0, 160), mode,
     notes: String(json.notes || "").slice(0, 3000), beats, shots,
   };
 }

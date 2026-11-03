@@ -11,6 +11,7 @@ import {
   bibleFields, chosen, flowFrom, isApproved, isReady, newNode, newVariant, stageSignature,
   type FlowData, type FlowNode, type FlowReview, type FlowStage,
 } from "./flowTypes";
+import { saveFlow } from "./flowSave";
 import "./FilmFlow.css";
 
 export type FlowPage = "bible" | "project-setup" | "idea-flow" | "master-story" | "acts" | "sequences" | "scene-plan" | "script-flow" | "continuity";
@@ -104,13 +105,7 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
   const section = flow.sequences.find(x => x.id === activeSection) || sections[0];
   const script = act ? (flow.scripts[act.id] || "") : "";
   useEffect(() => setScriptDraft(script), [p.id, act?.id, script]);
-  const saved = (edit: (data: FlowData) => void) => s.run(async () => {
-    await s.patch(current => {
-      const value = structuredClone(flowFrom(current));
-      edit(value);
-      return { legacy: { ...current.legacy, production_flow: value } };
-    });
-  });
+  const saved = (edit: (data: FlowData) => void) => s.run(() => saveFlow(s.mutate, edit));
   const changeNode = (collection: "acts" | "sequences" | "outlines", id: string, edit: (n: FlowNode) => void) =>
     saved(f => { const n = f[collection].find(x => x.id === id); if (n) edit(n); });
   const title = ({

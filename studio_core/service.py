@@ -11,6 +11,7 @@ from pathlib import Path
 from .models import Project, Scene, Beat, Clip, uid
 from .store import ProjectStore, atomic_json, now, story_hash
 from .freshness import fingerprint, voice_state
+from .production_flow import validated_flow
 from studio_timeline.operations import apply_operations
 
 
@@ -46,6 +47,13 @@ class ProjectService(ProjectStore):
                         if old.duration!=scene.duration and clip in pictures: values["duration"]=scene.duration
                         if values: ops.append({"type":"update_clip","clip_id":clip.id,"changes":values})
                 if ops: apply_operations(project,ops)
+        return self.mutate(project_id, revision, update)
+
+    def save_flow(self, project_id, revision, flow):
+        """Write only ``legacy.production_flow``; other legacy keys stay untouched."""
+        value = copy.deepcopy(validated_flow(flow))
+        def update(project):
+            project.legacy = {**project.legacy, "production_flow": value}
         return self.mutate(project_id, revision, update)
 
     def edit(self, project_id, revision, operations, origin="manual"):

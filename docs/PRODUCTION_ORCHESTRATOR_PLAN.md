@@ -23,6 +23,20 @@ Zasada bezpieczeństwa: pojedyncze kliknięcie wykonuje **jedną dozwoloną czyn
 - Bez usuwania ręcznej nawigacji, istniejących plików, historii projektu i dotychczasowych trybów produkcji.
 - Bez globalnego blokowania ręcznej edycji: walidacja ma zabezpieczać przejścia i eksport, nie utrudniać poprawiania scen.
 
+## Status wdrożenia (aktualizacja 2026-11-02)
+
+- **P0 naprawione (ORCH-001…003):** wszystkie zapisy Film Flow i reżyserii przechodzą przez nowy
+  `PUT /api/projects/{pid}/flow` (wybrano PUT, bo zapis zastępuje cały dokument flow). Walidacja:
+  `studio_core/production_flow.py` (Pydantic, limity rozmiaru, unikalne ID, skala napięcia,
+  klucze planów = ID scen). Zapis zmienia tylko `legacy.production_flow`, sprawdza rewizję (409),
+  trafia do historii Cofnij i przechowuje dane bez przekształceń. Frontend: `apps/studio/src/flowSave.ts`.
+- Testy round trip: `studio_tests/test_flow.py::FlowPersistenceTests` (zapis → reload → identyczne dane,
+  409, odrzucenie błędnych danych, nienaruszone inne klucze legacy, cofnięcie).
+- Podpisy zatwierdzeń są krótkimi skrótami z JSON o posortowanych kluczach (`digest` w `flowTypes.ts`),
+  więc nie powiększają `project.json` i nie zależą od kolejności pól.
+- Nadal po stronie frontendu: obliczanie podpisów i decyzja o gotowości etapów. Przeniesienie ich do
+  backendu to ORCH-005…007.
+
 ## 2. Ustalenia z audytu main (2026-11-02)
 
 1. **Błąd krytyczny P0 — persistencja flow.** Frontend w apps/studio/src/FilmFlow.tsx i apps/studio/src/Director.tsx zapisuje legacy.production_flow za pomocą s.patch. Endpoint PATCH /api/projects/{id} wywołuje ProjectService.patch, który w studio_core/service.py dopuszcza określony zestaw pól **bez legacy**. Sam frontendowy komunikat o zapisaniu nie dowodzi, że backend przyjął zmianę. Nowy, wąski endpoint zapisu flow musi poprzedzić orkiestrację.
@@ -206,9 +220,9 @@ Obecna SQLite Jobs zostaje. Dodać trwały **TaskDescriptor**: project_id, stage
 
 | Priorytet | Zadanie | Obszar | Kryterium ukończenia |
 |---|---|---|---|
-| P0 | ORCH-001: audit save flow i reprodukcja błędu | API/testy | Test wykazuje aktualny problem zapisu |
-| P0 | ORCH-002: typowany endpoint zapisu flow | studio_core, studio_api | Round trip zapis/reload i konflikt 409 |
-| P0 | ORCH-003: migracja danych i integracja FilmFlow/Director | TS/Python | Stare projekty nadal się otwierają i zapisują |
+| P0 ✅ | ORCH-001: audit save flow i reprodukcja błędu | API/testy | Test wykazuje aktualny problem zapisu |
+| P0 ✅ | ORCH-002: typowany endpoint zapisu flow | studio_core, studio_api | Round trip zapis/reload i konflikt 409 |
+| P0 ✅ | ORCH-003: migracja danych i integracja FilmFlow/Director | TS/Python | Stare projekty nadal się otwierają i zapisują |
 | P0 | ORCH-004: mapa istniejących etapów i dubli modeli | dokumentacja | Kanoniczne ID, scope i owner danych |
 | P1 | ORCH-005: Registry v1 i warianty według trybu | studio_core/orchestrator | Każdy etap ma wymagania i adapter |
 | P1 | ORCH-006: Resolver statusu, blokad i NextAction | backend | Ten sam wynik przy tym samym stanie projektu |
