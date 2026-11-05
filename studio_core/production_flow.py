@@ -118,6 +118,48 @@ class DirectorState(_FlowModel):
         return self
 
 
+class WorldBook(_FlowModel):
+    """Księga świata (studio_core/continuity.py). Listy mają limity, treść jest swobodna."""
+    version: int = Field(default=1, ge=1, le=99)
+    unitLabel: str = Field(default="Dzień", max_length=40)
+    places: list[dict] = Field(default_factory=list, max_length=500)
+    characters: list[dict] = Field(default_factory=list, max_length=500)
+    props: list[dict] = Field(default_factory=list, max_length=1000)
+    resources: list[dict] = Field(default_factory=list, max_length=100)
+    rules: list[dict] = Field(default_factory=list, max_length=500)
+    events: list[dict] = Field(default_factory=list, max_length=2000)
+    threads: list[dict] = Field(default_factory=list, max_length=500)
+    spoilers: list[dict] = Field(default_factory=list, max_length=500)
+    decisions: list[dict] = Field(default_factory=list, max_length=500)
+
+
+class ProductionBook(_FlowModel):
+    """Warsztat filmu: jak powstają ujęcia i sekwencje tego projektu."""
+    pipeline: str = Field(default="", max_length=200_000)
+    method: str = Field(default="", max_length=200_000)
+    files: list[dict] = Field(default_factory=list, max_length=200)
+
+
+class UnitReview(_FlowModel):
+    status: Literal["robocza", "do poprawy", "zatwierdzona"] = "robocza"
+    signature: str = Field(default="", max_length=200)
+    checks: dict[str, str] = Field(default_factory=dict)
+    notes: str = Field(default="", max_length=20_000)
+    reviewer: str = Field(default="", max_length=200)
+    at: str = Field(default="", max_length=40)
+
+
+class LogEntry(_FlowModel):
+    id: str = Field(default="", max_length=120)
+    at: str = Field(default="", max_length=40)
+    who: str = Field(default="", max_length=200)
+    unit: int | None = Field(default=None, ge=0, le=999)
+    kind: str = Field(default="praca", max_length=40)
+    summary: str = Field(min_length=1, max_length=2000)
+    details: str = Field(default="", max_length=20_000)
+    files: list[str] = Field(default_factory=list, max_length=100)
+
+
 class ProductionFlow(_FlowModel):
     version: int = Field(default=1, ge=1, le=99)
     factual: bool = False
@@ -131,6 +173,10 @@ class ProductionFlow(_FlowModel):
     approved: dict[str, str] = Field(default_factory=dict)
     reviews: list[FlowReview] = Field(default_factory=list, max_length=40)
     director: DirectorState = Field(default_factory=DirectorState)
+    world: WorldBook = Field(default_factory=WorldBook)
+    book: ProductionBook = Field(default_factory=ProductionBook)
+    unitReviews: dict[str, UnitReview] = Field(default_factory=dict)
+    log: list[LogEntry] = Field(default_factory=list, max_length=5000)
 
     @model_validator(mode="after")
     def _unique_ids(self):

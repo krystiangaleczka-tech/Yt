@@ -59,6 +59,7 @@ const CastBankView = lazy(() => import("./CastBank"));
 const Scenes = lazy(() => import("./Scenes"));
 const ShotEditor = lazy(() => import("./ShotEditor"));
 const Storyboard = lazy(() => import("./Storyboard"));
+const Handbook = lazy(() => import("./Handbook"));
 
 const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "bible", label: "Story Bible", icon: BookOpen },
@@ -129,6 +130,10 @@ function Shell() {
     ) : s.page === "cast" || s.page === "locations" || s.page === "props" || s.page === "sounds" ? (
       <Suspense fallback={<div className="page-content">Ładowanie banku…</div>}>
         <CastBankView section={s.page} />
+      </Suspense>
+    ) : s.page === "handbook" ? (
+      <Suspense fallback={<div className="page-content">Ładowanie podręcznika…</div>}>
+        <Handbook />
       </Suspense>
     ) : globalPage ? (
       <Suspense
@@ -286,6 +291,9 @@ function Shell() {
               <Icon size={18} /><span>{label}</span>
             </button>
           ))}
+          <button className={`nav-item ${s.page === "handbook" ? "active" : ""}`} onClick={() => navigate("handbook")}>
+            <BookOpen size={18} /><span>Podręcznik pracowni</span>
+          </button>
           {workspacePages.map(page => (
             <button key={page} className={`nav-item ${s.page === page ? "active" : ""}`} onClick={() => navigate(page)}>
               <Library size={18} /><span>{workspaceTitles[page]}</span>

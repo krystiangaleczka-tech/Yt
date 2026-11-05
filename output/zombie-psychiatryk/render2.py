@@ -10,23 +10,28 @@ import wave
 import numpy as np
 from PIL import Image
 
-from render import (FPS, H, HERE, INK, SS, W, Pen, blink, breath_snd, corridor, creak, ease, handheld, light_mask, noise,
-                    subtitle, voice_len, zombie)
+from render import (FPS, H, HERE, INK, SS, SUFFIX, VOICE_DIR, W, Pen, localize, blink, breath_snd, corridor, creak, ease, framed, handheld,
+                    light_mask, noise, subtitle, voice_len, zombie)
 
-DUR = 25.0
+DUR = 26.0
 # (start, koniec, plik lektora, start lektora, napis) — z pauzami przed i po kwestiach
 SCENES = [
     (0.0, 4.4, "p2_l1.wav", 0.50, "Pobiegłem do dyżurki\nna końcu korytarza."),
-    (4.4, 10.0, "p2_l2.wav", 6.00, "Zamknąłem drzwi\ni zgasiłem światło."),
-    (10.0, 16.0, "p2_l3.wav", 10.80, "Przez szybę widziałem,\njak przechodzą obok."),
-    (16.0, 19.6, "p2_l4.wav", 17.60, "Wtedy zadzwonił telefon."),
-    (19.6, 25.0, "p2_l5.wav", 20.10, "I wszyscy naraz\nodwrócili głowy."),
+    (4.4, 11.0, "p2_l2.wav", 6.50, "Zamknąłem drzwi\ni zgasiłem światło."),
+    (11.0, 17.0, "p2_l3.wav", 11.80, "Przez szybę widziałem,\njak przechodzą obok."),
+    (17.0, 20.6, "p2_l4.wav", 18.60, "Wtedy zadzwonił telefon."),
+    (20.6, 26.0, "p2_l5.wav", 21.10, "I wszyscy naraz\nodwrócili głowy."),
 ]
+SCENES = localize(SCENES)
 STUMBLE = 2.75         # w scenie 1: potknięcie w biegu
-SWITCH_T = 4.4 + 4.1   # pstryk — gaśnie światło
+HANDLE = (2.7, 3.95)   # w scenie 2: sprawdza klamkę, czy drzwi na pewno zamknięte
+SWITCH_T = 4.4 + 5.1   # pstryk — gaśnie światło
 PEEK = (3.0, 4.6)      # w scenie 3: jeden z nich staje przy szybie
-RING_T = 16.0 + 0.9    # pierwszy dzwonek, po chwili ciszy
-TURN_T = 19.6 + 1.3    # głowy odwracają się do szyby
+LAST_STOP = (5.25, 5.8)  # w scenie 3: ostatni też przystaje na chwilę
+TEAR = 3.4             # w scenie 3: łza z jednego oka
+RING_T = 17.0 + 0.9    # pierwszy dzwonek, po chwili ciszy
+DROP = 2.0             # w scenie 4: od drgań słuchawka spada na stół
+TURN_T = 20.6 + 1.3    # głowy odwracają się do szyby
 RING_END = TURN_T + 0.9
 DARK = 3.9             # w scenie 5: gaśnie wszystko poza oczami
 VOICE_LEN = [voice_len(fn) for _, _, fn, _, _ in SCENES]
@@ -78,7 +83,7 @@ def scene1(p, t, T):
     fl = [1, 1 if math.sin(t * 27) > -0.3 else 0, 1, 0 if t > 1.5 else 1]
     corridor(p, t, fl, doors_open=0.9)
     for i, dx in enumerate((-70, 40, 110)):
-        zombie(p, 640 + dx, 420 + 15 * t, 0.42 + 0.06 * t, t, i * 1.3)
+        zombie(p, 640 + dx, 420 + 15 * t, 0.42 + 0.06 * t, t, i * 1.3, arms=ease((t - 2.0 - 0.12 * i) / 0.4))
     k = ease(t / T)
     look = ease((t - 1.5) / 0.25) * (1 - ease((t - 2.2) / 0.25))
     st = max(0.0, 1 - abs(t - STUMBLE) / 0.2)  # potknięcie: zapada się i odbija w bok
@@ -109,6 +114,7 @@ def scene2(p, t, T):
         p.rect(0, 0, W, H, (112, 126, 112), w=0)
         p.rect(520, 140, 760, 600, (170, 160, 120))
         p.ell(640, 300, 46, 46, (60, 56, 48))
+        p.ell(640, 480, 18, 30, (60, 56, 48))  # dziurka pod dłonią — dłoń ją zasłania
         ang = 0.35 * ease((t - 0.4) / 0.2) * (1 - ease((t - 0.75) / 0.12)) + ease((t - 1.35) / 0.5) * math.pi / 2
         ang += 0.03 * noise(t, 62, 8)
         ca, sa = math.cos(ang), math.sin(ang)
@@ -126,12 +132,16 @@ def scene2(p, t, T):
         for i in range(4):
             p.line([(hx - 30 + i * 22, hy + 10), (hx - 10 + i * 22, hy - 40)], w=22, color=SKIN)
             p.line([(hx - 30 + i * 22, hy + 10), (hx - 10 + i * 22, hy - 40)], w=2.5)
-        p.ell(640, 480, 18, 30, (60, 56, 48))
         return
     room(p, dark=t >= sw)
+    # sprawdza klamkę: dłoń na klamce, dwa razy w dół — drzwi tylko drgną, są zamknięte
+    a, b = HANDLE
+    grip = ease((t - a) / 0.25) * (1 - ease((t - b + 0.25) / 0.25))
+    press = abs(math.sin(math.pi * (t - a - 0.25) / 0.35)) if a + 0.25 < t < a + 0.95 else 0.0
+    rattle = 2 * press * noise(t, 66, 30)
     # drzwi z szybą po prawej
-    p.rect(800, 120, 1060, 560, (104, 116, 104))
-    p.rect(850, 170, 1010, 300, (180, 196, 170) if t < sw else (110, 140, 118), w=5)
+    p.rect(800 + rattle, 120, 1060 + rattle, 560, (104, 116, 104))
+    p.rect(850 + rattle, 170, 1010 + rattle, 300, (180, 196, 170) if t < sw else (110, 140, 118), w=5)
     # biurko z telefonem
     p.rect(470, 420, 790, 450, (110, 84, 60))
     p.rect(490, 450, 520, 560, (96, 72, 52))
@@ -152,10 +162,16 @@ def scene2(p, t, T):
             (hx + 5, 262 + dy)], HAIR)
     if blink(t, 65, 2.2) < 0.5 or t > sw:
         p.ell(hx + 33 - 60 * turn, 282 + dy, 6, 6, INK, w=0)
-    reach = ease((t - 3.5) / 0.5) * (1 - 0.7 * ease((t - sw - 0.3) / 0.5))
-    p.line([(x - 120, 350 + dy), (x - 60 + 40 * reach, 320 - 10 * reach)], w=22, color=UNI)
-    p.line([(x - 120, 350 + dy), (x - 60 + 40 * reach, 320 - 10 * reach)], w=3)
-    p.ell(x - 60 + 40 * reach, 320 - 10 * reach, 14, 14, SKIN)
+    # klamka na drzwiach, dźwignia w stronę zawiasu
+    droop = 16 * press
+    p.rect(1030 + rattle, 346, 1046 + rattle, 392, (150, 150, 140), w=2.5)
+    p.poly([(1038 + rattle, 356), (1038 + rattle, 368), (996 + rattle, 372 + droop), (996 + rattle, 362 + droop)], (170, 170, 160), w=2.5)
+    reach = ease((t - sw + 0.6) / 0.5) * (1 - 0.7 * ease((t - sw - 0.3) / 0.5))
+    hx2 = x - 60 + 40 * reach + (1010 - (x - 60)) * grip
+    hy2 = 320 - 10 * reach + (367 + droop - 320) * grip
+    p.line([(x - 120, 350 + dy), (hx2, hy2)], w=22, color=UNI)
+    p.line([(x - 120, 350 + dy), (hx2, hy2)], w=3)
+    p.ell(hx2, hy2, 14, 14, SKIN)
 
 
 def walker_x(t, start, stop=None):
@@ -166,18 +182,21 @@ def walker_x(t, start, stop=None):
     return 380 + ((t - start) * 150) % 700
 
 
-def window_view(p, t, T, turn, walkers, stop=None):
-    """Szyba w drzwiach dyżurki od środka: korytarz jasny, pokój ciemny. Zwraca pozycje sylwetek."""
+def window_view(p, t, T, turn, walkers, stops=None):
+    """Szyba w drzwiach dyżurki od środka: korytarz jasny, pokój ciemny. stops — {nr sylwetki: (od, do)} postoju;
+    sylwetka 1 przy postoju powoli przekręca głowę. Zwraca pozycje sylwetek."""
+    stops = stops or {}
     p.rect(0, 0, W, H, (40, 50, 60), w=0)
     p.rect(330, 60, 950, 760, (56, 66, 72))
     p.rect(420, 120, 860, 420, (172, 190, 160), w=0)
     xs = []
     for i, (start, sc) in enumerate(walkers):
-        # zatrzymują się w chwili dzwonka, każdy drugi przystaje tylko na PEEK
-        x = walker_x(t - turn if turn is not None else t, start, stop if i == 1 else None)
+        # zatrzymują się w chwili dzwonka; w scenie 3 niektórzy przystają na chwilę
+        stop = stops.get(i)
+        x = walker_x(t - turn if turn is not None else t, start, stop)
         xs.append(x)
         # chód: lekkie bujanie, nie sunięcie
-        y = 460 - abs(math.sin((t - start) * 4.4)) * 6 * (turn is None) * (not (stop and i == 1 and stop[0] <= t < stop[1]))
+        y = 460 - abs(math.sin((t - start) * 4.4)) * 6 * (turn is None) * (not (stop and stop[0] <= t < stop[1]))
         s = 0.9 * sc
         sil = (24, 28, 30)
         p.poly([(x - 44 * s, y - 180 * s), (x + 44 * s, y - 180 * s), (x + 50 * s, y + 40), (x - 50 * s, y + 40)], sil, w=3)
@@ -210,7 +229,7 @@ def window_view(p, t, T, turn, walkers, stop=None):
 
 
 def scene3(p, t, T):
-    xs = window_view(p, t, T, None, WALKERS3, stop=PEEK)
+    xs = window_view(p, t, T, None, WALKERS3, stops={1: PEEK, 0: LAST_STOP})
     # sanitariusz skulony pod szybą: oddycha, mruga, wodzi wzrokiem za nimi;
     # kiedy jeden przystaje — wstrzymuje oddech i nie mruga, potem wypuszcza powietrze
     held = ease((t - PEEK[0] - 0.1) / 0.3) * (1 - ease((t - PEEK[1]) / 0.3))
@@ -238,6 +257,14 @@ def scene3(p, t, T):
     p.line([(hx + 8, hy + 38), (hx + 32, hy + 38)], w=3)
     # ręka zakrywająca usta drży
     p.ell(hx + 26 + 1.5 * noise(t, 74, 9), hy + 46 + 1.5 * noise(t, 75, 9), 34, 22, (130, 110, 96))
+    # płacze z jednego oka: łza zbiera się w kąciku i spływa po policzku
+    if t > TEAR:
+        ex, ey = hx + 44, hy + 14
+        drop = 34 * ease((t - TEAR - 0.4) / 1.8)
+        if drop > 2:
+            p.line([(ex, ey), (ex + 2, ey + drop)], w=2.5, color=(150, 175, 190), amp=0.4)
+        r = 2 + 2 * ease((t - TEAR) / 0.4)
+        p.ell(ex + 2, ey + drop, r, r * 1.3, (200, 226, 240), w=1.5)
 
 
 def scene4(p, t, T):
@@ -256,11 +283,25 @@ def scene4(p, t, T):
         a = 2 * math.pi * i / 10 + 0.3
         p.ell(bx + math.cos(a) * 60, by - 30 + math.sin(a) * 52, 12, 11, (60, 56, 50), w=2)
     p.ell(bx, by - 30, 24, 22, (220, 210, 180), w=3)
-    lift = 18 if ring else 0
-    ry = by - 150 - lift + r.uniform(-j, j)
-    p.poly([(bx - 230, ry), (bx + 230, ry), (bx + 200, ry - 44), (bx - 200, ry - 44)], (186, 174, 140))
-    p.ell(bx - 220, ry - 4, 46, 34, (186, 174, 140))
-    p.ell(bx + 220, ry - 4, 46, 34, (186, 174, 140))
+    # widełki — widać je, kiedy słuchawka spadnie
+    for side in (-1, 1):
+        p.poly([(bx + side * 140, by - 118), (bx + side * 160, by - 118), (bx + side * 156, by - 150), (bx + side * 144, by - 150)],
+               (172, 160, 128), w=3)
+    # od drgań słuchawka zsuwa się z widełek i spada na stół, odbija się raz
+    lift = 18 if ring and t < DROP else 0
+    k = ease((t - DROP) / 0.12) * 0.15 + 0.85 * min(1.0, max(0.0, (t - DROP - 0.06) / 0.26)) ** 2
+    bounce = 14 * max(0.0, math.sin(math.pi * (t - DROP - 0.32) / 0.16)) if DROP + 0.32 < t < DROP + 0.48 else 0.0
+    cx = bx - 120 * k
+    cy = (by - 172 - lift + r.uniform(-j, j)) * (1 - k) + (by + 78 - bounce) * k
+    ang = -0.32 * k + 0.06 * bounce / 14
+
+    def hs(px, py):
+        return (cx + px * math.cos(ang) - py * math.sin(ang), cy + px * math.sin(ang) + py * math.cos(ang))
+
+    p.poly([hs(-230, 22), hs(230, 22), hs(200, -22), hs(-200, -22)], (186, 174, 140))
+    p.ell(*hs(-220, 18), 46, 34, (186, 174, 140), rot=ang)
+    p.ell(*hs(220, 18), 46, 34, (186, 174, 140), rot=ang)
+    ry = by - 150 - lift
     p.line([(bx + 220, by + 20), (bx + 300, by + 80), (bx + 420, by + 60), (bx + 560, by + 140)], w=6)
     if ring:
         for side in (-1, 1):
@@ -304,10 +345,11 @@ def frame(t):
             break
     lt, T = t - a, b - a
     img = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 255))
-    p = Pen(img, t, shake=shake_at(t), **CAMERAS[i](lt, T))
+    p = Pen(img, t, **framed(CAMERAS[i](lt, T), shake_at(t)))
     SCENE_FN[i](p, lt, T)
     img = img.convert("RGB").resize((W, H), Image.LANCZOS)
     arr = np.asarray(img).astype(np.float32) * np.array(GRADE[i], dtype=np.float32)
+    raw = arr  # przed maską światła i migotaniem — z tego szukamy oczu, żeby żadne nie gasło przypadkiem
     if i == 1 and t >= SWITCH_T:
         arr = light_mask(arr, 930, 235, 420, 0.32) * np.array((0.8, 0.9, 1.05), dtype=np.float32)
     if i in (2, 4):
@@ -317,9 +359,8 @@ def frame(t):
         arr = light_mask(arr, 640, 420, 520, 0.4)
     if i == 4:
         dark = ease((lt - DARK) / 0.3)
-        lum = arr.mean(axis=2, keepdims=True)
-        eyes = (lum > 200).astype(np.float32)
-        arr = arr * (1 - dark) + arr * eyes * dark
+        eyes = (raw.mean(axis=2, keepdims=True) > 200).astype(np.float32)
+        arr = arr * (1 - dark) + raw * 0.85 * eyes * dark
     yy, xx = np.ogrid[:H, :W]
     vig = 1 - 0.45 * (((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2) ** 1.2
     arr *= np.clip(vig, 0.35, 1)[..., None]
@@ -365,6 +406,8 @@ def audio(path):
     hit(S[1] + 0.85, 0.08, 0.01, 0.25)
     hit(S[1] + 1.55, 0.1, 0.01, 0.35)
     hit(S[1] + 1.8, 0.1, 0.01, 0.35)
+    for k in (0.42, 0.77):  # klamka w dół dwa razy, drzwi drgają w zamku
+        hit(S[1] + HANDLE[0] + k, 0.12, 0.02, 0.3, 140)
     hit(SWITCH_T, 0.05, 0.004, 0.5)
     for k in np.arange(S[1] + 0.2, S[2] - 0.2, 0.62):  # dyszenie, po zgaszeniu cichnie
         quiet = 1.0 if k < SWITCH_T + 0.8 else 0.5
@@ -382,13 +425,15 @@ def audio(path):
     ring = (np.sin(2 * np.pi * 1180 * ts) + np.sin(2 * np.pi * 1420 * ts)) * (np.sin(2 * np.pi * 20 * ts) > 0)
     gate = (ts > RING_T) & (ts < RING_END) & ((((ts - RING_T) * 3).astype(int) % 2) == 0)
     out += 0.07 * ring * gate
+    hit(S[3] + DROP + 0.32, 0.35, 0.05, 0.6, 160)  # słuchawka uderza o stół
+    hit(S[3] + DROP + 0.48, 0.2, 0.03, 0.3, 190)
     d = S[4] + DARK
     out[int(RING_END * sr):int(d * sr)] *= 0.3
     hit(d, 1.0, 0.25, 0.6, 38)
     hit(d + 0.9, 0.4, 0.15, 0.8, 36)
     out[int((DUR - 0.2) * sr):] *= 0.0
     for _, _, fn, vs, _ in SCENES:
-        with wave.open(str(HERE / "voice" / fn)) as w:
+        with wave.open(str(VOICE_DIR / fn)) as w:
             v = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float64) / 32768
         i0 = int(vs * sr)
         v = v[: n - i0]
@@ -404,11 +449,11 @@ def audio(path):
 def main(stills=None):
     if stills:
         for t in stills:
-            frame(t).save(HERE / f"cz2-klatka-{t:05.2f}s.png")
+            frame(t).save(HERE / f"cz2-klatka{SUFFIX}-{t:05.2f}s.png")
         return
-    wav = HERE / "audio2.wav"
+    wav = HERE / f"audio2{SUFFIX}.wav"
     audio(wav)
-    out = HERE / "zombie-psychiatryk-2.mp4"
+    out = HERE / f"zombie-psychiatryk-2{SUFFIX}.mp4"
     proc = subprocess.Popen(
         ["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS),
          "-i", "-", "-i", str(wav), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-c:a", "aac", "-b:a", "192k",

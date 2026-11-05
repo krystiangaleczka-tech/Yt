@@ -7,7 +7,12 @@ from __future__ import annotations
 
 import json
 
+import copy
+import datetime
+import uuid
+
 from studio_core.assistant import complete
+from studio_core import continuity, handbook
 
 
 def _chosen(node):
@@ -178,3 +183,78 @@ def register_flow(app, store, connectors):
             return {"response": complete(connectors, prompt, store=store, project=project),
                     "base_revision": project.revision}
         raise ValueError("Nieznana operacja AI")
+
+
+    def _flow(project):
+        flow = project.legacy.get("production_flow", {})
+        return copy.deepcopy(flow) if isinstance(flow, dict) else {}
+
+    def _now():
+        return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+
+    def _save(pid, revision, change):
+        project = store.get(pid)
+        flow = _flow(project)
+        change(flow)
+        return store.save_flow(pid, int(revision if revision is not None else project.revision), flow)
+
+    @app.post("/api/projects/{pid}/continuity/check")
+    def continuity_check(pid: str):
+        """Deterministyczna kontrola ciągłości (księga świata × plan filmu). Niczego nie zmienia."""
+        project = store.get(pid)
+        report = continuity.check(_flow(project))
+        extra = continuity.timeline_issues(project)
+        report["issues"] += extra
+        report["totals"]["2"] = report["totals"].get("2", 0) + len(extra)
+        return report
+
+    @app.put("/api/projects/{pid}/flow/world")
+    def save_world(pid: str, body: dict):
+        if not isinstance(body.get("world"), dict):
+            raise ValueError("Wymagane pole: world")
+        return _save(pid, body.get("expected_revision"), lambda f: f.__setitem__("world", body["world"]))
+
+    @app.put("/api/projects/{pid}/flow/book")
+    def save_book(pid: str, body: dict):
+        if not isinstance(body.get("book"), dict):
+            raise ValueError("Wymagane pole: book")
+        return _save(pid, body.get("expected_revision"), lambda f: f.__setitem__("book", body["book"]))
+
+    @app.post("/api/projects/{pid}/flow/review/{act_id}")
+    def save_review(pid: str, act_id: str, body: dict):
+        """Recenzja jednostki: podpis treści liczy serwer, więc każda późniejsza zmiana ją unieważnia."""
+        def change(flow):
+            signature = continuity.unit_signature(flow, act_id)
+            checks = {k: str(v) for k, v in (body.get("checks") or {}).items() if k in continuity.CHECK_KEYS}
+            flow.setdefault("unitReviews", {})[act_id] = {
+                "status": body.get("status") or "robocza", "signature": signature, "checks": checks,
+                "notes": str(body.get("notes") or ""), "reviewer": str(body.get("reviewer") or ""), "at": _now()}
+            unit = next((u["unit"] for u in continuity.units(flow) if u["actId"] == act_id), None)
+            flow.setdefault("log", []).append({
+                "id": uuid.uuid4().hex[:12], "at": _now(), "who": str(body.get("reviewer") or "reżyser"), "unit": unit,
+                "kind": "recenzja", "summary": f"Recenzja: {body.get('status') or 'robocza'}",
+                "details": str(body.get("notes") or ""), "files": []})
+        return _save(pid, body.get("expected_revision"), change)
+
+    @app.post("/api/projects/{pid}/flow/log")
+    def add_log(pid: str, body: dict):
+        """Dopisuje wpis do dziennika pracy (bez nadpisywania reszty planu)."""
+        entry = body.get("entry")
+        if not isinstance(entry, dict) or not str(entry.get("summary") or "").strip():
+            raise ValueError("Wpis dziennika wymaga pola summary")
+        def change(flow):
+            log = flow.setdefault("log", [])
+            log.append({"id": uuid.uuid4().hex[:12], "at": _now(), "who": str(entry.get("who") or "")[:200],
+                        "unit": entry.get("unit"), "kind": str(entry.get("kind") or "praca")[:40],
+                        "summary": str(entry["summary"])[:2000], "details": str(entry.get("details") or "")[:20000],
+                        "files": [str(x)[:300] for x in (entry.get("files") or [])][:100]})
+            del log[:-5000]
+        return _save(pid, None, change)
+
+    @app.get("/api/handbook")
+    def read_handbook():
+        return {"chapters": handbook.chapters()}
+
+    @app.put("/api/handbook/{key}")
+    def write_handbook(key: str, body: dict):
+        return handbook.save(key, body.get("text"))

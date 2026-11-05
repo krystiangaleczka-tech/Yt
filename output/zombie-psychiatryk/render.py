@@ -3,6 +3,7 @@
 Uruchom: python3 render.py   (wynik: zombie-psychiatryk.mp4 obok skryptu)
 """
 import math
+import os
 import random
 import subprocess
 import wave
@@ -12,23 +13,46 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 HERE = Path(__file__).parent
-W, H, SS, FPS, DUR = 1280, 720, 2, 24, 25.5
+W, H, SS, FPS, DUR = 1280, 720, 2, 24, 27.5
 INK = (22, 20, 20)
 _FONTS = [("/System/Library/Fonts/Supplemental/Arial.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
           ("C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf"),
           ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")]
 FONT, FONT_B = next((f for f in _FONTS if Path(f[0]).exists()), _FONTS[0])
+# FILM_LANG=en → lektor z voice/en/, angielskie napisy i tabliczki, pliki z sufiksem -en
+LANG = os.environ.get("FILM_LANG", "pl")
+VOICE_DIR = HERE / "voice" if LANG == "pl" else HERE / "voice" / LANG
+SUFFIX = "" if LANG == "pl" else f"-{LANG}"
+EN = {
+    "l1.wav": "At the asylum on Forest Road,\nsomeone was always screaming.",
+    "l2.wav": "But that night,\nall of Ward C went silent.",
+    "l3.wav": "Mr. Henry stood at the isolation window.\nHe didn't blink.",
+    "l4.wav": "That's when I realized\nthe doors behind me were open.",
+    "l5.wav": "All of them.",
+    "p2_l1.wav": "I ran for the nurses' station\nat the end of the hall.",
+    "p2_l2.wav": "I locked the door\nand turned off the light.",
+    "p2_l3.wav": "Through the glass,\nI watched them shuffle past.",
+    "p2_l4.wav": "Then the phone rang.",
+    "p2_l5.wav": "And every head\nturned at once.",
+}
+
+
+def localize(scenes):
+    return scenes if LANG == "pl" else [(a, b, fn, vs, EN[fn]) for a, b, fn, vs, _ in scenes]
 
 # (start, koniec, plik lektora, start lektora, napis) — ujęcia mają oddech: pauzę przed i po kwestii
 SCENES = [
-    (0.0, 5.0, "l1.wav", 1.00, "W szpitalu przy Leśnej\nzawsze ktoś krzyczał."),
-    (5.0, 10.0, "l2.wav", 5.90, "Ale tej nocy\ncały oddział C ucichł."),
-    (10.0, 15.6, "l3.wav", 11.20, "W okienku izolatki stał pan Henryk.\nNie mrugał."),
-    (15.6, 21.4, "l4.wav", 17.50, "Wtedy zrozumiałem,\nże drzwi za mną są otwarte."),
-    (21.4, 25.5, "l5.wav", 23.40, "Wszystkie."),
+    (0.0, 7.0, "l1.wav", 1.00, "W szpitalu przy Leśnej\nzawsze ktoś krzyczał."),
+    (7.0, 12.0, "l2.wav", 7.90, "Ale tej nocy\ncały oddział C ucichł."),
+    (12.0, 17.6, "l3.wav", 13.20, "W okienku izolatki stał pan Henryk.\nNie mrugał."),
+    (17.6, 23.4, "l4.wav", 19.50, "Wtedy zrozumiałem,\nże drzwi za mną są otwarte."),
+    (23.4, 27.5, "l5.wav", 25.40, "Wszystkie."),
 ]
-SLAM_T = 10.0 + 2.9  # twarz uderza w szybę izolatki
+SCENES = localize(SCENES)
+SLAM_T = SCENES[2][0] + 2.9  # twarz uderza w szybę izolatki
 WALK_STOP = (1.8, 3.4)  # pielęgniarz staje w korytarzu i się rozgląda
+FACE_PUSH = 2.9 + 1.5  # w scenie 3: szybki najazd +25% na twarz pana Henryka
+WINDOW = (285 + 8 * 72, 320 + 72)  # okno, w którym ktoś stoi (kolumna 8, rząd 1)
 
 
 def ease(x):
@@ -58,7 +82,7 @@ def blink(t, seed, every=3.0):
 
 def voice_len(fn):
     try:
-        with wave.open(str(HERE / "voice" / fn)) as w:
+        with wave.open(str(VOICE_DIR / fn)) as w:
             return w.getnframes() / w.getframerate()
     except FileNotFoundError:
         return 2.0
@@ -125,8 +149,9 @@ class Pen:
 
 # ---------- postacie ----------
 
-def zombie(p, x, y, s, t, seed, gown=(168, 178, 172), tilt=0.0):
-    """Pacjent-zombie w koszuli szpitalnej, ręce do przodu, kołysze się. tilt — głowa przekrzywiona na stałe."""
+def zombie(p, x, y, s, t, seed, gown=(168, 178, 172), tilt=0.0, arms=0.0):
+    """Pacjent-zombie w koszuli szpitalnej, ręce do przodu, kołysze się. tilt — głowa przekrzywiona na stałe;
+    arms 0..1 — ręce unoszą się nad głowę."""
     sway = math.sin(t * 3.1 + seed) * 6 * s
     lean = math.sin(t * 3.1 + seed) * 0.08 + tilt
     skin = (139, 156, 128)
@@ -138,12 +163,13 @@ def zombie(p, x, y, s, t, seed, gown=(168, 178, 172), tilt=0.0):
     hx = x + sway
     p.poly([(hx - 42 * s, y - 190 * s), (hx + 42 * s, y - 190 * s), (x + 50 * s, y - 62 * s), (x - 50 * s, y - 62 * s)], gown)
     p.line([(x - 10 * s, y - 120 * s), (x - 18 * s, y - 70 * s)], w=2.5)
-    # ręce wyciągnięte w stronę kamery (skrót perspektywy)
+    # ręce wyciągnięte w stronę kamery (skrót perspektywy); arms → uniesione nad głowę
     for side in (-1, 1):
         ax = hx + side * 40 * s
-        p.poly([(ax - 10 * s, y - 182 * s), (ax + 10 * s, y - 182 * s),
-                (ax + side * 18 * s + 12 * s, y - 128 * s), (ax + side * 18 * s - 12 * s, y - 128 * s)], gown)
-        p.ell(ax + side * 18 * s, y - 120 * s, 15 * s, 13 * s, skin)
+        ex, ey = ax + side * (18 + 20 * arms) * s, y - (128 + 182 * arms) * s
+        p.poly([(ax - 10 * s, y - 182 * s), (ax + 10 * s, y - 182 * s), (ex + 12 * s, ey + 8 * s * (1 - arms)),
+                (ex - 12 * s, ey + 8 * s * (1 - arms))], gown)
+        p.ell(ex, ey + 8 * s * (1 - arms), 15 * s, 13 * s, skin)
     # głowa
     gx, gy = hx + lean * 60 * s, y - 228 * s
     p.ell(gx, gy, 36 * s, 42 * s, skin)
@@ -164,7 +190,7 @@ def nurse_back(p, x, y, s, t, head=0.0, breath=0.0):
     p.ell(x - 16 * s, y - 6 * s + step, 14 * s, 8 * s, (240, 240, 236), w=3)
     p.ell(x + 16 * s, y - 6 * s - step, 14 * s, 8 * s, (240, 240, 236), w=3)
     uni = (150, 180, 190)
-    p.poly([(x - 52 * s, y - 232 * s), (x + 52 * s, y - 232 * s), (x + 54 * s, y - 100 * s), (x - 54 * s, y - 100 * s)], uni)
+    p.poly([(x - 52 * s, y - 232 * s), (x + 52 * s, y - 232 * s), (x + 54 * s, y - 74 * s), (x - 54 * s, y - 74 * s)], uni)
     p.poly([(x - 52 * s, y - 228 * s), (x - 68 * s, y - 150 * s), (x - 52 * s, y - 145 * s), (x - 40 * s, y - 200 * s)], uni)
     p.poly([(x + 52 * s, y - 228 * s), (x + 76 * s, y - 175 * s), (x + 64 * s, y - 165 * s), (x + 40 * s, y - 200 * s)], uni)
     p.poly([(x - 14 * s, y - 236 * s), (x + 14 * s, y - 236 * s), (x + 12 * s, y - 252 * s), (x - 12 * s, y - 252 * s)], (226, 192, 166), w=3)
@@ -233,6 +259,7 @@ def nurse_face(p, x, y, s, fear, t, gaze=(0.0, 0.0), blink_k=0.0, swallow=0.0, b
 # ---------- tła ----------
 
 def corridor(p, t, flicker, vp=(640, 330), doors_open=0.0):
+    """doors_open — jedna wartość dla wszystkich drzwi albo {(k, strona): wartość}; pozostałe zamknięte."""
     vx, vy = vp
     bx0, by0, bx1, by1 = vx - 120, vy - 80, vx + 120, vy + 80
     p.rect(0, 0, W, H, (110, 122, 104), w=0)
@@ -270,7 +297,7 @@ def corridor(p, t, flicker, vp=(640, 330), doors_open=0.0):
             xa, ta, ba = at(f, 0.30, 0.88)
             xb, tb, bb = at(f + 0.12, 0.30, 0.88)
             p.poly([(xa, ta), (xb, tb), (xb, bb), (xa, ba)], (60, 66, 60))
-            op = doors_open
+            op = doors_open.get((k, side), 0.0) if isinstance(doors_open, dict) else doors_open
             xo = xa + (xb - xa) * (1 - op)
             p.poly([(xa, ta), (xo, tb + (ta - tb) * op * 0.6), (xo, bb + (ba - bb) * op * 0.6), (xa, ba)], (124, 138, 122))
             xm, tm, _ = at(f + 0.04, 0.38, 0)
@@ -323,14 +350,19 @@ def scene1(p, t, T):
                 fl = 0.5 + 0.5 * math.sin(t * 23) * math.sin(t * 7.3)
                 fill = (int(150 + 90 * fl), int(40 + 30 * fl), 30)
             p.rect(x0, y0, x0 + 40, y0 + 46, fill, w=3)
-            for k in range(1, 4):
-                p.line([(x0 + k * 10, y0), (x0 + k * 10, y0 + 46)], w=2)
-            if (col, row) == red_window and 1.3 < t < 3.85:
-                # ktoś podchodzi do okna, staje, przekrzywia głowę — i nagle odskakuje
-                sx = x0 + 4 + 16 * ease((t - 1.3) / 0.9) + 22 * ease((t - 3.7) / 0.15)
-                tilt = 3 * ease((t - 2.4) / 0.6)
+            if (col, row) == red_window and 3.0 < t < 6.1:
+                # gdy kamera jest już blisko: ktoś podchodzi do okna, staje, przekrzywia głowę — i nagle odskakuje
+                sx = x0 - 10 + 30 * ease((t - 3.0) / 0.9) + 34 * ease((t - 5.9) / 0.15)
+                tilt = 3 * ease((t - 4.2) / 0.6)
                 p.ell(sx + tilt, y0 + 18, 8, 9, INK, w=0)
                 p.rect(sx - 9, y0 + 26, sx + 9, y0 + 46, INK, w=0)
+                # sylwetka tylko w szybie: ściana wokół okna zasłania resztę
+                for mx0, my0, mx1, my1 in ((x0 - 24, y0 - 4, x0, y0 + 54), (x0 + 40, y0 - 4, x0 + 66, y0 + 54),
+                                           (x0, y0 + 46, x0 + 40, y0 + 54)):
+                    p.rect(mx0, my0, mx1, my1, (132, 128, 112), w=0, amp=0)
+                p.rect(x0, y0, x0 + 40, y0 + 46, None, w=3)
+            for k in range(1, 4):
+                p.line([(x0 + k * 10, y0), (x0 + k * 10, y0 + 46)], w=2)
     p.rect(600, 470, 680, 560, (64, 52, 44))
     p.line([(640, 470), (640, 560)], w=3)
     p.poly([(580, 560), (700, 560), (720, 590), (560, 590)], (110, 108, 98))
@@ -357,7 +389,7 @@ def scene1(p, t, T):
             x = 640 + side * (14 + k * 20 + gate * (k + 1) / 4)
             p.line([(x, 720), (x, 520)], w=6)
     p.rect(588, 505, 692, 535, (150, 150, 138), w=3)
-    p.text(640, 520, "OD. C", 18)
+    p.text(640, 520, "OD. C" if LANG == "pl" else "WARD C", 18)
 
 
 def walk_clock(t):
@@ -432,6 +464,7 @@ def scene3(p, t, T):
     for i in range(-6, 12):
         p.line([(500 + i * 40, 140), (500 + i * 40 + 200, 340)], w=1.5, color=(80, 90, 84), amp=0.6)
         p.line([(500 + i * 40 + 200, 140), (500 + i * 40, 340)], w=1.5, color=(80, 90, 84), amp=0.6)
+    p.rect(470, 341, 810, 520, (112, 126, 112), w=0, amp=0)  # żuchwa nie wychodzi pod okienko
     p.rect(470, 120, 810, 360, None, w=8)
     p.rect(470, 120, 500, 360, (112, 126, 112), w=0)
     p.rect(780, 120, 810, 360, (112, 126, 112), w=0)
@@ -439,7 +472,7 @@ def scene3(p, t, T):
     p.rect(950, 120, W, 360, (88, 96, 86), w=0)
     p.rect(498, 138, 782, 342, None, w=6)
     p.rect(560, 400, 720, 450, (196, 196, 180), w=3)
-    p.text(640, 425, "IZOLATKA 3", 22)
+    p.text(640, 425, "IZOLATKA 3" if LANG == "pl" else "ISOLATION 3", 22)
     p.rect(860, 440, 900, 560, (60, 62, 58))
     p.rect(820, 480, 900, 500, (60, 62, 58))
 
@@ -449,12 +482,12 @@ CREAK = 1.2  # w scenie 4: skrzypnięcie drzwi za plecami
 
 def scene4(p, t, T):
     fear = ease((t - 2.7) / 1.0)
-    corridor(p, t, [1, 0, 1, 0], vp=(250, 300), doors_open=ease((t - CREAK) / 2.6) * 0.8)
-    if t > 3.3:
-        # wychodzą z sal, nie pojawiają się znikąd
-        out = ease((t - 3.3) / 1.4)
-        for i, (xx, yy) in enumerate(((110, 600), (330, 520))):
-            zombie(p, xx - 70 * (1 - out) * (1 + i), yy, 1.0 - 0.25 * i, t, i * 2.1, gown=(150, 160, 152), tilt=0.15 - 0.3 * i)
+    # otwierają się tylko najdalsze drzwi po prawej; bliższe zostają zamknięte
+    corridor(p, t, [1, 0, 1, 0], vp=(250, 300), doors_open={(2, 1): ease((t - CREAK) / 2.6) * 0.8})
+    if t > 2.9:
+        # z otwartych drzwi wychodzi jeden pacjent — z progu w głąb korytarza, w stronę kamery
+        out = ease((t - 2.9) / 2.6)
+        zombie(p, 505 - 80 * out, 404 + 70 * out, 0.5 + 0.18 * out, t, 2.1, gown=(150, 160, 152), tilt=0.15)
     # wzrok: znudzony błądzi w dół → skrzypnięcie, oczy w lewo → zastyga, myśli → znów w lewo, już w panice
     lazy = (0.3 * noise(t, 11, 0.8), 0.35 + 0.25 * noise(t, 12, 0.6))
     k1, k2, k3 = ease((t - CREAK - 0.25) / 0.18), ease((t - 2.5) / 0.6), ease((t - 3.45) / 0.15)
@@ -496,10 +529,12 @@ def scene5(p, t, T):
 SCENE_FN = [scene1, scene2, scene3, scene4, scene5]
 
 CAMERAS = [
-    lambda t, T: dict(zoom=1.0 + 0.16 * ease(t / T), cx=640 + 140 * ease(t / T), cy=360 - 10 * ease(t / T)),
+    # powolny najazd przez cały plan aż do okna, w którym ktoś stoi
+    lambda t, T: dict(zoom=1.0 + 2.4 * ease(t / T) ** 1.3, cx=640 + (WINDOW[0] + 20 - 640) * ease(t / T),
+                      cy=360 + (WINDOW[1] + 23 - 360) * ease(t / T)),
     lambda t, T: dict(zoom=1.0 + 0.06 * t / T),
-    lambda t, T: dict(zoom=1.05 + 0.1 * ease(t / 2.8) + 0.08 * ease((t - 2.95) / 0.25) + 0.04 * ease((t - 3.5) / 2.0),
-                      cy=300),
+    lambda t, T: dict(zoom=(1.05 + 0.1 * ease(t / 2.8) + 0.08 * ease((t - 2.95) / 0.25) + 0.04 * ease((t - 3.5) / 2.0))
+                      * (1 + 0.25 * ease((t - FACE_PUSH) / 0.2)), cy=300),
     lambda t, T: dict(zoom=1.0 + 0.18 * ease(t / T), cx=700, cy=360),
     lambda t, T: dict(zoom=1.0 + 0.05 * t / T),
 ]
@@ -518,6 +553,15 @@ def shake_at(t):
     if s5 + 2.0 <= t < s5 + 2.8:
         amp = 5
     return handheld(t, amp)
+
+
+def framed(cam, shake):
+    """Kamera nigdy nie pokazuje pustki poza narysowanym światem (0..W × 0..H), także w chwili wstrząsu:
+    przesuwa środek kadru do środka, a jeśli to nie wystarcza — minimalnie dobliża."""
+    z, cx, cy = cam.get("zoom", 1.0), cam.get("cx", W / 2), cam.get("cy", H / 2)
+    mx, my = W / 2 + abs(shake[0]) + 1, H / 2 + abs(shake[1]) + 1
+    z = max(z, mx / (W / 2), my / (H / 2))
+    return dict(zoom=z, cx=min(max(cx, mx / z), W - mx / z), cy=min(max(cy, my / z), H - my / z), shake=shake)
 
 
 def handheld(t, amp, seed=0):
@@ -544,7 +588,7 @@ def frame(t):
             break
     lt, T = t - a, b - a
     img = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 255))
-    p = Pen(img, t, shake=shake_at(t), **CAMERAS[i](lt, T))
+    p = Pen(img, t, **framed(CAMERAS[i](lt, T), shake_at(t)))
     SCENE_FN[i](p, lt, T)
     img = img.convert("RGB").resize((W, H), Image.LANCZOS)
     arr = np.asarray(img).astype(np.float32)
@@ -647,7 +691,7 @@ def audio(path):
     out[int((DUR - 0.25) * sr):] *= 0.0
     # lektor
     for _, _, fn, vs, _ in SCENES:
-        with wave.open(str(HERE / "voice" / fn)) as w:
+        with wave.open(str(VOICE_DIR / fn)) as w:
             v = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float64) / 32768
         i0 = int(vs * sr)
         v = v[: n - i0]
@@ -663,11 +707,11 @@ def audio(path):
 def main(stills=None):
     if stills:
         for t in stills:
-            frame(t).save(HERE / f"klatka-{t:05.2f}s.png")
+            frame(t).save(HERE / f"klatka{SUFFIX}-{t:05.2f}s.png")
         return
-    wav = HERE / "audio.wav"
+    wav = HERE / f"audio{SUFFIX}.wav"
     audio(wav)
-    out = HERE / "zombie-psychiatryk.mp4"
+    out = HERE / f"zombie-psychiatryk{SUFFIX}.mp4"
     proc = subprocess.Popen(
         ["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS),
          "-i", "-", "-i", str(wav), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-c:a", "aac", "-b:a", "192k",

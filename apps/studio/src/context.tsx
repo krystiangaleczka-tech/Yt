@@ -40,7 +40,8 @@ export type Page =
   | "shot-editor"
   | "storyboard"
   | "props"
-  | "sounds";
+  | "sounds"
+  | "handbook";
 type Context = {
   project: Project | null;
   projects: ProjectSummary[];

@@ -32,6 +32,8 @@ export default function Preview({
     images = useRef(new Map<string, HTMLImageElement>()),
     videos = useRef(new Map<string, HTMLVideoElement>()),
     audios = useRef(new Map<string, HTMLAudioElement>()),
+    held = useRef<HTMLCanvasElement | null>(null),
+    probe = useRef<CanvasRenderingContext2D | null>(null),
     current = useRef({ project, frame, playing, onFrame, onEnded, transparent });
   current.current = { project, frame, playing, onFrame, onEnded, transparent };
   function playbackError(error: unknown) {
@@ -44,6 +46,24 @@ export default function Preview({
         : "Nie udało się odtworzyć medium. Sprawdź nagranie w bibliotece i ponów Play.",
       true,
     );
+  }
+  // Chrome potrafi zgłosić gotowe wideo (readyState ≥ 2), a mimo to narysować pustą klatkę — zwłaszcza tuż po cięciu.
+  // Sprawdzamy jeden piksel na płótnie 4×4: przezroczysty znaczy, że klatki jeszcze nie ma.
+  function blank(v: HTMLVideoElement) {
+    if (!probe.current) {
+      const c = document.createElement("canvas");
+      c.width = c.height = 4;
+      probe.current = c.getContext("2d", { willReadFrequently: true });
+    }
+    const q = probe.current;
+    if (!q) return false;
+    q.clearRect(0, 0, 4, 4);
+    try {
+      q.drawImage(v, 0, 0, 4, 4);
+      return q.getImageData(2, 2, 1, 1).data[3] === 0;
+    } catch {
+      return false;
+    }
   }
   function draw(at = current.current.frame) {
     const { project: p, playing: play } = current.current;
@@ -67,6 +87,9 @@ export default function Preview({
         (!clock || clock.paused || clock.seeking || clock.readyState < 2);
     const activeAudio = new Set<string>(),
       activeVideos = new Set<string>();
+    // Klip wideo, którego klatka jeszcze się nie wczytała (np. tuż po cięciu): zamiast tła pokazujemy ostatnią pełną
+    // klatkę podglądu, żeby każde cięcie nie migało ciemnym tłem.
+    let stalled = false;
     const transitions = new Map(
       p.sequence.clips
         .filter(
@@ -158,6 +181,7 @@ export default function Preview({
           asset?.kind === "video"
         ) {
           const v = videos.current.get(c.id);
+          if (!v) stalled = true;
           if (v) {
             activeVideos.add(c.id);
             syncMedia(
@@ -168,7 +192,9 @@ export default function Preview({
               `${p.id}:${v.src}:${c.start}:${c.source_in}:${c.speed}`,
               playbackError,
             );
-            if (v.readyState >= 2) {
+            // sprawdzane po syncMedia: przewinięcie w syncMedia potrafi zgubić klatkę
+            if (v.readyState < 2 || v.seeking || !v.dataset.shown || blank(v)) stalled = true;
+            else {
               image = v;
               iw = v.videoWidth;
               ih = v.videoHeight;
@@ -272,6 +298,14 @@ export default function Preview({
         ctx.restore();
       }
     }
+    if (stalled && held.current && held.current.width === W && held.current.height === H) {
+      ctx.drawImage(held.current, 0, 0);
+    } else if (!stalled) {
+      if (!held.current) held.current = document.createElement("canvas");
+      if (held.current.width !== W) held.current.width = W;
+      if (held.current.height !== H) held.current.height = H;
+      held.current.getContext("2d")?.drawImage(node, 0, 0);
+    }
     for (const [cid, a] of audios.current)
       if (!activeAudio.has(cid)) pauseMedia(a);
     for (const [cid, v] of videos.current)
@@ -354,11 +388,19 @@ export default function Preview({
             if (!current.current.playing) redraw.current();
           });
           v.addEventListener("loadeddata", () => redraw.current());
+          // Klatka jest pokazana dopiero po pierwszym przewinięciu albo starcie odtwarzania (wcześniej bywa pusta).
+          v.addEventListener("seeked", () => (v!.dataset.shown = "1"));
+          v.addEventListener("playing", () => (v!.dataset.shown = "1"));
+          const cue = (c.source_in || 0) / fps(p);
+          v.addEventListener("loadedmetadata", () => {
+            if (v!.paused && v!.currentTime === 0) v!.currentTime = cue + 0.001;  // dekoduje pierwszą klatkę przed cięciem
+          });
           videos.current.set(c.id, v);
         }
         if (v.dataset.asset !== asset.id) {
           v.src = mediaUrl(p.id, asset.id);
           v.dataset.asset = asset.id;
+          delete v.dataset.shown;
         }
         const completed = studio.jobs.some(
             (j) =>
@@ -384,6 +426,7 @@ export default function Preview({
                 ) {
                   video.src = result.url;
                   video.dataset.proxy = result.url;
+                  delete video.dataset.shown;
                 }
               }
             })

@@ -1,0 +1,1378 @@
+{
+  "version": 1,
+  "unitLabel": "Dzień",
+  "prologue": {
+    "1": 14
+  },
+  "tempo": {
+    "minSeconds": 55,
+    "maxSeconds": 80,
+    "maxVoiceShare": 0.8
+  },
+  "places": [
+    {
+      "id": "brama",
+      "name": "Brama i płot z siatki",
+      "floor": "teren",
+      "wing": "front",
+      "connects": [
+        "podworze"
+      ],
+      "note": "Skrzypi w pierwszym ujęciu; za nią wojsko od dnia 2."
+    },
+    {
+      "id": "podworze",
+      "name": "Podwórze i trawnik",
+      "floor": "teren",
+      "wing": "front",
+      "connects": [
+        "brama",
+        "boczne_drzwi",
+        "portiernia"
+      ],
+      "note": "Zaparkowana karetka (widoczna od dnia 2)."
+    },
+    {
+      "id": "portiernia",
+      "name": "Portiernia i centrala alarmu",
+      "floor": "parter",
+      "wing": "główne",
+      "connects": [
+        "podworze",
+        "klatka_glowna"
+      ],
+      "note": "Linia miejska; centrala alarmu (dzień 14)."
+    },
+    {
+      "id": "swietlica_parter",
+      "name": "Świetlica parteru z pianinem",
+      "floor": "parter",
+      "wing": "główne",
+      "connects": [
+        "klatka_glowna"
+      ],
+      "note": "Pianino (Henryk był nauczycielem muzyki)."
+    },
+    {
+      "id": "gabinet",
+      "name": "Gabinet zabiegowy",
+      "floor": "parter",
+      "wing": "główne",
+      "connects": [
+        "klatka_glowna"
+      ],
+      "note": "Nad apteką; tu ukrywał się Nowak."
+    },
+    {
+      "id": "boczne_drzwi",
+      "name": "Boczne drzwi",
+      "floor": "parter",
+      "wing": "główne",
+      "connects": [
+        "podworze",
+        "klatka_glowna"
+      ],
+      "note": "Otwiera klucz z pęku dyżurnego."
+    },
+    {
+      "id": "kuchnia",
+      "name": "Kuchnia i chłodnia",
+      "floor": "parter",
+      "wing": "zachodnie",
+      "connects": [
+        "klatka_zach"
+      ],
+      "note": "Chłodnia z zarażoną kucharką Basią."
+    },
+    {
+      "id": "oddzial_c",
+      "name": "Oddział C (dyżurka, pokój lekarski, sale 1–8, izolatka 3)",
+      "floor": "1. piętro",
+      "wing": "główne",
+      "connects": [
+        "klatka_glowna",
+        "lacznik"
+      ],
+      "note": "Okno sali 8 = okno z pierwszego ujęcia (środkowy rząd), widok na bramę."
+    },
+    {
+      "id": "lacznik",
+      "name": "Łącznik z oknami na podwórze",
+      "floor": "1. piętro",
+      "wing": "główne→zachodnie",
+      "connects": [
+        "oddzial_c",
+        "oddzial_a",
+        "klatka_zach"
+      ]
+    },
+    {
+      "id": "oddzial_a",
+      "name": "Oddział A (świetlica A, łazienka)",
+      "floor": "1. piętro",
+      "wing": "zachodnie",
+      "connects": [
+        "lacznik"
+      ],
+      "note": "Nad kuchnią."
+    },
+    {
+      "id": "chirurgia",
+      "name": "Chirurgia",
+      "floor": "wieża",
+      "wing": "główne",
+      "connects": [
+        "klatka_glowna"
+      ],
+      "note": "Najwyższa kondygnacja wieży (dzień 23)."
+    },
+    {
+      "id": "klatka_glowna",
+      "name": "Klatka schodowa główna",
+      "floor": "wszystkie",
+      "wing": "główne",
+      "connects": [
+        "piwnica_korytarz",
+        "oddzial_c",
+        "portiernia",
+        "gabinet"
+      ]
+    },
+    {
+      "id": "klatka_zach",
+      "name": "Schody zachodnie",
+      "floor": "parter–1. piętro",
+      "wing": "zachodnie",
+      "connects": [
+        "kuchnia",
+        "lacznik"
+      ]
+    },
+    {
+      "id": "piwnica_korytarz",
+      "name": "Korytarz piwnicy",
+      "floor": "piwnica",
+      "wing": "główne",
+      "connects": [
+        "klatka_glowna",
+        "apteka",
+        "pralnia",
+        "rozdzielnia"
+      ],
+      "note": "Kolejność: schody → apteka (z boku) → pralnia → rozdzielnia na końcu."
+    },
+    {
+      "id": "apteka",
+      "name": "Apteka za kratą",
+      "floor": "piwnica",
+      "wing": "główne",
+      "connects": [
+        "piwnica_korytarz"
+      ],
+      "note": "Z boku korytarza, okienko pod sufitem na podwórze."
+    },
+    {
+      "id": "pralnia",
+      "name": "Pralnia (wylot zsypu z oddziału C)",
+      "floor": "piwnica",
+      "wing": "główne",
+      "connects": [
+        "piwnica_korytarz"
+      ]
+    },
+    {
+      "id": "rozdzielnia",
+      "name": "Rozdzielnia",
+      "floor": "piwnica",
+      "wing": "główne",
+      "connects": [
+        "piwnica_korytarz"
+      ],
+      "note": "Na samym końcu korytarza; żółty znak napięcia."
+    },
+    {
+      "id": "skrzydlo_tech",
+      "name": "Skrzydło techniczne z agregatem",
+      "floor": "parter",
+      "wing": "techniczne",
+      "connects": [
+        "piwnica_korytarz"
+      ]
+    },
+    {
+      "id": "pokoj_socjalny",
+      "name": "Pokój socjalny (kuchenka, kanapy, telefon na ścianie)",
+      "floor": "parter",
+      "wing": "główne",
+      "connects": [
+        "klatka_glowna",
+        "portiernia"
+      ],
+      "note": "Grupa mieszka tu od dnia 15 (prąd z agregatu, ciepła woda)."
+    },
+    {
+      "id": "magazyn",
+      "name": "Magazyn przy kuchni",
+      "floor": "parter",
+      "wing": "zachodnie",
+      "connects": [
+        "kuchnia"
+      ],
+      "note": "Tu Henryk zamyka Basię (dzień 19)."
+    },
+    {
+      "id": "dach",
+      "name": "Dach oddziału C ze zbiornikiem na deszczówkę",
+      "floor": "dach",
+      "wing": "C",
+      "connects": [
+        "oddzial_c"
+      ],
+      "note": "Klapa z drabiny na ostatnim piętrze C; widok na miasto i podwórze (dni 22, 26)."
+    }
+  ],
+  "characters": [
+    {
+      "id": "narrator",
+      "name": "narrator",
+      "role": "sanitariusz nocnej zmiany, mówi w 1. osobie",
+      "party": true,
+      "costume": "mundurek sanitariusza; kurtka od d02_18 do d10_16 (rzucona na karetkę); notes w kieszeni",
+      "traits": "mruga normalnie",
+      "states": [
+        {
+          "from": "d23_19~kolano",
+          "state": "rozcięte kolano"
+        }
+      ]
+    },
+    {
+      "id": "henryk",
+      "name": "Henryk",
+      "aliases": [
+        "pan Henryk"
+      ],
+      "role": "pacjent izolatki 3, były nauczyciel muzyki, nie zarażony",
+      "party": true,
+      "joins": "d01_27~rękaw",
+      "costume": "piżama szpitalna",
+      "traits": "nie mruga — mruga tylko celowo, jako znak (d8 dowód, d9 ostrzeżenie); oddycha bardzo wolno",
+      "states": [
+        {
+          "from": "d11_19~zadrapanie",
+          "state": "zadrapanie na przedramieniu (paznokieć)"
+        },
+        {
+          "from": "d18_05~Nazywam",
+          "state": "mówi"
+        },
+        {
+          "from": "d27_11~blizna",
+          "state": "blizna na przedramieniu; zostaje przy pianinie"
+        }
+      ],
+      "leaves": "d30_06~boczne drzwi"
+    },
+    {
+      "id": "zosia",
+      "name": "Zosia",
+      "role": "pielęgniarka z apteki w piwnicy, przywódczyni",
+      "party": true,
+      "joins": "d01_38~apteki",
+      "costume": "granatowy mundurek, identyfikator, kok",
+      "states": [
+        {
+          "from": "d22_21~ropieje",
+          "state": "rana dłoni ropieje"
+        },
+        {
+          "from": "d23_02~smuga",
+          "state": "zakażenie, czerwona smuga"
+        },
+        {
+          "from": "d24_08~czterdzieści",
+          "state": "gorączka 40"
+        },
+        {
+          "from": "d24_17~trzydzieści osiem",
+          "state": "gorączka 38, antybiotyk"
+        },
+        {
+          "from": "d29_16~temblaku",
+          "state": "ręka na temblaku"
+        }
+      ]
+    },
+    {
+      "id": "nowak",
+      "name": "Nowak",
+      "aliases": [
+        "doktor Nowak"
+      ],
+      "role": "lekarz dyżurny; ukrywa ugryzienie, przeciął obwód zamków",
+      "party": true,
+      "joins": "d05_08~Nowak",
+      "leaves": "d16_18~łóżku",
+      "costume": "biały fartuch, ciemna bluza zapięta pod szyję, rękawy zawsze opuszczone; pęk kluczy dyżurnego przy pasku",
+      "states": [
+        {
+          "from": "d06_11",
+          "state": "gorączka"
+        },
+        {
+          "from": "d17_08",
+          "state": "przemieniony, zamknięty w izolatce 3"
+        }
+      ]
+    },
+    {
+      "id": "irena",
+      "name": "Irena",
+      "aliases": [
+        "pani Irena"
+      ],
+      "role": "81 lat, pacjentka oddziału A, chore płuca",
+      "party": true,
+      "joins": "d08_19~sześć",
+      "costume": "różowy szlafrok, siwe loki",
+      "states": [
+        {
+          "from": "d20_16~gorączkę",
+          "state": "gorączka z płuc od tygodnia"
+        },
+        {
+          "from": "d24_07~morfinie",
+          "state": "morfina"
+        }
+      ]
+    },
+    {
+      "id": "kuba",
+      "name": "Kuba",
+      "role": "17 lat, pacjent oddziału A",
+      "party": true,
+      "joins": "d08_19~sześć",
+      "costume": "szary dres",
+      "states": [
+        {
+          "from": "d14_20~dłoń",
+          "state": "rozcięta dłoń, od d15 szwy"
+        }
+      ]
+    },
+    {
+      "id": "basia",
+      "name": "Basia",
+      "role": "zarażona kucharka zamknięta w chłodni",
+      "party": false,
+      "namedIn": [
+        "d19_*",
+        "d2*_*"
+      ],
+      "costume": "czepek kucharski, oszronione brwi"
+    },
+    {
+      "id": "ewa",
+      "name": "Ewa",
+      "role": "zarażona pielęgniarka z oddziału C (schody, dzień 6)",
+      "party": false,
+      "namedIn": [
+        "d06_*"
+      ],
+      "costume": "biały fartuch, identyfikator"
+    },
+    {
+      "id": "stas",
+      "name": "Staś",
+      "aliases": [
+        "pan Staś"
+      ],
+      "role": "zarażony pacjent sali 4 oddziału C",
+      "party": false,
+      "namedIn": [
+        "d01_*",
+        "d28_*"
+      ]
+    },
+    {
+      "id": "malec",
+      "name": "Malec",
+      "aliases": [
+        "porucznik Malec"
+      ],
+      "role": "dowódca kordonu, tylko głos",
+      "party": false,
+      "namedIn": [
+        "d20_*",
+        "d2*_*",
+        "d30_*"
+      ]
+    },
+    {
+      "id": "jadzia",
+      "name": "Jadzia",
+      "aliases": [
+        "pani Jadzia"
+      ],
+      "role": "zarażona pacjentka oddziału C",
+      "party": false,
+      "namedIn": [
+        "d28_*"
+      ]
+    }
+  ],
+  "props": [
+    {
+      "id": "krotkofalowki",
+      "name": "Krótkofalówki",
+      "owner": "Zosia i narrator",
+      "seeded": "d02_17~krótkofalówki",
+      "uses": [
+        "d13_12~krótkofalówka",
+        "d14_14~krótkofalówka",
+        "d29_20~krótkofalówka"
+      ],
+      "note": "Zasiane w dniu 2 (dyżurka C)."
+    },
+    {
+      "id": "pianino",
+      "name": "Pianino w świetlicy parteru",
+      "place": "swietlica_parter",
+      "seeded": "d04_05~pianina",
+      "uses": [
+        "d18_16~pianin",
+        "d21_16~pianin",
+        "d25_17~klawisz",
+        "d26_18~pianino",
+        "d27_18~klawisz",
+        "d28_13~pianin",
+        "d30_02~akord"
+      ],
+      "note": "Decyzja D6: zasiane w dniu 4."
+    },
+    {
+      "id": "karetka",
+      "name": "Karetka na podwórzu",
+      "place": "podworze",
+      "seeded": "d02_07~karetka",
+      "uses": [
+        "d10_16~karetkę"
+      ]
+    },
+    {
+      "id": "kurtka",
+      "name": "Kurtka narratora",
+      "owner": "narrator",
+      "seeded": "d02_18~kurtkę",
+      "uses": [
+        "d10_16~kurtkę"
+      ]
+    },
+    {
+      "id": "klucze_nowaka",
+      "name": "Pęk kluczy dyżurnego (żółta przywieszka rozdzielni)",
+      "owner": "Nowak",
+      "seeded": "d05_07~kluczy",
+      "uses": [
+        "d10_09~kluczem",
+        "d12_19~kluczy"
+      ]
+    },
+    {
+      "id": "lampa",
+      "name": "Lampa akumulatorowa Zosi",
+      "owner": "Zosia",
+      "seeded": "d02_20~lampie",
+      "uses": [
+        "d09_10~lampę"
+      ]
+    },
+    {
+      "id": "notes",
+      "name": "Notes narratora",
+      "owner": "narrator",
+      "seeded": "d02_20~notesie",
+      "uses": [
+        "d07_13~notes",
+        "d17_07~notes",
+        "d18_18~notes",
+        "d20_06~notes",
+        "d24_15~notes",
+        "d28_16~notes",
+        "d29_06~notes"
+      ]
+    },
+    {
+      "id": "reczniki",
+      "name": "Ręczniki na kracie apteki",
+      "place": "apteka",
+      "seeded": "d03_17~ręczniki",
+      "uses": [
+        "d09_14~ręcznik"
+      ]
+    },
+    {
+      "id": "puszki",
+      "name": "Puszki na nitce na schodach",
+      "place": "klatka_glowna",
+      "seeded": "d06_17~puszki",
+      "uses": [
+        "d09_09~puszki"
+      ]
+    },
+    {
+      "id": "bandaz",
+      "name": "Bandaż",
+      "owner": "Henryk",
+      "seeded": "d06_12~bandaża",
+      "uses": [
+        "d06_13~bandaża",
+        "d10_08~bandażem"
+      ]
+    },
+    {
+      "id": "nozyce",
+      "name": "Nożyce do metalu z warsztatu",
+      "place": "rozdzielnia",
+      "seeded": "d07_06~nożyce",
+      "uses": []
+    },
+    {
+      "id": "przepustka",
+      "name": "Przepustka Nowaka",
+      "owner": "narrator",
+      "seeded": "d14_19~przepustka",
+      "uses": [
+        "d15_09~przepustka",
+        "d15_12~przepustkę",
+        "d16_02~przepustkę",
+        "d29_06~przepustk"
+      ],
+      "note": "Leżała w portierni od nocy wybuchu — Nowak tamtędy uciekał."
+    },
+    {
+      "id": "czajnik",
+      "name": "Czajnik z dyżurki C",
+      "owner": "Zosia",
+      "seeded": "d02_17~czajnik",
+      "uses": [
+        "d18_03~czajnika"
+      ],
+      "note": "Działa od dnia 14 (prąd z agregatu)."
+    },
+    {
+      "id": "lornetka",
+      "name": "Lornetka z portierni",
+      "owner": "Kuba",
+      "place": "portiernia",
+      "seeded": "d21_13~lornetk",
+      "uses": [
+        "d21_14~lornetka",
+        "d26_08~lornetk"
+      ]
+    },
+    {
+      "id": "leki_chirurgia",
+      "name": "Antybiotyk i dwie fiolki morfiny z chirurgii",
+      "owner": "Zosia",
+      "seeded": "d23_15~morfiny",
+      "uses": [
+        "d24_02~antybiotyku",
+        "d24_07~morfinie"
+      ]
+    },
+    {
+      "id": "centrala_alarmu",
+      "name": "Centrala alarmu w portierni (przewody)",
+      "place": "portiernia",
+      "seeded": "d14_17~centrali",
+      "uses": [
+        "d21_19~centrali",
+        "d27_16~centrali",
+        "d30_02~alarm"
+      ]
+    },
+    {
+      "id": "plan_nowaka",
+      "name": "Plan budynku Nowaka",
+      "seeded": "d12_05~plan",
+      "uses": [
+        "d27_02~plan",
+        "d27_05~planie"
+      ]
+    },
+    {
+      "id": "nakladka",
+      "name": "Nakładka klawisza od Henryka",
+      "owner": "Kuba",
+      "seeded": "d29_08~nakładkę",
+      "uses": [
+        "d30_13~nakładka"
+      ],
+      "note": "Klawisza nie ma w kołysance — pianino gra dalej bez niego."
+    }
+  ],
+  "resources": [
+    {
+      "id": "woda",
+      "name": "Woda",
+      "unit": "l",
+      "perPersonDay": 1.5,
+      "start": 0,
+      "changes": [
+        {
+          "at": "d02_05~wody",
+          "delta": 10,
+          "note": "dwie butelki po 5 l"
+        },
+        {
+          "at": "d04_10~kanistry",
+          "delta": 60,
+          "note": "trzy kanistry po 20 l z kuchni (decyzja D5)"
+        },
+        {
+          "at": "d09_17~kanister",
+          "share": -0.5,
+          "note": "Kuba przewraca kanister"
+        },
+        {
+          "at": "d10_14~butelki",
+          "delta": 18,
+          "note": "12 butelek po 1,5 l ze zrzutu"
+        },
+        {
+          "at": "d11_07~kanistry",
+          "delta": 40,
+          "note": "dwa kanistry z kranu na oddziale C (decyzja D7)"
+        },
+        {
+          "at": "d15_03~wody",
+          "share": -0.5,
+          "note": "połowa wody zostaje w skrzydle technicznym"
+        },
+        {
+          "at": "d15_08~kranu",
+          "delta": 100,
+          "note": "kran w pokoju socjalnym — woda bez ograniczeń do dnia 22"
+        },
+        {
+          "at": "d22_09~kanister",
+          "delta": 60,
+          "note": "trzy kanistry po 20 l ze zbiornika na dachu"
+        }
+      ],
+      "claims": [
+        {
+          "at": "d02_10~Wody",
+          "days": 2,
+          "note": "„Wody mamy na dwa.”"
+        },
+        {
+          "at": "d03_09~Wody",
+          "days": 1,
+          "note": "„Wody na jeden dzień.”"
+        },
+        {
+          "at": "d04_28~woda",
+          "days": 14,
+          "note": "kartka: „woda: 2 tygodnie”"
+        },
+        {
+          "at": "d09_18~Wody",
+          "days": 1.5,
+          "note": "„Wody mamy na półtora dnia.”"
+        },
+        {
+          "at": "d10_22~butelek",
+          "days": 3,
+          "note": "„Dwanaście butelek wody. Na trzy dni.”"
+        },
+        {
+          "at": "d22_03~Wody",
+          "days": 7,
+          "note": "„Wody na siedem dni. Do trzydziestego jest osiem.”"
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "telefon_c_wolny",
+      "name": "telefon w dyżurce C może dzwonić (słuchawka odłożona)",
+      "from": "",
+      "to": "d01_08~słuchawkę",
+      "note": "Od d01_08 słuchawka leży na biurku jako wabik — ten aparat nie zadzwoni."
+    },
+    {
+      "id": "linia_wewnetrzna",
+      "name": "linia wewnętrzna szpitala działa",
+      "from": "",
+      "to": "d11_06~piszczała",
+      "note": "W dniu 11 słuchawka przestaje piszczeć."
+    },
+    {
+      "id": "telefon_lekarski",
+      "name": "telefon w pokoju lekarskim oddziału C (numer miejski)",
+      "from": "",
+      "to": "",
+      "note": "Decyzja D1: kordon obdzwania numery szpitala."
+    },
+    {
+      "id": "linia_miejska",
+      "name": "linia miejska w portierni",
+      "from": "",
+      "to": "",
+      "note": "Dzień 20: wojsko podłącza polowy telefon do linii portierni."
+    },
+    {
+      "id": "prad_sieci",
+      "name": "prąd z sieci (światło, gniazdka)",
+      "from": "",
+      "to": "d02_19~prąd",
+      "note": "Gaśnie wieczorem w dniu 2; od dnia 3 lampy z sieci nie świecą (kit_a.MAINS)."
+    },
+    {
+      "id": "zamki_c",
+      "name": "zasilanie obwodu zamków oddziału C",
+      "from": "",
+      "to": "d00_06",
+      "note": "Decyzja D3: przecięty w nocy 1 osobnym kablem; światło szło innym obwodem."
+    },
+    {
+      "id": "woda_w_kranach",
+      "name": "woda w kranach (wodociąg)",
+      "from": "",
+      "to": "d22_02~kran",
+      "note": "Do dnia 22; woda w aptece to ta, którą przyniosą."
+    },
+    {
+      "id": "agregat",
+      "name": "prąd z agregatu",
+      "from": "d14_02~przełącznik",
+      "to": "d30_08~agregat gaśnie",
+      "note": "Paliwo do świtu dnia 30 (d26: „na cztery dni”); od d28_19 przerywa."
+    },
+    {
+      "id": "centrala",
+      "name": "centrala telefoniczna i telefony wewnętrzne (zasilanie z agregatu)",
+      "from": "d14_02~przełącznik",
+      "to": "d30_08~agregat gaśnie",
+      "note": "Linia wewnętrzna padła w dniu 11 bez prądu; wraca z agregatem."
+    },
+    {
+      "id": "swiatlo_agregat",
+      "name": "świetlówki z agregatu",
+      "from": "d14_04~świetlówki",
+      "to": "d30_08~agregat gaśnie"
+    },
+    {
+      "id": "alarm_polaczony",
+      "name": "przewody centrali alarmu połączone (alarm można włączyć)",
+      "from": "d27_16~przewody",
+      "to": "",
+      "note": "Wyrwane w d14_17; Kuba i narrator łączą je w dniu 27 i podpinają pod klawisz pianina."
+    }
+  ],
+  "events": [
+    {
+      "at": "d00_10",
+      "note": "narrator gasi światło w dyżurce C",
+      "needs": [
+        "prad_sieci"
+      ]
+    },
+    {
+      "at": "d00_06",
+      "note": "drzwi sal puszczają",
+      "needsOff": [
+        "zamki_c"
+      ]
+    },
+    {
+      "at": "d00_12",
+      "note": "telefon w dyżurce C dzwoni",
+      "needs": [
+        "telefon_c_wolny",
+        "linia_wewnetrzna"
+      ]
+    },
+    {
+      "at": "d01_02~telefon",
+      "note": "telefon w dyżurce C dzwoni drugi raz",
+      "needs": [
+        "telefon_c_wolny",
+        "linia_wewnetrzna"
+      ]
+    },
+    {
+      "at": "d03_25~pokoju lekarskim",
+      "note": "dzwoni telefon w pokoju lekarskim",
+      "needs": [
+        "telefon_lekarski"
+      ]
+    },
+    {
+      "at": "d04_02~pokoju lekarskim",
+      "note": "telefon w pokoju lekarskim dzwoni dwa razy",
+      "needs": [
+        "telefon_lekarski"
+      ]
+    },
+    {
+      "at": "d04_10~kanistry",
+      "note": "Henryk napełnia kanistry z kranu",
+      "needs": [
+        "woda_w_kranach"
+      ]
+    },
+    {
+      "at": "d14_04~świetlówki",
+      "note": "świetlówki zapalają się",
+      "needs": [
+        "agregat"
+      ]
+    },
+    {
+      "at": "d14_05~zamek",
+      "note": "zamki sal się zatrzaskują",
+      "needs": [
+        "agregat"
+      ]
+    },
+    {
+      "at": "d15_08~kranu",
+      "note": "ciepła woda z kranu",
+      "needs": [
+        "agregat",
+        "woda_w_kranach"
+      ]
+    },
+    {
+      "at": "d11_07~kanistry",
+      "note": "narrator napełnia kanistry z kranu",
+      "needs": [
+        "woda_w_kranach"
+      ]
+    },
+    {
+      "at": "d18_03~czajnika",
+      "note": "herbata z czajnika elektrycznego",
+      "needs": [
+        "agregat"
+      ]
+    },
+    {
+      "at": "d19_21~telefon",
+      "note": "dzwoni telefon na ścianie pokoju socjalnego",
+      "needs": [
+        "centrala"
+      ]
+    },
+    {
+      "at": "d20_02~Malec",
+      "note": "Malec przez linię portierni",
+      "needs": [
+        "linia_miejska",
+        "centrala"
+      ]
+    },
+    {
+      "at": "d21_04~zamka",
+      "note": "zamek sali 8 zamyka zarażonego z szafy",
+      "needs": [
+        "agregat"
+      ]
+    },
+    {
+      "at": "d21_11~Malec",
+      "note": "Malec dzwoni do pokoju socjalnego",
+      "needs": [
+        "centrala",
+        "linia_miejska"
+      ]
+    },
+    {
+      "at": "d25_02~Malec",
+      "note": "Malec dzwoni",
+      "needs": [
+        "centrala",
+        "linia_miejska"
+      ]
+    },
+    {
+      "at": "d26_10~Malec",
+      "note": "Malec dzwoni",
+      "needs": [
+        "centrala",
+        "linia_miejska"
+      ]
+    },
+    {
+      "at": "d28_05~telefonie",
+      "note": "Zosia dzwoni do Malca",
+      "needs": [
+        "centrala",
+        "linia_miejska"
+      ]
+    },
+    {
+      "at": "d29_05~Malec",
+      "note": "Malec potwierdza czwartą",
+      "needs": [
+        "centrala",
+        "linia_miejska"
+      ]
+    },
+    {
+      "at": "d24_16~agregatu chłodni",
+      "note": "chłodnia szumi i wabi zarażonych",
+      "needs": [
+        "agregat"
+      ]
+    },
+    {
+      "at": "d27_18~alarm",
+      "note": "próba alarmu z klawisza",
+      "needs": [
+        "agregat",
+        "alarm_polaczony"
+      ]
+    },
+    {
+      "at": "d28_19~świetlówki",
+      "note": "świetlówki migają",
+      "needs": [
+        "agregat"
+      ]
+    },
+    {
+      "at": "d29_02~światła",
+      "note": "światła gasną i wracają, zamki luzują",
+      "needs": [
+        "agregat"
+      ]
+    },
+    {
+      "at": "d30_02~alarm",
+      "note": "pierwszy akord włącza alarm",
+      "needs": [
+        "agregat",
+        "alarm_polaczony"
+      ]
+    }
+  ],
+  "threads": [
+    {
+      "id": "nowak_kabel",
+      "title": "Nowak przeciął obwód zamków",
+      "setup": [
+        "d05_07~rękawy"
+      ],
+      "clues": [
+        "d05_10~oczy",
+        "d05_17~Kuby",
+        "d07_10~rękawie",
+        "d09_06~rękawach",
+        "d10_09~kluczem",
+        "d11_21~ugryzieniu",
+        "d12_15~rękawach"
+      ],
+      "payoff": [
+        "d12_19~kluczy",
+        "d16_07~Przeciąłem"
+      ]
+    },
+    {
+      "id": "nowak_noca",
+      "title": "Nowak wychodzi nocą (zna Kubę, zanim go poznali)",
+      "setup": [
+        "d05_17~Kuby"
+      ],
+      "clues": [
+        "d05_18~Kuby"
+      ],
+      "payoff": [
+        "d08_22~wychodził"
+      ],
+      "note": "Wskazówka z dnia 5 przywrócona."
+    },
+    {
+      "id": "kreski",
+      "title": "Kreski Henryka na ścianie",
+      "setup": [
+        "d03_06~kreski"
+      ],
+      "clues": [],
+      "payoff": [
+        "d06_22~kresk",
+        "d15_16~kreski",
+        "d24_19~kreskę",
+        "d26_16~kreski"
+      ],
+      "note": "Trzy kreski widać w dniu 3; w dniu 6 jest ich sześć."
+    },
+    {
+      "id": "reczniki",
+      "title": "Ręczniki tłumią kratę",
+      "setup": [
+        "d03_17~ręczniki"
+      ],
+      "payoff": [
+        "d09_14~ręcznik"
+      ]
+    },
+    {
+      "id": "puszki",
+      "title": "Pułapka z puszek na schodach",
+      "setup": [
+        "d06_17~puszki"
+      ],
+      "payoff": [
+        "d09_09~puszki"
+      ]
+    },
+    {
+      "id": "okno_8",
+      "title": "Okno sali 8 z pierwszego ujęcia",
+      "setup": [
+        "d00_01"
+      ],
+      "clues": [
+        "d10_24~sali 8"
+      ],
+      "payoff": [
+        "d11_09~prześcieradło"
+      ]
+    },
+    {
+      "id": "henryk_mruga",
+      "title": "Henryk mruga tylko celowo",
+      "setup": [
+        "d00_04"
+      ],
+      "clues": [
+        "d08_07~mruga"
+      ],
+      "payoff": [
+        "d09_23~mruga"
+      ]
+    },
+    {
+      "id": "basia",
+      "title": "Kucharka w chłodni",
+      "setup": [
+        "d04_13~kucharka"
+      ],
+      "payoff": [
+        "d19_08~Basia"
+      ]
+    },
+    {
+      "id": "telefon_kordon",
+      "title": "Kordon dzwoni do szpitala",
+      "setup": [
+        "d03_25~pokoju lekarskim"
+      ],
+      "payoff": [
+        "d20_02~Malec"
+      ],
+      "note": "Decyzja D1.",
+      "clues": [
+        "d04_02~pokoju lekarskim"
+      ]
+    },
+    {
+      "id": "czajnik",
+      "title": "Czajnik z dyżurki",
+      "setup": [
+        "d02_17~czajnik"
+      ],
+      "payoff": [
+        "d18_03~czajnika"
+      ],
+      "note": "Puenta: herbata dla Henryka w dniu 18 (prąd z agregatu)."
+    },
+    {
+      "id": "henryk_ostrzezenie",
+      "title": "Henryk w szybie ostrzegał, a nie był zmieniony",
+      "setup": [
+        "d00_04"
+      ],
+      "clues": [
+        "d01_23",
+        "d17_11~szybę"
+      ],
+      "payoff": [
+        "d17_13~ostrzec",
+        "d18_09~krzyczeć"
+      ]
+    },
+    {
+      "id": "szafa_8",
+      "title": "Zarażony w szafie sali 8",
+      "setup": [
+        "d00_01",
+        "d11_13~szafy"
+      ],
+      "clues": [
+        "d11_18~szafy",
+        "d20_20~szafa"
+      ],
+      "payoff": [
+        "d21_02~szafy"
+      ]
+    },
+    {
+      "id": "przepustka",
+      "title": "Przepustka Nowaka w portierni",
+      "setup": [
+        "d14_19~przepustka"
+      ],
+      "clues": [
+        "d15_14~portiernię"
+      ],
+      "payoff": [
+        "d16_02~przepustkę",
+        "d16_07~Przeciąłem"
+      ]
+    },
+    {
+      "id": "ugryzienie",
+      "title": "Nowak ukrywa ugryzienie",
+      "setup": [
+        "d05_07~rękawy"
+      ],
+      "clues": [
+        "d06_03",
+        "d12_17~dziewięć",
+        "d15_19~ugryzienie"
+      ],
+      "payoff": [
+        "d16_04~ugryzienie",
+        "d17_08~mrugać"
+      ]
+    },
+    {
+      "id": "corka",
+      "title": "Obietnica dla córki Nowaka",
+      "setup": [
+        "d17_04~dyżurze"
+      ],
+      "clues": [
+        "d20_19~córce",
+        "d27_09~córki"
+      ],
+      "payoff": [
+        "d29_06~córki"
+      ],
+      "note": "Notatki z izolatki i przepustka dla córki — plecak w dniu 29."
+    },
+    {
+      "id": "pianino_zagram",
+      "title": "„Zagram, kiedy trzeba będzie was zawołać”",
+      "setup": [
+        "d04_05~pianina",
+        "d18_17~Zagram"
+      ],
+      "payoff": [
+        "d30_02~akord"
+      ],
+      "clues": [
+        "d21_16~pianin",
+        "d27_15~muzyką"
+      ]
+    },
+    {
+      "id": "okno_8_koniec",
+      "title": "Okno sali 8 zamyka film",
+      "setup": [
+        "d00_01"
+      ],
+      "clues": [
+        "d21_05~okienku",
+        "d26_19~okno sali 8"
+      ],
+      "payoff": [
+        "d30_18~sylwetka",
+        "d30_19~pierwszego ujęcia"
+      ],
+      "note": "Zarażony z szafy zostaje zamknięty w sali 8 (d21); ostatni kadr = pierwszy kadr filmu."
+    },
+    {
+      "id": "alarm",
+      "title": "Alarm pożarowy — od wyrwanych przewodów do kołysanki",
+      "setup": [
+        "d14_17~centrali"
+      ],
+      "clues": [
+        "d21_18~Alarm",
+        "d27_16~przewody",
+        "d27_18~alarm"
+      ],
+      "payoff": [
+        "d30_02~alarm"
+      ]
+    },
+    {
+      "id": "henryk_zostaje",
+      "title": "Ktoś musi zostać przy przycisku",
+      "setup": [
+        "d21_21~zostać"
+      ],
+      "clues": [
+        "d27_07~trzymać",
+        "d27_20~zostanie",
+        "d28_06~Piąta"
+      ],
+      "payoff": [
+        "d30_15~krzyk",
+        "d30_16~głos"
+      ]
+    },
+    {
+      "id": "blizna",
+      "title": "Zadrapanie Henryka z dnia 11",
+      "setup": [
+        "d11_19~zadrapanie"
+      ],
+      "payoff": [
+        "d27_11~blizna"
+      ]
+    },
+    {
+      "id": "rana_zosi",
+      "title": "Rana Zosi od szkła z dnia 14",
+      "setup": [
+        "d14_20~szkło"
+      ],
+      "clues": [
+        "d20_15~zagoi"
+      ],
+      "payoff": [
+        "d22_20~szkło",
+        "d23_02~smuga",
+        "d30_11~ranę"
+      ],
+      "note": "„Do trzydziestego się zagoi” w d20 mówi też o sobie."
+    },
+    {
+      "id": "kolysanka",
+      "title": "Kołysanka żony Henryka",
+      "setup": [
+        "d25_19~Kołysanka"
+      ],
+      "clues": [
+        "d28_13~nuci"
+      ],
+      "payoff": [
+        "d30_03~kołysanka"
+      ]
+    },
+    {
+      "id": "irena_zostaje",
+      "title": "Irena nie przejdzie badania",
+      "setup": [
+        "d20_16~przejdę"
+      ],
+      "clues": [
+        "d25_20~zostanę",
+        "d26_02~Irena"
+      ],
+      "payoff": [
+        "d30_12~przepustkę"
+      ]
+    },
+    {
+      "id": "wabik",
+      "title": "Słuchawka w dyżurce jako wabik",
+      "setup": [
+        "d01_08~słuchawkę"
+      ],
+      "payoff": [
+        "d28_12~wabika"
+      ]
+    },
+    {
+      "id": "nie_ogladaj",
+      "title": "„Nie oglądaj się”",
+      "setup": [
+        "d29_14~oglądaj"
+      ],
+      "payoff": [
+        "d30_17~odwraca"
+      ]
+    },
+    {
+      "id": "zbiornik",
+      "title": "Zbiornik na dachu",
+      "setup": [
+        "d22_04~zbiornik"
+      ],
+      "payoff": [
+        "d22_09~zbiornik"
+      ]
+    }
+  ],
+  "spoilers": [
+    {
+      "pattern": "Został lekarz dyżurny|lekarz dyżurny\\. Stał",
+      "notBefore": "d12_19~kluczy",
+      "why": "narrator domyśla się o Nowaku dopiero w dniu 12 (klucz z żółtą przywieszką)"
+    },
+    {
+      "pattern": "(jest|był|został) ugryzion|ugryzł Nowaka|Nowak.{0,40}przeciął|Przeciąłem kabel",
+      "notBefore": "d15_19~ugryzienie",
+      "why": "ugryzienie widać w dniu 15, wyznanie w dniu 16"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "text": "Telefon w dniach 3–4 to drugi aparat w pokoju lekarskim oddziału C; dzwoni kordon, który obdzwania numery szpitala (zasiew telefonu od Malca z dnia 20).",
+      "at": "2026-11-04",
+      "by": "reżyser"
+    },
+    {
+      "id": "D2",
+      "text": "Plan budynku: oddziały C i A na 1. piętrze (C w skrzydle głównym, A w zachodnim nad kuchnią), chirurgia w wieży; w piwnicy apteka z boku korytarza, pralnia, rozdzielnia na końcu.",
+      "at": "2026-11-04",
+      "by": "reżyser"
+    },
+    {
+      "id": "D3",
+      "text": "W dniu 7 przecięty jest kabel obwodu zamków oddziału C, nie zasilanie całego oddziału.",
+      "at": "2026-11-04",
+      "by": "reżyser"
+    },
+    {
+      "id": "D4",
+      "text": "Megafon w dniu 2: kwarantanna minimum 28 dni (koniec w dniu 30, w dniu 6 zostają 24).",
+      "at": "2026-11-04",
+      "by": "reżyser"
+    },
+    {
+      "id": "D5",
+      "text": "Z kuchni w dniu 4 przynoszą trzy kanistry po 20 l wody; liczby w kwestiach z bilansu księgi.",
+      "at": "2026-11-04",
+      "by": "reżyser"
+    },
+    {
+      "id": "D6",
+      "text": "Pianino zasiane w dniu 4 (Henryk zwalnia przy świetlicy parteru).",
+      "at": "2026-11-04",
+      "by": "reżyser"
+    },
+    {
+      "id": "D7",
+      "text": "W dniu 11 narrator napełnia na oddziale C dwa kanistry (krany działają do dnia 22), żeby woda nie skończyła się w dniu 12; od dnia 15 grupa ma kran w pokoju socjalnym. Telefon w dniu 19 działa, bo centrala dostała prąd z agregatu.",
+      "at": "2026-11-05",
+      "by": "reżyser"
+    },
+    {
+      "id": "D8",
+      "text": "Poprawki scenariusza dni 21–30 — woda w d22 „na siedem dni, do trzydziestego osiem” i trzy kanistry z dachu (bilans); paliwo „na cztery dni” w d26 (agregat do świtu d30); alarm z pianina w świetlicy parteru (d27, d30 — zarażeni idą korytarzem do świetlicy, nie na górę); Zosia skaleczyła się w d14 o szkło (nie w d1, którego to nie pokazuje); w d28 Zosia mówi „czworo” zamiast nazwisk (narrator nie ma imienia); w d29 notatki i przepustka dla córki zamiast zdjęcia z portfela (nie było zasiane); Kuba dostaje nakładkę klawisza; d30 kończy się odjazdem do pierwszego kadru filmu, bez osobnej karty napisów.",
+      "at": "2026-11-05",
+      "by": "reżyser"
+    }
+  ]
+}

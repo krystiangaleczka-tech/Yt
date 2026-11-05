@@ -55,3 +55,36 @@ Lektor jest suchy (bez pogłosu), odszumiony i z bramką na szum między słowam
 
 - Część 1: gotowa, lektor z `probka.m4a` (8 podejść × 3 okna, podobieństwo 0,90–0,98).
 - Część 2: gotowa, lektor z `probka.m4a` (3 podejścia × 1 okno, podobieństwo 0,91–0,97).
+
+## Wersja angielska, lektor „studyjny”
+
+Echo w lektorze pochodziło z pogłosu pokoju w `probka.m4a` — Chatterbox kopiuje akustykę referencji.
+`studio_clean.py` (resemble-enhance, venv `pilot/.venv-enhance`) zdejmuje pogłos i szum → `probka-studio.wav`.
+
+```bash
+python -I voice_clone.py probka-studio.wav --lang en --takes 8 --refs 3     # → voice/en/
+FILM_LANG=en python render.py && FILM_LANG=en python render2.py            # → *-en.mp4
+```
+
+Chatterbox prawie nie generuje pasma powyżej ~8 kHz — stąd „zamulony” głos. `studio_lines.py` odbudowuje
+je resemble-enhance w gotowych zdaniach (oryginały → `voice-raw/`), długość zdań bez zmian:
+
+```bash
+../../pilot/.venv-enhance/bin/python studio_lines.py voice voice/en
+```
+
+Windows (cmd): `set FILM_LANG=en` przed renderem. Na Macu bez CUDA: `--refs 1 --takes 3 --no-sv`
+(wielojęzyczny model zamiast angielskiego, bez sędziego WavLM) — wymaga kilku GB wolnego dysku na swap.
+
+## Rozbiór w DocOS Studio
+
+`studio_import.py` wpisuje gotowy film do projektu Studio: pomysł, Story Bible, Master Story, 2 akty, 5 sekwencji,
+scenariusz, 10 scen i reżyserię (beaty, napięcie, 14 ujęć z czasami z renderów), a potem wideo każdego ujęcia,
+lektora, efekty bez lektora (`audio()` z ciszą zamiast nagrań) i oś montażu. Notatki z produkcji → Continuity Editor.
+
+```bash
+python3 studio_import.py flow  <id projektu>   # potem w Studio: zatwierdź etapy, „Utwórz ujęcia z planu”
+python3 studio_import.py media <id projektu>
+```
+
+`studio_signatures.mjs` liczy podpisy planów kodem Studio (`flowTypes.ts`), żeby plany nie były „nieaktualne”.

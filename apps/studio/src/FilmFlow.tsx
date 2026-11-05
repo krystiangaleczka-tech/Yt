@@ -12,6 +12,7 @@ import {
   type FlowData, type FlowNode, type FlowReview, type FlowStage,
 } from "./flowTypes";
 import { saveFlow } from "./flowSave";
+import ContinuityEditor from "./Continuity";
 import "./FilmFlow.css";
 
 export type FlowPage = "bible" | "project-setup" | "idea-flow" | "master-story" | "acts" | "sequences" | "scene-plan" | "script-flow" | "continuity";
@@ -122,7 +123,7 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
     sequences: "Każdy akt dzielimy na rozdziały i podrozdziały, bez utraty całości fabuły.",
     "script-flow": "AI pisze wybrany akt, znając zakończenie, poprzednie części i Story Bible.",
     "scene-plan": "Krótki zarys każdej sceny; po zatwierdzeniu przejdź do istniejącego edytora scen.",
-    continuity: "Reżyser, redaktor, krytyk i trzech widzów oceniają ten sam pełny film.",
+    continuity: "Wspólny stan świata, automatyczna kontrola zapowiedzi i skutków, recenzje jednostek, dziennik pracy i warsztat filmu.",
   } as Record<FlowPage, string>)[page];
   function openAI(kind: AIKind, targetId?: string) { setAI({ kind, targetId }); setAnswer(""); setPrompt(""); setInstruction(""); setResponseRevision(null); }
   async function request(action: "prompt" | "generate") {
@@ -445,7 +446,7 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
           <Button onClick={() => s.setPage("scenes")}>Otwórz istniejący edytor scen</Button>
         </div>
       </>}
-      {page === "continuity" && <>
+      {page === "continuity" && <ContinuityEditor aiReviews={<>
         <div className="flow-explainer">Ocena działa na całym projekcie: Master Story, planie, tekstach wszystkich aktów, ujęciach i faktach. Agenci proponują poprawki, ale nie nadpisują automatycznie Twoich scen.</div>
         <div className="flow-actions"><Button primary icon={Sparkles} onClick={() => openAI("review")}>Uruchom zespół recenzentów</Button></div>
         {flow.reviews.length ? <div className="flow-grid">{flow.reviews.map(r => <section className="flow-card" key={r.id}>
@@ -453,7 +454,7 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
           <strong>Problemy</strong><ul>{r.issues.map((v, i) => <li key={i}>{v}</li>)}</ul>
           <strong>Proponowane poprawki</strong><ul>{r.suggestions.map((v, i) => <li key={i}>{v}</li>)}</ul>
         </section>)}</div> : <div className="flow-empty">Brak zapisanej recenzji. Możesz ją uruchomić po przygotowaniu filmu.</div>}
-      </>}
+      </>} />}
       {stage && <div className="flow-footer">
         <div>{isApproved(flow, stage) ? <span className="flow-ok"><Check size={16} /> Etap zatwierdzony</span> :
           flow.approved[stage] ? <span className="flow-warning"><AlertTriangle size={16} /> Zmiany wymagają ponownego zatwierdzenia</span> :
