@@ -169,7 +169,7 @@ def s_noblink(p, t, T):
 
 
 def s_ring_above(p, t, T):
-    K.stair_door(p, t, glow=0.6)
+    K.stair_door(p, t, glow=0.6, cam="dol")
     if t > 1.0 and int(t * 3) % 2 == 0:
         for side in (-1, 1):
             for k in range(3):

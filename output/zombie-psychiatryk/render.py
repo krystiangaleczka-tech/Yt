@@ -149,16 +149,17 @@ class Pen:
 
 # ---------- postacie ----------
 
-def zombie(p, x, y, s, t, seed, gown=(168, 178, 172), tilt=0.0, arms=0.0):
+def zombie(p, x, y, s, t, seed, gown=(168, 178, 172), tilt=0.0, arms=0.0, legs=True):
     """Pacjent-zombie w koszuli szpitalnej, ręce do przodu, kołysze się. tilt — głowa przekrzywiona na stałe;
-    arms 0..1 — ręce unoszą się nad głowę."""
+    arms 0..1 — ręce unoszą się nad głowę; legs=False — nogi rysuje kto inny (schody: kit_a.st_person)."""
     sway = math.sin(t * 3.1 + seed) * 6 * s
     lean = math.sin(t * 3.1 + seed) * 0.08 + tilt
     skin = (139, 156, 128)
     # nogi
     step = math.sin(t * 6.2 + seed) * 10 * s
-    p.poly([(x - 22 * s, y - 70 * s), (x - 6 * s, y - 70 * s), (x - 8 * s + step, y), (x - 26 * s + step, y)], skin)
-    p.poly([(x + 6 * s, y - 70 * s), (x + 22 * s, y - 70 * s), (x + 26 * s - step, y), (x + 8 * s - step, y)], skin)
+    if legs:
+        p.poly([(x - 22 * s, y - 70 * s), (x - 6 * s, y - 70 * s), (x - 8 * s + step, y), (x - 26 * s + step, y)], skin)
+        p.poly([(x + 6 * s, y - 70 * s), (x + 22 * s, y - 70 * s), (x + 26 * s - step, y), (x + 8 * s - step, y)], skin)
     # koszula
     hx = x + sway
     p.poly([(hx - 42 * s, y - 190 * s), (hx + 42 * s, y - 190 * s), (x + 50 * s, y - 62 * s), (x - 50 * s, y - 62 * s)], gown)

@@ -353,13 +353,10 @@ def s25_back(p, t, T):
 
 
 def s26_stairs(p, t, T):
-    K.stairwell(p, t)
-    k = t / T
-    for who, off, s in (("henryk", 0.0, 0.62), ("narrator", -0.14, 0.64)):
-        f = min(1.0, max(0.0, 0.05 + 0.75 * k + off))
-        x = 180 + 900 * f
-        step = min(8, max(0, int((x - 120) // 120)))
-        K.figure(p, 120 + step * 120 + 60, 300 + step * 52, s, t * 0.5, who, walk=t * 0.5, look=0.3)
+    """Schodzą z podestu na kamerę: Henryk przy ścianie, z dłonią na poręczy, wolniej; narrator dwa stopnie za nim."""
+    K.stair_flight(p, t, dark=0.1)
+    K.st_group(p, t, [dict(who="henryk", a=11, b=3, step=0.47, x=-0.74, rail=True),
+                      dict(who="narrator", a=14, b=5, step=0.42, t0=0.1, lead="r", x=-0.2, look=0.15)])
 
 def flick_at(t):
     return 0.7 if math.sin(t * 23) * math.sin(t * 5.1) > 0.55 else 1.0

@@ -188,10 +188,27 @@ def s_three(p, t, T):
 
 
 def s_stairs(p, t, T):
-    K.stairwell(p, t)
-    k = t / T
-    K.figure(p, 300 + 600 * k, 360 + 280 * k, 0.9, t * 2.2, "narrator", walk=t * 2.2, look=0.5,
-             arms={"l": (-80, -30), "r": (40, 60)})  # trzyma się poręczy
+    """Zbiega po ciemku z fiolkami w dłoni, ręką po poręczy; w ciemności chybia stopnia i pada na kolano
+    (stąd krew na kolanie w następnym ujęciu)."""
+    K.stair_flight(p, t, top="okno", sky=(46, 44, 62), dark=0.65)
+    x, a = -0.72, 10  # wbiega w kadr z wyższych stopni; pada blisko kamery (plan średni)
+    moves = K.st_moves(a, 0)
+    tf = T * 0.62
+    k = K.st_clock(min(t, tf), len(moves), 0.17)
+    feet, swing = K.st_pose(moves, k, a)
+    if t < tf or int(k) >= len(moves):
+        h = K.st_person(p, t, feet, swing, x, "narrator", rail=True, look=0.2, eyes=1.0, arms={"r": (36, 70)})
+    else:  # stopa w powietrzu nie trafia w stopień: kolano uderza w stopień, na który leciała
+        f, _, L1 = moves[int(k)]
+        feet = {**feet, f: K.st_level(L1)}
+        u = ease((t - tf) / 0.16)
+        h = K.st_person(p, t, feet, None, x, "narrator", kneel=f, drop=u, blood=ease((t - tf - 0.12) / 0.2),
+                        rail=True, eyes=1.0, mouth=0.5 * u, gaze=(0.3 * u, 0.9 * u),  # łapie poręcz, patrzy na kolano
+                        arms={"r": (36 - 70 * u, 70 - 40 * u)})  # fiolki przyciska do piersi
+    s = h["s"]
+    hx, hy = h["r"]
+    for i in range(3):  # fiolki w zaciśniętej dłoni
+        p.rect(hx - 10 * s + i * 8 * s, hy - 26 * s, hx - 5 * s + i * 8 * s, hy - 6 * s, (240, 220, 200), w=1.5)
 
 
 def s_burst(p, t, T):

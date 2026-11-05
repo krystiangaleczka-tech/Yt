@@ -167,13 +167,18 @@ def s_dusk(p, t, T):
 
 
 def s_down(p, t, T):
-    K.stairwell(p, t)
-    k = t / T
+    """Schodzą z dachu w ostatnim świetle (okno półpiętra): Kuba z dwoma kanistrami, wolno, krok po kroku;
+    za nim narrator z trzecim kanistrem i dłonią na poręczy."""
+    K.stair_flight(p, t, top="okno", sky=(200, 124, 98), dark=0.35)
     br = math.sin(t * 2 * math.pi / 4)  # wolny oddech, jak uczył Henryk
-    K.figure(p, 420 + 360 * k, 420 + 160 * k, 0.9, t * 0.6, "kuba", walk=t * 0.6, look=0.5,
-             arms={"l": (-40, 120 + 4 * br), "r": (40, 120 + 4 * br)})
-    canister(p, 420 + 360 * k - 50, 420 + 160 * k - 140, 0.5)
-    canister(p, 420 + 360 * k + 50, 420 + 160 * k - 140, 0.5)
+    hands = K.st_group(p, t, [dict(who="kuba", a=13, b=3, step=0.55, x=0.25, look=0.1, eyes=0.8,
+                                   arms={"l": (-34, 116 + 4 * br), "r": (34, 116 + 4 * br)}),
+                              dict(who="narrator", a=15, b=6, step=0.5, t0=0.5, lead="r", x=-0.74, rail=True,
+                                   arms={"r": (30, 112)})])
+    for i, keys in ((1, ("r",)), (0, ("l", "r"))):  # kanistry wiszą w dłoniach, uchwytem w dłoni
+        h = hands[i]
+        for key in keys:
+            canister(p, h[key][0], h[key][1] + 120 * 0.55 * h["s"], 0.55 * h["s"])
 
 
 def s_boil(p, t, T):

@@ -1,5 +1,6 @@
 """Wariant A · dzień 9 „Rachunek” — ujęcia rysowane kodem; czasy z rozpiski (tempo.py, MASTER_BIBLE)."""
 import math
+import random
 import sys
 
 import dzien_base as B
@@ -15,10 +16,6 @@ TOWEL = (226, 222, 210)
 
 def talk(t, T, a=0.3, b=0.4):
     return 0.5 + 0.5 * math.sin(t * 9) if a < t < T - b else 0.0
-
-
-def step_xy(k):
-    return 180 + k * 120, 300 + k * 52
 
 
 def s_ask(p, t, T):
@@ -78,16 +75,56 @@ def s_argue(p, t, T):
                  arms={"r": (40 + g, 40)} if who in ("zosia", "kuba") else None)
 
 
+FIRST = dict(a=14, b=9, step=0.36, seed=90, jitter=0.15)  # pierwszy z trzech: zrywa nitkę i staje na 9. stopniu
+
+
+def first_feet(t, t0=None):
+    w = FIRST
+    moves = K.st_moves(w["a"], w["b"])
+    k = K.st_clock(t, len(moves), w["step"], t0=FIRST_T0 if t0 is None else t0, jitter=w["jitter"], seed=w["seed"])
+    return K.st_pose(moves, k, w["a"])
+
+
+def snap_time(t0):
+    """Chwila, w której bosa stopa schodząca na 9. stopień zahacza o nitkę."""
+    t = t0
+    while t < t0 + 5.0:
+        if any(z < K.CAN_Z + 0.2 and y < K.CAN_Y + 0.05 for y, z in first_feet(t, t0)[0].values()):
+            return t
+        t += 0.01
+    return t0
+
+
+TB = 0.12  # huk zaraz po cięciu (rozpiska: „puszki na schodach spadają — huk”, szarpnięcie kamery)
+FIRST_T0 = TB - snap_time(0.0)
+
+
 def s_cans_fall(p, t, T):
-    K.stairwell(p, t)
-    for i in range(5):  # nitka pęka, puszki lecą i odbijają się po stopniach
-        f = max(0.0, t - i * 0.05)
-        k = min(4, int(f * 6))
-        x0, y0 = step_xy(3 + k)
-        y = y0 - 30 * abs(math.sin(f * 18)) - 20
-        cx = x0 - 60 + i * 34
-        p.rect(cx - 26, y - 34, cx + 26, y + 34, (180, 186, 190), w=4)
-        p.ell(cx, y - 34, 26, 8, (210, 214, 216), w=3)
+    """Detal: bosa stopa zarażonego wchodzi w nitkę, nitka pęka, puszki spadają na stopień i skaczą w dół na kamerę."""
+    K.stair_flight(p, t, cam="gora", dark=0.35)
+    feet, swing = first_feet(t)
+    K.st_person(p, t, feet, swing, -0.1, None, zombie=True, seed=90, tilt=0.1)
+    if t < TB:
+        K.can_trap(p, t)
+        return
+    K.can_trap(p, t, broken=True)
+    for i, x in enumerate(K.CAN_X):
+        r = random.Random(40 + i)
+        u = t - TB - 0.035 * i - r.uniform(0, 0.05)
+        Y, Z = K.CAN_Y - 0.12, K.CAN_Z
+        if u > 0:
+            if u < 0.14:  # spada na stopień
+                Y -= (K.CAN_Y - 0.12 - (K.CAN_TREAD * K.ST_R + 0.05)) * (u / 0.14) ** 2
+            else:  # i skacze po stopniach w dół, każde odbicie niższe
+                u -= 0.14
+                hop = 0.19 + 0.04 * r.random()
+                n = int(u / hop)
+                h = u / hop - n
+                L = K.CAN_TREAD - n
+                Y = (L - h) * K.ST_R + 0.05 + 0.12 * 0.75 ** n * math.sin(math.pi * h)
+                Z = (L - 0.5 - h) * K.ST_D
+            x += 0.08 * r.uniform(-1, 1) * min(1.0, u * 3)
+        K.st_can(p, x, Y, Z, rot=max(0.0, u) * r.uniform(-14, 14))
 
 
 def battery_lamp(p, x, y, on):
@@ -119,13 +156,21 @@ def s_lie_down(p, t, T):
     p.rect(-20, 560, W + 20, 610, (60, 52, 44))  # dolna półka regału zasłania leżących
 
 
+FALLEN = ((-0.55, 3, 1.57), (0.1, 2, 1.2), (0.62, 0, 1.57), (-0.15, 5, 0.3), (0.45, 1, 1.9))  # puszki po upadku
+
+
 def s_three_down(p, t, T):
-    K.stairwell(p, t)
-    for i, (start, speed, seed) in enumerate(((0.0, 1.6, 90), (0.5, 1.1, 91), (1.1, 2.0, 92))):
-        pos = min(8.0, max(0.0, (t - start) * speed))  # każdy schodzi innym krokiem
-        k = int(pos)
-        x, y = step_xy(k)
-        R.zombie(p, x + 10 * i, y, 0.75 - 0.05 * i, t + i, seed, tilt=0.12 * (i - 1))
+    """Zeszło trzech, każdy innym krokiem: pierwszy równo i szybko, drugi krokiem dostawnym z zatrzymaniami,
+    trzeci nierówno, zrywami. Na stopniach leżą puszki, przy ścianach zwisają końce nitki."""
+    K.stair_flight(p, t, dark=0.6)
+    K.can_trap(p, t, broken=True)
+    for x, L, rot in FALLEN:
+        y, z = K.st_level(L)
+        K.st_can(p, x, y + 0.035, z, rot=rot)
+    K.st_group(p, t, [dict(a=9, b=1, step=0.38, t0=0.3, x=-0.1, zombie=True, seed=90, jitter=0.15, tilt=0.1),  # ten od nitki
+                      dict(a=13, b=4, step=0.3, hold=0.25, t0=0.35, kind="dost", lead="r", x=0.5, zombie=True,
+                           seed=91, jitter=0.5, tilt=-0.15),
+                      dict(a=14, b=5, step=0.26, t0=0.9, x=-0.55, zombie=True, seed=92, jitter=0.7, tilt=0.25)])
 
 
 def s_teeth(p, t, T):

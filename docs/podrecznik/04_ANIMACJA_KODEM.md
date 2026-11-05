@@ -20,6 +20,8 @@ z tych samych klocków, a wygląd filmu jest powtarzalny. Konkretne pliki danego
 
 - Czasy wydarzeń liczy się od początku ujęcia (`t`), nie bezwzględnie.
 - Bliżej kamery = rysowane później; otwór przycina to, co za nim (Wytyczne kadru).
+- Ruch po schodach i pochylniach pokazuje się w osi ruchu (postać od przodu albo od tyłu); stopy stoją na stopniach
+  policzonych z geometrii miejsca, krok to przeniesienie jednej stopy (Wytyczne kadru 1.10).
 - Stan świata bierze się z księgi (lampa, kreski na ścianie, kto ma rekwizyt), nie z pamięci.
 - Po narysowaniu: arkusz klatek ze środka każdego ujęcia i z każdego wydarzenia; obejrzeć, potem wgrać.
 - W Studio: przegląd każdego ujęcia w zakładce Ujęcia (bez renderowania całego filmu do mp4).

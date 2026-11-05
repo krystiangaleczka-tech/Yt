@@ -40,14 +40,17 @@ def s_frown(p, t, T):
     K.face_cu(p, 640, 330, 1.0, "zosia", t, gaze=(0.6, 0.0), mouth=talk(t, T) * 0.8, fear=0.15 + 0.2 * k)
 
 def s_stairs(p, t, T):
-    K.stairwell(p, t)
-    k = t / T
-    x = 900 - 420 * k  # wchodzi w górę, w lewo; stoi zawsze na stopniu
-    step = min(8, max(0, int((x - 120) // 120)))
-    h = K.figure(p, 120 + step * 120 + 60, 300 + step * 52, 0.7, t * 0.5, "narrator", walk=t * 0.5, look=-0.5,
-                 arms={"r": (-20, 40), "l": (20, 40)})
-    hx, hy = h["r"]
-    p.glow([(hx - 10, hy), (hx + 10, hy), (hx - 60, hy + 120), (hx - 120, hy + 100)], (255, 240, 170, 40))
+    """Wchodzi przy poręczy w górę, plecami do nas; latarkę przed sobą zasłania dłonią — na stopniach przed nim
+    tylko czerwonawa poświata spod palców."""
+    K.stair_flight(p, t, dark=0.5)
+    x, a = -0.72, 1
+    moves = K.st_moves(a, 9)
+    feet, swing = K.st_pose(moves, K.st_clock(t, len(moves), 0.5, t0=0.25), a)
+    yc, zc = min(y for y, _ in feet.values()), sum(z for _, z in feet.values()) / 2
+    P = K.st_proj
+    p.glow([P(x - 0.3, yc + 0.1, zc + 0.3), P(x + 0.5, yc + 0.1, zc + 0.3), P(x + 0.9, yc + 0.7, zc + 2.4),
+            P(x - 0.4, yc + 0.7, zc + 2.4)], (255, 130, 96, 44))
+    K.st_person(p, t, feet, swing, x, "narrator", back=True, rail=True, arms={"r": (6, 64)})
 
 def s_barricade(p, t, T):
     j = 4 * math.sin(t * 60) if T * 0.55 < t < T * 0.55 + 0.3 else 0  # ktoś w środku przesuwa szafkę

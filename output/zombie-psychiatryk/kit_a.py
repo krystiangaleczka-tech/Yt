@@ -272,13 +272,14 @@ def zombie_profile(p, x, y, s, t, seed=3):
         p.line([(hx - 40 * s + k * 40 * s, y - 140 * s), (hx - 20 * s + k * 42 * s, y - 120 * s)], w=2.5)
 
 
-def zombie_back(p, x, y, s, t, seed, gown=(150, 160, 152), walk=None):
-    """Pacjent od tyłu (odchodzi w głąb). walk — zegar kroków albo None."""
+def zombie_back(p, x, y, s, t, seed, gown=(150, 160, 152), walk=None, legs=True):
+    """Pacjent od tyłu (odchodzi w głąb). walk — zegar kroków albo None; legs=False — nogi rysuje kto inny (schody)."""
     ph = (walk if walk is not None else t * 0.4) * 5
     sway = math.sin(t * 3.1 + seed) * 5 * s
     step = math.sin(ph) * 8 * s if walk is not None else 0
-    p.poly([(x - 22 * s, y - 70 * s), (x - 6 * s, y - 70 * s), (x - 8 * s, y + step), (x - 26 * s, y + step)], ZSKIN)
-    p.poly([(x + 6 * s, y - 70 * s), (x + 22 * s, y - 70 * s), (x + 26 * s, y - step), (x + 8 * s, y - step)], ZSKIN)
+    if legs:
+        p.poly([(x - 22 * s, y - 70 * s), (x - 6 * s, y - 70 * s), (x - 8 * s, y + step), (x - 26 * s, y + step)], ZSKIN)
+        p.poly([(x + 6 * s, y - 70 * s), (x + 22 * s, y - 70 * s), (x + 26 * s, y - step), (x + 8 * s, y - step)], ZSKIN)
     hx = x + sway
     p.poly([(hx - 44 * s, y - 192 * s), (hx + 44 * s, y - 192 * s), (x + 50 * s, y - 62 * s), (x - 50 * s, y - 62 * s)], gown)
     p.line([(hx, y - 190 * s), (x + 2 * s, y - 64 * s)], w=2.5)
@@ -386,20 +387,386 @@ def keyhole(p, t, T, plate=(170, 160, 120), wall=(112, 126, 112), ring=False):
     limb(p, (hx + 120, hy + 90), (hx + 360, H + 80), 110, UNI, outline=4)
 
 
-def stairwell(p, t):
-    """Betonowa klatka schodowa w dół, w prawo; zielone światło awaryjne nad wejściem."""
-    p.rect(0, 0, W, H, (92, 106, 96), w=0)
-    p.rect(0, 0, W, 120, (110, 122, 108), w=0)
-    steps = 9
-    for k in range(steps):
-        x0, y0 = 120 + k * 120, 300 + k * 52
-        p.poly([(x0, y0), (x0 + 120, y0), (x0 + 120, H + 20), (x0, H + 20)], (120 - k * 6, 126 - k * 6, 116 - k * 6), w=3)
-        p.line([(x0, y0), (x0 + 120, y0)], w=4)
-    p.line([(80, 160), (1280, 160 + 9 * 52)], w=6)  # poręcz
-    for k in range(0, 10, 2):
-        p.line([(80 + k * 120, 160 + k * 52), (80 + k * 120, 300 + k * 52)], w=4)
-    p.rect(60, 40, 200, 90, (120, 200, 140), w=3)
-    p.glow([(40, 20), (220, 20), (300, 260), (0, 260)], (120, 220, 150, 40))
+# ---------- klatka schodowa w osi biegu (5.11.2026: zamiast widoku z boku) ----------
+# Schody z boku nie pasowały do postaci rysowanych od przodu: postacie przeskakiwały ze stopnia na stopień albo sunęły
+# ukosem nad stopniami. Teraz kamera stoi u stóp biegu i patrzy w górę na podest (ten sam kadr, co „drzwi na szczycie
+# schodów”). Schodzący idą na kamerę (figure, R.zombie — od przodu), wchodzący się oddalają (figure_back, zombie_back).
+# Wszystko liczy się w metrach i rzutuje perspektywą, więc stopa stoi dokładnie na stopniu, a postać maleje
+# z odległością. Krok = przeniesienie jednej stopy (st_moves); każda postać ma własny zegar kroków (st_clock).
+ST_N, ST_R, ST_D, ST_W, ST_LAND = 12, 0.14, 0.26, 2.2, 1.4  # stopni do podestu, wysokość, głębokość, szerokość, podest
+ST_TOP = ST_N * ST_R
+ST_BACK = (ST_N - 1) * ST_D + ST_LAND  # ściana podestu (drzwi albo okno)
+ST_PX = 1.75 / 388  # metry na piksel postaci w skali s=1 (figure: od podeszwy do czubka głowy ok. 388 px)
+ST_ZS = 1.3  # zarażony (R.zombie, zombie_back) ma 270 px wzrostu — w tej samej odległości rysujemy go ×1,3
+ST_RAIL = 0.8  # poręcz na lewej ścianie, nad linią krawędzi stopni
+ST_CAMS = {
+    "dol": {"e": (0.1, 1.7, -1.9), "f": 720, "c": (640, 270)},  # z piwnicy u stóp biegu (oczy stojącego), w górę na podest
+    "drzwi": {"e": (0.0, 2.0, 1.9), "f": 700, "c": (640, 240)},  # z górnych stopni na dół drzwi i szparę (detal)
+    "srodek": {"e": (0.05, 2.0, 0.2), "f": 700, "c": (640, 340)},  # z dolnych stopni na podest (plan średni)
+    "gora": {"e": (0.05, 1.5, 0.9), "f": 700, "c": (640, 330)},  # nad górnymi stopniami (puszki na nitce, detal)
+}
+ST_WALL, ST_LAMP, ST_STEP, ST_RISE = (112, 124, 110), (72, 96, 84), (130, 132, 124), (100, 104, 98)
+ST_CEIL, ST_FLOOR, ST_DOOR = (84, 92, 86), (82, 84, 80), (60, 66, 64)
+_ST = {"cam": ST_CAMS["dol"], "dark": 0.0}
+
+
+def st_proj(X, Y, Z, cam=None):
+    """Punkt klatki (metry: X w prawo, Y w górę, Z w głąb biegu; Z=0 — pierwsze czoło stopnia) na kadr 1280×720."""
+    cam = cam or _ST["cam"]
+    (ex, ey, ez), f, (cx, cy) = cam["e"], cam["f"], cam["c"]
+    d = max(0.08, Z - ez)
+    return cx + f * (X - ex) / d, cy - f * (Y - ey) / d
+
+
+def st_scale(Z, cam=None):
+    """Skala figure() dla postaci stojącej na głębokości Z."""
+    cam = cam or _ST["cam"]
+    return cam["f"] * ST_PX / max(0.08, Z - cam["e"][2])
+
+
+def st_nose(Z):
+    """Wysokość linii krawędzi stopni (po niej biegnie poręcz): posadzka piwnicy → bieg → podest."""
+    return min(ST_TOP, max(0.0, ST_R * (Z / ST_D + 1)))
+
+
+def st_level(L):
+    """(Y, Z) miejsca na stopę na poziomie L: ≤0 posadzka przed biegiem, 1..N-1 środek stopnia, ≥N podest."""
+    def at(i):
+        if i <= 0:
+            return 0.0, -0.4 + 0.5 * i
+        if i >= ST_N:
+            return ST_TOP, min(ST_BACK - 0.25, (ST_N - 1) * ST_D + 0.35 + 0.45 * (i - ST_N))
+        return i * ST_R, (i - 0.5) * ST_D
+    i = math.floor(L)
+    (y0, z0), (y1, z1) = at(i), at(i + 1)
+    return y0 + (y1 - y0) * (L - i), z0 + (z1 - z0) * (L - i)
+
+
+def _st_col(col, Z):
+    """Dalej = ciemniej (bieg ginie w mroku), noc przyciemnia całość."""
+    d = Z - _ST["cam"]["e"][2]
+    k = (1 - 0.42 * min(1.0, max(0.0, (d - 1.5) / 5.5))) * (1 - 0.55 * _ST["dark"])
+    return tuple(int(c * k) for c in col)
+
+
+def _st_riser(p, i):
+    """Czoło stopnia i (1..N; N — krawędź podestu)."""
+    hw, z = ST_W / 2, (i - 1) * ST_D
+    if z < _ST["cam"]["e"][2] + 0.3:
+        return
+    P = st_proj
+    p.poly([P(-hw, (i - 1) * ST_R, z), P(hw, (i - 1) * ST_R, z), P(hw, i * ST_R, z), P(-hw, i * ST_R, z)],
+           _st_col(ST_RISE, z), w=3)
+
+
+def stair_flight(p, t, cam="dol", dark=0.0, top="drzwi", gap=1.0, shadow=0.0, glow=0.0, sky=(64, 74, 92), sign=True):
+    """Bieg schodów z piwnicy na podest w osi kamery. top: „drzwi” (drzwi parteru ze szparą światła; shadow -1..1 —
+    cień w szparze) albo „okno” (okno półpiętra na piętrach, kolor nieba sky). glow — poświata z góry."""
+    cam = ST_CAMS[cam] if isinstance(cam, str) else cam
+    _ST.update(cam=cam, dark=dark)
+    P = st_proj
+    ey, zn = cam["e"][1], cam["e"][2] + 0.3
+    hw = ST_W / 2
+    zl = (ST_N - 1) * ST_D  # krawędź podestu
+    zs = [z for z in (zn, -ST_D, zl, ST_BACK) if z >= zn]
+    p.rect(-400, -400, W + 400, H + 400, _st_col(ST_CEIL, 3.0), w=0)  # sufit i spód wyższego biegu
+    # ściana podestu
+    p.poly([P(-hw, ST_TOP - 0.1, ST_BACK), P(hw, ST_TOP - 0.1, ST_BACK), P(hw, ST_TOP + 2.5, ST_BACK),
+            P(-hw, ST_TOP + 2.5, ST_BACK)], _st_col(ST_WALL, ST_BACK), w=3)
+    p.poly([P(-hw, ST_TOP - 0.1, ST_BACK), P(hw, ST_TOP - 0.1, ST_BACK), P(hw, ST_TOP + 1.05, ST_BACK),
+            P(-hw, ST_TOP + 1.05, ST_BACK)], _st_col(ST_LAMP, ST_BACK), w=2)  # lamperia
+    if top == "drzwi":
+        d0, d1 = P(-0.45, ST_TOP, ST_BACK), P(0.45, ST_TOP + 1.95, ST_BACK)
+        p.rect(d0[0], d1[1], d1[0], d0[1], _st_col(ST_DOOR, ST_BACK), w=3)
+        hx, hy = P(0.33, ST_TOP + 1.0, ST_BACK)
+        p.line([(hx, hy), (hx - 14, hy)], w=4)  # klamka
+        if gap:  # szpara światła pod drzwiami (MASTER: na górze zawsze szpara światła)
+            g0, g1 = P(-0.44, ST_TOP, ST_BACK), P(0.44, ST_TOP + 0.045, ST_BACK)
+            p.rect(g0[0], g1[1], g1[0], g0[1], tuple(int(c * (0.55 + 0.45 * gap)) for c in (214, 222, 188)), w=0)
+            p.glow([g0, (g1[0], g0[1]), P(0.7, ST_TOP, ST_BACK - 0.9), P(-0.7, ST_TOP, ST_BACK - 0.9)],
+                   (200, 210, 170, int(34 * gap)))
+            if shadow and abs(shadow) < 1.25:  # cień przechodzi w szparze i kładzie się smugą na podeście
+                xa, xb = max(-0.44, 0.44 * shadow - 0.1), min(0.44, 0.44 * shadow + 0.1)
+                if xb > xa:
+                    a, b = P(xa, ST_TOP, ST_BACK), P(xb, ST_TOP + 0.045, ST_BACK)
+                    p.rect(a[0], b[1], b[0], a[1], (20, 22, 22), w=0)
+                    p.glow([a, P(xb, ST_TOP, ST_BACK), P(xb * 1.6, ST_TOP, ST_BACK - 0.9), P(xa * 1.6, ST_TOP, ST_BACK - 0.9)],
+                           (0, 0, 0, 70))
+        if sign:  # zielony znak wyjścia awaryjnego nad drzwiami
+            s0, s1 = P(-0.2, ST_TOP + 2.01, ST_BACK), P(0.2, ST_TOP + 2.16, ST_BACK)
+            p.rect(s0[0], s1[1], s1[0], s0[1], (120, 200, 140) if dark < 0.8 else (90, 150, 104), w=2.5)
+            p.glow([(s0[0] - 30, s1[1] - 20), (s1[0] + 30, s1[1] - 20), (s1[0] + 90, s0[1] + 120), (s0[0] - 90, s0[1] + 120)],
+                   (120, 220, 150, 34))
+    else:  # okno półpiętra
+        w0, w1 = P(-0.5, ST_TOP + 0.95, ST_BACK), P(0.5, ST_TOP + 2.15, ST_BACK)
+        sky = tuple(int(c * (1 - 0.3 * dark)) for c in sky)
+        p.rect(w0[0], w1[1], w1[0], w0[1], sky, w=4)
+        mx, my = (w0[0] + w1[0]) / 2, (w0[1] + w1[1]) / 2
+        p.line([(mx, w1[1]), (mx, w0[1])], w=4)
+        p.line([(w0[0], my), (w1[0], my)], w=4)
+        p.glow([w0, (w1[0], w0[1]), P(0.75, ST_TOP, ST_BACK - 1.6), P(-0.75, ST_TOP, ST_BACK - 1.6)], (*sky, 46))
+    if glow:
+        p.glow([P(-hw, ST_TOP + 2.5, ST_BACK), P(hw, ST_TOP + 2.5, ST_BACK), P(hw, ST_TOP, ST_BACK - 2.5),
+                P(-hw, ST_TOP, ST_BACK - 2.5)], (140, 230, 160, int(40 * glow)))
+    # ściany boczne z lamperią (olejna farba do 1 m nad stopniami)
+    for X in (-hw, hw):
+        p.poly([P(X, st_nose(z) + 2.5, z) for z in zs] + [P(X, -0.3, z) for z in reversed(zs)], _st_col(ST_WALL, 2.0), w=0)
+        p.poly([P(X, st_nose(z) + 1.25, z) for z in zs] + [P(X, -0.3, z) for z in reversed(zs)], _st_col(ST_LAMP, 2.0), w=0)
+        p.line([P(X, st_nose(z) + 1.25, z) for z in zs], w=2.5)
+        p.line([P(X, st_nose(z) + 2.5, z) for z in zs], w=3)  # styk ściany z sufitem
+        p.line([P(X, -0.3, ST_BACK), P(X, ST_TOP + 2.5, ST_BACK)], w=3)  # narożnik podestu
+    if top == "okno":  # na półpiętrze bieg skręca w prawo, w górę: stąd schodzą z wyższych pięter
+        za, zb = zl + 0.2, ST_BACK - 0.05
+        p.poly([P(hw, ST_TOP - 0.3, za), P(hw, ST_TOP - 0.3, zb), P(hw, ST_TOP + 2.4, zb), P(hw, ST_TOP + 2.4, za)],
+               _st_col((44, 50, 48), ST_BACK), w=3)
+        for j in range(1, 6):  # pierwsze stopnie wyższego biegu w przejściu
+            y = ST_TOP + j * ST_R
+            p.line([P(hw, y, za + 0.02), P(hw, y, zb - 0.02)], w=2.5, color=_st_col((96, 100, 94), ST_BACK))
+    for X, z, y, pts in ((hw, 1.3, 1.75, ((0, 0), (0.18, -0.1), (0.3, -0.06), (0.5, -0.2))),  # pęknięcie tynku
+                         (-hw, 0.4, 1.7, ((0, 0), (0.12, 0.08), (0.2, 0.02), (0.36, 0.14))),
+                         (hw, 2.4, 1.3, ((0, 0), (0.1, -0.12), (0.24, -0.1)))):
+        if z > zn + 0.2:
+            p.line([P(X, st_nose(z) + y + dy, z + dz) for dz, dy in pts], w=2, color=(52, 58, 54))
+    # podest i stopnie od najdalszego; stopnie powyżej oka widać tylko od czoła
+    if ST_TOP < ey:
+        p.poly([P(-hw, ST_TOP, max(zl, zn)), P(hw, ST_TOP, max(zl, zn)), P(hw, ST_TOP, ST_BACK), P(-hw, ST_TOP, ST_BACK)],
+               _st_col(ST_STEP, ST_BACK), w=3)
+    for i in range(ST_N, 0, -1):
+        z0, z1 = (i - 1) * ST_D, i * ST_D
+        if i < ST_N and i * ST_R < ey and z1 > zn:
+            p.poly([P(-hw, i * ST_R, max(z0, zn)), P(hw, i * ST_R, max(z0, zn)), P(hw, i * ST_R, z1), P(-hw, i * ST_R, z1)],
+                   _st_col(ST_STEP, z1), w=3)
+        _st_riser(p, i)
+    if zn < 0:  # posadzka piwnicy u stóp biegu
+        p.poly([P(-hw - 2, 0, zn), P(hw + 2, 0, zn), P(hw, 0, 0), P(-hw, 0, 0)], _st_col(ST_FLOOR, 0.0), w=0)
+        p.line([P(-hw, 0, 0), P(hw, 0, 0)], w=3)
+    # poręcz na lewej ścianie (zawsze nad stopniami — stopnie jej nie zasłaniają)
+    xr = -hw + 0.07
+    rail = [P(xr, st_nose(z) + ST_RAIL, z) for z in zs[:-1] + [ST_BACK - 0.1]]
+    p.line(rail, w=7)
+    p.line(rail, w=3, color=(118, 96, 70))
+    z = math.ceil((zn + 0.3) / 0.9) * 0.9
+    while z < ST_BACK - 0.2:  # wsporniki
+        y = st_nose(z) + ST_RAIL
+        p.line([P(xr, y, z), P(xr, y - 0.07, z), P(-hw, y - 0.07, z)], w=3)
+        z += 0.9
+
+
+def st_moves(a, b, kind="alt", lead="l"):
+    """Kroki z poziomu a na b (na starcie obie stopy na a): lista (stopa, skąd, dokąd).
+    alt — stopy na zmianę, każda mija drugą (zwykły chód); dost — krok dostawny: prowadząca stopa schodzi,
+    druga do niej dostawia (ostrożnie, z ciężarem, zarażony bez równowagi)."""
+    d = 1 if b > a else -1
+    other = "r" if lead == "l" else "l"
+    if kind == "dost":
+        return [m for L in range(a, b, d) for m in ((lead, L, L + d), (other, L, L + d))]
+    feet, out, f = {"l": a, "r": a}, [], lead
+    while feet["l"] != b or feet["r"] != b:
+        o = "r" if f == "l" else "l"
+        to = min(feet[o] + d, b) if d > 0 else max(feet[o] + d, b)
+        out.append((f, feet[f], to))
+        feet[f], f = to, o
+    return out
+
+
+def st_clock(t, n, step, hold=0.0, t0=0.0, jitter=0.0, seed=0):
+    """Ile z n kroków zrobiono w chwili t (ułamek — krok w toku): krok trwa `step` s, po nim postój `hold` s;
+    jitter 0..1 — nierówne tempo (zarażeni: każdy krok inny)."""
+    r = random.Random(seed)
+    t -= t0
+    for i in range(n):
+        m = step * (1 + jitter * r.uniform(-1, 1))
+        h = hold * (1 + jitter * r.uniform(-1, 1))
+        if t < m:
+            return i + max(0.0, t) / m
+        if t < m + h:
+            return i + 1.0
+        t -= m + h
+    return float(n)
+
+
+def st_pose(moves, k, a):
+    """Stopy po k krokach z poziomu a: ({'l': (Y, Z), 'r': (Y, Z)}, (stopa w powietrzu, faza) albo None)."""
+    lv = {"l": a, "r": a}
+    n = int(k)
+    for f, _, L1 in moves[:n]:
+        lv[f] = L1
+    feet = {f: st_level(L) for f, L in lv.items()}
+    fr = k - n
+    if n >= len(moves) or fr <= 0:
+        return feet, None
+    f, L0, L1 = moves[n]
+    (y0, z0), (y1, z1) = st_level(L0), st_level(L1)
+    e = fr * fr * (3 - 2 * fr)
+    if y1 < y0:  # w dół: stopa najpierw wysuwa się nad krawędź, potem opada na niższy stopień
+        zf, yf = 1 - (1 - e) ** 2, e * e
+    elif y1 > y0:  # w górę: najpierw się unosi, potem wchodzi na stopień
+        zf, yf = e * e, 1 - (1 - e) ** 2
+    else:
+        zf = yf = e
+    feet[f] = (y0 + (y1 - y0) * yf + 0.07 * math.sin(math.pi * fr), z0 + (z1 - z0) * zf)
+    return feet, (f, fr)
+
+
+def _leg(p, a, k, b, w0, w1, col):
+    """Noga jednym konturem: biodro a → kolano k → kostka b (bez szwu w kolanie)."""
+    def n(u, v, w):
+        dx, dy = v[0] - u[0], v[1] - u[1]
+        L = math.hypot(dx, dy) or 1.0
+        return -dy / L * w / 2, dx / L * w / 2
+    n0, n2 = n(a, k, w0), n(k, b, w1)
+    nk = ((n0[0] + n2[0]) / 2, (n0[1] + n2[1]) / 2)
+    p.poly([(a[0] + n0[0], a[1] + n0[1]), (k[0] + nk[0], k[1] + nk[1]), (b[0] + n2[0], b[1] + n2[1]),
+            (b[0] - n2[0], b[1] - n2[1]), (k[0] - nk[0], k[1] - nk[1]), (a[0] - n0[0], a[1] - n0[1])], col, w=3)
+
+
+def st_person(p, t, feet, swing, x, who, back=False, zombie=False, gown=(168, 178, 172), seed=0, tilt=0.0, rail=False,
+              arms=None, lean=0.0, kneel=None, drop=1.0, blood=0.0, **kw):
+    """Postać na schodach: stopy z st_pose (metry), x — odległość od osi biegu. Nogi liczone w przestrzeni
+    (kolano zgina się w stronę ruchu), tułów z figure / figure_back / R.zombie / zombie_back bez nóg.
+    Stopa na stopniu powyżej oka chowa się za jego krawędzią (czoło stopnia rysujemy ponownie).
+    rail — dłoń na poręczy (lewa ściana); kneel — stopa ('l'/'r'), która klęka (kolano na stopniu), drop 0..1 —
+    jak daleko już opadła, blood 0..1 — rozcięte kolano. Zwraca dłonie (figure, figure_back) albo {'x', 'y', 's'} tułowia zarażonego."""
+    ey = _ST["cam"]["e"][1]
+    leg = (70 * ST_ZS if zombie else 120) * ST_PX
+    zh = sum(z for _, z in feet.values()) / 2
+    yh = min(y + math.sqrt(max(0.0, (leg * 0.97) ** 2 - (z - zh) ** 2)) for y, z in feet.values())
+    if kneel:
+        yh += (feet[kneel][0] + leg * 0.5 - yh) * drop
+    s = st_scale(zh)
+    sb = s * ST_ZS if zombie else s
+    hx, hy = st_proj(x, yh, zh)
+    ybody = hy + (70 if zombie else 120) * sb
+    fwd = 1 if back else -1
+    om = (14 * ST_ZS if zombie else 18) * ST_PX
+    c = None if zombie else _costume(who)
+    col = ZSKIN if zombie else c["bottom"]
+    for f in sorted(feet, key=lambda f: -feet[f][1]):  # dalsza stopa pierwsza
+        side = -1 if f == "l" else 1
+        X = x + side * om
+        fy, fz = feet[f]
+        if f == kneel:  # kolano opada na stopień, łydka za nim (od przodu jej nie widać)
+            fy, fz = fy + 0.02 * drop, fz - 0.1 * fwd * drop
+        vy, vz = fy - yh, fz - zh
+        d = math.hypot(vy, vz) or 1e-6
+        if f == kneel or d >= leg * 0.995:
+            ky, kz = yh + vy / 2, zh + vz / 2
+        else:
+            hk = math.sqrt((leg / 2) ** 2 - (d / 2) ** 2)
+            ny, nz = -vz / d, vy / d
+            if nz * fwd < 0:
+                ny, nz = -ny, -nz
+            ky, kz = yh + vy / 2 + ny * hk, zh + vz / 2 + nz * hk
+        a, kp, b = st_proj(X, yh, zh), st_proj(X, ky, kz), st_proj(X, fy, fz)
+        sf = st_scale(fz) * (ST_ZS if zombie else 1)
+        if zombie:
+            _leg(p, a, kp, b, 16 * sb, 17 * sf, col)
+            p.ell(b[0], b[1] - 4 * sf, 12 * sf, 6 * sf, ZSKIN, w=2.5)
+        elif f == kneel:
+            _leg(p, a, kp, b, 32 * s, 30 * sf, col)
+            p.ell(b[0], b[1] - 6 * sf, 17 * sf, 12 * sf, col, w=3)  # kolano na krawędzi stopnia
+            if blood:
+                p.ell(b[0] + 2 * sf, b[1] - 6 * sf, 11 * sf * blood, 8 * sf * blood, (170, 36, 36), w=0)
+        else:
+            ux, uy, vx, vy = a[0] - kp[0], a[1] - kp[1], b[0] - kp[0], b[1] - kp[1]
+            fold = (ux * vx + uy * vy) / ((math.hypot(ux, uy) * math.hypot(vx, vy)) or 1.0)
+            shoe = lambda: p.ell(b[0], b[1] - 8 * sf, 18 * sf, (9 if back else 10) * sf, c["shoes"], w=3)
+            if fold > -0.35:  # mocno zgięta noga: udo i łydka osobno, bliższa część rysowana później
+                sk = st_scale(kz)
+                parts = [((zh + kz) / 2, lambda: limb(p, a, kp, 32 * s, col)),
+                         ((kz + fz) / 2, lambda: (shoe(), limb(p, kp, b, 28 * sf, col)))]
+                for _, draw in sorted(parts, key=lambda q: -q[0]):
+                    draw()
+                p.ell(kp[0], kp[1], 15 * sk, 13 * sk, col, w=3)  # kolano
+            else:
+                _leg(p, a, kp, b, 32 * s, 28 * sf, col)
+                shoe()
+        if who == "narrator" and NARRATOR_KNEE and side < 0 and f != kneel:
+            p.rect(kp[0] - 15 * s, kp[1] - 10 * s, kp[0] + 15 * s, kp[1] + 10 * s, WHITE, w=2)
+        j = max(1, min(ST_N, int(fz // ST_D) + 1))
+        if fz > (j - 1) * ST_D and j * ST_R > ey:
+            _st_riser(p, j)  # krawędź stopnia zasłania podeszwę
+    if arms is None and not zombie:
+        sw = math.sin(math.pi * swing[1]) if swing else 0.0
+        arms = {k: (sd * 14, 95 + (8 * sw if swing and swing[0] != k else -4 * sw)) for k, sd in (("l", -1), ("r", 1))}
+    if rail and not zombie:
+        zr = zh + 0.14 * fwd
+        rx, ry = st_proj(-ST_W / 2 + 0.07, st_nose(zr) + ST_RAIL, zr)
+        sx, sy = hx + lean * 20 * s - 50 * s, ybody - 268 * s
+        arms = {**arms, "l": ((rx - sx) / s, (ry - sy) / s)}
+    if zombie:
+        if back:
+            zombie_back(p, hx, ybody, sb, t, seed, gown=gown, legs=False)
+        else:
+            R.zombie(p, hx, ybody, sb, t, seed, gown=gown, tilt=tilt, legs=False, **kw)
+        return {"x": hx, "y": ybody, "s": sb}
+    if back:
+        hands = figure_back(p, hx, ybody, s, t, who, arms=arms, legs=False)
+    else:
+        hands = figure(p, hx, ybody, s, t, who, arms=arms, lean=lean, legs=False, **kw)
+    return {**hands, "s": s}
+
+
+def st_walker(p, t, who, a, b, step, x=0.0, t0=0.0, kind="alt", lead="l", hold=0.0, jitter=0.0, seed=0, **kw):
+    """Postać idąca po schodach z poziomu a na b: w dół od przodu, w górę od tyłu. Zwraca dłonie (figure)."""
+    moves = st_moves(a, b, kind, lead)
+    k = st_clock(t, len(moves), step, hold, t0, jitter, seed)
+    feet, swing = st_pose(moves, k, a)
+    return st_person(p, t, feet, swing, x, who, back=b > a, seed=seed, **kw)
+
+
+def st_group(p, t, walkers):
+    """Kilka postaci na schodach naraz (dict-y z argumentami st_walker: who, a, b, step, x, t0, kind, lead, hold,
+    jitter, seed i reszta dla st_person). Każda ma własny zegar; rysujemy od najdalszej. Zwraca wyniki w kolejności."""
+    poses = []
+    for i, w in enumerate(walkers):
+        w = dict(w)
+        a, b = w.pop("a"), w.pop("b")
+        moves = st_moves(a, b, w.pop("kind", "alt"), w.pop("lead", "l"))
+        k = st_clock(t, len(moves), w.pop("step"), w.pop("hold", 0.0), w.pop("t0", 0.0), w.pop("jitter", 0.0),
+                     w.get("seed", 0))
+        feet, swing = st_pose(moves, k, a)
+        poses.append((sum(z for _, z in feet.values()), i, feet, swing, b > a, w))
+    out = [None] * len(walkers)
+    for _, i, feet, swing, back, w in sorted(poses, key=lambda q: -q[0]):
+        out[i] = st_person(p, t, feet, swing, w.pop("x", 0.0), w.pop("who", None), back=back, **w)
+    return out
+
+
+def st_can(p, X, Y, Z, rot=0.0, col=(180, 186, 190)):
+    """Puszka po konserwie (7 × 10 cm), środek w (X, Y, Z); rot — obrót w kadrze (spada, toczy się)."""
+    cx, cy = st_proj(X, Y, Z)
+    f = _ST["cam"]["f"] / max(0.08, Z - _ST["cam"]["e"][2])
+    w, h, c, sn = 0.035 * f, 0.05 * f, math.cos(rot), math.sin(rot)
+    q = lambda dx, dy: (cx + dx * c - dy * sn, cy + dx * sn + dy * c)
+    p.poly([q(-w, -h), q(w, -h), q(w, h), q(-w, h)], _st_col(col, Z), w=3)
+    p.line([q(-w, -h * 0.2), q(w, -h * 0.2)], w=1.5)
+    p.ell(*q(0, -h), w, w * 0.32, _st_col((206, 210, 212), Z), w=2.5, rot=rot)
+
+
+CAN_TREAD, CAN_X = 9, (-0.78, -0.4, -0.02, 0.38, 0.76)  # pułapka z d06: nitka nad 9. stopniem, pięć puszek
+CAN_Y, CAN_Z = CAN_TREAD * ST_R + 0.2, (CAN_TREAD - 1) * ST_D + 0.06
+
+
+def can_trap(p, t, broken=False):
+    """Nitka od ściany do ściany na wysokości kostki nad stopniem CAN_TREAD; puszki wiszą tuż nad stopniem.
+    broken — po zerwaniu zostają tylko końce nitki zwisające przy ścianach (puszki rysuje ujęcie)."""
+    P, hw = st_proj, ST_W / 2
+    if broken:
+        for X, d in ((-hw, 1), (hw, -1)):
+            p.line([P(X, CAN_Y, CAN_Z), P(X + d * 0.12, CAN_Y - 0.1, CAN_Z), P(X + d * 0.16, CAN_Y - 0.18, CAN_Z)],
+                   w=2, color=(240, 240, 230), amp=0.4)
+        return
+    p.line([P(-hw, CAN_Y, CAN_Z), P(0, CAN_Y - 0.03, CAN_Z), P(hw, CAN_Y, CAN_Z)], w=2, color=(240, 240, 230), amp=0.4)
+    for i, x in enumerate(CAN_X):
+        sw = 0.012 * math.sin(t * 2 + i)
+        p.line([P(x, CAN_Y - 0.03 * (1 - abs(x) / hw), CAN_Z), P(x + sw, CAN_Y - 0.07, CAN_Z)], w=1.5, color=(240, 240, 230))
+        st_can(p, x + sw, CAN_Y - 0.12, CAN_Z, rot=sw * 4)
+
+
+def stairwell(p, t, **kw):
+    """Klatka schodowa główna z piwnicy na parter (zgodność ze starymi wywołaniami)."""
+    stair_flight(p, t, **kw)
 
 
 def basement(p, t, flick=1.0, vp=(640, 340)):
@@ -677,19 +1044,10 @@ def ceiling_crack(p, t):
         p.ell(x, y, 3, 3, (170, 170, 160), w=0)
 
 
-def stair_door(p, t, shadow=0.0, glow=0.0):
-    """Ciemne schody w górę do zamkniętych drzwi; w szparze pod drzwiami światło i cień (shadow -1..1 — gdzie)."""
-    p.rect(0, 0, W, H, (40, 44, 46), w=0)
-    for k in range(8):
-        y = H - k * 60
-        p.rect(300 + k * 24, y - 60, 980 - k * 24, y, (60 - k * 3, 64 - k * 3, 66 - k * 3))
-    p.rect(500, 40, 780, 230, (54, 60, 58))
-    p.rect(500, 226, 780, 236, (190, 200, 170) if glow == 0 else (210, 220, 190), w=0)
-    if shadow:
-        x = 640 + 200 * shadow
-        p.rect(x - 40, 226, x + 40, 236, (20, 22, 22), w=0)
-    if glow:
-        p.glow([(560, 20), (720, 20), (760, 120), (520, 120)], (140, 230, 160, int(40 * glow)))
+def stair_door(p, t, shadow=0.0, glow=0.0, cam="drzwi", dark=0.55):
+    """Ciemne schody w górę do zamkniętych drzwi parteru — ta sama klatka co stair_flight; w szparze pod drzwiami
+    światło i cień (shadow -1..1 — gdzie). cam: „drzwi” (detal z połowy biegu) albo „dol” (z piwnicy)."""
+    stair_flight(p, t, cam=cam, dark=dark, shadow=shadow, glow=glow)
 
 
 def sitting(p, x, y, s, t, who, look=0.0, gaze=None, eyes=None, mouth=0.0, arms=None):
@@ -859,13 +1217,14 @@ HAIR_BACK = {"orderly": HAIR, "bun": (52, 40, 36), "nowak": (170, 170, 166), "he
              "irena": (206, 204, 200), "mask": (78, 90, 60)}
 
 
-def figure_back(p, x, y, s, t, who, walk=None, arms=None):
-    """Postać od tyłu (odchodzi w głąb), stopy w (x, y), skala jak figure(). arms jak w figure()."""
+def figure_back(p, x, y, s, t, who, walk=None, arms=None, legs=True):
+    """Postać od tyłu (odchodzi w głąb), stopy w (x, y), skala jak figure(). arms jak w figure();
+    legs=False — nogi rysuje kto inny (schody: st_person). Zwraca dłonie."""
     c = _costume(who)
     ph = (walk or 0.0) * 6
     if walk is not None:
         y -= abs(math.sin(ph)) * 5 * s
-    for side, sgn in ((-1, 1), (1, -1)):
+    for side, sgn in ((-1, 1), (1, -1)) if legs else ():
         lift = max(0, math.sin(ph) * sgn) * 16 * s if walk is not None else 0
         lx = x + side * 18 * s
         p.poly([(lx - 16 * s, y - 120 * s), (lx + 16 * s, y - 120 * s), (lx + 14 * s, y - 14 * s - lift),
@@ -873,6 +1232,7 @@ def figure_back(p, x, y, s, t, who, walk=None, arms=None):
         p.ell(lx, y - 8 * s - lift, 18 * s, 9 * s, c["shoes"], w=3)
     p.poly([(x - 54 * s, y - 280 * s), (x + 54 * s, y - 280 * s), (x + 56 * s, y - 112 * s), (x - 56 * s, y - 112 * s)], c["top"])
     arms = arms or {}
+    hands = {}
     for side in (-1, 1):
         key = "l" if side < 0 else "r"
         sh = (x + side * 50 * s, y - 268 * s)
@@ -880,6 +1240,7 @@ def figure_back(p, x, y, s, t, who, walk=None, arms=None):
         hand = (sh[0] + dx * s, sh[1] + dy * s)
         limb(p, sh, hand, 24 * s, c["sleeve"])
         p.ell(hand[0], hand[1], 13 * s, 13 * s, c["skin"])
+        hands[key] = hand
     hx, hy = x, y - 336 * s
     p.poly([(hx - 14 * s, hy + 40 * s), (hx + 14 * s, hy + 40 * s), (x + 14 * s, y - 274 * s), (x - 14 * s, y - 274 * s)], c["skin"], w=3)
     p.ell(hx, hy, 46 * s, 52 * s, c["skin"])
@@ -901,6 +1262,7 @@ def figure_back(p, x, y, s, t, who, walk=None, arms=None):
             p.ell(hx, hy - 52 * s, 20 * s, 16 * s, hc)
     if who == "nowak":  # fartuch: biały, z rozcięciem na plecach
         p.line([(x, y - 200 * s), (x, y - 112 * s)], w=2.5)
+    return hands
 
 
 def basement_door(p, t, vp=(640, 340), sign=True, open_=0.0):

@@ -15,14 +15,21 @@ def talk(t, T):
     return 0.5 + 0.5 * math.sin(t * 9) if 0.3 < t < T - 0.4 else 0.0
 
 
-def step_xy(k):
-    """Środek k-tego stopnia klatki schodowej (kit_a.stairwell) — tu stoją stopy."""
-    return 180 + k * 120, 300 + k * 52
+NX = 0.15  # pielęgniarka stoi na podeście trochę na prawo od osi biegu
+ROLL = (0.62, K.ST_TOP + 0.06, K.ST_BACK - 0.45)  # rolka bandaża po odbiciu leży na podeście (s_bounce)
 
 
-def nurse(p, x, y, s, t, tilt=0.35):
-    R.zombie(p, x, y, s, t, 60, gown=NURSE, tilt=tilt)
-    p.rect(x + 8 * s, y - 170 * s, x + 30 * s, y - 154 * s, (240, 240, 236), w=2)  # identyfikator
+def nurse(p, t, feet, swing=None, tilt=0.35, back=False):
+    """Zarażona pielęgniarka na schodach (kit_a.st_person); od przodu z identyfikatorem na fartuchu."""
+    b = K.st_person(p, t, feet, swing, NX, None, back=back, zombie=True, gown=NURSE, seed=61 if back else 60, tilt=tilt)
+    if not back:
+        s = b["s"]
+        x = b["x"] + 0.85 * math.sin(t * 3.1 + 60) * 6 * s  # za kołysaniem fartucha (R.zombie)
+        p.rect(x + 8 * s, b["y"] - 170 * s, x + 30 * s, b["y"] - 154 * s, (240, 240, 236), w=2)  # identyfikator
+
+
+def stand(L):
+    return {f: K.st_level(L) for f in "lr"}
 
 
 def s_guard(p, t, T):
@@ -40,7 +47,7 @@ def s_sleep(p, t, T):
 
 def s_stairs_dark(p, t, T):
     sh = (t - T * 0.55) / (T * 0.4)  # cień przechodzi w szparze światła na górze
-    K.stair_door(p, t, shadow=(-0.8 + 1.6 * sh) if 0 < sh < 1 else 0.0)
+    K.stair_door(p, t, shadow=(-1.3 + 2.6 * sh) if 0 < sh < 1 else 0.0, cam="dol")
 
 
 def s_foot(p, t, T):
@@ -57,10 +64,9 @@ def s_foot(p, t, T):
 
 
 def s_nurse_landing(p, t, T):
-    K.stairwell(p, t)
-    x, y = step_xy(1)
+    K.stair_flight(p, t, cam="srodek", dark=0.55)
     tilt = 0.2 + 0.25 * ease((t - T * 0.5) / 0.8)  # głowa przekrzywia się jeszcze bardziej — nasłuchuje
-    nurse(p, x, y, 0.9, t, tilt=tilt)
+    nurse(p, t, stand(12), tilt=tilt)
 
 
 def s_badge(p, t, T):
@@ -86,11 +92,11 @@ def s_moan(p, t, T):
 
 
 def s_nurse_step(p, t, T):
-    K.stairwell(p, t)
-    k = ease((t - T * 0.35) / (T * 0.4))
-    x0, y0 = step_xy(1)
-    x1, y1 = step_xy(2)
-    nurse(p, x0 + (x1 - x0) * k, y0 + (y1 - y0) * k - 20 * math.sin(k * math.pi), 0.9, t, tilt=0.4)
+    """Schodzi o jeden stopień: prawa stopa w dół, lewa dostawia — i znów stoi."""
+    K.stair_flight(p, t, cam="srodek", dark=0.55)
+    moves = K.st_moves(12, 11, "dost", lead="r")
+    feet, swing = K.st_pose(moves, K.st_clock(t, len(moves), 0.45, hold=0.15, t0=T * 0.3), 12)
+    nurse(p, t, feet, swing, tilt=0.4)
 
 
 def s_hand_mouth(p, t, T):
@@ -114,17 +120,23 @@ def s_rise(p, t, T):
 
 
 def s_throw(p, t, T):
-    K.stairwell(p, t)
-    x, y = step_xy(8)
-    k = ease(min(1.0, t / (T * 0.35)))
-    h = K.figure(p, x, y, 0.95, t, "henryk", look=-0.6, arms={"r": (-60 - 40 * k, 40 - 200 * k)})
-    if t < T * 0.35:
-        K.bandage(p, h["r"][0], h["r"][1], r=18)
-    else:  # rolka leci łukiem w górę schodów
-        f = (t - T * 0.35) / (T * 0.65)
-        bx = h["r"][0] - 900 * f
-        by = h["r"][1] - 380 * f + 260 * f * f
-        K.bandage(p, bx, by, r=18 * (1 - 0.4 * f), rot=t * 8)
+    """Henryk na dolnych stopniach, plecami do nas, rzuca rolkę nad pielęgniarką na podest (ona stoi stopień niżej)."""
+    K.stair_flight(p, t, dark=0.55)
+    rel = T * 0.35
+    k = ease(min(1.0, t / rel))
+    f = max(0.0, (t - rel) / (T - rel))
+    a, b = (0.68, 1.95, 0.5), (0.4, K.ST_TOP + 1.0, K.ST_BACK - 0.06)  # z dłoni łukiem nad jej głową w ścianę
+    X, Y, Z = (a[i] + (b[i] - a[i]) * f for i in range(3))
+    Y += 0.8 * math.sin(math.pi * f)
+    roll = lambda: K.bandage(p, *K.st_proj(X, Y, Z), r=0.07 * K.st_scale(Z) / K.ST_PX, rot=t * 8)
+    if t >= rel and Z > K.st_level(11)[1]:
+        roll()
+    nurse(p, t, stand(11), tilt=0.4)
+    if t >= rel and Z <= K.st_level(11)[1]:
+        roll()
+    h = K.st_person(p, t, stand(2), None, 0.55, "henryk", back=True, arms={"r": (34 - 14 * k, 60 - 240 * k)})
+    if t < rel:
+        K.bandage(p, h["r"][0], h["r"][1], r=0.07 * K.st_scale(K.st_level(2)[1]) / K.ST_PX)
 
 
 def s_bounce(p, t, T):
@@ -145,14 +157,12 @@ def s_bounce(p, t, T):
 
 
 def s_nurse_up(p, t, T):
-    K.stairwell(p, t)
-    k = t / T
-    pos = 2 - 2 * k
-    i = int(math.floor(pos))
-    fr = ease(pos - i)
-    xa, ya = step_xy(i)
-    xb, yb = step_xy(min(8, i + 1))
-    K.zombie_back(p, xa + (xb - xa) * fr, ya + (yb - ya) * fr, 0.9, t, 61, gown=NURSE, walk=t * 0.6)
+    """Odwrócona plecami wspina się za dźwiękiem na podest, do rolki leżącej pod ścianą."""
+    K.stair_flight(p, t, cam="srodek", dark=0.55)
+    K.bandage(p, *K.st_proj(*ROLL), r=0.07 * K.st_scale(ROLL[2]) / K.ST_PX, rot=0.4)
+    moves = K.st_moves(11, 14, lead="l")
+    feet, swing = K.st_pose(moves, K.st_clock(t, len(moves), 0.6, t0=0.15, jitter=0.2, seed=61), 11)
+    nurse(p, t, feet, swing, back=True)
 
 
 def s_nod(p, t, T):
@@ -162,15 +172,8 @@ def s_nod(p, t, T):
 
 
 def s_cans(p, t, T):
-    K.stairwell(p, t)
-    sw = 6 * math.sin(t * 2)
-    a, b = step_xy(3), step_xy(5)
-    p.line([(a[0] - 60, a[1] - 40), (b[0] + 60, b[1] - 40)], w=2, color=(240, 240, 230), amp=0.4)
-    for k in range(5):
-        x = a[0] - 40 + k * 70
-        y = a[1] - 40 + (b[1] - a[1]) * (x - a[0] + 60) / (b[0] - a[0] + 120)
-        p.line([(x, y), (x + sw, y + 30)], w=1.5, color=(240, 240, 230))
-        p.rect(x + sw - 16, y + 30, x + sw + 16, y + 70, (180, 186, 190), w=3)
+    K.stair_flight(p, t, cam="gora", dark=0.3)
+    K.can_trap(p, t)
 
 
 def s_chalk(p, t, T):
