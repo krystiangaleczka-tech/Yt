@@ -5,8 +5,8 @@
     "1": 14
   },
   "tempo": {
-    "minSeconds": 55,
-    "maxSeconds": 80,
+    "minSeconds": 60,
+    "maxSeconds": 100,
     "maxVoiceShare": 0.8
   },
   "places": [
@@ -670,7 +670,7 @@
         {
           "at": "d03_09~Wody",
           "days": 1,
-          "note": "„Wody na jeden dzień.”"
+          "note": "„Wody zostało na jeden dzień, a jedzenia na trzy.”"
         },
         {
           "at": "d04_28~woda",
@@ -685,7 +685,7 @@
         {
           "at": "d10_22~butelek",
           "days": 3,
-          "note": "„Dwanaście butelek wody. Na trzy dni.”"
+          "note": "„Mieliśmy dwanaście butelek wody, czyli zapas na trzy dni.”"
         },
         {
           "at": "d22_03~Wody",
@@ -1373,6 +1373,12 @@
       "text": "Poprawki scenariusza dni 21–30 — woda w d22 „na siedem dni, do trzydziestego osiem” i trzy kanistry z dachu (bilans); paliwo „na cztery dni” w d26 (agregat do świtu d30); alarm z pianina w świetlicy parteru (d27, d30 — zarażeni idą korytarzem do świetlicy, nie na górę); Zosia skaleczyła się w d14 o szkło (nie w d1, którego to nie pokazuje); w d28 Zosia mówi „czworo” zamiast nazwisk (narrator nie ma imienia); w d29 notatki i przepustka dla córki zamiast zdjęcia z portfela (nie było zasiane); Kuba dostaje nakładkę klawisza; d30 kończy się odjazdem do pierwszego kadru filmu, bez osobnej karty napisów.",
       "at": "2026-11-05",
       "by": "reżyser"
+    },
+    {
+      "id": "D9",
+      "at": "2026-11-06",
+      "by": "reżyser",
+      "text": "Kwestie lektora to pełne zdania z czasownikiem, bez urwanych dopowiedzeń („Kratę owinęliśmy ręcznikami. Nie zadzwoniła.” → „Kratę owinęliśmy ręcznikami, żeby nie zadzwoniła.”; „Poszli dalej. W stronę rozdzielni.” → „Nie wyczuli nas i poszli dalej w stronę rozdzielni.”). W sekwencjach zdarzeń kwestie łączą łączniki (wtedy, potem, następnie, wówczas, później, wcześniej, natomiast, bo, żeby, aby, więc, ale) — nie w każdej kwestii. Przepisano 101 kwestii dni 1–30; zimne otwarcie i ostatnia kwestia filmu bez zmian, dialogi bez zmian. Dzień trwa od 60 s do ok. 100 s: dzień z dużą ilością mowy trwa dłużej, ujęć bez słów nie ściska się do 80 s."
     }
   ]
 }

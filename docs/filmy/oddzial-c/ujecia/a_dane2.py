@@ -18,7 +18,7 @@ DAYS = [
                 ("Z", "stat", 2, "Nowak", "Nowak: „Wszyscy. Ja też. Tylko trochę później.”"),
                 ("Z", "stat", 2, "narrator", "Narrator: „Ile ma pan czasu?”"),
                 ("Z", "stat", 2, "Nowak", "Nowak: „Prawie nic.”"),
-                ("PŚ", "stat", 2, "Kuba wskazuje drzwi na podwórze, Zosia drzwi gabinetu", "L: Kuba chciał go wyrzucić. Zosia zamknąć.")])]),
+                ("PŚ", "stat", 2, "Kuba wskazuje drzwi na podwórze, Zosia drzwi gabinetu", "L: Kuba chciał go wyrzucić, a Zosia zamknąć.")])]),
         ("Izolatka", "oddział C", [
             ("Henryk prowadzi", [
                 ("PŚ", "stat", 2, "Henryk wstaje i bierze Nowaka za rękę", ""),
@@ -40,14 +40,14 @@ DAYS = [
                 ("Z", "stat", 2, "narrator", "Narrator: „Powiem.”"),
                 ("Z", "stat", 2, "Nowak powtarza pojedyncze słowa, coraz wolniej", "Nowak: „Dyżur… dyżur…”")]),
             ("Przemiana", [
-                ("D", "stat", 2, "notes narratora: godziny i objawy", "L: Zapisywałem godziny. Zosia prosiła o notatki."),
+                ("D", "stat", 2, "notes narratora: godziny i objawy", "L: Zapisywałem godziny, bo Zosia prosiła o notatki."),
                 ("WZ", "naj", 2, "oczy Nowaka bieleją od brzegów, przestaje mrugać", ""),
-                ("D", "stat", 2, "notes: gorączka, cisza, brak mrugania, kołysanie", "L: Gorączka. Cisza. Brak mrugania. Kołysanie.")])]),
+                ("D", "stat", 2, "notes: gorączka, cisza, brak mrugania, kołysanie", "L: Najpierw gorączka, potem cisza, brak mrugania i kołysanie.")])]),
         ("Szyba", "korytarz C, noc", [
             ("Uderzenie", [
                 ("Z", "stat", 2, "noc: okienko izolatki ciemne", "cisza"),
                 ("Z", "szarp", 2, "Nowak uderza twarzą w szybę", "uderzenie w szybę"),
-                ("Z", "stat", 2, "narrator: zrozumienie", "L: Wtedy zrozumiałem. Pan Henryk nie zmienił się tamtej nocy."),
+                ("Z", "stat", 2, "narrator: zrozumienie", "L: Wtedy zrozumiałem, że pan Henryk nie zmienił się tamtej nocy."),
                 ("Z", "stat", 2, "Henryk", "L: Uderzał w szybę, żeby mnie ostrzec."),
                 ("Z", "stat", 2, "Henryk uśmiecha się kącikami ust", ""),
                 ("WZ", "stat", 2, "para z oddechu Nowaka na szybie, coraz rzadziej", ""),
@@ -56,7 +56,7 @@ DAYS = [
                 ("Z", "stat", 2, "narrator", "Narrator: „Czemu pan prawie nie mruga?”"),
                 ("D", "stat", 2, "palec Henryka pisze na zaparowanej szybie: PATRZĘ", ""),
                 ("Z", "naj", 2, "Nowak w okienku odwraca się twarzą do ściany", "L: Nad ranem odszedł od okienka."),
-                ("Z", "stat", 2, "Henryk zamyka oczy i zasypia na siedząco", "L: Pan Henryk zasnął. Pierwszy raz od siedemnastu dni.")])]),
+                ("Z", "stat", 2, "Henryk zamyka oczy i zasypia na siedząco", "L: Pan Henryk zasnął pierwszy raz od siedemnastu dni.")])]),
     ]),
 
     (18, "Henryk mówi", [
@@ -65,7 +65,7 @@ DAYS = [
                 ("TYT", "stat", 2, "DZIEŃ 18", ""),
                 ("PŚ", "stat", 2, "pokój socjalny: Henryk budzi się na kanapie", "L: Obudził się na kanapie w pokoju socjalnym."),
                 ("D", "stat", 2, "Zosia nalewa herbatę z czajnika z dyżurki, para z kubka", ""),
-                ("Z", "stat", 2, "Henryk pije powoli", "L: Pił bardzo powoli. Jakby nie pamiętał smaku.")]),
+                ("Z", "stat", 2, "Henryk pije powoli", "L: Pił bardzo powoli, jakby nie pamiętał smaku.")]),
             ("Opowieść", [
                 ("Z", "stat", 2, "Henryk mówi pierwszy raz, chrapliwie", "Henryk: „Nazywam się Henryk Wilk.”"),
                 ("Z", "stat", 2, "Henryk", "Henryk: „Uczyłem muzyki.”"),
@@ -81,11 +81,11 @@ DAYS = [
                 ("Z", "stat", 2, "Kuba najpierw się śmieje, potem oddycha cicho", "")])]),
         ("Pianino", "świetlica parteru", [
             ("Nie zagrał", [
-                ("PO", "stat", 2, "świetlica wieczorem: Henryk siada przy pianinie, nie dotyka klawiszy", "L: Wieczorem usiadł przy pianinie. Nie zagrał."),
+                ("PO", "stat", 2, "świetlica wieczorem: Henryk siada przy pianinie, nie dotyka klawiszy", "L: Wieczorem usiadł przy pianinie, ale nie zagrał."),
                 ("Z", "stat", 2, "Henryk", "Henryk: „Zagram, kiedy trzeba będzie was zawołać.”"),
                 ("D", "stat", 2, "notes: narrator zapisuje to zdanie", ""),
                 ("D", "stat", 2, "noc: okno, cisza zamiast megafonu", "cisza"),
-                ("POV", "naj", 2, "przez okno: połowa ciężarówek odjeżdża spod bramy", "L: W nocy megafon milczał. Połowa ciężarówek odjechała.")])]),
+                ("POV", "naj", 2, "przez okno: połowa ciężarówek odjeżdża spod bramy", "L: W nocy megafon milczał, a połowa ciężarówek odjechała.")])]),
     ]),
 
     (19, "Głód", [
@@ -102,7 +102,7 @@ DAYS = [
                 ("Z", "stat", 2, "okienko chłodni: kucharka, oszronione rzęsy", ""),
                 ("Z", "stat", 2, "Henryk patrzy długo", "Henryk: „To Basia. Zawsze dawała mi dokładkę.”"),
                 ("PŚ", "stat", 2, "narrator otwiera drzwi chłodni", ""),
-                ("PŚ", "stat", 2, "Basia wychodzi wolno", "L: Wyszła wolno. Jakby była zmęczona."),
+                ("PŚ", "stat", 2, "Basia wychodzi wolno", "L: Wyszła wolno, jakby była zmęczona."),
                 ("PŚ", "stat", 2, "Henryk oddycha głośno, Basia idzie za nim do magazynu", "głośny oddech")]),
             ("Wózek", [
                 ("PŚ", "stat", 2, "narrator ładuje wózek jedzeniem z chłodni", ""),
@@ -112,7 +112,7 @@ DAYS = [
                 ("PŚ", "stat", 2, "Henryk zamyka magazyn, Basia nie stawia oporu", "")])]),
         ("Wieczór", "pokój socjalny", [
             ("Kuba", [
-                ("PŚ", "stat", 2, "Irena gotuje, para nad garnkiem", "L: Pierwszy ciepły posiłek od dwóch tygodni."),
+                ("PŚ", "stat", 2, "Irena gotuje, para nad garnkiem", "L: Zjedliśmy pierwszy ciepły posiłek od dwóch tygodni."),
                 ("Z", "stat", 2, "Kuba", "Kuba: „Trafiłem na A po próbie samobójczej.”"),
                 ("Z", "stat", 2, "Kuba", "Kuba: „Od wybuchu ani razu o tym nie pomyślałem.”"),
                 ("Z", "stat", 2, "Zosia kładzie mu dłoń na ramieniu", "")]),
@@ -155,7 +155,7 @@ DAYS = [
             ("Haczyk", [
                 ("TYT", "stat", 2, "DZIEŃ 21", ""),
                 ("PŚ", "szarp", 2, "sala 8 nocą: drzwi szafy otwierają się na oścież, wychodzi zarażony w piżamie", "skrzyp drzwi szafy"),
-                ("D", "stat", 2, "zamek szafy: zwykły haczyk, wygięty", "L: Szafy nie trzymał prąd. Tylko haczyk."),
+                ("D", "stat", 2, "zamek szafy: zwykły haczyk, wygięty", "L: Szafy nie trzymał prąd, tylko zwykły haczyk."),
                 ("PŚ", "szarp", 2, "narrator wypada na korytarz i zatrzaskuje drzwi sali 8", "szczęk zamka"),
                 ("Z", "stat", 2, "narrator oparty plecami o drzwi; w okienku za nim twarz zarażonego", "")])]),
         ("Agregat wojska", "podwórze, od rana do wieczora", [
@@ -204,7 +204,7 @@ DAYS = [
                 ("D", "stat", 2, "lina z kanistrem ociera się o rynnę", "szuranie liny"),
                 ("POV", "stat", 2, "z dachu: zarażeni na podwórzu podnoszą twarze ku dachowi", ""),
                 ("D", "stat", 2, "dłoń narratora zaciska się na linie; kanister wisi nieruchomo", ""),
-                ("PO", "stat", 2, "dach o zachodzie: dwie postacie leżą bez ruchu przy zbiorniku", "L: Czekaliśmy, aż o nas zapomną. Słońce zdążyło zajść."),
+                ("PO", "stat", 2, "dach o zachodzie: dwie postacie leżą bez ruchu przy zbiorniku", "L: Czekaliśmy, aż o nas zapomną, i w tym czasie zaszło słońce."),
                 ("PŚ", "jaz", 2, "schodzą w ostatnim świetle; Kuba niesie kanistry i oddycha wolno", "wolny oddech")])]),
         ("Szkło", "pokój socjalny, noc", [
             ("Rana", [
@@ -227,11 +227,11 @@ DAYS = [
                 ("D", "stat", 2, "Zosia wkłada narratorowi w dłoń klucz i kartkę z narysowaną fiolką", "")])]),
         ("Minuta", "pokój socjalny", [
             ("Oddech", [
-                ("PŚ", "stat", 2, "Kuba zostaje przy chorych; narrator w drzwiach z latarką", "L: Kuba musiał zostać z chorymi. Poszedłem sam."),
+                ("PŚ", "stat", 2, "Kuba zostaje przy chorych; narrator w drzwiach z latarką", "L: Kuba musiał zostać z chorymi, więc poszedłem sam."),
                 ("Z", "stat", 2, "Henryk zatrzymuje narratora dłonią na piersi; oddychają razem", "wspólny wolny oddech")])]),
         ("Wieża", "chirurgia, noc", [
             ("Oko", [
-                ("PO", "jaz", 2, "ciemny korytarz chirurgii; z obu stron dłonie suną po szybach drzwi", "L: Agregat ciągnął tylko połowę obwodów. Wieża była ciemna."),
+                ("PO", "jaz", 2, "ciemny korytarz chirurgii; z obu stron dłonie suną po szybach drzwi", "L: Agregat ciągnął tylko połowę obwodów, dlatego wieża była ciemna."),
                 ("PŚ", "stat", 2, "drzwi z uszkodzonym zamkiem uchylają się, gdy przechodzi", "skrzyp"),
                 ("WZ", "stat", 2, "w szczelinie drzwi białe oko patrzy prosto na niego", ""),
                 ("Z", "stat", 2, "narrator zamiera, oddycha bardzo wolno", "L: Liczyłem do stu."),
@@ -266,8 +266,8 @@ DAYS = [
             ("Mruganie", [
                 ("D", "stat", 2, "Kuba owija w ręcznik lód z chłodni", ""),
                 ("Z", "stat", 2, "Henryk w nocy zmienia Zosi okład; nie zamyka oczu", ""),
-                ("WZ", "stat", 2, "oczy Zosi: mruga często, nerwowo", "L: Patrzyłem, czy mruga. Mrugała."),
-                ("D", "stat", 2, "notes: rząd kresek, jedna za każde mrugnięcie", "L: Przy Nowaku zapisywałem, że nie mruga.")])]),
+                ("WZ", "stat", 2, "oczy Zosi: mruga często, nerwowo", "L: Patrzyłem, czy mruga, i na szczęście mrugała."),
+                ("D", "stat", 2, "notes: rząd kresek, jedna za każde mrugnięcie", "L: Przy Nowaku zapisywałem wcześniej, że nie mruga.")])]),
         ("Rano", "pokój socjalny", [
             ("Nuta", [
                 ("PŚ", "stat", 2, "nad ranem cienie stóp pod drzwiami odchodzą w stronę kuchni", "szum agregatu chłodni"),
@@ -302,7 +302,7 @@ DAYS = [
             ("Pięć nut", [
                 ("Z", "stat", 2, "Kuba przy pianinie", "Kuba: „Nauczy mnie pan jednej melodii?”"),
                 ("D", "stat", 2, "Henryk układa palce Kuby na klawiszach, nie naciskając", ""),
-                ("D", "stat", 2, "palce Kuby grają w powietrzu pięć nut", "L: Pięć nut. Powtarzał je, aż zapamiętał."),
+                ("D", "stat", 2, "palce Kuby grają w powietrzu pięć nut", "L: Pięć nut powtarzał tak długo, aż je zapamiętał."),
                 ("Z", "stat", 2, "Henryk", "Henryk: „Kołysanka mojej żony.”"),
                 ("Z", "naj", 2, "noc: Irena budzi narratora", "Irena: „Trzydziestego zostanę tutaj. I tak nie przejdę badania.”")])]),
     ]),
@@ -365,7 +365,7 @@ DAYS = [
                 ("PŚ", "jaz", 2, "Kuba przeciąga kabel kanałem pod podłogą parteru do świetlicy", ""),
                 ("D", "stat", 2, "wieczór: palec Kuby wciska klawisz pianina na sekundę", "alarm na sekundę"),
                 ("PO", "stat", 2, "podwórze: wszystkie głowy odwracają się do budynku, każda z innym opóźnieniem", ""),
-                ("Z", "naj", 2, "narrator przy oknie", "L: Plan zadziała. I pan Henryk naprawdę zostanie.")])]),
+                ("Z", "naj", 2, "narrator przy oknie", "L: Wiedziałem już, że plan zadziała i że pan Henryk naprawdę zostanie.")])]),
     ]),
 
     (28, "Pożegnanie", [
@@ -382,7 +382,7 @@ DAYS = [
                 ("PO", "jaz", 2, "Henryk i narrator idą korytarzem C; w okienkach drzwi sal stoją pacjenci", ""),
                 ("PŚ", "stat", 2, "Henryk przy drzwiach sali", "Henryk: „Pani Jadzia.”"),
                 ("PŚ", "stat", 2, "Henryk przy następnych drzwiach", "Henryk: „Pan Staś. Lubił krzyżówki.”"),
-                ("Z", "stat", 2, "narrator patrzy na Henryka", "L: Znał ich wszystkich. Latami patrzył na nich przez okienko."),
+                ("Z", "stat", 2, "narrator patrzy na Henryka", "L: Znał ich wszystkich, bo latami patrzył na nich przez okienko."),
                 ("PŚ", "stat", 2, "izolatka 3: dłoń Henryka na szybie; Nowak stoi twarzą do ściany i się nie odwraca", ""),
                 ("D", "stat", 2, "dyżurka: Henryk podnosi z biurka słuchawkę i odkłada ją na widełki", "Henryk: „Już nie trzeba wabika.”")])]),
         ("Wieczór", "świetlica", [
@@ -407,7 +407,7 @@ DAYS = [
                 ("Z", "stat", 2, "Zosia ze słuchawką", "Malec: „Ciężarówka będzie o czwartej.”")])]),
         ("Plecak", "pokój socjalny i świetlica", [
             ("Pamiątki", [
-                ("D", "stat", 2, "plecak: narrator pakuje notes i przepustkę Nowaka", "L: Notatki z izolatki i przepustka. Dla jego córki."),
+                ("D", "stat", 2, "plecak: narrator pakuje notes i przepustkę Nowaka", "L: Notatki z izolatki i przepustkę wziąłem dla córki Nowaka."),
                 ("D", "stat", 2, "Kuba sprawdza przewody pod pianinem", ""),
                 ("D", "stat", 2, "Henryk zdejmuje z pianina nakładkę klawisza i daje ją Kubie", "Henryk: „Tego klawisza nie ma w kołysance.”"),
                 ("PŚ", "stat", 2, "Irena robi kanapki na drogę; nikt ich nie rusza", "")])]),
@@ -439,7 +439,7 @@ DAYS = [
         ("Podwórze", "podwórze szpitala", [
             ("Wolno", [
                 ("PŚ", "stat", 2, "narrator otwiera boczne drzwi; trawa mokra od rosy", ""),
-                ("PO", "jaz", 2, "grupa idzie wolno przez podwórze", "L: Szliśmy wolno. Bieg jest głośniejszy niż oddech."),
+                ("PO", "jaz", 2, "grupa idzie wolno przez podwórze", "L: Szliśmy wolno, bo bieg jest głośniejszy niż oddech."),
                 ("PO", "stat", 2, "agregat gaśnie; zamki puszczają, z sal na wszystkich piętrach wychodzą zarażeni", "agregat milknie"),
                 ("PŚ", "stat", 2, "Irena potyka się; narrator i Kuba podnoszą ją razem", "")])]),
         ("Brama", "brama szpitala", [
@@ -452,7 +452,7 @@ DAYS = [
             ("Głos", [
                 ("PO", "stat", 2, "pianino milknie w pół melodii; alarm wyje jeszcze chwilę sam", "alarm, potem cisza"),
                 ("PO", "stat", 2, "ze szpitala niesie się krzyk", "krzyk"),
-                ("Z", "naj", 2, "narrator rozumie", "L: To krzyczał pan Henryk. Odzyskał głos."),
+                ("Z", "naj", 2, "narrator rozumie", "L: To krzyczał pan Henryk, który w końcu odzyskał głos."),
                 ("PŚ", "stat", 2, "mimo obietnicy narrator odwraca się w drzwiach ciężarówki", "")])]),
         ("Okno", "szpital o świcie — kadr z pierwszego ujęcia", [
             ("Pierwsze ujęcie", [

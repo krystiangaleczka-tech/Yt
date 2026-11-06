@@ -35,9 +35,15 @@ Lektor jest w 10 z 14 ujęć, zawsze **po oddechu** (0,5–2,1 s po cięciu) i z
    bez słów: 1,2–2 s. Detal: 1,5–2,5 s. Napięcie i cisza: 2,5–6 s. Ujęcie z kwestią: oddech przed (0,5–1,2 s) +
    kwestia (~2,6 słowa/s) + pauza po (0,3–1,2 s). Sąsiednie ujęcia różnią się długością co najmniej o ¼ s.
 3. **Rytm sceny:** szeroko i długo na otwarcie → coraz krótsze ujęcia do kulminacji → jedno długie „trzymanie” albo
-   krótkie żądło na koniec. Dzień trwa 55–80 s, zależnie od tego, co się w nim dzieje.
+   krótkie żądło na koniec. Dzień trwa od 60 s do ok. 100 s, zależnie od tego, co się w nim dzieje — dzień z dużą
+   ilością mowy trwa dłużej (reżyser, 6.11.2026).
 4. **Lektor dopowiada, obraz pokazuje.** Kwestia nie opisuje tego, co widać („Wszystkie.” nad otwartymi drzwiami, a nie
    „Wszystkie drzwi były otwarte”). Bez słów zostaje co trzecie–czwarte ujęcie: reakcje, detale, żądła.
+   **Kwestia to pełne zdanie** z czasownikiem, bez urwanych dopowiedzeń: „Kratę owinęliśmy ręcznikami, żeby nie
+   zadzwoniła.”, a nie „Kratę owinęliśmy ręcznikami. Nie zadzwoniła.”; „Nie wyczuli nas i poszli dalej w stronę
+   rozdzielni.”, a nie „Poszli dalej. W stronę rozdzielni.”. W sekwencjach zdarzeń kwestie łączą **łączniki** (wtedy,
+   potem, następnie, wówczas, później, wcześniej, natomiast, bo, żeby, aby, więc, ale) — nie w każdej kwestii. Krótkie
+   zdanie zostaje tam, gdzie jest żądłem (zimne otwarcie, ostatnia kwestia filmu). Decyzja D9, 6.11.2026.
 5. **Napis = kwestia.** Pojawia się, gdy lektor zaczyna mówić, i znika chwilę po jego końcu — nie wisi przez całe ujęcie.
 6. **Życie w każdym kadrze.** Mruganie w nieregularnych odstępach (nigdy wszyscy naraz), oddech, błądzący wzrok,
    zawahania; kamera lekko pływa „z ręki”; tło żyje (wiatr, migotanie świetlówki, chmury).
@@ -51,7 +57,7 @@ Lektor jest w 10 z 14 ujęć, zawsze **po oddechu** (0,5–2,1 s po cięciu) i z
 
 - Długości ujęć i moment wejścia lektora liczy `docs/filmy/oddzial-c/ujecia/tempo.py` (`plan_dnia`) z rozpiski
   `a_dane*.py`: rola ujęcia (otwarcie sceny, akcja, reakcja, detal, napięcie, kwestia, koniec sceny), oddech przed i po
-  kwestii, rozrzut i kontrola sąsiadów, zakres dnia 55–80 s. Długości są wielokrotnością 1/6 s (pełne klatki i przy
+  kwestii, rozrzut i kontrola sąsiadów, zakres dnia 60–100 s. Długości są wielokrotnością 1/6 s (pełne klatki i przy
   24, i przy 30 kl./s).
 - `output/zombie-psychiatryk/dzien_base.py` pokazuje napis tylko w czasie kwestii, kamera zawsze lekko pływa, a
   `kit_a.figure` / `face_cu` same mrugają (każda postać we własnym rytmie) i oddychają.

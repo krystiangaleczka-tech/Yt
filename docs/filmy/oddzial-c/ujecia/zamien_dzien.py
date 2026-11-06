@@ -189,8 +189,8 @@ for s in p["scenes"]:
         if s["id"] == old[0]["id"]:
             scenes += new
         continue
-    if delta and s["start"] >= old_end:
-        s["start"] += delta
+    # dalsze ujęcia przesunęły się już razem ze swoimi klipami (move_clip w Studio przesuwa też ujęcie); drugie
+    # przesunięcie tutaj dawało podwójną lukę, a przy wczesnym dniu ponad 200 operacji na osi i odmowę serwera (6.11.2026)
     scenes.append(s)
 p = call(f"/projects/{PID}", {"expected_revision": p["revision"], "changes": {"scenes": scenes}}, "PATCH")
 import os_montazu  # noqa: E402  — pozycje z zapisów ujęć mogą się rozjechać z osią: układamy obraz od nowa

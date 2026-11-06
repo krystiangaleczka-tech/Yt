@@ -57,7 +57,8 @@ Nie ma siatki „tyle sekund na ujęcie” ani „tyle sekund na dzień”. Kwes
 wypowiedzenie (ok. 2,5 słowa/s) plus oddech przed i po — opowiadanie i tłumaczenie to dłuższe ujęcia. Akcja tnie się
 szybko (1–2 s). Detal i reakcja bez słów są krótkie, plan ogólny trwa tyle, żeby widz się zorientował, a napięcie i cisza
 trzymają dłużej. Każdy rodzaj beatu ma swój rytm; dzień ma długość, jaką dają jego ujęcia, więc każdy dzień jest inny —
-od ok. 55 s (spokojny dzień) do ok. 80 s (dzień pełen akcji albo rozmów); poza tym zakresem przebuduj rozpiskę.
+od 60 s (spokojny dzień) do ok. 100 s (dzień pełen akcji albo rozmów; reżyser, 6.11.2026); poza tym zakresem przebuduj
+rozpiskę. Dłuższa kwestia wydłuża swoje ujęcie, a nie skraca ujęć bez słów.
 W wariancie A liczy to `docs/filmy/oddzial-c/ujecia/tempo.py`; zasada jest też w Story Bible projektu (pole „Narracja”).
 
 ### 1.10 Ruch po schodach w osi ruchu, stopa na stopniu
@@ -105,7 +106,9 @@ Zanim ujęcie trafi do Studio do oceny:
 - Skrypty filmów mają tryb `update` (np. `python3 output/zombie-psychiatryk/studio_import.py update <projekt>`):
   renderuje same ujęcia, podmienia materiał i przesuwa obraz, lektora i efekty na osi.
 - Kolejność zapisu: najpierw oś montażu (nowy materiał razem z nową długością), potem ujęcia — inaczej serwer odrzuci
-  klip dłuższy od starego pliku.
+  klip dłuższy od starego pliku. Przesunięcie klipu na osi przesuwa też jego ujęcie — ujęć dalszych dni nie zapisuje
+  się potem drugi raz (podwójne przesunięcie, a przy wczesnym dniu ponad 200 operacji i odmowa serwera; 6.11.2026).
+  Zmiana samych kwestii albo długości: `docs/filmy/oddzial-c/ujecia/podmien_w_miejscu.py` — bez kasowania ujęć.
 - Plik ujęcia ma pokryć całą długość ujęcia na osi (zaokrąglaj liczbę klatek renderu w górę).
 - Nie usuwaj uwag ani markerów reżysera — to jego notatki.
 

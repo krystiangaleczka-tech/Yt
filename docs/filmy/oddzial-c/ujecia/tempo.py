@@ -6,7 +6,8 @@ Długość ujęcia wynika z jego roli i kwestii, nigdy z siatki:
 - akcja (bieg, upadek, uderzenie): 1–1,8 s; reakcja bez słów: krótko; detal: krótko;
 - napięcie i cisza (najazd, nasłuchiwanie, ciemność): ujęcie trzyma dłużej; koniec sceny dostaje „trzymanie”;
 - sąsiednie ujęcia różnią się co najmniej o 1/4 s; rozrzut jest deterministyczny (ten sam przy każdym przeliczeniu);
-- dzień ma długość, jaką dają jego ujęcia — każdy inny, od ok. 55 s do ok. 80 s.
+- dzień ma długość, jaką dają jego ujęcia — każdy inny, od 60 s do ok. 100 s (reżyser, 6.11.2026); dzień z dużą
+  ilością mowy trwa dłużej, ujęć bez słów nie ściska się, żeby go skrócić.
 Długości są wielokrotnością 1/6 s, więc wypadają w pełnych klatkach i przy 24, i przy 30 kl./s.
 Dni z listy AUTO w a_dane*.py dostają czasy z tej zasady; ręcznie ustawione dni (np. 1) zostają.
 """
@@ -16,7 +17,9 @@ import sys
 import zlib
 
 SPEECH_WPS = 2.6
-DZIEN_MIN, DZIEN_MAX = 55, 80  # długość dnia zależnie od tego, co się w nim dzieje (reżyser, 4.11.2026)
+# długość dnia zależnie od tego, co się w nim dzieje (reżyser, 4.11.2026); od 6.11.2026: 60 s do ok. 100 s —
+# dzień z dużą ilością mowy po prostu trwa dłużej, ujęcia bez słów ściska się dopiero powyżej 100 s
+DZIEN_MIN, DZIEN_MAX = 60, 100
 STEP = 1 / 6
 # Dni narysowane wcześniej (2–20) zostają przy starej regule odsuwania sąsiadów, żeby nie rozjechać wgranego materiału;
 # przy ponownym renderze dnia można obniżyć ten próg.
@@ -125,6 +128,14 @@ def plan_dnia(day):
         while sum(o[0] for o in out) > DZIEN_MAX and free:  # zaokrąglenia w górę mogły przekroczyć zakres
             k = max(free, key=lambda f: out[f][0])
             out[k][0] -= STEP
+        # wydłużenie po równo z zaokrągleniem potrafi zrównać sąsiadów — przywróć ¼ s różnicy (tylko ujęcia bez słów;
+        # dzień 14 po podniesieniu minimum do 60 s, 6.11.2026)
+        for k in free:
+            near = [out[j][0] for j in (k - 1, k + 1) if 0 <= j < len(out)]
+            ok = lambda v: 1.0 <= v <= 7.0 and all(abs(v - n) >= 0.25 for n in near)
+            if not ok(out[k][0]):
+                up, down = out[k][0] + 2 * STEP, out[k][0] - 2 * STEP
+                out[k][0] = up if ok(up) else down if ok(down) else out[k][0]
     return [tuple(o) for o in out]
 
 
@@ -141,7 +152,7 @@ def przelicz(days, dni):
                                 for bt, shots in beats]) for st, pl, beats in scenes]
         res.append((n, title, new_scenes))
         dl = sum(sh[2] for _, _, b in new_scenes for _, shots in b for sh in shots)
-        if not DZIEN_MIN <= dl <= DZIEN_MAX:
+        if not DZIEN_MIN - 1e-3 <= dl <= DZIEN_MAX + 1e-3:  # round(…, 4) przy 1/6 s zostawia ułamki 0,0002 s
             print(f"uwaga: dzień {n} trwa {dl:.1f} s — poza {DZIEN_MIN}–{DZIEN_MAX} s, przebuduj rozpiskę", file=sys.stderr)
     return res
 
