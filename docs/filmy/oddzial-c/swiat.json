@@ -665,12 +665,12 @@
         {
           "at": "d02_10~Wody",
           "days": 2,
-          "note": "„Wody mamy na dwa.”"
+          "note": "„Dwadzieścia osiem dni, a wody mamy na dwa.”"
         },
         {
           "at": "d03_09~Wody",
           "days": 1,
-          "note": "„Wody na jeden dzień.”"
+          "note": "„Wody zostało na jeden dzień, jedzenia na trzy.”"
         },
         {
           "at": "d04_28~woda",
@@ -685,12 +685,12 @@
         {
           "at": "d10_22~butelek",
           "days": 3,
-          "note": "„Dwanaście butelek wody. Na trzy dni.”"
+          "note": "„Dwanaście butelek wody starczy na trzy dni.”"
         },
         {
           "at": "d22_03~Wody",
           "days": 7,
-          "note": "„Wody na siedem dni. Do trzydziestego jest osiem.”"
+          "note": "„Wody mamy na siedem dni, a do trzydziestego jest osiem.”"
         }
       ]
     }

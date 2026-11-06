@@ -12,6 +12,14 @@ filmu. Zasady poniżej są wspólne.
    żądło na koniec. Jednostka trwa tyle, ile wynika z treści, w zakresie ustalonym dla filmu (np. 55–80 s).
 4. **Lektor dopowiada, obraz pokazuje.** Kwestia nie opisuje tego, co widać. Cisza zostaje w co trzecim–czwartym
    ujęciu (reakcje, detale, żądła).
+4a. **Kwestia to zdanie, nie hasło.** Lektor i postacie mówią pełnymi zdaniami z okolicznością (gdzie, kiedy, jak,
+   dlaczego) albo łącznikiem (ale, wtedy, więc, bo, jakby). Zdania nie tnie się na urywki („Drzwi spięto łańcuchem.
+   Od środka.” → „Drzwi spięto łańcuchem od środka.”); słowo bez czasownika zostaje tylko jako puenta sceny. Krótka
+   replika w rozmowie jest w porządku, byle nie była sposobem mówienia postaci. Kwestia, która tylko nazywa to, co
+   widać, staje się ciszą albo dostaje to, czego obraz nie pokaże (przyczynę, czas, wspomnienie, wiedzę narratora).
+   Pełne zdanie nie musi być dłuższe: zlanie urywków nie dodaje słów, a wyciszone echo obrazu oddaje jednostce czas.
+   Miarą jest wzorzec filmu — średnia słów w zdaniu i odsetek zdań do 3 słów; narzędzie (jeśli film je ma) jest w
+   warsztacie.
 5. **Napis = kwestia**: pojawia się z głosem, znika chwilę po nim.
 6. **Życie w kadrze:** mruganie w nieregularnych odstępach (nigdy wszyscy naraz), oddech, błądzący wzrok; kamera lekko
    pływa; tło żyje (wiatr, migotanie). Cechy postaci mają pierwszeństwo (np. postać, która nie mruga).

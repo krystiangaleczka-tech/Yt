@@ -24,7 +24,10 @@ zgodne ze wszystkimi wytycznymi. Każdy dzień wariantu A ma się oglądać tak 
 | 14 | Tylko oczy | 1,5 s | — | gaśnie wszystko poza oczami |
 
 Wnioski: **14 ujęć w 53,5 s** (śr. 3,8 s), rozrzut 1,2–7,0 s; dwa sąsiednie ujęcia nigdy nie mają tej samej długości.
-Lektor jest w 10 z 14 ujęć, zawsze **po oddechu** (0,5–2,1 s po cięciu) i z pauzą po kwestii. Kwestie są krótkie (1–8 słów).
+Lektor jest w 10 z 14 ujęć, zawsze **po oddechu** (0,5–2,1 s po cięciu) i z pauzą po kwestii. Kwestia to jedno proste,
+pełne zdanie (3–8 słów, średnio 5,1) z czasownikiem i okolicznością: gdzie („W szpitalu przy Leśnej…”), kiedy („Ale tej
+nocy…”, „Wtedy…”), co narrator zrozumiał („Wtedy zrozumiałem, że…”). Słowo bez czasownika pada raz — „Wszystkie.” — jako
+puenta sekwencji, nie jako sposób mówienia.
 
 ## 2. Zasady
 
@@ -38,6 +41,16 @@ Lektor jest w 10 z 14 ujęć, zawsze **po oddechu** (0,5–2,1 s po cięciu) i z
    krótkie żądło na koniec. Dzień trwa 55–80 s, zależnie od tego, co się w nim dzieje.
 4. **Lektor dopowiada, obraz pokazuje.** Kwestia nie opisuje tego, co widać („Wszystkie.” nad otwartymi drzwiami, a nie
    „Wszystkie drzwi były otwarte”). Bez słów zostaje co trzecie–czwarte ujęcie: reakcje, detale, żądła.
+4a. **Kwestia to zdanie, nie hasło** (reżyser, 6.11.2026: „brzmią jak bez okoliczników”). Lektor i postacie mówią
+   pełnymi zdaniami z okolicznością (gdzie, kiedy, jak, dlaczego) albo łącznikiem (ale, wtedy, więc, bo, jakby).
+   Zdania nie tniemy na urywki: „Nożyce leżały obok. Z warsztatu.” → „Obok leżały nożyce z warsztatu.”; „Paznokieć.
+   Nie zęby.” → „To ślad po paznokciu, nie po zębach.”. Krótki strzał bez czasownika zostaje tylko jako puenta.
+   Krótka replika w rozmowie („Nie.”, „Teraz.”, „Obiecuję.”) jest w porządku, byle postać nie mówiła tak cały czas.
+   Kwestia, która tylko nazywa to, co widać („Pan Henryk nie spał. Patrzył w drzwi.” nad Henrykiem patrzącym w drzwi),
+   zamienia się w ciszę albo dostaje to, czego obraz nie pokaże: przyczynę, czas, wspomnienie, co narrator wtedy
+   wiedział („Pan Henryk pilnował drzwi, jakby miał dyżur.”). Pełne zdanie nie musi być dłuższe — zlanie urywków nie
+   dodaje słów, a wyciszone echo obrazu oddaje dniu czas. Miara: `ujecia/styl_kwestii.py` (lektor ≥ 5 słów na zdanie
+   i ≤ 25 % zdań do 3 słów, jak w zimnym otwarciu; najwyżej jedna posiekana kwestia na dzień).
 5. **Napis = kwestia.** Pojawia się, gdy lektor zaczyna mówić, i znika chwilę po jego końcu — nie wisi przez całe ujęcie.
 6. **Życie w każdym kadrze.** Mruganie w nieregularnych odstępach (nigdy wszyscy naraz), oddech, błądzący wzrok,
    zawahania; kamera lekko pływa „z ręki”; tło żyje (wiatr, migotanie świetlówki, chmury).
@@ -55,6 +68,9 @@ Lektor jest w 10 z 14 ujęć, zawsze **po oddechu** (0,5–2,1 s po cięciu) i z
   24, i przy 30 kl./s).
 - `output/zombie-psychiatryk/dzien_base.py` pokazuje napis tylko w czasie kwestii, kamera zawsze lekko pływa, a
   `kit_a.figure` / `face_cu` same mrugają (każda postać we własnym rytmie) i oddychają.
+- Kwestie mierzy `docs/filmy/oddzial-c/ujecia/styl_kwestii.py` (urywki, posiekane kwestie, lektor powtarzający opis
+  kadru), a ciągłość bez uruchamiania Studio sprawdza `ujecia/kontrola.py` (rozpiska + `swiat.json`, ten sam raport
+  co „Sprawdź ciągłość”).
 - Funkcja ujęcia w `render_dNN.py` dostaje `(p, t, T)` i rysuje wydarzenie zależne od `t` — z czasami liczonymi od
   początku ujęcia (WYTYCZNE 1.8).
 - Podgląd montażu w Studio trzyma ostatnią klatkę, dopóki następny klip się nie wczyta (`apps/studio/src/Preview.tsx`) —

@@ -18,9 +18,9 @@ import zlib
 SPEECH_WPS = 2.6
 DZIEN_MIN, DZIEN_MAX = 55, 80  # długość dnia zależnie od tego, co się w nim dzieje (reżyser, 4.11.2026)
 STEP = 1 / 6
-# Dni narysowane wcześniej (2–20) zostają przy starej regule odsuwania sąsiadów, żeby nie rozjechać wgranego materiału;
-# przy ponownym renderze dnia można obniżyć ten próg.
-ODSUW_OD_DNIA = 21
+# Od dnia ODSUW_OD_DNIA sąsiednie ujęcia odsuwają się od sąsiada. Do 6.11.2026 dni 2–20 trzymały starą regułę, żeby nie
+# rozjechać wgranego materiału; po przepisaniu kwestii (pełne zdania) wszystkie dni idą do ponownego renderu.
+ODSUW_OD_DNIA = 2
 ACTION_WORDS = ("biegnie", "bieg", "toczy", "spada", "wypada", "uderz", "rzuca", "przewraca", "wbiega", "ucieka", "szarp",
                 "wyrywa", "zatrzaskuje", "łapie", "rzuca się", "skacze", "potyka", "gasi", "chwyta", "zatrzaskują")
 TENSION_WORDS = ("patrzy", "nasłuch", "cisza", "ciemn", "nie mruga", "wstrzym", "zastyga", "oddech", "szepcze", "czeka",

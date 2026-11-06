@@ -5,7 +5,8 @@ wariantu. Dalej film ma 30 aktów: **jeden akt = jeden dzień**, średnio ok. 70
 Każdy akt jest opisany w 20 zdaniach; zdanie 20 to hak, który prowadzi do następnego dnia.
 
 Stałe z otwarcia (nie zmieniamy): szpital przy Leśnej, oddział C, izolatka 3 z panem Henrykiem, dyżurka ze starym
-telefonem z tarczą, narrator — sanitariusz na nocnym dyżurze, 1. osoba, czas przeszły, krótkie zdania.
+telefonem z tarczą, narrator — sanitariusz na nocnym dyżurze, 1. osoba, czas przeszły, proste pełne zdania z
+okolicznością (krótkie zdanie bez czasownika tylko jako puenta — MASTER_BIBLE.md 2.4a).
 Każdy wariant odpowiada na pytania z otwarcia: kto dzwonił, kto otworzył drzwi, dlaczego Henryk nie mruga,
 czyja była sylwetka w oknie w pierwszym ujęciu.
 

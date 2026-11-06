@@ -134,6 +134,7 @@ Zanim ujęcie trafi do Studio do oceny:
 | Wariant A, przegląd dni 1–30 (5.11) | pod skrzydłem drzwi nic nie zasłaniało podłogi — nogi z podwórza wystawały pod drzwiami (d29); tłum za szybą w skali planu ogólnego — dwie wielkie postacie zamiast dziesiątek (d29/17) | 1.1, 1.7 |
 | Wariant A, przegląd dni 1–30 (5.11) | liczba kresek na ścianie nie szła za dniem (d16–20 miały 15) — licznik w kadrze to też ciągłość (`kit_a.tally` liczy z `DAY`) | 1.6 |
 | Wariant A, schody: d01, d03, d05, d06, d09, d22, d23 (5.11) | „nie podoba mi się animacja chodzenia po schodach” — schody z boku, postacie od przodu: przeskakiwały ze stopnia na stopień albo sunęły ukosem nad stopniami | 1.10 |
+| Wariant A, kwestie dni 1–30 (6.11) | „za dużo bardzo krótkich zdań, brzmią jak bez okoliczników” — urywki doklejane do zdań („Nożyce leżały obok. Z warsztatu.”), postacie mówiły hasłami („Paznokieć. Nie zęby.”), lektor nazywał to, co widać | Podręcznik „Rytm” 4a, MASTER_BIBLE 2.4a |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
