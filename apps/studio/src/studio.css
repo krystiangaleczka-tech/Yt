@@ -1749,6 +1749,10 @@ strong {
 .editor-media .panel-heading {
   margin: 0 1px 13px;
 }
+.editor-media-search {
+  width: 100%;
+  margin: 0 0 11px;
+}
 .editor-media-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2111,6 +2115,8 @@ strong {
   position: absolute;
   top: 0;
   bottom: 0;
+  left: 0;
+  will-change: transform;
   width: 1px;
   background: #b6baf0;
   z-index: 6;

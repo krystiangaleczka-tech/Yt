@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import type { Project } from "./types";
+import { useEffect, useMemo, useRef } from "react";
+import type { Asset, Clip, Project } from "./types";
 import { api, mediaUrl } from "./api";
 import { useStudio } from "./context";
 import { fps, interpolate, totalFrames } from "./timing";
@@ -34,8 +34,59 @@ export default function Preview({
     audios = useRef(new Map<string, HTMLAudioElement>()),
     held = useRef<HTMLCanvasElement | null>(null),
     probe = useRef<CanvasRenderingContext2D | null>(null),
-    current = useRef({ project, frame, playing, onFrame, onEnded, transparent });
-  current.current = { project, frame, playing, onFrame, onEnded, transparent };
+    // Indeksy liczone raz na zmianę projektu, nie w każdej klatce (film ma setki klipów i ponad tysiąc materiałów).
+    assetIndex = useMemo(
+      () => new Map<string, Asset>(project.assets.map((a) => [a.id, a])),
+      [project.assets],
+    ),
+    layout = useMemo(() => {
+      const byTrack = new Map<string, Clip[]>();
+      for (const c of [...project.sequence.clips].sort(
+        (a, b) => a.start - b.start || a.id.localeCompare(b.id),
+      )) {
+        const lane = byTrack.get(c.track_id);
+        if (lane) lane.push(c);
+        else byTrack.set(c.track_id, [c]);
+      }
+      const transitions = new Map(
+        project.sequence.clips
+          .filter(
+            (c) =>
+              c.transition_duration &&
+              !["cut", "fade-black"].includes(c.transition || "cut"),
+          )
+          .map((c) => [c.track_id + ":" + c.start, c.transition_duration || 0]),
+      );
+      // Klip może trwać dłużej o przejście następnego klipu, więc zapas wsteczny = najdłuższy klip + najdłuższe przejście.
+      let longest = 0,
+        overlap = 0;
+      for (const c of project.sequence.clips) {
+        longest = Math.max(longest, c.duration);
+        overlap = Math.max(overlap, c.transition_duration || 0);
+      }
+      longest += overlap;
+      return { byTrack, transitions, longest };
+    }, [project.sequence.clips]),
+    current = useRef({
+      project,
+      frame,
+      playing,
+      onFrame,
+      onEnded,
+      transparent,
+      assetIndex,
+      layout,
+    });
+  current.current = {
+    project,
+    frame,
+    playing,
+    onFrame,
+    onEnded,
+    transparent,
+    assetIndex,
+    layout,
+  };
   function playbackError(error: unknown) {
     current.current.onEnded();
     const blocked =
@@ -66,7 +117,8 @@ export default function Preview({
     }
   }
   function draw(at = current.current.frame) {
-    const { project: p, playing: play } = current.current;
+    const { project: p, playing: play, assetIndex: assets, layout } =
+      current.current;
     const node = canvas.current;
     if (!node) return;
     const ctx = node.getContext("2d");
@@ -78,8 +130,7 @@ export default function Preview({
       ctx.fillStyle = "#101318";
       ctx.fillRect(0, 0, W, H);
     }
-    const rate = fps(p),
-      assets = new Map(p.assets.map((a) => [a.id, a]));
+    const rate = fps(p);
     const primary = primaryAudioClip(p, at),
       clock = primary ? audios.current.get(primary.id) : undefined,
       waiting =
@@ -90,40 +141,41 @@ export default function Preview({
     // Klip wideo, którego klatka jeszcze się nie wczytała (np. tuż po cięciu): zamiast tła pokazujemy ostatnią pełną
     // klatkę podglądu, żeby każde cięcie nie migało ciemnym tłem.
     let stalled = false;
-    const transitions = new Map(
-      p.sequence.clips
-        .filter(
-          (c) =>
-            c.transition_duration &&
-            !["cut", "fade-black"].includes(c.transition || "cut"),
-        )
-        .map((c) => [c.track_id + ":" + c.start, c.transition_duration || 0]),
-    );
+    const { transitions, byTrack, longest } = layout;
     const solo = p.sequence.tracks.some((t) => t.solo),
       audible = p.sequence.tracks.filter((t) => !t.muted && (!solo || t.solo)),
-      narration = p.sequence.clips.some(
-        (c) =>
-          at >= c.start &&
-          at < c.start + c.duration &&
-          audible.some((t) => t.id === c.track_id && t.role === "narration"),
+      narration = audible.some(
+        (t) =>
+          t.role === "narration" &&
+          (byTrack.get(t.id) || []).some(
+            (c) => at >= c.start && at < c.start + c.duration,
+          ),
       );
     for (const track of p.sequence.tracks) {
       if (track.muted || (solo && !track.solo)) continue;
-      for (const c of p.sequence.clips
-        .filter(
-          (c) =>
-            c.track_id === track.id &&
-            at >= c.start &&
-            at <
-              c.start +
-                c.duration +
-                (track.kind !== "audio"
-                  ? transitions.get(
-                      c.track_id + ":" + (c.start + c.duration),
-                    ) || 0
-                  : 0),
+      // byTrack jest posortowane po starcie: pomijamy klipy dawno zakończone i przerywamy na pierwszym przyszłym.
+      const lane = byTrack.get(track.id) || [];
+      let lo = 0,
+        hi = lane.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (lane[mid].start < at - longest) lo = mid + 1;
+        else hi = mid;
+      }
+      const live: Clip[] = [];
+      for (let i = lo; i < lane.length && lane[i].start <= at; i++) {
+        const c = lane[i];
+        if (
+          at <
+          c.start +
+            c.duration +
+            (track.kind !== "audio"
+              ? transitions.get(c.track_id + ":" + (c.start + c.duration)) || 0
+              : 0)
         )
-        .sort((a, b) => a.start - b.start || a.id.localeCompare(b.id))) {
+          live.push(c);
+      }
+      for (const c of live) {
         const local = Math.min(c.duration - 1, at - c.start),
           seconds = (c.source_in + local * c.speed) / rate,
           asset = c.asset_id ? assets.get(c.asset_id) : undefined;
@@ -193,8 +245,17 @@ export default function Preview({
               playbackError,
             );
             // sprawdzane po syncMedia: przewinięcie w syncMedia potrafi zgubić klatkę
-            if (v.readyState < 2 || v.seeking || !v.dataset.shown || blank(v)) stalled = true;
+            // Pusta klatka zdarza się tuż po cięciu lub przewinięciu, więc piksel sprawdzamy tylko do pierwszego
+            // potwierdzenia (odczyt piksela z wideo w każdej klatce kosztuje).
+            if (
+              v.readyState < 2 ||
+              v.seeking ||
+              !v.dataset.shown ||
+              (!v.dataset.verified && blank(v))
+            )
+              stalled = true;
             else {
+              v.dataset.verified = "1";
               image = v;
               iw = v.videoWidth;
               ih = v.videoHeight;
@@ -315,7 +376,7 @@ export default function Preview({
   redraw.current = draw;
   useEffect(() => {
     const p = project;
-    const assets = new Map(p.assets.map((a) => [a.id, a]));
+    const assets = assetIndex;
     const windowClips = p.sequence.clips.filter(
         (c) =>
           c.start < frame + fps(p) * 4 &&
@@ -332,12 +393,9 @@ export default function Preview({
           .slice(0, 12),
       ],
       needed = new Set(nearby.map((c) => c.asset_id).filter(Boolean));
-    for (const asset of p.assets) {
-      if (
-        needed.has(asset.id) &&
-        asset.kind === "image" &&
-        !images.current.has(asset.id)
-      ) {
+    for (const assetId of needed) {
+      const asset = assets.get(assetId!);
+      if (asset?.kind === "image" && !images.current.has(asset.id)) {
         const image = new Image();
         image.onload = () => redraw.current();
         image.src = mediaUrl(p.id, asset.id);
@@ -390,6 +448,8 @@ export default function Preview({
           v.addEventListener("loadeddata", () => redraw.current());
           // Klatka jest pokazana dopiero po pierwszym przewinięciu albo starcie odtwarzania (wcześniej bywa pusta).
           v.addEventListener("seeked", () => (v!.dataset.shown = "1"));
+          v.addEventListener("seeking", () => delete v!.dataset.verified);
+          v.addEventListener("emptied", () => delete v!.dataset.verified);
           v.addEventListener("playing", () => (v!.dataset.shown = "1"));
           const cue = (c.source_in || 0) / fps(p);
           v.addEventListener("loadedmetadata", () => {
@@ -453,7 +513,8 @@ export default function Preview({
           media.src = "";
           collection.delete(id);
         }
-    draw();
+    // W czasie odtwarzania rysuje pętla requestAnimationFrame; drugi rysunek tej samej klatki to zmarnowany czas.
+    if (!current.current.playing) draw();
   }, [project, frame, studio.jobs]);
   useEffect(() => {
     if (!playing) {

@@ -1,5 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type {
+  Dispatch,
+  KeyboardEvent,
+  PointerEvent,
+  SetStateAction,
+} from "react";
 import {
   Play,
   Pause,
@@ -60,6 +65,25 @@ type Drag = {
   original: Clip;
   changed: Clip;
 };
+type LaneWindow = { from: number; to: number };
+const TITLE_WIDTH = 146,
+  LANE_CHUNK = 1200;
+
+/** Stała tożsamość funkcji, która zawsze woła najnowszą wersję — memo-komponenty nie renderują się co klatkę. */
+function useStable<A extends unknown[], R>(fn: (...args: A) => R) {
+  const ref = useRef(fn);
+  ref.current = fn;
+  return useCallback((...args: A) => ref.current(...args), []);
+}
+/** Widoczny fragment ścieżek (w pikselach osi) z zapasem; zmienia się dopiero po przekroczeniu kawałka. */
+function laneWindow(el: HTMLDivElement | null): LaneWindow {
+  const left = el ? el.scrollLeft - TITLE_WIDTH : 0,
+    width = el?.clientWidth || 2400;
+  return {
+    from: Math.floor(left / LANE_CHUNK) * LANE_CHUNK - LANE_CHUNK,
+    to: Math.ceil((left + width) / LANE_CHUNK) * LANE_CHUNK + LANE_CHUNK,
+  };
+}
 export default function Timeline() {
   const s = useStudio(),
     p = s.project!;
@@ -79,7 +103,12 @@ export default function Timeline() {
     [rangeEnd, setRangeEnd] = useState(0),
     [exact, setExact] = useState(false);
   const dragRef = useRef<Drag | null>(null),
-    rulerRef = useRef<HTMLDivElement>(null);
+    scrollRef = useRef<HTMLDivElement>(null),
+    stillRef = useRef(frame);
+  const [view, setView] = useState<LaneWindow>(() => laneWindow(null));
+  // Inspektor dostaje klatkę tylko poza odtwarzaniem — w czasie Play nie przerysowuje się 30 razy na sekundę.
+  if (!playing) stillRef.current = frame;
+  const stillFrame = stillRef.current;
   const rate = fps(p),
     total = totalFrames(p),
     active = p.sequence.clips.find((c) => c.id === selected),
@@ -132,12 +161,39 @@ export default function Timeline() {
         setSelected(c.id);
         setMarked([c.id]);
         setFrame(c.start);
+        const el = scrollRef.current;
+        if (el) el.scrollLeft = Math.max(0, (c.start / rate) * zoom - 160);
       }
     }
   }, []);
   useEffect(() => {
     if (active?.scene_id) s.setTargetScene(active.scene_id);
   }, [active?.scene_id]);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const update = () =>
+      setView((prev) => {
+        const next = laneWindow(el);
+        return next.from === prev.from && next.to === prev.to ? prev : next;
+      });
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    const resize = new ResizeObserver(update);
+    resize.observe(el);
+    return () => {
+      el.removeEventListener("scroll", update);
+      resize.disconnect();
+    };
+  }, []);
+  // Oś podąża za kursorem w czasie odtwarzania (stronami, jak w programach montażowych).
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !playing) return;
+    const x = (frame / rate) * zoom,
+      right = el.scrollLeft + el.clientWidth - TITLE_WIDTH;
+    if (x < el.scrollLeft || x > right - 24) el.scrollLeft = Math.max(0, x - 24);
+  }, [frame, playing, zoom, rate]);
   function change(changes: Partial<Clip>) {
     if (!active) return;
     s.run(() =>
@@ -314,17 +370,57 @@ export default function Timeline() {
         ]),
       );
   }
-  const width = Math.max(650, (total / rate) * zoom + 150),
-    step = zoom >= 60 ? 1 : zoom >= 25 ? 5 : 10;
-  const ticks = Array.from(
-    { length: Math.floor(width / zoom / step) + 1 },
-    (_, i) => i * step,
-  );
+  const width = Math.max(650, (total / rate) * zoom + 150);
   function trackChange(track: Track, changes: Partial<Track>) {
     s.run(() =>
       s.edit([{ type: "update_track", track_id: track.id, changes }]),
     );
   }
+  // Stałe uchwyty dla ciężkich części (materiały, ścieżki, inspektor): zmiana klatki ich nie przerysowuje.
+  const onDragStart = useStable(startDrag),
+    onDragMove = useStable(moveDrag),
+    onDragEnd = useStable(endDrag),
+    onTrackChange = useStable(trackChange),
+    changeClip = useStable(change),
+    onAddAsset = useStable((assetId: string) => s.run(() => addAsset(assetId))),
+    onOpenLibrary = useStable(() => s.setPage("library")),
+    onSeek = useStable((at: number) => {
+      setPlaying(false);
+      setFrame(Math.max(0, Math.min(Math.max(0, total - 1), at)));
+    }),
+    onClipKey = useStable((e: KeyboardEvent<HTMLElement>, c: Clip) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+        s.run(() =>
+          s.edit([
+            {
+              type: "move_clip",
+              clip_id: c.id,
+              changes: {
+                start: Math.max(
+                  0,
+                  c.start +
+                    (e.key === "ArrowRight" ? 1 : -1) *
+                      (e.shiftKey ? Math.round(rate) : 1),
+                ),
+              },
+            },
+          ]),
+        );
+      }
+      if (e.key === "Enter") {
+        setSelected(c.id);
+        setMarked(e.shiftKey ? [...marked, c.id] : [c.id]);
+      }
+    }),
+    closeAssistant = useStable(() => {
+      setAssistant(false);
+      setProposed(null);
+    });
+  const assistantSelection = useMemo(
+    () => (marked.length ? marked : selected ? [selected] : []),
+    [marked, selected],
+  );
   return (
     <div className="editing-page">
       <div className="editor-topbar">
@@ -377,30 +473,11 @@ export default function Timeline() {
         className={`editing-upper ${library ? "with-library" : ""} ${assistant ? "with-assistant" : ""}`}
       >
         {library && (
-          <section className="editor-media surface">
-            <div className="panel-heading">
-              <h2>Materiały</h2>
-              <span className="badge quiet">{p.assets.length}</span>
-            </div>
-            <div className="editor-media-grid">
-              {p.assets
-                .filter((a) => a.kind !== "document")
-                .map((a) => (
-                  <button
-                    key={a.id}
-                    onClick={() => s.run(() => addAsset(a.id))}
-                    title={"Dodaj do osi: " + a.name}
-                  >
-                    <AssetThumb asset={a} project={p} />
-                    <span>{a.name}</span>
-                    <Plus className="asset-add" size={15} />
-                  </button>
-                ))}
-            </div>
-            <Button subtle icon={Plus} onClick={() => s.setPage("library")}>
-              Dodaj materiały
-            </Button>
-          </section>
+          <MediaPanel
+            project={p}
+            onAdd={onAddAsset}
+            onOpenLibrary={onOpenLibrary}
+          />
         )}
         <section className="editor-player surface">
           <div className="preview-heading">
@@ -471,335 +548,22 @@ export default function Timeline() {
           </div>
         </section>
         {assistant ? (
-          <Assistant
-            selected={marked.length ? marked : selected ? [selected] : []}
-            onClose={() => {
-              setAssistant(false);
-              setProposed(null);
-            }}
+          <AssistantPanel
+            selected={assistantSelection}
+            onClose={closeAssistant}
             onPreview={setProposed}
           />
         ) : (
-          <section className="clip-inspector surface">
-            {active?.template === "paper-theatre" && active.scene_id && (
-              <Button onClick={() => { s.setTargetScene(active.scene_id!); s.setPage("paper-theatre"); }}>
-                Scenograf · układ i porównanie z referencją
-              </Button>
-            )}
-            {active &&
-              p.assets.find((a) => a.id === active.asset_id)?.provenance
-                .kind === "remotion" &&
-              p.inserts.some(
-                (i) =>
-                  i.id ===
-                  p.assets.find((a) => a.id === active.asset_id)?.provenance
-                    .insert_id,
-              ) && (
-                <Button
-                  icon={Film}
-                  onClick={() => {
-                    const asset = p.assets.find(
-                      (a) => a.id === active.asset_id,
-                    );
-                    s.setTargetInsert(String(asset?.provenance.insert_id));
-                    s.setPage("motion");
-                  }}
-                >
-                  Edytuj źródło wstawki
-                </Button>
-              )}
-            <div className="panel-heading">
-              <h2>Inspektor</h2>
-              {active && (
-                <IconButton
-                  icon={active.locked ? LockKeyhole : Unlock}
-                  label={active.locked ? "Odblokuj klip" : "Zablokuj klip"}
-                  onClick={() => change({ locked: !active.locked })}
-                />
-              )}
-            </div>
-            {active ? (
-              <>
-                <Field label="Nazwa klipu">
-                  <CommitText
-                    value={active.title}
-                    onCommit={(v) => change({ title: v })}
-                    disabled={locked}
-                  />
-                </Field>
-                {activeTrack?.kind === "text" && (
-                  <Field label="Tekst na ekranie">
-                    <CommitText
-                      multiline
-                      rows={3}
-                      value={active.text}
-                      onCommit={(v) => change({ text: v })}
-                      disabled={locked}
-                    />
-                  </Field>
-                )}
-                <div className="two-fields">
-                  <NumberField
-                    label="Początek (s)"
-                    value={active.start / rate}
-                    onCommit={(v) => change({ start: Math.round(v * rate) })}
-                    disabled={locked}
-                  />
-                  <NumberField
-                    label="Długość (s)"
-                    value={active.duration / rate}
-                    min={1 / rate}
-                    onCommit={(v) => change({ duration: Math.round(v * rate) })}
-                    disabled={locked}
-                  />
-                </div>
-                <NumberField
-                  label="W materiale od (s)"
-                  value={active.source_in / rate}
-                  onCommit={(v) => change({ source_in: Math.round(v * rate) })}
-                  disabled={locked}
-                />
-                {activeTrack?.kind === "audio" ? (
-                  <>
-                    <NumberField
-                      label="Głośność"
-                      value={active.volume}
-                      max={4}
-                      onCommit={(v) => change({ volume: v })}
-                      disabled={locked}
-                    />
-                    <NumberField
-                      label="Prędkość"
-                      value={active.speed}
-                      min={0.25}
-                      max={4}
-                      onCommit={(v) => change({ speed: v })}
-                      disabled={locked}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <div className="panel-divider" />
-                    <div className="inspector-label">TRANSFORMACJA</div>
-                    <div className="two-fields">
-                      <NumberField
-                        label="Pozycja X"
-                        value={active.x}
-                        min={-2}
-                        max={2}
-                        step={0.01}
-                        onCommit={(v) => change({ x: v })}
-                        disabled={locked}
-                      />
-                      <NumberField
-                        label="Pozycja Y"
-                        value={active.y}
-                        min={-2}
-                        max={2}
-                        step={0.01}
-                        onCommit={(v) => change({ y: v })}
-                        disabled={locked}
-                      />
-                      <NumberField
-                        label="Skala"
-                        value={active.scale}
-                        min={0.05}
-                        max={5}
-                        step={0.05}
-                        onCommit={(v) => change({ scale: v })}
-                        disabled={locked}
-                      />
-                      <NumberField
-                        label="Obrót (°)"
-                        value={active.rotation}
-                        min={-360}
-                        max={360}
-                        step={1}
-                        onCommit={(v) => change({ rotation: v })}
-                        disabled={locked}
-                      />
-                    </div>
-                    <NumberField
-                      label="Krycie"
-                      value={active.opacity}
-                      max={1}
-                      step={0.05}
-                      onCommit={(v) => change({ opacity: v })}
-                      disabled={locked}
-                    />
-                    <Field label="Ruch">
-                      <select
-                        value={active.animation}
-                        disabled={locked}
-                        onChange={(e) =>
-                          change({
-                            animation: e.target.value as Clip["animation"],
-                          })
-                        }
-                      >
-                        {animations.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.name}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                    {p.assets.find((a) => a.id === active.asset_id)?.kind ===
-                      "video" && (
-                      <NumberField
-                        label="Prędkość"
-                        value={active.speed}
-                        min={0.25}
-                        max={4}
-                        onCommit={(v) => change({ speed: v })}
-                        disabled={locked}
-                      />
-                    )}
-                  </>
-                )}
-                <div className="two-fields">
-                  <NumberField
-                    label="Wejście (s)"
-                    value={active.fade_in / rate}
-                    max={active.duration / rate}
-                    onCommit={(v) => change({ fade_in: Math.round(v * rate) })}
-                    disabled={locked}
-                  />
-                  <NumberField
-                    label="Wyjście (s)"
-                    value={active.fade_out / rate}
-                    max={active.duration / rate}
-                    onCommit={(v) => change({ fade_out: Math.round(v * rate) })}
-                    disabled={locked}
-                  />
-                </div>
-                <Keyframes
-                  clip={active}
-                  frame={frame}
-                  disabled={locked}
-                  onChange={(keyframes) => change({ keyframes })}
-                />
-                {activeTrack?.kind === "video" && (
-                  <>
-                    <Field label="Przejście na wejściu">
-                      <select
-                        value={active.transition || "cut"}
-                        disabled={locked}
-                        onChange={(e) =>
-                          change({
-                            transition: e.target.value,
-                            transition_duration:
-                              e.target.value === "cut"
-                                ? 0
-                                : Math.min(
-                                    active.duration,
-                                    Math.round(rate * 0.5),
-                                  ),
-                          })
-                        }
-                      >
-                        {[
-                          ["cut", "Cięcie"],
-                          ["dissolve", "Przenikanie"],
-                          ["fade-black", "Z czerni"],
-                          ["wipe-left", "Wycieranie w lewo"],
-                          ["wipe-right", "Wycieranie w prawo"],
-                          ["slide-left", "Przesunięcie w lewo"],
-                          ["slide-right", "Przesunięcie w prawo"],
-                          ["zoom", "Zbliżenie"],
-                        ].map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                    <NumberField
-                      label="Długość przejścia (s)"
-                      value={(active.transition_duration || 0) / rate}
-                      max={active.duration / rate}
-                      onCommit={(v) =>
-                        change({ transition_duration: Math.round(v * rate) })
-                      }
-                    />
-                    <JSONField
-                      label="Kadrowanie {x,y,width,height} 0–1"
-                      value={active.crop || {}}
-                      onSave={(v) =>
-                        change({ crop: v as Record<string, number> })
-                      }
-                    />
-                  </>
-                )}
-                {active.asset_id &&
-                  p.assets.find((a) => a.id === active.asset_id)?.kind ===
-                    "video" && (
-                    <Button
-                      onClick={() =>
-                        s.run(async () => {
-                          await api(
-                            `/projects/${p.id}/assets/${active.asset_id}/proxy`,
-                            {},
-                          );
-                          s.notify("Proxy w kolejce");
-                        })
-                      }
-                    >
-                      Przygotuj lekki proxy
-                    </Button>
-                  )}
-                <details>
-                  <summary>Zaznacz klipy do grupy</summary>
-                  <div className="tool-options">
-                    {p.sequence.clips.map((c) => (
-                      <label key={c.id}>
-                        <input
-                          type="checkbox"
-                          checked={marked.includes(c.id)}
-                          onChange={(e) =>
-                            setMarked((ids) =>
-                              e.target.checked
-                                ? [...ids, c.id]
-                                : ids.filter((x) => x !== c.id),
-                            )
-                          }
-                        />
-                        {c.title} · {time(c.start, rate)}
-                      </label>
-                    ))}
-                  </div>
-                </details>
-                <div className="button-row">
-                  <Button
-                    disabled={marked.length < 2}
-                    onClick={() =>
-                      s.run(() =>
-                        s.edit([{ type: "group_clips", clip_ids: marked }]),
-                      )
-                    }
-                  >
-                    Grupuj {marked.length}
-                  </Button>
-                  <Button
-                    disabled={!marked.length}
-                    onClick={() =>
-                      s.run(() =>
-                        s.edit([{ type: "ungroup_clips", clip_ids: marked }]),
-                      )
-                    }
-                  >
-                    Rozgrupuj
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div className="inspector-empty">
-                <SlidersIcon />
-                <h3>Wybierz klip</h3>
-                <p>Zmienisz tu czas, ruch, obraz i dźwięk.</p>
-              </div>
-            )}
-          </section>
+          <ClipInspector
+            project={p}
+            active={active}
+            activeTrack={activeTrack}
+            locked={locked}
+            frame={stillFrame}
+            marked={marked}
+            setMarked={setMarked}
+            change={changeClip}
+          />
         )}
       </div>
       <section className="timeline-panel surface">
@@ -897,179 +661,31 @@ export default function Timeline() {
             <span className="small muted">{time(total, rate)}</span>
           </div>
         </div>
-        <div className="timeline-scroll">
-          <div className="timeline-content" style={{ width: width + 146 }}>
-            <div className="time-ruler-row">
-              <div className="track-title-spacer">ŚCIEŻKI</div>
-              <div
-                className="time-ruler"
-                ref={rulerRef}
-                style={{ width }}
-                onPointerDown={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setFrame(
-                    Math.max(
-                      0,
-                      Math.min(
-                        total - 1,
-                        Math.round(((e.clientX - rect.left) / zoom) * rate),
-                      ),
-                    ),
-                  );
-                  setPlaying(false);
-                }}
-              >
-                {ticks.map((t) => (
-                  <span
-                    className="ruler-tick"
-                    style={{ left: t * zoom }}
-                    key={t}
-                  >
-                    {time(t * rate, rate)}
-                  </span>
-                ))}
-              </div>
-            </div>
-            {p.sequence.tracks.map((track) => (
-              <div
-                className={`timeline-track ${track.kind} ${track.locked ? "locked-track" : ""}`}
-                key={track.id}
-              >
-                <div className="track-title">
-                  <span>{track.name}</span>
-                  <div>
-                    <button
-                      className={`icon-button ${track.solo ? "toggled" : ""}`}
-                      aria-label={`Solo ${track.name}`}
-                      aria-pressed={!!track.solo}
-                      onClick={() => trackChange(track, { solo: !track.solo })}
-                    >
-                      S
-                    </button>
-                    <IconButton
-                      icon={track.locked ? LockKeyhole : Unlock}
-                      label={
-                        track.locked
-                          ? "Odblokuj " + track.name
-                          : "Zablokuj " + track.name
-                      }
-                      onClick={() =>
-                        trackChange(track, { locked: !track.locked })
-                      }
-                    />
-                    <IconButton
-                      icon={track.muted ? VolumeX : Volume2}
-                      label={
-                        track.muted
-                          ? "Włącz " + track.name
-                          : "Wycisz " + track.name
-                      }
-                      onClick={() =>
-                        trackChange(track, { muted: !track.muted })
-                      }
-                    />
-                  </div>
-                </div>
-                <div
-                  className={`track-lane ${track.muted ? "muted-track" : ""}`}
-                  style={{ width }}
-                  onDoubleClick={(e) => {
-                    setPlaying(false);
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    setFrame(
-                      Math.max(
-                        0,
-                        Math.round(((e.clientX - rect.left) / zoom) * rate),
-                      ),
-                    );
-                  }}
-                >
-                  {renderProject.sequence.clips
-                    .filter((c) => c.track_id === track.id)
-                    .map((c) => (
-                      <div
-                        key={c.id}
-                        className={`timeline-clip ${marked.includes(c.id) || selected === c.id ? "selected" : ""} ${track.role} ${c.locked ? "locked-clip" : ""}`}
-                        style={{
-                          left: (c.start / rate) * zoom,
-                          width: Math.max(4, (c.duration / rate) * zoom),
-                        }}
-                        onPointerDown={(e) => startDrag(e, c, "move")}
-                        onPointerMove={moveDrag}
-                        onPointerUp={endDrag}
-                        onPointerCancel={endDrag}
-                        onKeyDown={(e) => {
-                          if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-                            e.preventDefault();
-                            s.run(() =>
-                              s.edit([
-                                {
-                                  type: "move_clip",
-                                  clip_id: c.id,
-                                  changes: {
-                                    start: Math.max(
-                                      0,
-                                      c.start +
-                                        (e.key === "ArrowRight" ? 1 : -1) *
-                                          (e.shiftKey ? Math.round(rate) : 1),
-                                    ),
-                                  },
-                                },
-                              ]),
-                            );
-                          }
-                          if (e.key === "Enter") {
-                            setSelected(c.id);
-                            setMarked(e.shiftKey ? [...marked, c.id] : [c.id]);
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={c.title + " od " + time(c.start, rate)}
-                      >
-                        {track.kind === "video" && c.asset_id && (
-                          <img
-                            className="clip-thumbnail"
-                            src={mediaUrl(p.id, c.asset_id, true)}
-                            alt=""
-                            draggable={false}
-                            loading="lazy"
-                          />
-                        )}
-                        {track.kind === "audio" && c.asset_id && (
-                          <ClipWave projectId={p.id} assetId={c.asset_id} />
-                        )}
-                        <span
-                          className="clip-trim left"
-                          onPointerDown={(e) => startDrag(e, c, "left")}
-                          role="button"
-                          aria-label="Przytnij początek"
-                        />
-                        <span className="clip-title">
-                          {track.kind === "audio" ? (
-                            <Music2 size={12} />
-                          ) : track.kind === "text" ? (
-                            <Type size={12} />
-                          ) : (
-                            <Film size={12} />
-                          )}
-                          <span>{c.title}</span>
-                          {c.locked && <LockKeyhole size={11} />}
-                        </span>
-                        <span
-                          className="clip-trim right"
-                          onPointerDown={(e) => startDrag(e, c, "right")}
-                          role="button"
-                          aria-label="Przytnij koniec"
-                        />
-                      </div>
-                    ))}
-                </div>
-              </div>
-            ))}
+        <div className="timeline-scroll" ref={scrollRef}>
+          <div
+            className="timeline-content"
+            style={{ width: width + TITLE_WIDTH }}
+          >
+            <TimelineBody
+              project={renderProject}
+              rate={rate}
+              zoom={zoom}
+              width={width}
+              view={view}
+              selected={selected}
+              marked={marked}
+              onSeek={onSeek}
+              onDragStart={onDragStart}
+              onDragMove={onDragMove}
+              onDragEnd={onDragEnd}
+              onClipKey={onClipKey}
+              onTrackChange={onTrackChange}
+            />
             <div
               className="playhead"
-              style={{ left: 146 + (frame / rate) * zoom }}
+              style={{
+                transform: `translateX(${TITLE_WIDTH + (frame / rate) * zoom}px)`,
+              }}
             >
               <div />
             </div>
@@ -1132,6 +748,595 @@ export default function Timeline() {
     </div>
   );
 }
+const ClipInspector = memo(function ClipInspector({
+  project: p,
+  active,
+  activeTrack,
+  locked,
+  frame,
+  marked,
+  setMarked,
+  change,
+}: {
+  project: Project;
+  active: Clip | undefined;
+  activeTrack: Track | undefined;
+  locked: boolean;
+  frame: number;
+  marked: string[];
+  setMarked: Dispatch<SetStateAction<string[]>>;
+  change: (changes: Partial<Clip>) => void;
+}) {
+  const s = useStudio(),
+    rate = fps(p);
+  const [groupOpen, setGroupOpen] = useState(false);
+  return (
+    <section className="clip-inspector surface">
+      {active?.template === "paper-theatre" && active.scene_id && (
+        <Button onClick={() => { s.setTargetScene(active.scene_id!); s.setPage("paper-theatre"); }}>
+          Scenograf · układ i porównanie z referencją
+        </Button>
+      )}
+      {active &&
+        p.assets.find((a) => a.id === active.asset_id)?.provenance
+          .kind === "remotion" &&
+        p.inserts.some(
+          (i) =>
+            i.id ===
+            p.assets.find((a) => a.id === active.asset_id)?.provenance
+              .insert_id,
+        ) && (
+          <Button
+            icon={Film}
+            onClick={() => {
+              const asset = p.assets.find(
+                (a) => a.id === active.asset_id,
+              );
+              s.setTargetInsert(String(asset?.provenance.insert_id));
+              s.setPage("motion");
+            }}
+          >
+            Edytuj źródło wstawki
+          </Button>
+        )}
+      <div className="panel-heading">
+        <h2>Inspektor</h2>
+        {active && (
+          <IconButton
+            icon={active.locked ? LockKeyhole : Unlock}
+            label={active.locked ? "Odblokuj klip" : "Zablokuj klip"}
+            onClick={() => change({ locked: !active.locked })}
+          />
+        )}
+      </div>
+      {active ? (
+        <>
+          <Field label="Nazwa klipu">
+            <CommitText
+              value={active.title}
+              onCommit={(v) => change({ title: v })}
+              disabled={locked}
+            />
+          </Field>
+          {activeTrack?.kind === "text" && (
+            <Field label="Tekst na ekranie">
+              <CommitText
+                multiline
+                rows={3}
+                value={active.text}
+                onCommit={(v) => change({ text: v })}
+                disabled={locked}
+              />
+            </Field>
+          )}
+          <div className="two-fields">
+            <NumberField
+              label="Początek (s)"
+              value={active.start / rate}
+              onCommit={(v) => change({ start: Math.round(v * rate) })}
+              disabled={locked}
+            />
+            <NumberField
+              label="Długość (s)"
+              value={active.duration / rate}
+              min={1 / rate}
+              onCommit={(v) => change({ duration: Math.round(v * rate) })}
+              disabled={locked}
+            />
+          </div>
+          <NumberField
+            label="W materiale od (s)"
+            value={active.source_in / rate}
+            onCommit={(v) => change({ source_in: Math.round(v * rate) })}
+            disabled={locked}
+          />
+          {activeTrack?.kind === "audio" ? (
+            <>
+              <NumberField
+                label="Głośność"
+                value={active.volume}
+                max={4}
+                onCommit={(v) => change({ volume: v })}
+                disabled={locked}
+              />
+              <NumberField
+                label="Prędkość"
+                value={active.speed}
+                min={0.25}
+                max={4}
+                onCommit={(v) => change({ speed: v })}
+                disabled={locked}
+              />
+            </>
+          ) : (
+            <>
+              <div className="panel-divider" />
+              <div className="inspector-label">TRANSFORMACJA</div>
+              <div className="two-fields">
+                <NumberField
+                  label="Pozycja X"
+                  value={active.x}
+                  min={-2}
+                  max={2}
+                  step={0.01}
+                  onCommit={(v) => change({ x: v })}
+                  disabled={locked}
+                />
+                <NumberField
+                  label="Pozycja Y"
+                  value={active.y}
+                  min={-2}
+                  max={2}
+                  step={0.01}
+                  onCommit={(v) => change({ y: v })}
+                  disabled={locked}
+                />
+                <NumberField
+                  label="Skala"
+                  value={active.scale}
+                  min={0.05}
+                  max={5}
+                  step={0.05}
+                  onCommit={(v) => change({ scale: v })}
+                  disabled={locked}
+                />
+                <NumberField
+                  label="Obrót (°)"
+                  value={active.rotation}
+                  min={-360}
+                  max={360}
+                  step={1}
+                  onCommit={(v) => change({ rotation: v })}
+                  disabled={locked}
+                />
+              </div>
+              <NumberField
+                label="Krycie"
+                value={active.opacity}
+                max={1}
+                step={0.05}
+                onCommit={(v) => change({ opacity: v })}
+                disabled={locked}
+              />
+              <Field label="Ruch">
+                <select
+                  value={active.animation}
+                  disabled={locked}
+                  onChange={(e) =>
+                    change({
+                      animation: e.target.value as Clip["animation"],
+                    })
+                  }
+                >
+                  {animations.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              {p.assets.find((a) => a.id === active.asset_id)?.kind ===
+                "video" && (
+                <NumberField
+                  label="Prędkość"
+                  value={active.speed}
+                  min={0.25}
+                  max={4}
+                  onCommit={(v) => change({ speed: v })}
+                  disabled={locked}
+                />
+              )}
+            </>
+          )}
+          <div className="two-fields">
+            <NumberField
+              label="Wejście (s)"
+              value={active.fade_in / rate}
+              max={active.duration / rate}
+              onCommit={(v) => change({ fade_in: Math.round(v * rate) })}
+              disabled={locked}
+            />
+            <NumberField
+              label="Wyjście (s)"
+              value={active.fade_out / rate}
+              max={active.duration / rate}
+              onCommit={(v) => change({ fade_out: Math.round(v * rate) })}
+              disabled={locked}
+            />
+          </div>
+          <Keyframes
+            clip={active}
+            frame={frame}
+            disabled={locked}
+            onChange={(keyframes) => change({ keyframes })}
+          />
+          {activeTrack?.kind === "video" && (
+            <>
+              <Field label="Przejście na wejściu">
+                <select
+                  value={active.transition || "cut"}
+                  disabled={locked}
+                  onChange={(e) =>
+                    change({
+                      transition: e.target.value,
+                      transition_duration:
+                        e.target.value === "cut"
+                          ? 0
+                          : Math.min(
+                              active.duration,
+                              Math.round(rate * 0.5),
+                            ),
+                    })
+                  }
+                >
+                  {[
+                    ["cut", "Cięcie"],
+                    ["dissolve", "Przenikanie"],
+                    ["fade-black", "Z czerni"],
+                    ["wipe-left", "Wycieranie w lewo"],
+                    ["wipe-right", "Wycieranie w prawo"],
+                    ["slide-left", "Przesunięcie w lewo"],
+                    ["slide-right", "Przesunięcie w prawo"],
+                    ["zoom", "Zbliżenie"],
+                  ].map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <NumberField
+                label="Długość przejścia (s)"
+                value={(active.transition_duration || 0) / rate}
+                max={active.duration / rate}
+                onCommit={(v) =>
+                  change({ transition_duration: Math.round(v * rate) })
+                }
+              />
+              <JSONField
+                label="Kadrowanie {x,y,width,height} 0–1"
+                value={active.crop || {}}
+                onSave={(v) =>
+                  change({ crop: v as Record<string, number> })
+                }
+              />
+            </>
+          )}
+          {active.asset_id &&
+            p.assets.find((a) => a.id === active.asset_id)?.kind ===
+              "video" && (
+              <Button
+                onClick={() =>
+                  s.run(async () => {
+                    await api(
+                      `/projects/${p.id}/assets/${active.asset_id}/proxy`,
+                      {},
+                    );
+                    s.notify("Proxy w kolejce");
+                  })
+                }
+              >
+                Przygotuj lekki proxy
+              </Button>
+            )}
+          <details onToggle={(e) => setGroupOpen(e.currentTarget.open)}>
+            <summary>Zaznacz klipy do grupy</summary>
+            <div className="tool-options">
+              {groupOpen && p.sequence.clips.map((c) => (
+                <label key={c.id}>
+                  <input
+                    type="checkbox"
+                    checked={marked.includes(c.id)}
+                    onChange={(e) =>
+                      setMarked((ids) =>
+                        e.target.checked
+                          ? [...ids, c.id]
+                          : ids.filter((x) => x !== c.id),
+                      )
+                    }
+                  />
+                  {c.title} · {time(c.start, rate)}
+                </label>
+              ))}
+            </div>
+          </details>
+          <div className="button-row">
+            <Button
+              disabled={marked.length < 2}
+              onClick={() =>
+                s.run(() =>
+                  s.edit([{ type: "group_clips", clip_ids: marked }]),
+                )
+              }
+            >
+              Grupuj {marked.length}
+            </Button>
+            <Button
+              disabled={!marked.length}
+              onClick={() =>
+                s.run(() =>
+                  s.edit([{ type: "ungroup_clips", clip_ids: marked }]),
+                )
+              }
+            >
+              Rozgrupuj
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="inspector-empty">
+          <SlidersIcon />
+          <h3>Wybierz klip</h3>
+          <p>Zmienisz tu czas, ruch, obraz i dźwięk.</p>
+        </div>
+      )}
+    </section>
+  );
+});
+
+const MEDIA_PAGE = 60;
+const MediaPanel = memo(function MediaPanel({
+  project: p,
+  onAdd,
+  onOpenLibrary,
+}: {
+  project: Project;
+  onAdd: (assetId: string) => void;
+  onOpenLibrary: () => void;
+}) {
+  const [query, setQuery] = useState(""),
+    [limit, setLimit] = useState(MEDIA_PAGE);
+  const list = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return p.assets.filter(
+      (a) =>
+        a.kind !== "document" && (!q || a.name.toLowerCase().includes(q)),
+    );
+  }, [p.assets, query]);
+  return (
+    <section className="editor-media surface">
+      <div className="panel-heading">
+        <h2>Materiały</h2>
+        <span className="badge quiet">{p.assets.length}</span>
+      </div>
+      {(list.length > MEDIA_PAGE || query) && (
+        <input
+          className="editor-media-search"
+          type="search"
+          aria-label="Szukaj w materiałach"
+          placeholder="Szukaj materiału"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setLimit(MEDIA_PAGE);
+          }}
+        />
+      )}
+      <div className="editor-media-grid">
+        {list.slice(0, limit).map((a) => (
+          <button
+            key={a.id}
+            onClick={() => onAdd(a.id)}
+            title={"Dodaj do osi: " + a.name}
+          >
+            <AssetThumb asset={a} project={p} />
+            <span>{a.name}</span>
+            <Plus className="asset-add" size={15} />
+          </button>
+        ))}
+      </div>
+      {list.length > limit && (
+        <Button subtle onClick={() => setLimit(limit + MEDIA_PAGE * 2)}>
+          Pokaż kolejne · zostało {list.length - limit}
+        </Button>
+      )}
+      <Button subtle icon={Plus} onClick={onOpenLibrary}>
+        Dodaj materiały
+      </Button>
+    </section>
+  );
+});
+
+/** Linijka i ścieżki. Rysuje tylko klipy w widocznym fragmencie osi (plus zaznaczone), więc 700 ujęć nie spowalnia. */
+const TimelineBody = memo(function TimelineBody({
+  project: p,
+  rate,
+  zoom,
+  width,
+  view,
+  selected,
+  marked,
+  onSeek,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
+  onClipKey,
+  onTrackChange,
+}: {
+  project: Project;
+  rate: number;
+  zoom: number;
+  width: number;
+  view: LaneWindow;
+  selected: string | null;
+  marked: string[];
+  onSeek: (frame: number) => void;
+  onDragStart: (
+    e: PointerEvent<HTMLElement>,
+    clip: Clip,
+    edge: Drag["edge"],
+  ) => void;
+  onDragMove: (e: PointerEvent<HTMLElement>) => void;
+  onDragEnd: () => void;
+  onClipKey: (e: KeyboardEvent<HTMLElement>, clip: Clip) => void;
+  onTrackChange: (track: Track, changes: Partial<Track>) => void;
+}) {
+  const step = zoom >= 60 ? 1 : zoom >= 25 ? 5 : 10;
+  const ticks: number[] = [];
+  for (
+    let t = Math.max(0, Math.floor(view.from / zoom / step) * step);
+    t * zoom <= Math.min(width, view.to);
+    t += step
+  )
+    ticks.push(t);
+  const byTrack = useMemo(() => {
+    const lanes = new Map<string, Clip[]>();
+    for (const c of p.sequence.clips) {
+      const left = (c.start / rate) * zoom,
+        right = left + Math.max(4, (c.duration / rate) * zoom);
+      if (
+        (right < view.from || left > view.to) &&
+        c.id !== selected &&
+        !marked.includes(c.id)
+      )
+        continue;
+      const lane = lanes.get(c.track_id);
+      if (lane) lane.push(c);
+      else lanes.set(c.track_id, [c]);
+    }
+    return lanes;
+  }, [p.sequence.clips, rate, zoom, view, selected, marked]);
+  const at = (e: { clientX: number; currentTarget: Element }) =>
+    Math.round(
+      ((e.clientX - e.currentTarget.getBoundingClientRect().left) / zoom) *
+        rate,
+    );
+  return (
+    <>
+      <div className="time-ruler-row">
+        <div className="track-title-spacer">ŚCIEŻKI</div>
+        <div
+          className="time-ruler"
+          style={{ width }}
+          onPointerDown={(e) => onSeek(at(e))}
+        >
+          {ticks.map((t) => (
+            <span className="ruler-tick" style={{ left: t * zoom }} key={t}>
+              {time(t * rate, rate)}
+            </span>
+          ))}
+        </div>
+      </div>
+      {p.sequence.tracks.map((track) => (
+        <div
+          className={`timeline-track ${track.kind} ${track.locked ? "locked-track" : ""}`}
+          key={track.id}
+        >
+          <div className="track-title">
+            <span>{track.name}</span>
+            <div>
+              <button
+                className={`icon-button ${track.solo ? "toggled" : ""}`}
+                aria-label={`Solo ${track.name}`}
+                aria-pressed={!!track.solo}
+                onClick={() => onTrackChange(track, { solo: !track.solo })}
+              >
+                S
+              </button>
+              <IconButton
+                icon={track.locked ? LockKeyhole : Unlock}
+                label={
+                  track.locked
+                    ? "Odblokuj " + track.name
+                    : "Zablokuj " + track.name
+                }
+                onClick={() => onTrackChange(track, { locked: !track.locked })}
+              />
+              <IconButton
+                icon={track.muted ? VolumeX : Volume2}
+                label={
+                  track.muted ? "Włącz " + track.name : "Wycisz " + track.name
+                }
+                onClick={() => onTrackChange(track, { muted: !track.muted })}
+              />
+            </div>
+          </div>
+          <div
+            className={`track-lane ${track.muted ? "muted-track" : ""}`}
+            style={{ width }}
+            onDoubleClick={(e) => onSeek(at(e))}
+          >
+            {(byTrack.get(track.id) || []).map((c) => (
+              <div
+                key={c.id}
+                className={`timeline-clip ${marked.includes(c.id) || selected === c.id ? "selected" : ""} ${track.role} ${c.locked ? "locked-clip" : ""}`}
+                style={{
+                  left: (c.start / rate) * zoom,
+                  width: Math.max(4, (c.duration / rate) * zoom),
+                }}
+                onPointerDown={(e) => onDragStart(e, c, "move")}
+                onPointerMove={onDragMove}
+                onPointerUp={onDragEnd}
+                onPointerCancel={onDragEnd}
+                onKeyDown={(e) => onClipKey(e, c)}
+                role="button"
+                tabIndex={0}
+                aria-label={c.title + " od " + time(c.start, rate)}
+              >
+                {track.kind === "video" && c.asset_id && (
+                  <img
+                    className="clip-thumbnail"
+                    src={mediaUrl(p.id, c.asset_id, true)}
+                    alt=""
+                    draggable={false}
+                    loading="lazy"
+                  />
+                )}
+                {track.kind === "audio" && c.asset_id && (
+                  <ClipWave projectId={p.id} assetId={c.asset_id} />
+                )}
+                <span
+                  className="clip-trim left"
+                  onPointerDown={(e) => onDragStart(e, c, "left")}
+                  role="button"
+                  aria-label="Przytnij początek"
+                />
+                <span className="clip-title">
+                  {track.kind === "audio" ? (
+                    <Music2 size={12} />
+                  ) : track.kind === "text" ? (
+                    <Type size={12} />
+                  ) : (
+                    <Film size={12} />
+                  )}
+                  <span>{c.title}</span>
+                  {c.locked && <LockKeyhole size={11} />}
+                </span>
+                <span
+                  className="clip-trim right"
+                  onPointerDown={(e) => onDragStart(e, c, "right")}
+                  role="button"
+                  aria-label="Przytnij koniec"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+});
+
 function SlidersIcon() {
   return <Film size={27} />;
 }
@@ -1444,6 +1649,7 @@ function Assistant({
     </section>
   );
 }
+const AssistantPanel = memo(Assistant);
 function operationLabel(op: Operation, p: Project) {
   const title =
     p.sequence.clips.find((c) => c.id === op.clip_id)?.title ||
