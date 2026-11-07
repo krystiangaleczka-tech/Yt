@@ -911,6 +911,38 @@ strong {
   object-fit: cover;
   display: block;
 }
+/* Odtwarzanie po kolei: dwa odtwarzacze na zmianę, widoczny jest tylko bieżący. */
+.shot-sequence {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #101113;
+}
+.shot-sequence > video,
+.sequence-still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.shot-sequence > video {
+  object-fit: cover;
+  visibility: hidden;
+}
+.sequence-still {
+  z-index: 1;
+  overflow: hidden;
+  background: #101113;
+}
+.sequence-still > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.preview-panel .player-toolbar .button[aria-pressed="true"] {
+  color: var(--accent);
+}
 .preview-corner {
   position: absolute;
   left: 12px;
@@ -1830,6 +1862,53 @@ strong {
   display: block;
   height: 6px;
   width: 100%;
+}
+.editor-player:focus {
+  outline: none;
+}
+/* Pełny ekran odtwarzacza w montażu: obraz na całym ekranie, pasek i przyciski na dole, nad obrazem. */
+.editor-player.fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+}
+.editor-player.fullscreen .preview-heading {
+  display: none;
+}
+.editor-player.fullscreen .canvas-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+}
+.editor-player.fullscreen .canvas-wrapper canvas {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  object-fit: contain;
+}
+.editor-player.fullscreen .editor-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: opacity 0.25s;
+}
+.editor-player.fullscreen :is(.editor-seek, .player-toolbar) {
+  background: rgba(20, 22, 27, 0.86);
+}
+.editor-player.fullscreen .editor-seek {
+  padding-top: 8px;
+}
+.editor-player.fullscreen.idle {
+  cursor: none;
+}
+.editor-player.fullscreen.idle .editor-controls {
+  opacity: 0;
+  pointer-events: none;
 }
 .clip-inspector,
 .assistant-panel {

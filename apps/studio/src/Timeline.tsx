@@ -29,7 +29,8 @@ import {
   Image as ImageIcon,
   Music2,
   Film,
-  Maximize2,
+  Maximize,
+  Minimize,
   X,
   ListMinus,
 } from "lucide-react";
@@ -96,7 +97,8 @@ export default function Timeline() {
     [assistant, setAssistant] = useState(false),
     [library, setLibrary] = useState(true),
     [history, setHistory] = useState({ undo: 0, redo: 0 }),
-    [large, setLarge] = useState(false),
+    [full, setFull] = useState(false),
+    [idle, setIdle] = useState(false),
     [proposed, setProposed] = useState<Proposal | null>(null);
   const [marked, setMarked] = useState<string[]>([]),
     [rangeStart, setRangeStart] = useState(0),
@@ -104,11 +106,51 @@ export default function Timeline() {
     [exact, setExact] = useState(false);
   const dragRef = useRef<Drag | null>(null),
     scrollRef = useRef<HTMLDivElement>(null),
+    playerRef = useRef<HTMLElement>(null),
+    idleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
     stillRef = useRef(frame);
   const [view, setView] = useState<LaneWindow>(() => laneWindow(null));
   // Inspektor dostaje klatkę tylko poza odtwarzaniem — w czasie Play nie przerysowuje się 30 razy na sekundę.
   if (!playing) stillRef.current = frame;
   const stillFrame = stillRef.current;
+  // Pełny ekran obejmuje cały odtwarzacz (obraz, pasek i przyciski), więc odtwarzanie nie przerywa się przy wejściu.
+  useEffect(() => {
+    const changed = () =>
+      setFull(
+        !!playerRef.current && document.fullscreenElement === playerRef.current,
+      );
+    document.addEventListener("fullscreenchange", changed);
+    return () => {
+      document.removeEventListener("fullscreenchange", changed);
+      if (playerRef.current && document.fullscreenElement === playerRef.current)
+        void document.exitFullscreen().catch(() => {});
+    };
+  }, []);
+  function toggleFull() {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => {});
+      return;
+    }
+    const el = playerRef.current;
+    if (!el?.requestFullscreen) {
+      s.notify("Przeglądarka nie obsługuje pełnego ekranu", true);
+      return;
+    }
+    el.requestFullscreen()
+      .then(() => el.focus({ preventScroll: true }))
+      .catch(() => s.notify("Przeglądarka nie pozwoliła na pełny ekran", true));
+  }
+  // Na pełnym ekranie w czasie odtwarzania przyciski chowają się po chwili bez ruchu myszy.
+  function wake() {
+    setIdle(false);
+    clearTimeout(idleTimer.current);
+    if (full && playing)
+      idleTimer.current = setTimeout(() => setIdle(true), 2500);
+  }
+  useEffect(() => {
+    wake();
+    return () => clearTimeout(idleTimer.current);
+  }, [full, playing]);
   const rate = fps(p),
     total = totalFrames(p),
     active = p.sequence.clips.find((c) => c.id === selected),
@@ -192,7 +234,8 @@ export default function Timeline() {
     if (!el || !playing) return;
     const x = (frame / rate) * zoom,
       right = el.scrollLeft + el.clientWidth - TITLE_WIDTH;
-    if (x < el.scrollLeft || x > right - 24) el.scrollLeft = Math.max(0, x - 24);
+    if (x < el.scrollLeft || x > right - 24)
+      el.scrollLeft = Math.max(0, x - 24);
   }, [frame, playing, zoom, rate]);
   function change(changes: Partial<Clip>) {
     if (!active) return;
@@ -479,7 +522,25 @@ export default function Timeline() {
             onOpenLibrary={onOpenLibrary}
           />
         )}
-        <section className="editor-player surface">
+        <section
+          ref={playerRef}
+          tabIndex={-1}
+          className={`editor-player surface ${full ? "fullscreen" : ""} ${full && idle ? "idle" : ""}`}
+          onMouseMove={full ? wake : undefined}
+          onDoubleClick={(e) => {
+            if ((e.target as HTMLElement).tagName === "CANVAS") toggleFull();
+          }}
+          onKeyDown={(e) => {
+            if (!full || e.key !== " ") return;
+            // Spacja na pełnym ekranie: Play/Pauza, także gdy fokus jest na przycisku.
+            e.preventDefault();
+            if (total) setPlaying((x) => !x);
+            wake();
+          }}
+          onKeyUp={(e) => {
+            if (full && e.key === " ") e.preventDefault();
+          }}
+        >
           <div className="preview-heading">
             <span>PODGLĄD ROBOCZY</span>
             <span>
@@ -494,57 +555,58 @@ export default function Timeline() {
               playing={playing}
               onFrame={setFrame}
               onEnded={() => setPlaying(false)}
+              maxWidth={full ? 1920 : 960}
             />
           </div>
-          <div className="editor-seek">
-            <input
-              type="range"
-              aria-label="Pozycja podglądu"
-              min={0}
-              max={Math.max(1, total - 1)}
-              value={frame}
-              onChange={(e) => {
-                setPlaying(false);
-                setFrame(Number(e.target.value));
-              }}
-            />
-          </div>
-          <div className="player-toolbar">
-            <IconButton
-              icon={SkipBack}
-              label="Początek filmu"
-              onClick={() => {
-                setPlaying(false);
-                setFrame(0);
-              }}
-            />
-            <IconButton
-              icon={playing ? Pause : Play}
-              label={playing ? "Zatrzymaj" : "Odtwórz film"}
-              onClick={() => {
-                if (total) setPlaying(!playing);
-              }}
-            />
-            <IconButton
-              icon={SkipForward}
-              label="Koniec filmu"
-              onClick={() => {
-                setPlaying(false);
-                setFrame(Math.max(0, total - 1));
-              }}
-            />
-            <span className="timecode">
-              {time(frame, rate, true)} <span>/ {time(total, rate, true)}</span>
-            </span>
-            <div className="player-spacer" />
-            <IconButton
-              icon={Maximize2}
-              label="Powiększ podgląd"
-              onClick={() => {
-                setPlaying(false);
-                setLarge(true);
-              }}
-            />
+          <div className="editor-controls">
+            <div className="editor-seek">
+              <input
+                type="range"
+                aria-label="Pozycja podglądu"
+                min={0}
+                max={Math.max(1, total - 1)}
+                value={frame}
+                onChange={(e) => {
+                  setPlaying(false);
+                  setFrame(Number(e.target.value));
+                }}
+              />
+            </div>
+            <div className="player-toolbar">
+              <IconButton
+                icon={SkipBack}
+                label="Początek filmu"
+                onClick={() => {
+                  setPlaying(false);
+                  setFrame(0);
+                }}
+              />
+              <IconButton
+                icon={playing ? Pause : Play}
+                label={playing ? "Zatrzymaj" : "Odtwórz film"}
+                onClick={() => {
+                  if (total) setPlaying(!playing);
+                }}
+              />
+              <IconButton
+                icon={SkipForward}
+                label="Koniec filmu"
+                onClick={() => {
+                  setPlaying(false);
+                  setFrame(Math.max(0, total - 1));
+                }}
+              />
+              <span className="timecode">
+                {time(frame, rate, true)}{" "}
+                <span>/ {time(total, rate, true)}</span>
+              </span>
+              <div className="player-spacer" />
+              <IconButton
+                icon={full ? Minimize : Maximize}
+                label={full ? "Wyjdź z pełnego ekranu (Esc)" : "Pełny ekran"}
+                onClick={toggleFull}
+              />
+            </div>
           </div>
         </section>
         {assistant ? (
@@ -703,20 +765,6 @@ export default function Timeline() {
         </div>
       </section>
       <Modal
-        open={large}
-        onClose={() => setLarge(false)}
-        title="Podgląd kompozycji"
-        wide
-      >
-        <Preview
-          project={p}
-          frame={frame}
-          playing={false}
-          onFrame={setFrame}
-          onEnded={() => {}}
-        />
-      </Modal>
-      <Modal
         open={exact}
         onClose={() => setExact(false)}
         title="Dokładna klatka"
@@ -773,13 +821,18 @@ const ClipInspector = memo(function ClipInspector({
   return (
     <section className="clip-inspector surface">
       {active?.template === "paper-theatre" && active.scene_id && (
-        <Button onClick={() => { s.setTargetScene(active.scene_id!); s.setPage("paper-theatre"); }}>
+        <Button
+          onClick={() => {
+            s.setTargetScene(active.scene_id!);
+            s.setPage("paper-theatre");
+          }}
+        >
           Scenograf · układ i porównanie z referencją
         </Button>
       )}
       {active &&
-        p.assets.find((a) => a.id === active.asset_id)?.provenance
-          .kind === "remotion" &&
+        p.assets.find((a) => a.id === active.asset_id)?.provenance.kind ===
+          "remotion" &&
         p.inserts.some(
           (i) =>
             i.id ===
@@ -789,9 +842,7 @@ const ClipInspector = memo(function ClipInspector({
           <Button
             icon={Film}
             onClick={() => {
-              const asset = p.assets.find(
-                (a) => a.id === active.asset_id,
-              );
+              const asset = p.assets.find((a) => a.id === active.asset_id);
               s.setTargetInsert(String(asset?.provenance.insert_id));
               s.setPage("motion");
             }}
@@ -982,10 +1033,7 @@ const ClipInspector = memo(function ClipInspector({
                       transition_duration:
                         e.target.value === "cut"
                           ? 0
-                          : Math.min(
-                              active.duration,
-                              Math.round(rate * 0.5),
-                            ),
+                          : Math.min(active.duration, Math.round(rate * 0.5)),
                     })
                   }
                 >
@@ -1016,9 +1064,7 @@ const ClipInspector = memo(function ClipInspector({
               <JSONField
                 label="Kadrowanie {x,y,width,height} 0–1"
                 value={active.crop || {}}
-                onSave={(v) =>
-                  change({ crop: v as Record<string, number> })
-                }
+                onSave={(v) => change({ crop: v as Record<string, number> })}
               />
             </>
           )}
@@ -1042,31 +1088,30 @@ const ClipInspector = memo(function ClipInspector({
           <details onToggle={(e) => setGroupOpen(e.currentTarget.open)}>
             <summary>Zaznacz klipy do grupy</summary>
             <div className="tool-options">
-              {groupOpen && p.sequence.clips.map((c) => (
-                <label key={c.id}>
-                  <input
-                    type="checkbox"
-                    checked={marked.includes(c.id)}
-                    onChange={(e) =>
-                      setMarked((ids) =>
-                        e.target.checked
-                          ? [...ids, c.id]
-                          : ids.filter((x) => x !== c.id),
-                      )
-                    }
-                  />
-                  {c.title} · {time(c.start, rate)}
-                </label>
-              ))}
+              {groupOpen &&
+                p.sequence.clips.map((c) => (
+                  <label key={c.id}>
+                    <input
+                      type="checkbox"
+                      checked={marked.includes(c.id)}
+                      onChange={(e) =>
+                        setMarked((ids) =>
+                          e.target.checked
+                            ? [...ids, c.id]
+                            : ids.filter((x) => x !== c.id),
+                        )
+                      }
+                    />
+                    {c.title} · {time(c.start, rate)}
+                  </label>
+                ))}
             </div>
           </details>
           <div className="button-row">
             <Button
               disabled={marked.length < 2}
               onClick={() =>
-                s.run(() =>
-                  s.edit([{ type: "group_clips", clip_ids: marked }]),
-                )
+                s.run(() => s.edit([{ type: "group_clips", clip_ids: marked }]))
               }
             >
               Grupuj {marked.length}
@@ -1109,8 +1154,7 @@ const MediaPanel = memo(function MediaPanel({
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
     return p.assets.filter(
-      (a) =>
-        a.kind !== "document" && (!q || a.name.toLowerCase().includes(q)),
+      (a) => a.kind !== "document" && (!q || a.name.toLowerCase().includes(q)),
     );
   }, [p.assets, query]);
   return (

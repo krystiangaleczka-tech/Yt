@@ -210,7 +210,9 @@ export function StudioProvider({ children }: { children: ReactNode }) {
             accept(await api<Project>("/projects/" + current.id));
             notify("Film zaktualizowany — wczytano najnowsze zmiany");
           }
-          setProjects(list);
+          // Ta sama lista co poprzednio: bez nowej tablicy, inaczej co 4 s przerysowuje się cała aplikacja
+          // (zacina odtwarzanie w Ujęciach i w Montażu).
+          setProjects((previous) => (JSON.stringify(previous) === JSON.stringify(list) ? previous : list));
         } catch {
           /* offline: the next tick retries */
         }

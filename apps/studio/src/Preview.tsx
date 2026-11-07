@@ -17,6 +17,7 @@ export default function Preview({
   onFrame,
   onEnded,
   transparent = false,
+  maxWidth = 960,
 }: {
   project: Project;
   frame: number;
@@ -24,6 +25,8 @@ export default function Preview({
   onFrame: (frame: number) => void;
   onEnded: () => void;
   transparent?: boolean;
+  /** Szerokość płótna w pikselach (pełny ekran rysuje ostrzej niż podgląd w panelu). */
+  maxWidth?: number;
 }) {
   const studio = useStudio(),
     proxyChecked = useRef(new Set<string>()),
@@ -117,8 +120,12 @@ export default function Preview({
     }
   }
   function draw(at = current.current.frame) {
-    const { project: p, playing: play, assetIndex: assets, layout } =
-      current.current;
+    const {
+      project: p,
+      playing: play,
+      assetIndex: assets,
+      layout,
+    } = current.current;
     const node = canvas.current;
     if (!node) return;
     const ctx = node.getContext("2d");
@@ -359,7 +366,12 @@ export default function Preview({
         ctx.restore();
       }
     }
-    if (stalled && held.current && held.current.width === W && held.current.height === H) {
+    if (
+      stalled &&
+      held.current &&
+      held.current.width === W &&
+      held.current.height === H
+    ) {
       ctx.drawImage(held.current, 0, 0);
     } else if (!stalled) {
       if (!held.current) held.current = document.createElement("canvas");
@@ -453,7 +465,7 @@ export default function Preview({
           v.addEventListener("playing", () => (v!.dataset.shown = "1"));
           const cue = (c.source_in || 0) / fps(p);
           v.addEventListener("loadedmetadata", () => {
-            if (v!.paused && v!.currentTime === 0) v!.currentTime = cue + 0.001;  // dekoduje pierwszą klatkę przed cięciem
+            if (v!.paused && v!.currentTime === 0) v!.currentTime = cue + 0.001; // dekoduje pierwszą klatkę przed cięciem
           });
           videos.current.set(c.id, v);
         }
@@ -580,8 +592,12 @@ export default function Preview({
   useEffect(() => {
     void document.fonts.load("16px 'DocOS Film'").then(() => redraw.current());
   }, []);
-  const w = Math.min(960, project.sequence.width),
+  const w = Math.min(maxWidth, project.sequence.width),
     h = Math.round((w * project.sequence.height) / project.sequence.width);
+  // Zmiana rozmiaru czyści płótno; w czasie odtwarzania następną klatkę i tak narysuje pętla.
+  useEffect(() => {
+    if (!current.current.playing) redraw.current();
+  }, [w, h]);
   return (
     <canvas
       ref={canvas}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import {
   Sparkles,
   Search,
@@ -17,6 +17,8 @@ import {
   Unlock,
   Mic,
   Clapperboard,
+  ListVideo,
+  Square,
 } from "lucide-react";
 import { useStudio } from "./context";
 import { api, id, mediaUrl, upload, safeUrl } from "./api";
@@ -33,6 +35,7 @@ import {
 } from "./components";
 import type { Asset, Scene, Project, Job, Animation } from "./types";
 import { fps, time } from "./timing";
+import ShotSequence from "./ShotSequence";
 
 export const animations: { id: Animation; name: string }[] = [
   { id: "zoom-in", name: "Powolne zbliżenie" },
@@ -74,9 +77,14 @@ export default function Generation() {
     [voiceOpen, setVoiceOpen] = useState(false),
     [url, setUrl] = useState(""),
     [playing, setPlaying] = useState(false),
-    [uploading, setUploading] = useState(false);
+    [uploading, setUploading] = useState(false),
+    // Odtwarzanie po kolei: od którego ujęcia i znacznik, który restartuje odtwarzacz po kliknięciu innej karty.
+    [sequence, setSequence] = useState<{ start: number; token: number } | null>(
+      null,
+    );
   const fileRef = useRef<HTMLInputElement>(null),
-    videoRef = useRef<HTMLVideoElement>(null);
+    videoRef = useRef<HTMLVideoElement>(null),
+    cardsRef = useRef<HTMLDivElement>(null);
   const scene = p.scenes.find((x) => x.id === selected) || p.scenes[0];
   const asset = p.assets.find((a) => a.id === scene?.asset_id);
   const rate = fps(p);
@@ -101,8 +109,46 @@ export default function Generation() {
       setSelected(s.targetScene);
   }, [s.targetScene, p.scenes]);
   useEffect(() => {
-    if (scene?.id) s.setTargetScene(scene.id);
-  }, [scene?.id]);
+    // W czasie odtwarzania po kolei wybór trafia do Studio dopiero po zatrzymaniu (każde cięcie przerysowałoby całą aplikację).
+    if (scene?.id && !sequence) s.setTargetScene(scene.id);
+  }, [scene?.id, !!sequence]);
+  useEffect(() => {
+    if (!sequence) return;
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSequence(null);
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [!!sequence]);
+  // Pasek kart podąża za odtwarzanym ujęciem (tylko w poziomie, strona się nie przewija).
+  useEffect(() => {
+    const strip = cardsRef.current;
+    const card = strip?.querySelector<HTMLElement>(".shot-card.active");
+    if (!sequence || !strip || !card) return;
+    const box = strip.getBoundingClientRect(),
+      at = card.getBoundingClientRect();
+    strip.scrollTo({
+      left: strip.scrollLeft + at.left - box.left - (box.width - at.width) / 2,
+      behavior: "smooth",
+    });
+  }, [scene?.id, !!sequence]);
+  function startSequence(from: number) {
+    // Pole w edycji zapisuje się teraz, do swojego ujęcia — zanim odtwarzanie przełączy panel na następne.
+    (document.activeElement as HTMLElement | null)?.blur?.();
+    setPlaying(false);
+    videoRef.current?.pause();
+    setSequence({ start: Math.max(0, from), token: Date.now() });
+  }
+  const pickRef = useRef((_i: number, _id: string) => {});
+  pickRef.current = (i: number, shotId: string) => {
+    setSelected(shotId);
+    setPlaying(false);
+    if (sequence) startSequence(i);
+  };
+  const pick = useMemo(
+    () => (i: number, shotId: string) => pickRef.current(i, shotId),
+    [],
+  );
   function change(changes: Partial<Scene>) {
     if (!scene) return;
     const sceneId = scene.id;
@@ -233,6 +279,14 @@ export default function Generation() {
   return (
     <div
       className="generation-page"
+      onFocusCapture={(e) => {
+        // Edycja zatrzymuje odtwarzanie na edytowanym ujęciu, żeby tekst nie trafił do następnego.
+        if (
+          sequence &&
+          (e.target as HTMLElement).matches("input, textarea, select")
+        )
+          setSequence(null);
+      }}
       onPaste={(e) => {
         const file = Array.from(e.clipboardData.files).find(
           (f) => f.type.startsWith("image/") || f.type.startsWith("video/"),
@@ -502,15 +556,21 @@ export default function Generation() {
             <div className="preview-heading">
               <span>
                 <span className="live-dot" />
-                PODGLĄD UJĘCIA
+                {sequence
+                  ? `PO KOLEI · ${index + 1} / ${p.scenes.length}`
+                  : "PODGLĄD UJĘCIA"}
               </span>
               <span>
                 {p.sequence.width} × {p.sequence.height}
               </span>
             </div>
             <div
-              className={`shot-preview ${playing ? "animate-" + scene.animation : ""}`}
+              className={`shot-preview ${playing && !sequence ? "animate-" + scene.animation : ""}`}
               onClick={() => {
+                if (sequence) {
+                  setSequence(null);
+                  return;
+                }
                 setPlaying(!playing);
                 if (videoRef.current) {
                   if (playing) videoRef.current.pause();
@@ -518,7 +578,15 @@ export default function Generation() {
                 }
               }}
             >
-              {scene.template && scene.template !== "media" ? (
+              {sequence ? (
+                <ShotSequence
+                  key={sequence.token}
+                  project={p}
+                  start={sequence.start}
+                  onShot={setSelected}
+                  onEnd={() => setSequence(null)}
+                />
+              ) : scene.template && scene.template !== "media" ? (
                 <img
                   src={`/api/projects/${p.id}/scenes/${scene.id}/poster?revision=${p.revision}&frame=0`}
                   alt={`Podgląd: ${scene.title}`}
@@ -554,6 +622,10 @@ export default function Generation() {
                 icon={Play}
                 label="Odtwórz ruch ujęcia"
                 onClick={() => {
+                  if (sequence) {
+                    setSequence(null);
+                    return;
+                  }
                   setPlaying(!playing);
                   if (videoRef.current) {
                     if (playing) videoRef.current.pause();
@@ -566,6 +638,21 @@ export default function Generation() {
                 <span>/ {time(scene.start + scene.duration, rate, true)}</span>
               </span>
               <div className="player-spacer" />
+              <Button
+                subtle
+                icon={sequence ? Square : ListVideo}
+                aria-pressed={!!sequence}
+                title={
+                  sequence
+                    ? "Zatrzymaj na tym ujęciu (Esc)"
+                    : "Odtwarzaj ujęcia jedno po drugim, od wybranego"
+                }
+                onClick={() =>
+                  sequence ? setSequence(null) : startSequence(index)
+                }
+              >
+                {sequence ? "Zatrzymaj" : "Odtwarzaj po kolei"}
+              </Button>
               <span className="small muted">16:9</span>
             </div>
           </section>
@@ -737,37 +824,8 @@ export default function Generation() {
             <ArrowRight size={14} />
           </Button>
         </div>
-        <div className="shot-cards">
-          {p.scenes.map((shot, i) => (
-            <button
-              key={shot.id}
-              className={`shot-card ${shot.id === scene.id ? "active" : ""}`}
-              onClick={() => {
-                setSelected(shot.id);
-                setPlaying(false);
-              }}
-            >
-              <div className="shot-card-top">
-                <AssetThumb
-                  asset={p.assets.find((a) => a.id === shot.asset_id)}
-                  project={p}
-                />
-                <span className="shot-number">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="shot-duration">
-                  {(shot.duration / rate).toFixed(1)} s
-                </span>
-              </div>
-              <div className="shot-card-body">
-                <strong>{shot.title}</strong>
-                <span>
-                  {time(shot.start, rate)} —{" "}
-                  {time(shot.start + shot.duration, rate)}
-                </span>
-              </div>
-            </button>
-          ))}
+        <div className="shot-cards" ref={cardsRef}>
+          <ShotCards project={p} active={scene.id} onPick={pick} />
           <button className="add-shot-card" onClick={() => s.run(addScene)}>
             <Plus size={24} />
             <span>Dodaj ujęcie</span>
@@ -793,20 +851,22 @@ export default function Generation() {
         wide
       >
         <div className="asset-picker">
-          {p.assets
-            .filter((a) => a.kind === "image" || a.kind === "video")
-            .map((a) => (
-              <button
-                key={a.id}
-                onClick={() => {
-                  change({ asset_id: a.id, mode: "library" });
-                  setLibraryOpen(false);
-                }}
-              >
-                <AssetThumb asset={a} project={p} />
-                <strong>{a.name}</strong>
-              </button>
-            ))}
+          {/* Lista budowana tylko przy otwartym oknie: film ma ponad tysiąc materiałów, a ta część przerysowuje się przy każdym wyborze ujęcia. */}
+          {libraryOpen &&
+            p.assets
+              .filter((a) => a.kind === "image" || a.kind === "video")
+              .map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => {
+                    change({ asset_id: a.id, mode: "library" });
+                    setLibraryOpen(false);
+                  }}
+                >
+                  <AssetThumb asset={a} project={p} />
+                  <strong>{a.name}</strong>
+                </button>
+              ))}
         </div>
         <Button icon={Upload} onClick={() => fileRef.current?.click()}>
           Dodaj plik
@@ -819,20 +879,21 @@ export default function Generation() {
         description="Nagranie do eksportu lub odsłuch tekstu w przeglądarce"
       >
         <div className="voice-options">
-          {p.assets
-            .filter((a) => a.kind === "audio")
-            .map((a) => (
-              <div className="voice-item" key={a.id}>
-                <div>
-                  <strong>{a.name}</strong>
-                  <span>{a.duration.toFixed(1)} s</span>
+          {voiceOpen &&
+            p.assets
+              .filter((a) => a.kind === "audio")
+              .map((a) => (
+                <div className="voice-item" key={a.id}>
+                  <div>
+                    <strong>{a.name}</strong>
+                    <span>{a.duration.toFixed(1)} s</span>
+                  </div>
+                  <audio src={mediaUrl(p.id, a.id)} controls />
+                  <Button icon={Check} onClick={() => s.run(() => useVoice(a))}>
+                    Użyj
+                  </Button>
                 </div>
-                <audio src={mediaUrl(p.id, a.id)} controls />
-                <Button icon={Check} onClick={() => s.run(() => useVoice(a))}>
-                  Użyj
-                </Button>
-              </div>
-            ))}
+              ))}
         </div>
         <div className="button-row">
           <Button icon={Upload} onClick={() => fileRef.current?.click()}>
@@ -858,3 +919,77 @@ export default function Generation() {
     </div>
   );
 }
+
+// Karty ujęć osobno i zapamiętane: film ma setki ujęć, a zmiana wybranego (np. przy odtwarzaniu po kolei)
+// przerysowuje tylko dwie karty, nie cały pasek.
+const ShotCards = memo(function ShotCards({
+  project: p,
+  active,
+  onPick,
+}: {
+  project: Project;
+  active: string;
+  onPick: (index: number, shotId: string) => void;
+}) {
+  const assets = useMemo(
+    () => new Map<string, Asset>(p.assets.map((a) => [a.id, a])),
+    [p.assets],
+  );
+  const rate = fps(p);
+  return (
+    <>
+      {p.scenes.map((shot, i) => (
+        <ShotCard
+          key={shot.id}
+          shot={shot}
+          index={i}
+          active={shot.id === active}
+          asset={shot.asset_id ? assets.get(shot.asset_id) : undefined}
+          project={p}
+          rate={rate}
+          onPick={onPick}
+        />
+      ))}
+    </>
+  );
+});
+const ShotCard = memo(function ShotCard({
+  shot,
+  index,
+  active,
+  asset,
+  project,
+  rate,
+  onPick,
+}: {
+  shot: Scene;
+  index: number;
+  active: boolean;
+  asset?: Asset;
+  project: Project;
+  rate: number;
+  onPick: (index: number, shotId: string) => void;
+}) {
+  return (
+    <button
+      className={`shot-card ${active ? "active" : ""}`}
+      onClick={() => onPick(index, shot.id)}
+    >
+      <div className="shot-card-top">
+        <AssetThumb asset={asset} project={project} />
+        <span className="shot-number">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <span className="shot-duration">
+          {(shot.duration / rate).toFixed(1)} s
+        </span>
+      </div>
+      <div className="shot-card-body">
+        <strong>{shot.title}</strong>
+        <span>
+          {time(shot.start, rate)} — {time(shot.start + shot.duration, rate)}
+        </span>
+      </div>
+    </button>
+  );
+});
