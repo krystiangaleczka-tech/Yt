@@ -10,6 +10,11 @@ type AirPlayVideo = HTMLVideoElement & {
   webkitCurrentPlaybackTargetIsWireless?: boolean;
 };
 type State = "idle" | "casting" | "paused";
+// Safari na Macu otwiera wybór urządzeń AirPlay tylko dla wideo z wczytanymi metadanymi (inaczej po cichu nic nie
+// robi). Dlatego odtwarzacz od razu trzyma malutki strumień próbny, a właściwy strumień dostaje dopiero po wybraniu
+// telewizora; połączenie AirPlay zostaje przy elemencie. W chwili połączenia telewizor dostaje adres tego, co odtwarzacz
+// trzyma, więc także strumień próbny idzie z adresu w sieci lokalnej (localhost telewizor by zawiesił).
+const PROBE = "/api/tv/probe.m3u8";
 
 function clock(seconds: number) {
   const s = Math.max(0, Math.floor(seconds));
@@ -25,15 +30,15 @@ function clock(seconds: number) {
 
 /**
  * Przycisk AirPlay: wysyła na telewizor strumień HLS ze Studio (ujęcia po kolei albo oś montażu). Telewizor sam pobiera
- * strumień, więc adres musi być w sieci lokalnej, nie localhost. Pozycję z telewizora zgłasza onTime, żeby Studio
- * pokazywało, co jest na ekranie.
+ * strumień, więc adres musi być w sieci lokalnej, nie localhost. Komputer w tym czasie nic nie odtwarza: pozycja
+ * z telewizora jest tylko w panelu (describe), a po zakończeniu onEnd dostaje miejsce, w którym telewizor skończył.
  */
 export default function AirPlayButton({
   label,
   title,
   path,
   onStart,
-  onTime,
+  describe,
   onEnd,
 }: {
   label: string;
@@ -41,49 +46,128 @@ export default function AirPlayButton({
   /** Ścieżka playlisty w API (bez /api), liczona w chwili kliknięcia — np. od wybranego ujęcia. */
   path: () => string;
   onStart?: () => void;
-  onTime?: (seconds: number) => void;
-  onEnd?: () => void;
+  /** Opis pozycji telewizora do panelu, np. „ujęcie 44 / 689” albo czas filmu. */
+  describe?: (seconds: number) => string;
+  /** Koniec wysyłania; seconds to ostatnia pozycja telewizora w strumieniu. */
+  onEnd?: (seconds: number) => void;
 }) {
   const s = useStudio();
   const video = useRef<AirPlayVideo>(null),
     address = useRef<string | null>(null),
     available = useRef<boolean | null>(null),
-    live = useRef({ onStart, onTime, onEnd, notify: s.notify });
-  live.current = { onStart, onTime, onEnd, notify: s.notify };
+    // Strumień, który ma pójść na telewizor po wybraniu urządzenia w oknie AirPlay.
+    pending = useRef<string | null>(null),
+    last = useRef(0),
+    live = useRef({ onStart, onEnd, notify: s.notify });
+  live.current = { onStart, onEnd, notify: s.notify };
   const [state, setState] = useState<State>("idle"),
     [shown, setShown] = useState(title),
     [time, setTime] = useState(0),
     [length, setLength] = useState(0);
   const stateRef = useRef<State>("idle");
   stateRef.current = state;
+  // Adres Studio widziany z telewizora: IP Maca w sieci lokalnej i port strony (Vite przekazuje /api dalej).
+  function origin() {
+    return address.current
+      ? `${location.protocol}//${address.current}${location.port ? ":" + location.port : ""}`
+      : location.origin;
+  }
+  function probe() {
+    const v = video.current;
+    if (!v?.webkitShowPlaybackTargetPicker) return; // poza Safari nie ma AirPlay ani HLS
+    v.src = origin() + PROBE;
+  }
+  // Dziennik AirPlay z Safari do logu serwera (konsoli Safari nie widać, a zdarzenia WebKit decydują o wszystkim).
+  function report(event: string, extra: Record<string, unknown> = {}) {
+    const v = video.current;
+    void api("/tv/log", {
+      event,
+      state: stateRef.current,
+      wireless: !!v?.webkitCurrentPlaybackTargetIsWireless,
+      ready: v?.readyState,
+      source: v?.src.includes(PROBE) ? "probe" : v?.src ? "stream" : "none",
+      ...extra,
+    }).catch(() => {});
+  }
+  function start(url: string) {
+    const v = video.current;
+    if (!v) return;
+    pending.current = null;
+    stateRef.current = "casting";
+    setState("casting");
+    v.src = url;
+    last.current = 0;
+    report("start", { url });
+    live.current.onStart?.();
+    // Bez gestu użytkownika Safari może odmówić startu: wtedy panel pokazuje Play.
+    v.play().catch((e: Error) => {
+      report("play-rejected", { error: e?.name });
+      if (stateRef.current !== "idle") setState("paused");
+    });
+  }
+  function stop(reason = "zakończ") {
+    report("stop", { reason, at: last.current });
+    const at = last.current;
+    last.current = 0;
+    stateRef.current = "idle"; // zdarzenie pause z v.pause() nie może już przełączyć panelu na „wstrzymane”
+    pending.current = null;
+    video.current?.pause();
+    probe(); // gotowe na następne kliknięcie
+    setState("idle");
+    setTime(0);
+    setLength(0);
+    live.current.onEnd?.(at);
+  }
   useEffect(() => {
     void api<{ address: string | null }>("/tv/address")
-      .then((r) => (address.current = r.address))
-      .catch(() => {});
+      .then((r) => {
+        address.current = r.address;
+        probe();
+      })
+      .catch(() => probe());
     const v = video.current;
     if (!v) return;
     const availability = (e: Event) =>
       (available.current =
         (e as Event & { availability?: string }).availability === "available");
+    let lost: ReturnType<typeof setTimeout> | undefined;
     const route = () => {
+      report("route");
       if (v.webkitCurrentPlaybackTargetIsWireless) {
-        setState("casting");
-        live.current.onStart?.();
-        // Bez gestu użytkownika Safari może odmówić startu: wtedy panel pokazuje Play.
-        v.play().catch(() => setState("paused"));
-      } else if (stateRef.current !== "idle") stop();
+        clearTimeout(lost);
+        if (pending.current) start(pending.current);
+        return;
+      }
+      if (stateRef.current === "idle") return;
+      // Podmiana adresu tworzy w WebKit nowy odtwarzacz: AirPlay na chwilę „się rozłącza”, po czym sam wraca do
+      // telewizora. Kończymy dopiero, gdy połączenie nie wróci (np. ktoś wybrał w oknie AirPlay tego Maca).
+      clearTimeout(lost);
+      lost = setTimeout(() => {
+        if (
+          !v.webkitCurrentPlaybackTargetIsWireless &&
+          stateRef.current !== "idle"
+        )
+          stop("rozłączono");
+      }, 8000);
     };
     const failed = () => {
-      if (stateRef.current === "idle" || !v.getAttribute("src")) return;
+      // Błąd albo przerwanie strumienia próbnego (np. przy podmianie adresu) nie ma znaczenia.
+      if (stateRef.current === "idle" || !v.error || v.src.includes(PROBE))
+        return;
+      report("error", { code: v.error.code, message: v.error.message });
       live.current.notify(
-        "Telewizor nie pobrał obrazu. Studio musi działać przez npm run dev, a Mac i telewizor muszą być w tej samej sieci (zapora macOS może pytać o zgodę dla node).",
+        "Telewizor nie pobrał obrazu. Studio musi działać przez npm run dev, Mac i telewizor w tej samej sieci, a zapora macOS musi przepuszczać połączenia przychodzące do node.",
         true,
       );
-      stop();
+      stop("błąd");
     };
-    const ended = () => stop();
+    const ended = () => {
+      // Koniec strumienia próbnego (telewizor potrafi go odegrać przed podmianą) nie kończy sesji.
+      if (stateRef.current !== "idle" && v.ended && !v.src.includes(PROBE))
+        stop("koniec");
+    };
     const playing = () => {
-      if (v.webkitCurrentPlaybackTargetIsWireless) setState("casting");
+      if (stateRef.current !== "idle") setState("casting");
     };
     const paused = () => {
       if (stateRef.current === "casting") setState("paused");
@@ -95,6 +179,7 @@ export default function AirPlayButton({
     v.addEventListener("playing", playing);
     v.addEventListener("pause", paused);
     return () => {
+      clearTimeout(lost);
       v.removeEventListener(
         "webkitplaybacktargetavailabilitychanged",
         availability,
@@ -117,25 +202,13 @@ export default function AirPlayButton({
     const timer = setInterval(() => {
       const v = video.current;
       if (!v) return;
+      // Tylko panel się odświeża; reszta Studio stoi, póki telewizor gra.
+      last.current = v.currentTime;
       setTime(v.currentTime);
       if (Number.isFinite(v.duration)) setLength(v.duration);
-      live.current.onTime?.(v.currentTime);
     }, 500);
     return () => clearInterval(timer);
   }, [state]);
-  function stop() {
-    stateRef.current = "idle"; // zdarzenie pause z v.pause() nie może już przełączyć panelu na „wstrzymane”
-    const v = video.current;
-    if (v) {
-      v.pause();
-      v.removeAttribute("src");
-      v.load();
-    }
-    setState("idle");
-    setTime(0);
-    setLength(0);
-    live.current.onEnd?.();
-  }
   function open() {
     const v = video.current;
     if (!v?.webkitShowPlaybackTargetPicker) {
@@ -152,24 +225,25 @@ export default function AirPlayButton({
       );
       return;
     }
-    // Wszystko synchronicznie w kliknięciu: Safari pokazuje wybór urządzenia tylko w geście użytkownika.
-    const origin = address.current
-      ? `${location.protocol}//${address.current}${location.port ? ":" + location.port : ""}`
-      : location.origin;
-    if (
-      v.webkitCurrentPlaybackTargetIsWireless &&
-      stateRef.current !== "idle"
-    ) {
-      // Już połączone: nowy strumień od bieżącego miejsca, bez ponownego wyboru telewizora.
-      v.src = origin + "/api" + path();
-      setShown(title);
-      live.current.onStart?.();
-      void v.play().catch(() => setState("paused"));
+    const url = origin() + "/api" + path();
+    setShown(title);
+    if (v.webkitCurrentPlaybackTargetIsWireless) {
+      // Telewizor już połączony: od razu nowy strumień od bieżącego miejsca, bez okna wyboru.
+      start(url);
       return;
     }
-    v.src = origin + "/api" + path();
-    setShown(title);
+    if (v.readyState < HTMLMediaElement.HAVE_METADATA) {
+      probe();
+      s.notify(
+        "AirPlay jeszcze się przygotowuje. Kliknij ponownie za chwilę.",
+        true,
+      );
+      return;
+    }
+    pending.current = url;
+    // Synchronicznie w kliknięciu: Safari pokazuje okno wyboru tylko w geście użytkownika.
     v.webkitShowPlaybackTargetPicker();
+    report("picker", { url });
   }
   return (
     <>
@@ -184,7 +258,7 @@ export default function AirPlayButton({
         ref={video}
         className="airplay-video"
         x-webkit-airplay="allow"
-        preload="none"
+        preload="auto"
         playsInline
       />
       {state !== "idle" && (
@@ -193,7 +267,8 @@ export default function AirPlayButton({
           <div>
             <strong>Na telewizorze</strong>
             <span>
-              {shown} · {clock(time)}
+              {shown} · {describe ? describe(time) + " · " : ""}
+              {clock(time)}
               {length ? " / " + clock(length) : ""}
             </span>
           </div>
@@ -211,7 +286,12 @@ export default function AirPlayButton({
               else void v.play().catch(() => {});
             }}
           />
-          <Button subtle onClick={stop}>
+          <IconButton
+            icon={Airplay}
+            label="Zmień telewizor albo wyłącz AirPlay"
+            onClick={() => video.current?.webkitShowPlaybackTargetPicker?.()}
+          />
+          <Button subtle onClick={() => stop()}>
             Zakończ
           </Button>
         </div>

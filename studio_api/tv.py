@@ -12,6 +12,8 @@ na żądanie (z wyprzedzeniem o dwa) i czekają w pamięci.
 """
 from __future__ import annotations
 
+import json
+import logging
 import math
 import re
 import socket
@@ -22,7 +24,7 @@ from collections import OrderedDict
 from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 
-from fastapi import Response
+from fastapi import Request, Response
 
 from studio_core.media import asset_path, probe
 from studio_core.models import Clip, duration, fps
@@ -131,6 +133,16 @@ def playlist(entries: list[tuple[float, str]], discontinuity: bool) -> str:
     return "\n".join(lines) + "\n"
 
 
+log = logging.getLogger("uvicorn.error")
+
+
+def seen(request: Request):
+    """Kto pobiera strumień: telewizor przedstawia się innym User-Agent niż Safari, a X-Forwarded-For (proxy Vite)
+    niesie jego adres. Bez tego w logu każde żądanie wygląda jak z 127.0.0.1."""
+    who = request.headers.get("x-forwarded-for") or (request.client.host if request.client else "?")
+    log.info("TV %s ← %s · %s", request.url.path.rsplit("/", 1)[-1], who, request.headers.get("user-agent", "-")[:120])
+
+
 def register_tv(app, store):
     segments = Segments()
     codecs: dict[str, bool] = {}
@@ -138,6 +150,33 @@ def register_tv(app, store):
     @app.get("/api/tv/address")
     def tv_address():
         return {"address": lan_address()}
+
+    @app.post("/api/tv/log")
+    def tv_log(request: Request, body: dict):
+        # Zdarzenia AirPlay z Safari (wybór urządzenia, połączenie, start, błędy): tylko do logu, nic się nie zapisuje.
+        log.info("TV safari ← %s", json.dumps(body, ensure_ascii=False)[:600])
+        return {"ok": True}
+
+    probe_lock, probe_data = threading.Lock(), []
+
+    @app.get("/api/tv/probe.m3u8")
+    def tv_probe(request: Request):
+        seen(request)
+        # Safari na Macu otwiera wybór urządzeń AirPlay tylko dla wideo z wczytanymi metadanymi: strona trzyma ten
+        # sekundowy strumień w odtwarzaczu, a po wybraniu telewizora podmienia go na właściwy.
+        return Response(playlist([(1.0, "probe.ts")], discontinuity=False), media_type=PLAYLIST,
+                        headers={"Cache-Control": "no-store"})
+
+    @app.get("/api/tv/probe.ts")
+    def tv_probe_segment(request: Request):
+        seen(request)
+        with probe_lock:
+            if not probe_data:
+                probe_data.append(ffmpeg(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=c=black:s=320x180:r=30:d=1",
+                                          "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", "1",
+                                          "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
+                                          "-c:a", "aac", "-b:a", "64k", "-f", "mpegts", "pipe:1"]))
+            return Response(probe_data[0], media_type=TS)
 
     def copyable(path: Path, sha: str) -> bool:
         """Klip, który da się wysłać bez kodowania: H.264 w 4:2:0 (tak renderują się ujęcia animacji)."""
@@ -174,7 +213,8 @@ def register_tv(app, store):
                        "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p", "-f", "mpegts", "pipe:1"])
 
     @app.get("/api/projects/{project_id}/tv/shots.m3u8")
-    def tv_shots(project_id: str, start: int = 0):
+    def tv_shots(request: Request, project_id: str, start: int = 0):
+        seen(request)
         project = store.get(project_id)
         rate = fps(project)
         scenes = project.scenes[max(0, start):]
@@ -184,7 +224,8 @@ def register_tv(app, store):
         return Response(playlist(entries, discontinuity=True), media_type=PLAYLIST, headers={"Cache-Control": "no-store"})
 
     @app.get("/api/projects/{project_id}/tv/shot/{scene_id}.ts")
-    def tv_shot(project_id: str, scene_id: str):
+    def tv_shot(request: Request, project_id: str, scene_id: str):
+        seen(request)
         project = store.get(project_id)
         scene = next((s for s in project.scenes if s.id == scene_id), None)
         if scene is None:
@@ -202,7 +243,8 @@ def register_tv(app, store):
         return compose(store, slice_project(project, begin, end), begin / fps(project))
 
     @app.get("/api/projects/{project_id}/tv/montage.m3u8")
-    def tv_montage(project_id: str, start: int = 0):
+    def tv_montage(request: Request, project_id: str, start: int = 0):
+        seen(request)
         project = store.get(project_id)
         rate, total = fps(project), duration(project)
         if total <= 0:
@@ -215,7 +257,8 @@ def register_tv(app, store):
         return Response(playlist(entries, discontinuity=False), media_type=PLAYLIST, headers={"Cache-Control": "no-store"})
 
     @app.get("/api/projects/{project_id}/tv/montage/{begin}-{end}.ts")
-    def tv_montage_segment(project_id: str, begin: int, end: int):
+    def tv_montage_segment(request: Request, project_id: str, begin: int, end: int):
+        seen(request)
         project = store.get(project_id)
         total = duration(project)
         if not 0 <= begin < end <= total:

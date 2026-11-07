@@ -5,6 +5,6 @@ import { fileURLToPath } from 'node:url';
 export default defineConfig({
   root: fileURLToPath(new URL('.', import.meta.url)),
   plugins: [react()],
-  server: { allowedHosts: true, proxy: { '/api': { target: `http://127.0.0.1:${process.env.DOCOS_API_PORT || 8876}`, changeOrigin: true } } },
+  server: { allowedHosts: true, proxy: { '/api': { target: `http://127.0.0.1:${process.env.DOCOS_API_PORT || 8876}`, changeOrigin: true, xfwd: true } } },
   build: { outDir: 'dist', emptyOutDir: true }
 });

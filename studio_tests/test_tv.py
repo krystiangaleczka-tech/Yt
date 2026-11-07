@@ -90,6 +90,13 @@ class TVStreamTests(unittest.TestCase):
         address = result.json()["address"]
         self.assertTrue(address is None or re.fullmatch(r"\d+\.\d+\.\d+\.\d+", address))
 
+    def test_probe_stream_for_the_airplay_picker(self):
+        text, folder = self.fetch_stream("probe", "/api/tv/probe.m3u8")
+        self.assertEqual(text.count("#EXTINF"), 1)
+        streams = {s["codec_type"]: s for s in probe(folder / "0.ts")["streams"]}
+        self.assertEqual(set(streams), {"video", "audio"})
+        self.assertAlmostEqual(self.decoded_seconds(folder / "index.m3u8"), 1, delta=0.1)
+
     def test_shots_stream_plays_every_shot_for_its_length(self):
         scenes = self.build()
         text, folder = self.fetch_stream("shots", self.base + "/tv/shots.m3u8?start=0")

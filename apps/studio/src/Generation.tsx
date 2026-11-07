@@ -88,8 +88,7 @@ export default function Generation() {
   const fileRef = useRef<HTMLInputElement>(null),
     videoRef = useRef<HTMLVideoElement>(null),
     cardsRef = useRef<HTMLDivElement>(null),
-    tvFrom = useRef(0),
-    tvShot = useRef(-1);
+    tvFrom = useRef(0);
   const scene = p.scenes.find((x) => x.id === selected) || p.scenes[0];
   const asset = p.assets.find((a) => a.id === scene?.asset_id);
   const rate = fps(p);
@@ -129,14 +128,14 @@ export default function Generation() {
   useEffect(() => {
     const strip = cardsRef.current;
     const card = strip?.querySelector<HTMLElement>(".shot-card.active");
-    if ((!sequence && !tv) || !strip || !card) return;
+    if (!sequence || !strip || !card) return;
     const box = strip.getBoundingClientRect(),
       at = card.getBoundingClientRect();
     strip.scrollTo({
       left: strip.scrollLeft + at.left - box.left - (box.width - at.width) / 2,
       behavior: "smooth",
     });
-  }, [scene?.id, !!sequence, tv]);
+  }, [scene?.id, !!sequence]);
   function startSequence(from: number) {
     // Pole w edycji zapisuje się teraz, do swojego ujęcia — zanim odtwarzanie przełączy panel na następne.
     (document.activeElement as HTMLElement | null)?.blur?.();
@@ -144,28 +143,15 @@ export default function Generation() {
     videoRef.current?.pause();
     setSequence({ start: Math.max(0, from), token: Date.now() });
   }
-  const tvRef = useRef((_t: number) => {});
-  tvRef.current = (t: number) => {
-    // Pozycja z telewizora → ujęcie na ekranie. Wybór zmienia się tylko przy zmianie ujęcia na telewizorze
-    // i nie w czasie edycji pola (tekst musi trafić do ujęcia, które się edytuje).
-    let at = 0,
-      shot = p.scenes.length - 1;
+  // Które ujęcie gra telewizor, t sekund od startu strumienia (ujęcia idą po kolei od tvFrom).
+  function tvShotAt(t: number) {
+    let at = 0;
     for (let i = tvFrom.current; i < p.scenes.length; i++) {
       at += p.scenes[i].duration / rate;
-      if (t < at) {
-        shot = i;
-        break;
-      }
+      if (t < at) return i;
     }
-    if (shot === tvShot.current || !p.scenes[shot]) return;
-    tvShot.current = shot;
-    if (
-      !(document.activeElement as HTMLElement | null)?.matches?.(
-        "input, textarea, select",
-      )
-    )
-      setSelected(p.scenes[shot].id);
-  };
+    return p.scenes.length - 1;
+  }
   const pickRef = useRef((_i: number, _id: string) => {});
   pickRef.current = (i: number, shotId: string) => {
     setSelected(shotId);
@@ -584,7 +570,7 @@ export default function Generation() {
               <span>
                 <span className="live-dot" />
                 {tv
-                  ? `NA TELEWIZORZE · ${index + 1} / ${p.scenes.length}`
+                  ? "NA TELEWIZORZE"
                   : sequence
                     ? `PO KOLEI · ${index + 1} / ${p.scenes.length}`
                     : "PODGLĄD UJĘCIA"}
@@ -691,11 +677,24 @@ export default function Generation() {
                   setPlaying(false);
                   videoRef.current?.pause();
                   tvFrom.current = index;
-                  tvShot.current = -1;
                   setTv(true);
                 }}
-                onTime={(t) => tvRef.current(t)}
-                onEnd={() => setTv(false)}
+                describe={(t) =>
+                  `ujęcie ${tvShotAt(t) + 1} / ${p.scenes.length}`
+                }
+                onEnd={(t) => {
+                  setTv(false);
+                  // Studio staje na ujęciu, na którym skończył telewizor (chyba że właśnie edytujesz pole).
+                  const shot = p.scenes[tvShotAt(t)];
+                  if (
+                    t > 0 &&
+                    shot &&
+                    !(document.activeElement as HTMLElement | null)?.matches?.(
+                      "input, textarea, select",
+                    )
+                  )
+                    setSelected(shot.id);
+                }}
               />
               <span className="small muted">16:9</span>
             </div>

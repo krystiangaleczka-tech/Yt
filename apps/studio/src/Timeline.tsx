@@ -612,13 +612,25 @@ export default function Timeline() {
                   setPlaying(false);
                   tvFrom.current = frame;
                 }}
-                onTime={(t) => {
-                  // Kursor osi pokazuje, co gra telewizor.
-                  const at = Math.min(
-                    Math.max(0, total - 1),
-                    tvFrom.current + Math.round(t * rate),
-                  );
-                  setFrame((x) => (x === at ? x : at));
+                describe={(t) =>
+                  "teraz " +
+                  time(
+                    Math.min(
+                      Math.max(0, total - 1),
+                      tvFrom.current + Math.round(t * rate),
+                    ),
+                    rate,
+                  )
+                }
+                onEnd={(t) => {
+                  // Kursor osi staje tam, gdzie skończył telewizor; w czasie wysyłania oś stoi.
+                  if (t > 0)
+                    setFrame(
+                      Math.min(
+                        Math.max(0, total - 1),
+                        tvFrom.current + Math.round(t * rate),
+                      ),
+                    );
                 }}
               />
               <IconButton
