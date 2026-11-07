@@ -7164,3 +7164,51 @@ textarea::placeholder {
   .shot-center, .stage-shot-workspace .scene-main { padding: 12px; }
   .shot-transport .timecode { flex-basis: 100%; text-align: right; }
 }
+/* AirPlay: niewidoczny odtwarzacz, który Safari wysyła na telewizor, i panel stanu w rogu ekranu. */
+.airplay-video {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 2px;
+  height: 2px;
+  opacity: 0.01;
+  pointer-events: none;
+}
+.icon-button.airplay-on {
+  color: var(--accent);
+}
+.airplay-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 8px 8px 12px;
+  border: 1px solid #3b3e48;
+  border-radius: 8px;
+  background: #1d2027f2;
+  color: #e8e9ec;
+  box-shadow: 0 8px 24px #0006;
+}
+.airplay-panel > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.airplay-panel strong {
+  font-size: 12px;
+}
+.airplay-panel span {
+  font-size: 11px;
+  color: #a3a8b7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.airplay-panel > svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}

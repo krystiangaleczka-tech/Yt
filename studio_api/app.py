@@ -73,6 +73,8 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     register_animation(app, store, connectors, jobs)
     register_flow(app, store, connectors)
     motion_render=register_inserts(app, store, jobs, connectors)
+    from studio_api.tv import register_tv
+    register_tv(app, store)
 
     @app.middleware("http")
     async def local_mutations(request: Request, call_next):

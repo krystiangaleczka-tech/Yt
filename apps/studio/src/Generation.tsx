@@ -36,6 +36,7 @@ import {
 import type { Asset, Scene, Project, Job, Animation } from "./types";
 import { fps, time } from "./timing";
 import ShotSequence from "./ShotSequence";
+import AirPlayButton from "./AirPlay";
 
 export const animations: { id: Animation; name: string }[] = [
   { id: "zoom-in", name: "Powolne zbliżenie" },
@@ -81,10 +82,14 @@ export default function Generation() {
     // Odtwarzanie po kolei: od którego ujęcia i znacznik, który restartuje odtwarzacz po kliknięciu innej karty.
     [sequence, setSequence] = useState<{ start: number; token: number } | null>(
       null,
-    );
+    ),
+    // Ujęcia po kolei na telewizorze (AirPlay): od którego ujęcia ruszył strumień i które ujęcie jest teraz na ekranie.
+    [tv, setTv] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null),
     videoRef = useRef<HTMLVideoElement>(null),
-    cardsRef = useRef<HTMLDivElement>(null);
+    cardsRef = useRef<HTMLDivElement>(null),
+    tvFrom = useRef(0),
+    tvShot = useRef(-1);
   const scene = p.scenes.find((x) => x.id === selected) || p.scenes[0];
   const asset = p.assets.find((a) => a.id === scene?.asset_id);
   const rate = fps(p);
@@ -110,8 +115,8 @@ export default function Generation() {
   }, [s.targetScene, p.scenes]);
   useEffect(() => {
     // W czasie odtwarzania po kolei wybór trafia do Studio dopiero po zatrzymaniu (każde cięcie przerysowałoby całą aplikację).
-    if (scene?.id && !sequence) s.setTargetScene(scene.id);
-  }, [scene?.id, !!sequence]);
+    if (scene?.id && !sequence && !tv) s.setTargetScene(scene.id);
+  }, [scene?.id, !!sequence, tv]);
   useEffect(() => {
     if (!sequence) return;
     const key = (e: KeyboardEvent) => {
@@ -124,14 +129,14 @@ export default function Generation() {
   useEffect(() => {
     const strip = cardsRef.current;
     const card = strip?.querySelector<HTMLElement>(".shot-card.active");
-    if (!sequence || !strip || !card) return;
+    if ((!sequence && !tv) || !strip || !card) return;
     const box = strip.getBoundingClientRect(),
       at = card.getBoundingClientRect();
     strip.scrollTo({
       left: strip.scrollLeft + at.left - box.left - (box.width - at.width) / 2,
       behavior: "smooth",
     });
-  }, [scene?.id, !!sequence]);
+  }, [scene?.id, !!sequence, tv]);
   function startSequence(from: number) {
     // Pole w edycji zapisuje się teraz, do swojego ujęcia — zanim odtwarzanie przełączy panel na następne.
     (document.activeElement as HTMLElement | null)?.blur?.();
@@ -139,6 +144,28 @@ export default function Generation() {
     videoRef.current?.pause();
     setSequence({ start: Math.max(0, from), token: Date.now() });
   }
+  const tvRef = useRef((_t: number) => {});
+  tvRef.current = (t: number) => {
+    // Pozycja z telewizora → ujęcie na ekranie. Wybór zmienia się tylko przy zmianie ujęcia na telewizorze
+    // i nie w czasie edycji pola (tekst musi trafić do ujęcia, które się edytuje).
+    let at = 0,
+      shot = p.scenes.length - 1;
+    for (let i = tvFrom.current; i < p.scenes.length; i++) {
+      at += p.scenes[i].duration / rate;
+      if (t < at) {
+        shot = i;
+        break;
+      }
+    }
+    if (shot === tvShot.current || !p.scenes[shot]) return;
+    tvShot.current = shot;
+    if (
+      !(document.activeElement as HTMLElement | null)?.matches?.(
+        "input, textarea, select",
+      )
+    )
+      setSelected(p.scenes[shot].id);
+  };
   const pickRef = useRef((_i: number, _id: string) => {});
   pickRef.current = (i: number, shotId: string) => {
     setSelected(shotId);
@@ -556,9 +583,11 @@ export default function Generation() {
             <div className="preview-heading">
               <span>
                 <span className="live-dot" />
-                {sequence
-                  ? `PO KOLEI · ${index + 1} / ${p.scenes.length}`
-                  : "PODGLĄD UJĘCIA"}
+                {tv
+                  ? `NA TELEWIZORZE · ${index + 1} / ${p.scenes.length}`
+                  : sequence
+                    ? `PO KOLEI · ${index + 1} / ${p.scenes.length}`
+                    : "PODGLĄD UJĘCIA"}
               </span>
               <span>
                 {p.sequence.width} × {p.sequence.height}
@@ -653,6 +682,21 @@ export default function Generation() {
               >
                 {sequence ? "Zatrzymaj" : "Odtwarzaj po kolei"}
               </Button>
+              <AirPlayButton
+                label="Ujęcia po kolei na telewizor (AirPlay)"
+                title={`Ujęcia od ${index + 1}`}
+                path={() => `/projects/${p.id}/tv/shots.m3u8?start=${index}`}
+                onStart={() => {
+                  setSequence(null);
+                  setPlaying(false);
+                  videoRef.current?.pause();
+                  tvFrom.current = index;
+                  tvShot.current = -1;
+                  setTv(true);
+                }}
+                onTime={(t) => tvRef.current(t)}
+                onEnd={() => setTv(false)}
+              />
               <span className="small muted">16:9</span>
             </div>
           </section>

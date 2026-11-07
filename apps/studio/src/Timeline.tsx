@@ -57,6 +57,7 @@ import type {
 import { fps, time, totalFrames, newClip, proposalPreview } from "./timing";
 import { animations } from "./Generation";
 import Preview from "./Preview";
+import AirPlayButton from "./AirPlay";
 import { JSONField } from "./Production";
 
 type Drag = {
@@ -107,6 +108,8 @@ export default function Timeline() {
   const dragRef = useRef<Drag | null>(null),
     scrollRef = useRef<HTMLDivElement>(null),
     playerRef = useRef<HTMLElement>(null),
+    // Montaż na telewizorze (AirPlay): klatka, od której ruszył strumień.
+    tvFrom = useRef(0),
     idleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
     stillRef = useRef(frame);
   const [view, setView] = useState<LaneWindow>(() => laneWindow(null));
@@ -601,6 +604,23 @@ export default function Timeline() {
                 <span>/ {time(total, rate, true)}</span>
               </span>
               <div className="player-spacer" />
+              <AirPlayButton
+                label="Montaż na telewizor (AirPlay)"
+                title={`Montaż od ${time(frame, rate)}`}
+                path={() => `/projects/${p.id}/tv/montage.m3u8?start=${frame}`}
+                onStart={() => {
+                  setPlaying(false);
+                  tvFrom.current = frame;
+                }}
+                onTime={(t) => {
+                  // Kursor osi pokazuje, co gra telewizor.
+                  const at = Math.min(
+                    Math.max(0, total - 1),
+                    tvFrom.current + Math.round(t * rate),
+                  );
+                  setFrame((x) => (x === at ? x : at));
+                }}
+              />
               <IconButton
                 icon={full ? Minimize : Maximize}
                 label={full ? "Wyjdź z pełnego ekranu (Esc)" : "Pełny ekran"}
