@@ -10,6 +10,7 @@ Napisy są poza rysunkiem, nakładane na końcu.
     python3 miniatura.py          # wszystkie trzy → miniatura-1-izolatka.png, miniatura-2-korytarz.png, …
     python3 miniatura.py 2        # tylko wersja 2
 """
+import math
 import random
 import sys
 from pathlib import Path
@@ -32,6 +33,29 @@ def limb(p, a, b, w, col, outline=3):
     """Odcinek ręki albo palec: gruba kreska w kolorze z konturem (jak kit_a.limb)."""
     p.line([a, b], w=w + 2 * outline, amp=0.8)
     p.line([a, b], w=w, color=col, amp=0.8)
+
+
+class Shaky(R.Pen):
+    """Pióro z mocniej drżącą kreską: gęstsze punkty i większe odchylenie. Drobiazgi (źrenice, zarost, kropla potu)
+    zostają jak w filmie, bo przy tej skali drżenie by je zniekształciło."""
+
+    def __init__(self, *a, k=2.0, **kw):
+        super().__init__(*a, **kw)
+        self.k = k
+
+    def wob(self, pts, amp=1.6, closed=False):
+        pts = list(pts)
+        span = max(max(q[i] for q in pts) - min(q[i] for q in pts) for i in (0, 1))
+        if amp <= 0 or span < 30:
+            return super().wob(pts, amp, closed)
+        ring = pts + [pts[0]] if closed else pts
+        dense = []
+        for a, b in zip(ring, ring[1:]):
+            n = max(1, round(math.dist(a, b) / 16))
+            dense += [(a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n) for i in range(n)]
+        if not closed:
+            dense.append(ring[-1])
+        return super().wob(dense, min(amp * self.k, span * 0.05), closed)
 
 
 def canvas():
@@ -69,37 +93,54 @@ def font(size):
     return f
 
 
-def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 138), tag_size=46, stretch=1.0):
-    """Napisy: czerwona tabliczka z tytułem i dwa duże wiersze z grubym konturem, lekko przekrzywione.
+def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 138), tag_size=46, stretch=1.0,
+           inline=False, top=34, angle=3.0):
+    """Napisy: czerwona tabliczka z tytułem i duże słowa z grubym konturem, lekko przekrzywione.
     side — róg kadru: „l” lewy górny, „r” prawy górny; width — najszersze miejsce na napis (przed rozciągnięciem);
-    sizes — wysokość pisma obu wierszy; stretch — poszerzenie liter w poziomie."""
+    sizes — wysokość pisma wierszy; stretch — poszerzenie liter w poziomie;
+    inline — oba słowa w jednym wierszu (tabliczka wtedy pod nim, nie nad); top — górna krawędź; angle — przekrzywienie."""
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     left = side == "l"
-    x, y = (40 if left else W - 40), 34
-    if tag:
+    x, y = (40 if left else W - 40), top
+
+    def plate(y):
         f = font(tag_size)
         w, h = d.textlength(tag, font=f) + 36, round(tag_size * 1.43)
         x0 = x if left else x - w
         d.rectangle([x0, y, x0 + w, y + h], fill=RED, outline=R.INK, width=5)
         d.text((x0 + 18, y + h / 2), tag, font=f, fill=WHITE, anchor="lm")
-        y += h + 14
-    for txt, size, col in ((big1, sizes[0], YELLOW), (big2, sizes[1], WHITE)):
-        if not txt:
+        return y + h + 14
+
+    if tag and not inline:
+        y = plate(y)
+    rows = [((big1, YELLOW), (big2, WHITE))] if inline else [((big1, YELLOW),), ((big2, WHITE),)]
+    for row, size in zip(rows, sizes):
+        row = [(word, col) for word, col in row if word]
+        if not row:
             continue
+        txt = " ".join(word for word, _ in row)
         f = font(size)
         while d.textlength(txt, font=f) > width:  # dłuższy napis zmniejsza się, zamiast wchodzić na rysunek
             size -= 4
             f = font(size)
-        top = f.getbbox(txt, anchor="ls")[1]
-        d.text((x - 4 if left else x + 4, y - top), txt, font=f, fill=col, anchor="ls" if left else "rs",
-               stroke_width=max(7, size // 14), stroke_fill=R.INK)
-        y += 26 - top
+        up = f.getbbox(txt, anchor="ls")[1]
+        stroke = dict(stroke_width=max(7, size // 14), stroke_fill=R.INK)
+        if len(row) == 1:
+            d.text((x - 4 if left else x + 4, y - up), txt, font=f, fill=row[0][1], anchor="ls" if left else "rs", **stroke)
+        else:
+            xx = x - 4 if left else x + 4 - d.textlength(txt, font=f)
+            for word, col in row:
+                d.text((xx, y - up), word, font=f, fill=col, anchor="ls", **stroke)
+                xx += d.textlength(word + " ", font=f)
+        y += 26 - up
+    if tag and inline:
+        plate(y + 6)
     if stretch != 1.0:  # szersze litery: warstwa napisów rozciągnięta w poziomie od swojego rogu kadru
         wide = layer.resize((round(W * stretch), H), Image.LANCZOS)
         layer = wide.crop((0, 0, W, H) if left else (wide.width - W, 0, wide.width, H))
         x = x * stretch if left else W - (W - x) * stretch
-    layer = layer.rotate(3.0 if left else -3.0, resample=Image.BICUBIC, center=(x, 34))
+    layer = layer.rotate(angle if left else -angle, resample=Image.BICUBIC, center=(x, top))
     shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     shadow.paste((0, 0, 0, 255), (8, 10), layer.split()[3])
     shadow = shadow.filter(ImageFilter.GaussianBlur(7))
@@ -109,22 +150,38 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
     return out.convert("RGB")
 
 
+def mesh_over(p, x0, y0, x1, y1):
+    """Siatka okienka z render.scene3 jeszcze raz, tylko nad polem (x0, y0)–(x1, y1): to, co dorysowane za szybą,
+    zostaje za siatką (WYTYCZNE 1.1). Te same punkty co w filmie, więc kreski trafiają dokładnie w stare."""
+    for i in range(-6, 12):
+        for a, b in (((500 + i * 40, 140), (700 + i * 40, 340)), ((700 + i * 40, 140), (500 + i * 40, 340))):
+            q = p.wob([a, b], 0.6)
+            for u, v in zip(q, q[1:]):
+                if max(u[0], v[0]) >= x0 and min(u[0], v[0]) <= x1 and max(u[1], v[1]) >= y0 and min(u[1], v[1]) <= y1:
+                    p.d.line([p.tp(u), p.tp(v)], fill=(80, 90, 84), width=max(1, int(1.5 * p.zoom * R.SS)))
+
+
 def izolatka():
-    """Drzwi izolatki z okienkiem, przed nimi (bliżej kamery) twarz sanitariusza."""
+    """Drzwi izolatki z okienkiem, przed nimi (bliżej kamery) twarz sanitariusza; napis w jednym wierszu nad okienkiem."""
     img = canvas()
-    t = R.SLAM_T - R.SCENES[2][0] + 2.2  # 2,2 s po uderzeniu: głowa przekrzywiona, krew spłynęła, szyba bez pary
-    # okienko po prawej, lewa strona na napis i sanitariusza; tabliczka „IZOLATKA 3” poza kadrem
-    p = R.Pen(img, t, **R.framed(dict(zoom=2.1, cx=520, cy=224), (0, 0)))
+    k = 2.2  # sekundy po uderzeniu: głowa przekrzywiona, krew spłynęła, szyba bez pary
+    t = R.SLAM_T - R.SCENES[2][0] + k
+    # okienko po prawej pod napisem, lewa strona na sanitariusza; tabliczka „IZOLATKA 3” poza kadrem
+    p = R.Pen(img, t, **R.framed(dict(zoom=1.9, cx=489, cy=190), (0, 0)))
     R.scene3(p, t, 5.6)
+    # kieł pana Henryka: jeden, u góry ust po prawej stronie kadru (prośba reżysera, 10.11.2026)
+    lean = R.ease((k - 0.8) / 2.2)
+    mx, my = 640 + 12 * lean + 2 * R.noise(k, 8, 0.7), 268 + 8 * lean + 54  # środek ust z render.scene3
+    p.poly([(mx + 1, my - 25), (mx + 18, my - 15), (mx + 11, my + 6)], (238, 240, 228), w=2, amp=0.5)
+    mesh_over(p, mx - 1, my - 27, mx + 20, my + 8)
     # siatka jest tylko w okienku (WYTYCZNE 1.1): drzwi po obu stronach ramy zasłaniają jej końce
-    p.rect(331, 100, 468, 380, DOOR, w=0, amp=0)
-    p.rect(812, 100, 950, 380, DOOR, w=0, amp=0)
+    p.rect(331, 130, 468, 350, DOOR, w=0, amp=0)
+    p.rect(812, 130, 950, 350, DOOR, w=0, amp=0)
     p.line([(340, 0), (340, 720)], w=3)
     p.rect(470, 120, 810, 360, None, w=8)
-    R.nurse_face(R.Pen(img, 0.3), 262, 578, 0.92, 1.0, 0.3, gaze=(1.0, -0.15))
-    img = light(small(img), R.GRADE[2], [(900, 330, 600, 1.0), (262, 568, 330, 0.9)])
-    # duże, poszerzone litery; „NOCY” wchodzi na ramę i ciemną część okienka, nie na twarz pana Henryka
-    return titles(img, "30", "NOCY", width=560, sizes=(236, 172), tag_size=54, stretch=1.14)
+    R.nurse_face(Shaky(img, 0.3), 262, 548, 1.08, 1.0, 0.3, gaze=(1.0, -0.15))
+    img = light(small(img), R.GRADE[2], [(930, 470, 600, 1.0), (262, 540, 340, 0.9)])
+    return titles(img, "30", "NOCY", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True, top=44, angle=1.5)
 
 
 def korytarz():
