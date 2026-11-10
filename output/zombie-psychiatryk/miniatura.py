@@ -244,8 +244,10 @@ def izolatka(lang="pl"):
     # kieł pana Henryka: jeden, u góry ust po prawej stronie kadru (prośba reżysera, 10.11.2026)
     lean = R.ease((k - 0.8) / 2.2)
     mx, my = 640 + 12 * lean + 2 * R.noise(k, 8, 0.7), 268 + 8 * lean + 54  # środek ust z render.scene3
-    if lang == "en":  # schowany wyżej: wystaje tylko czubek spod górnej krawędzi ust
-        p.poly([(mx + 3, my - 22), (mx + 16, my - 19), (mx + 11, my - 10)], (238, 240, 228), w=2, amp=0.5)
+    if lang == "en":  # krótki kieł: czubek w tym samym miejscu, podstawa sięga górnej krawędzi ust (elipsa 22 × ry)
+        ry = 30 - 6 * lean
+        edge = [(mx + dx, my - ry * math.sqrt(1 - (dx / 22) ** 2) - 2) for dx in (3, 7, 11, 15)]  # przez kontur ust do skóry
+        p.poly(edge + [(mx + 11, my - 10)], (238, 240, 228), w=2, amp=0.3)
     else:
         p.poly([(mx + 1, my - 25), (mx + 18, my - 15), (mx + 11, my + 6)], (238, 240, 228), w=2, amp=0.5)
     mesh_over(p, mx - 1, my - 27, mx + 20, my + 8)
