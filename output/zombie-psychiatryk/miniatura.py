@@ -94,11 +94,12 @@ def font(size):
 
 
 def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 138), tag_size=46, stretch=1.0,
-           inline=False, top=34, angle=3.0):
+           inline=False, top=34, angle=3.0, sub=None):
     """Napisy: czerwona tabliczka z tytułem i duże słowa z grubym konturem, lekko przekrzywione.
     side — róg kadru: „l” lewy górny, „r” prawy górny; width — najszersze miejsce na napis (przed rozciągnięciem);
     sizes — wysokość pisma wierszy; stretch — poszerzenie liter w poziomie;
-    inline — oba słowa w jednym wierszu (tabliczka wtedy pod nim, nie nad); top — górna krawędź; angle — przekrzywienie."""
+    inline — oba słowa w jednym wierszu (tabliczka wtedy pod nim, nie nad); top — górna krawędź; angle — przekrzywienie;
+    sub — (tekst, wysokość pisma, kolor): dodatkowy duży wiersz pod spodem."""
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     left = side == "l"
@@ -115,6 +116,8 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
     if tag and not inline:
         y = plate(y)
     rows = [((big1, YELLOW), (big2, WHITE))] if inline else [((big1, YELLOW),), ((big2, WHITE),)]
+    if sub:
+        rows, sizes = rows + [((sub[0], sub[2]),)], tuple(sizes[:len(rows)]) + (sub[1],)
     for row, size in zip(rows, sizes):
         row = [(word, col) for word, col in row if word]
         if not row:
@@ -167,8 +170,15 @@ def izolatka():
     k = 2.2  # sekundy po uderzeniu: głowa przekrzywiona, krew spłynęła, szyba bez pary
     t = R.SLAM_T - R.SCENES[2][0] + k
     # okienko po prawej pod napisem, lewa strona na sanitariusza; tabliczka „IZOLATKA 3” poza kadrem
-    p = R.Pen(img, t, **R.framed(dict(zoom=1.9, cx=489, cy=190), (0, 0)))
+    # okienko w prawym dolnym rogu, nad nim dwa wiersze napisu; kamera wychodzi nad plan ujęcia (ponad y=0),
+    # więc ścianę i drzwi przedłużamy w górę i w lewo, zanim scene3 narysuje swoje (WYTYCZNE 1.3: bez końca świata)
+    p = R.Pen(img, t, zoom=1.42, cx=386, cy=125)
+    p.rect(-400, -500, W + 400, H + 400, (88, 96, 86), w=0, amp=0)
+    p.rect(330, -500, 950, 0, DOOR, w=0, amp=0)
+    p.line([(330, -500), (330, 0)], w=4, amp=0)
+    p.line([(340, -500), (340, 0)], w=3)
     R.scene3(p, t, 5.6)
+    p.rect(333, -500, 948, -14, DOOR, w=0, amp=0)  # górna krawędź drzwi z scene3 (y=-20) jest teraz w kadrze: zasłonięta
     # kieł pana Henryka: jeden, u góry ust po prawej stronie kadru (prośba reżysera, 10.11.2026)
     lean = R.ease((k - 0.8) / 2.2)
     mx, my = 640 + 12 * lean + 2 * R.noise(k, 8, 0.7), 268 + 8 * lean + 54  # środek ust z render.scene3
@@ -179,9 +189,10 @@ def izolatka():
     p.rect(812, 130, 950, 350, DOOR, w=0, amp=0)
     p.line([(340, 0), (340, 720)], w=3)
     p.rect(470, 120, 810, 360, None, w=8)
-    R.nurse_face(Shaky(img, 0.3), 262, 548, 1.08, 1.0, 0.3, gaze=(1.0, -0.15))
-    img = light(small(img), R.GRADE[2], [(930, 470, 600, 1.0), (262, 540, 340, 0.9)])
-    return titles(img, "30", "NOCY", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True, top=44, angle=1.5)
+    R.nurse_face(Shaky(img, 0.3), 250, 568, 1.0, 1.0, 0.3, gaze=(1.0, 0.05))
+    img = light(small(img), R.GRADE[2], [(1000, 540, 560, 1.0), (250, 560, 330, 0.9)])
+    return titles(img, "30", "NOCY", tag=None, width=1000, sizes=(204,), stretch=1.14, inline=True, top=34, angle=1.5,
+                  sub=("ODDZIAŁ C", 132, RED))
 
 
 def korytarz():
