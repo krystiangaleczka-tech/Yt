@@ -94,12 +94,13 @@ def font(size):
 
 
 def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 138), tag_size=46, stretch=1.0,
-           inline=False, top=34, angle=3.0, sub=None):
+           inline=False, top=34, angle=3.0, sub=None, tag_first=False):
     """Napisy: czerwona tabliczka z tytułem i duże słowa z grubym konturem, lekko przekrzywione.
     side — róg kadru: „l” lewy górny, „r” prawy górny; width — najszersze miejsce na napis (przed rozciągnięciem);
     sizes — wysokość pisma wierszy; stretch — poszerzenie liter w poziomie;
     inline — oba słowa w jednym wierszu (tabliczka wtedy pod nim, nie nad); top — górna krawędź; angle — przekrzywienie;
-    sub — (tekst, wysokość pisma, kolor): dodatkowy duży wiersz pod spodem."""
+    sub — (tekst, wysokość pisma, kolor): dodatkowy duży wiersz pod spodem;
+    tag_first — tabliczka nad napisem także przy inline."""
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     left = side == "l"
@@ -113,7 +114,7 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
         d.text((x0 + 18, y + h / 2), tag, font=f, fill=WHITE, anchor="lm")
         return y + h + 14
 
-    if tag and not inline:
+    if tag and (tag_first or not inline):
         y = plate(y)
     rows = [((big1, YELLOW), (big2, WHITE))] if inline else [((big1, YELLOW),), ((big2, WHITE),)]
     if sub:
@@ -137,7 +138,7 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
                 d.text((xx, y - up), word, font=f, fill=col, anchor="ls", **stroke)
                 xx += d.textlength(word + " ", font=f)
         y += 26 - up
-    if tag and inline:
+    if tag and inline and not tag_first:
         plate(y + 6)
     if stretch != 1.0:  # szersze litery: warstwa napisów rozciągnięta w poziomie od swojego rogu kadru
         wide = layer.resize((round(W * stretch), H), Image.LANCZOS)
@@ -172,7 +173,7 @@ def izolatka():
     # okienko po prawej pod napisem, lewa strona na sanitariusza; tabliczka „IZOLATKA 3” poza kadrem
     # okienko w prawym dolnym rogu, nad nim dwa wiersze napisu; kamera wychodzi nad plan ujęcia (ponad y=0),
     # więc ścianę i drzwi przedłużamy w górę i w lewo, zanim scene3 narysuje swoje (WYTYCZNE 1.3: bez końca świata)
-    p = R.Pen(img, t, zoom=1.42, cx=386, cy=125)
+    p = R.Pen(img, t, zoom=1.65, cx=440, cy=150)
     p.rect(-400, -500, W + 400, H + 400, (88, 96, 86), w=0, amp=0)
     p.rect(330, -500, 950, 0, DOOR, w=0, amp=0)
     p.line([(330, -500), (330, 0)], w=4, amp=0)
@@ -189,10 +190,11 @@ def izolatka():
     p.rect(812, 130, 950, 350, DOOR, w=0, amp=0)
     p.line([(340, 0), (340, 720)], w=3)
     p.rect(470, 120, 810, 360, None, w=8)
-    R.nurse_face(Shaky(img, 0.3), 250, 568, 1.0, 1.0, 0.3, gaze=(1.0, 0.05))
-    img = light(small(img), R.GRADE[2], [(1000, 540, 560, 1.0), (250, 560, 330, 0.9)])
-    return titles(img, "30", "NOCY", tag=None, width=1000, sizes=(204,), stretch=1.14, inline=True, top=34, angle=1.5,
-                  sub=("ODDZIAŁ C", 132, RED))
+    R.nurse_face(Shaky(img, 0.3), 262, 556, 1.06, 1.0, 0.3, gaze=(1.0, -0.05))
+    img = light(small(img), R.GRADE[2], [(960, 520, 600, 1.0), (262, 548, 340, 0.9)])
+    # tabliczka „ODDZIAŁ C” u góry, pod nią „30 NOCY” (prośba reżysera, 10.11.2026)
+    return titles(img, "30", "NOCY", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True, top=30, angle=1.5,
+                  tag_first=True)
 
 
 def korytarz():
