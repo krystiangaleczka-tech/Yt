@@ -163,13 +163,11 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
             small_txt, zword, zsize = after
             xa, ym = x0 + w + 18, y0 + h / 2
             fs = font(round(badge[1] * 0.95))
-            if blood_x:  # cienki krzyżyk w kolorze krwi spod „NIGHTS”, z jedną kroplą u dołu
+            if blood_x:  # cienki krzyżyk w kolorze krwi spod „NIGHTS”, bez kropli
                 a = 15
                 arms = [((xa, ym - a), (xa + 2 * a, ym + a)), ((xa + 2 * a, ym - a), (xa, ym + a))]
                 for p0, p1 in arms:
                     d.line([p0, p1], fill=R.INK, width=13)
-                d.ellipse([xa + 2 * a - 7, ym + a + 3, xa + 2 * a + 7, ym + a + 19], fill=BLOOD, outline=R.INK, width=3)
-                d.line([(xa + 2 * a, ym + a - 2), (xa + 2 * a, ym + a + 8)], fill=BLOOD, width=5)
                 for p0, p1 in arms:
                     d.line([p0, p1], fill=BLOOD, width=7)
                 xa += 2 * a + 18
@@ -247,7 +245,7 @@ def izolatka(lang="pl"):
     lean = R.ease((k - 0.8) / 2.2)
     mx, my = 640 + 12 * lean + 2 * R.noise(k, 8, 0.7), 268 + 8 * lean + 54  # środek ust z render.scene3
     if lang == "en":  # schowany wyżej: wystaje tylko czubek spod górnej krawędzi ust
-        p.poly([(mx + 3, my - 24), (mx + 16, my - 21), (mx + 11, my - 13)], (238, 240, 228), w=2, amp=0.5)
+        p.poly([(mx + 3, my - 22), (mx + 16, my - 19), (mx + 11, my - 10)], (238, 240, 228), w=2, amp=0.5)
     else:
         p.poly([(mx + 1, my - 25), (mx + 18, my - 15), (mx + 11, my + 6)], (238, 240, 228), w=2, amp=0.5)
     mesh_over(p, mx - 1, my - 27, mx + 20, my + 8)
@@ -262,7 +260,7 @@ def izolatka(lang="pl"):
     if lang == "en":  # wersja angielska: „WARD C”, „30 NIGHTS”, pod spodem „MOVIE” w żółtym obrysie
         return titles(img, "30", "NIGHTS", tag="WARD C", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True,
                       top=30, angle=1.5, tag_first=True, badge=("MOVIE", 52),
-                      drip="NIGHTS", after=("x", "ZOMBIE", 92), tag_pad=24, badge_dy=3, blood_x=True)
+                      drip="NIGHTS", after=("x", "ZOMBIE", 92), tag_pad=24, badge_dy=2, blood_x=True)
     return titles(img, "30", "NOCY", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True, top=30, angle=1.5,
                   tag_first=True)
 
