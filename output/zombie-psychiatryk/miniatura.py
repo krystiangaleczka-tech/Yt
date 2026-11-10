@@ -97,7 +97,8 @@ def font(size):
 
 
 def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 138), tag_size=46, stretch=1.0,
-           inline=False, top=34, angle=3.0, sub=None, tag_first=False, badge=None, drip=None, after=None):
+           inline=False, top=34, angle=3.0, sub=None, tag_first=False, badge=None, drip=None, after=None,
+           tag_pad=18, badge_dy=0, blood_x=False):
     """Napisy: czerwona tabliczka z tytułem i duże słowa z grubym konturem, lekko przekrzywione.
     side — róg kadru: „l” lewy górny, „r” prawy górny; width — najszersze miejsce na napis (przed rozciągnięciem);
     sizes — wysokość pisma wierszy; stretch — poszerzenie liter w poziomie;
@@ -105,7 +106,9 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
     sub — (tekst, wysokość pisma, kolor): dodatkowy duży wiersz pod spodem;
     tag_first — tabliczka nad napisem także przy inline;
     badge — (tekst, wysokość pisma): napis w samym żółtym obrysie prostokąta pod napisem głównym;
-    drip — słowo, z którego dołu lekko cieknie krew; after — (mały tekst, słowo krojem „zombie”, wysokość) za ramką."""
+    drip — słowo, z którego dołu lekko cieknie krew; after — (mały tekst, słowo krojem „zombie”, wysokość) za ramką;
+    tag_pad — margines tabliczki po bokach; badge_dy — przesunięcie samej ramki w dół;
+    blood_x — mały tekst „x” jako cienki krzyżyk krwi zamiast litery."""
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     left = side == "l"
@@ -113,10 +116,10 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
 
     def plate(y):
         f = font(tag_size)
-        w, h = d.textlength(tag, font=f) + 36, round(tag_size * 1.43)
+        w, h = d.textlength(tag, font=f) + 2 * tag_pad, round(tag_size * 1.43)
         x0 = x if left else x - w
         d.rectangle([x0, y, x0 + w, y + h], fill=RED, outline=R.INK, width=5)
-        d.text((x0 + 18, y + h / 2), tag, font=f, fill=WHITE, anchor="lm")
+        d.text((x0 + tag_pad, y + h / 2), tag, font=f, fill=WHITE, anchor="lm")
         return y + h + 14
 
     if tag and (tag_first or not inline):
@@ -151,16 +154,28 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
         f = font(badge[1])
         w, h = d.textlength(badge[0], font=f) + 44, round(badge[1] * 1.5)
         x0, y0 = (x if left else x - w), y + 4
-        box = [x0, y0, x0 + w, y0 + h]
+        box = [x0, y0 + badge_dy, x0 + w, y0 + h + badge_dy]
         d.rectangle(box, outline=R.INK, width=15)  # czarny kontur pod żółtym obrysem, jak przy literach
         d.rectangle([box[0] + 4, box[1] + 4, box[2] - 4, box[3] - 4], outline=YELLOW, width=7)
-        d.text((x0 + w / 2, y0 + h / 2), badge[0], font=f, fill=YELLOW, anchor="mm", stroke_width=5, stroke_fill=R.INK)
+        d.text((x0 + w / 2, y0 + badge_dy + h / 2), badge[0], font=f, fill=YELLOW, anchor="mm", stroke_width=5,
+               stroke_fill=R.INK)
         if after:
             small_txt, zword, zsize = after
             xa, ym = x0 + w + 18, y0 + h / 2
             fs = font(round(badge[1] * 0.95))
-            d.text((xa, ym), small_txt, font=fs, fill=WHITE, anchor="lm", stroke_width=5, stroke_fill=R.INK)
-            xa += d.textlength(small_txt, font=fs) + 16
+            if blood_x:  # cienki krzyżyk w kolorze krwi spod „NIGHTS”, z jedną kroplą u dołu
+                a = 15
+                arms = [((xa, ym - a), (xa + 2 * a, ym + a)), ((xa + 2 * a, ym - a), (xa, ym + a))]
+                for p0, p1 in arms:
+                    d.line([p0, p1], fill=R.INK, width=13)
+                d.ellipse([xa + 2 * a - 7, ym + a + 3, xa + 2 * a + 7, ym + a + 19], fill=BLOOD, outline=R.INK, width=3)
+                d.line([(xa + 2 * a, ym + a - 2), (xa + 2 * a, ym + a + 8)], fill=BLOOD, width=5)
+                for p0, p1 in arms:
+                    d.line([p0, p1], fill=BLOOD, width=7)
+                xa += 2 * a + 18
+            else:
+                d.text((xa, ym), small_txt, font=fs, fill=WHITE, anchor="lm", stroke_width=5, stroke_fill=R.INK)
+                xa += d.textlength(small_txt, font=fs) + 16
             fz = ImageFont.truetype(str(ZFONT), zsize)
             d.text((xa, ym), zword, font=fz, fill=ZGREEN, anchor="lm", stroke_width=6, stroke_fill=R.INK)
     if stretch != 1.0:  # szersze litery: warstwa napisów rozciągnięta w poziomie od swojego rogu kadru
@@ -247,7 +262,7 @@ def izolatka(lang="pl"):
     if lang == "en":  # wersja angielska: „WARD C”, „30 NIGHTS”, pod spodem „MOVIE” w żółtym obrysie
         return titles(img, "30", "NIGHTS", tag="WARD C", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True,
                       top=30, angle=1.5, tag_first=True, badge=("MOVIE", 52),
-                      drip="NIGHTS", after=("x", "ZOMBIE", 92))
+                      drip="NIGHTS", after=("x", "ZOMBIE", 92), tag_pad=24, badge_dy=3, blood_x=True)
     return titles(img, "30", "NOCY", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True, top=30, angle=1.5,
                   tag_first=True)
 
