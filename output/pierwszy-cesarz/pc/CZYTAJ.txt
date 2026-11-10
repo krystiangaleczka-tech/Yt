@@ -1,0 +1,30 @@
+PIERWSZY CESARZ — lektor i render na PC (z repozytorium GitHub)
+===============================================================
+
+Przygotowanie (raz)
+- Git, Python 3.10+ i 3.11 (winget install Python.Python.3.11), ffmpeg (winget install Gyan.FFmpeg).
+- Sklonuj repo i przejdź na gałąź filmu:
+     git clone -b film/pierwszy-cesarz https://github.com/krystiangaleczka-tech/Yt.git
+- Próbki głosu NIE ma na GitHubie (repo jest publiczne). Skopiuj ref_clean.wav (wysłany osobno) do:
+     Yt\pilot\assets\ref_clean.wav
+  Trzy kwestie nagrane już na Macu też nie są w repo (pliki .wav) — PC nagra je od nowa.
+
+Krok 1 — lektor
+- Dwuklik: Yt\output\pierwszy-cesarz\pc\nagraj_lektora.bat
+- Użyje środowiska z Zombie Psychiatryka (%USERPROFILE%\.zombie-tts\venv), jeśli jest; jeśli nie — założy .venv-tts
+  (Python 3.11, PyTorch 2.6 z CUDA, chatterbox-tts 0.1.7; jednorazowo kilka GB).
+- 67 kwestii, z karty NVIDIA kilka sekund na kwestię. Nazwy chińskie czytane po polsku (Dżeng, Czin, Lu Bułej…).
+- Przerwane nagrywanie: uruchom jeszcze raz, gotowe kwestie zostają.
+Długości ujęć liczą się z prawdziwych nagrań, dlatego lektor musi być przed renderem.
+
+Krok 2 — render
+- Dwuklik: Yt\output\pierwszy-cesarz\pc\renderuj.bat  (sprawdza, czy lektor jest kompletny)
+- Domyślnie 4 procesy; przy 16 GB RAM i 8+ rdzeniach:  set PROCESY=8  i uruchom z tego samego okna.
+  Jeden proces potrzebuje ok. 1–1,5 GB RAM. Przerwany render: uruchom jeszcze raz.
+- Wynik: Yt\klipy (79 plików d01_01.mp4 … d08_10.mp4).
+
+Na Macu
+Przenieś DWA foldery: Yt\klipy oraz Yt\output\pierwszy-cesarz\lektor i powiedz Claude’owi, gdzie leżą.
+Claude przelicza plan w Studio pod długości nagrań, układa na nowo muzykę i efekty, wgrywa lektora, obraz i dźwięk.
+
+Na Windows napisy i znaki chińskie są w czcionkach Georgia i SimSun (na Macu Baskerville i Songti).

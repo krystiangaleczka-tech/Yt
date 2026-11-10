@@ -1,0 +1,553 @@
+{
+  "version": 1,
+  "unitLabel": "Akt",
+  "tempo": {
+    "minSeconds": 45,
+    "maxSeconds": 100,
+    "maxVoiceShare": 0.92
+  },
+  "places": [
+    {
+      "id": "kraj",
+      "name": "Scena „kraj”",
+      "note": "Diorama: papier nieba, słońce i chmury na nitkach, góry, równina, miasto z bramą (Handan w akcie 1 i 3, potem stolica), most, droga przez wzgórza, dwie sosny, rampa.",
+      "connects": [
+        "rampa",
+        "droga",
+        "gora"
+      ]
+    },
+    {
+      "id": "droga",
+      "name": "Droga przez wzgórza",
+      "note": "Złote pasmo przed mostem: tędy idą wojska, wozy, powóz cesarza; przy niej stoi siedem chorągwi i kanały.",
+      "connects": [
+        "kraj"
+      ]
+    },
+    {
+      "id": "gora",
+      "name": "Zielona góra i mur",
+      "note": "Grań, zza której od aktu 5 wystaje mur z wieżami; pod nią stoi Fusu.",
+      "connects": [
+        "kraj"
+      ]
+    },
+    {
+      "id": "rampa",
+      "name": "Przód sceny (rampa)",
+      "note": "Deska, zza której wysuwają się lalki: król po lewej (x = 300), stół pisarzy na środku, trójnóg z brązu po prawej.",
+      "connects": [
+        "kraj"
+      ]
+    },
+    {
+      "id": "sala",
+      "name": "Sala tronowa",
+      "note": "Ściana z pięcioma oknami z kratą, kolumny z laki, podwyższenie tronu po lewej, kolumna na środku (zamach).",
+      "connects": []
+    },
+    {
+      "id": "morze",
+      "name": "Wschodnie Morze",
+      "note": "Cztery pasma papierowych fal, wyspa na horyzoncie, księżyc.",
+      "connects": []
+    },
+    {
+      "id": "teatr",
+      "name": "Front teatru",
+      "note": "Czerwona skrzynia ze złotą listwą i szyldem „PIERWSZY CESARZ”; pierwsze i ostatnie ujęcie.",
+      "connects": [
+        "kraj"
+      ]
+    }
+  ],
+  "characters": [
+    {
+      "id": "zheng",
+      "name": "Zheng",
+      "aliases": [
+        "Pierwszy Cesarz"
+      ],
+      "role": "syn zakładnika, król Qin od 247 p.n.e., Pierwszy Cesarz od 221 p.n.e.",
+      "look": "jedna wycinanka przez cały film: czarna szata ze złotymi smokami, korona z koralikami, ręka wskazująca w prawo",
+      "costume": "mała lalka (205) jako chłopiec i król-chłopiec do d02_03~duża, potem duża (352)",
+      "traits": "nie chodzi — obraca się na patyczku, pochyla, unosi, opada pod rampę",
+      "states": [
+        {
+          "from": "d02_03~duża",
+          "state": "dorosły (duża lalka)"
+        },
+        {
+          "from": "d07_09~opada",
+          "state": "nie żyje — lalki nie ma na scenie"
+        }
+      ]
+    },
+    {
+      "id": "lu",
+      "name": "Lü Buwei",
+      "role": "kupiec, potem kanclerz i regent",
+      "look": "wycinanka uczonego w purpurowym obszyciu",
+      "leaves": "d02_06~truciznę"
+    },
+    {
+      "id": "ojciec",
+      "name": "ojciec",
+      "role": "książę Qin, zakładnik w Handanie (Yiren)",
+      "look": "wycinanka uczonego w brązowym obszyciu",
+      "leaves": "d01_06~wywiózł"
+    },
+    {
+      "id": "lisi",
+      "name": "Li Si",
+      "role": "doradca, potem kanclerz",
+      "look": "wycinanka uczonego w zielonym obszyciu"
+    },
+    {
+      "id": "jingke",
+      "name": "Jing Ke",
+      "role": "zamachowiec z Yan",
+      "look": "wycinanka uczonego w jasnym obszyciu",
+      "leaves": "d03_11~zginął"
+    },
+    {
+      "id": "fusu",
+      "name": "Fusu",
+      "role": "najstarszy syn cesarza",
+      "look": "wycinanka uczonego w niebieskim obszyciu",
+      "leaves": "d08_03~opada"
+    },
+    {
+      "id": "zhaogao",
+      "name": "Zhao Gao",
+      "role": "eunuch",
+      "look": "wycinanka uczonego w szarym obszyciu; w sali większa od wszystkich"
+    },
+    {
+      "id": "huhai",
+      "name": "Huhai",
+      "role": "młodszy syn, drugi cesarz",
+      "look": "mała lalka cesarza w niebieskim obszyciu"
+    },
+    {
+      "id": "pisarz",
+      "name": "pisarz",
+      "role": "klęczy za stołem i pisze",
+      "look": "wycinanka klęczącego pisarza z pędzlem"
+    },
+    {
+      "id": "armia",
+      "name": "gliniani żołnierze",
+      "role": "armia z grobowca",
+      "look": "wycinanki z papieru w barwie terakoty, trzy rzędy, każdy wysuwa się we własnej chwili"
+    }
+  ],
+  "props": [
+    {
+      "id": "trojnog",
+      "name": "Trójnóg z brązu",
+      "place": "rampa",
+      "seeded": "d04_09~trójnogu",
+      "uses": [
+        "d06_01~trójnogu",
+        "d06_02~trójnogu"
+      ],
+      "note": "W akcie 4 przetapia broń, w akcie 6 płoną w nim księgi; chowa się o zmierzchu."
+    },
+    {
+      "id": "zwoj",
+      "name": "Zwój bambusowy",
+      "place": "rampa",
+      "seeded": "d05_06~zwojem",
+      "uses": [
+        "d06_01~zwój"
+      ],
+      "note": "Leży na stole pisarzy; w akcie 6 leci do ognia."
+    },
+    {
+      "id": "mapa",
+      "name": "Mapa siedmiu królestw",
+      "place": "sala",
+      "seeded": "d02_08~mapa",
+      "uses": [
+        "d04_06~mapa"
+      ],
+      "note": "Siedem kawałków barwnego papieru; czarny papier Qin przykrywa pozostałe."
+    },
+    {
+      "id": "mapa_yan",
+      "name": "Zwinięta mapa ze sztyletem",
+      "place": "sala",
+      "seeded": "d03_05~mapa",
+      "uses": [
+        "d03_06~sztylet"
+      ]
+    },
+    {
+      "id": "miecz",
+      "name": "Długi miecz króla",
+      "owner": "Zheng",
+      "seeded": "d03_08~miecz",
+      "uses": [
+        "d03_10~miecz"
+      ]
+    },
+    {
+      "id": "powoz",
+      "name": "Powóz cesarza z czarną chorągwią",
+      "place": "droga",
+      "seeded": "d05_04~powóz",
+      "uses": [
+        "d06_05~powoz",
+        "d07_08~powóz",
+        "d08_01~powoz",
+        "d08_02~powóz"
+      ]
+    },
+    {
+      "id": "smoki",
+      "name": "Dwie chorągwie ze smokiem",
+      "place": "rampa",
+      "seeded": "d04_08~smokiem",
+      "uses": [
+        "d07_09~smokiem",
+        "d08_06~smokiem"
+      ]
+    },
+    {
+      "id": "czarka",
+      "name": "Czarka z brązu",
+      "place": "rampa",
+      "seeded": "d02_06~czarka",
+      "uses": [
+        "d06_09~czarka"
+      ],
+      "note": "Trucizna Lü Buweia i rtęć cesarza: ta sama czarka, to samo miejsce na rampie."
+    }
+  ],
+  "resources": [],
+  "rules": [
+    {
+      "id": "krol_maly",
+      "name": "Zheng jest chłopcem (mała lalka)",
+      "from": "",
+      "to": "d02_03~duża",
+      "note": "Do buntu Lao Ai na scenie stoi mała lalka."
+    },
+    {
+      "id": "dwor",
+      "name": "na rampie stoi stół pisarzy",
+      "from": "d05_06~stół",
+      "to": "d06_04~chowają",
+      "note": "Stół zasłania środek drogi — ujęcia na drodze są przed nim albo po zmierzchu."
+    },
+    {
+      "id": "noc",
+      "name": "noc: księżyc zamiast słońca",
+      "from": "d06_04~księżyc",
+      "to": "d08_07~słońce"
+    },
+    {
+      "id": "cesarz_zyje",
+      "name": "lalka cesarza stoi na scenie",
+      "from": "d02_03~duża",
+      "to": "d07_09~opada"
+    },
+    {
+      "id": "czarne_stoja",
+      "name": "na wzgórzach stoją czarne chorągwie Qin",
+      "from": "d04_07~czarne",
+      "to": "d08_06~chorągwie"
+    }
+  ],
+  "events": [
+    {
+      "at": "d02_01~mały",
+      "note": "kanclerz rządzi za małego króla",
+      "needs": [
+        "krol_maly"
+      ]
+    },
+    {
+      "at": "d02_02~małego",
+      "note": "mały król uczy się o nagrodzie i karze",
+      "needs": [
+        "krol_maly"
+      ]
+    },
+    {
+      "at": "d02_05~król",
+      "note": "dorosły król odprawia kanclerza",
+      "needsOff": [
+        "krol_maly"
+      ]
+    },
+    {
+      "at": "d05_07~stołu",
+      "note": "moneta toczy się po stole pisarzy",
+      "needs": [
+        "dwor"
+      ]
+    },
+    {
+      "at": "d05_08~stół",
+      "note": "waga zjeżdża na stół pisarzy",
+      "needs": [
+        "dwor"
+      ]
+    },
+    {
+      "at": "d06_01~stołu",
+      "note": "zwój leci ze stołu do ognia",
+      "needs": [
+        "dwor"
+      ]
+    },
+    {
+      "at": "d05_01~wóz",
+      "note": "wóz jedzie drogą przez środek sceny",
+      "needsOff": [
+        "dwor"
+      ]
+    },
+    {
+      "at": "d06_05~noc",
+      "note": "zamach młotem na nocnej drodze",
+      "needs": [
+        "noc"
+      ],
+      "needsOff": [
+        "dwor"
+      ]
+    },
+    {
+      "at": "d07_05~żołnierze",
+      "note": "gliniana armia wstaje nocą",
+      "needs": [
+        "noc",
+        "cesarz_zyje"
+      ]
+    },
+    {
+      "at": "d08_01~powozie",
+      "note": "Li Si i Zhao Gao tają śmierć cesarza",
+      "needsOff": [
+        "cesarz_zyje"
+      ]
+    },
+    {
+      "at": "d08_05~czarne",
+      "note": "czarne chorągwie zaczynają padać",
+      "needs": [
+        "czarne_stoja"
+      ]
+    },
+    {
+      "at": "d08_08~dzień",
+      "note": "odkrycie armii w 1974 roku",
+      "needsOff": [
+        "noc",
+        "czarne_stoja"
+      ]
+    }
+  ],
+  "threads": [
+    {
+      "id": "handan",
+      "title": "Chłopiec z Handanu wraca jako zdobywca",
+      "setup": [
+        "d01_03~Handan"
+      ],
+      "clues": [
+        "d01_07~bramą"
+      ],
+      "payoff": [
+        "d03_03~Handanu"
+      ]
+    },
+    {
+      "id": "kupiec",
+      "title": "Kupiec, który chciał zarobić królestwo",
+      "setup": [
+        "d01_05~kupca"
+      ],
+      "clues": [
+        "d02_01~kanclerz",
+        "d02_05~kanclerza"
+      ],
+      "payoff": [
+        "d02_06~truciznę"
+      ]
+    },
+    {
+      "id": "choragwie",
+      "title": "Siedem chorągwi, jedna barwa",
+      "setup": [
+        "d01_02~siedem"
+      ],
+      "clues": [
+        "d02_08~mapa",
+        "d03_02~Han",
+        "d04_04~Chu",
+        "d04_05~Qi",
+        "d04_06~czarny"
+      ],
+      "payoff": [
+        "d04_07~czarne"
+      ]
+    },
+    {
+      "id": "czarne",
+      "title": "Czarne chorągwie padają",
+      "setup": [
+        "d04_07~czarne"
+      ],
+      "clues": [
+        "d08_05~czarne"
+      ],
+      "payoff": [
+        "d08_06~chorągwie"
+      ]
+    },
+    {
+      "id": "zamach",
+      "title": "Sztylet w mapie",
+      "setup": [
+        "d03_04~zabić"
+      ],
+      "clues": [
+        "d03_05~mapa"
+      ],
+      "payoff": [
+        "d03_06~sztylet",
+        "d03_11~zginął"
+      ]
+    },
+    {
+      "id": "miecz",
+      "title": "Miecz za długi, żeby go wyciągnąć",
+      "setup": [
+        "d03_08~miecz"
+      ],
+      "payoff": [
+        "d03_10~miecz"
+      ]
+    },
+    {
+      "id": "fusu",
+      "title": "Syn zesłany pod mur",
+      "setup": [
+        "d06_03~Fusu"
+      ],
+      "payoff": [
+        "d08_03~Fusu"
+      ]
+    },
+    {
+      "id": "smierc",
+      "title": "Jedyny wróg: śmierć",
+      "setup": [
+        "d06_04~śmierć"
+      ],
+      "clues": [
+        "d06_06~nieśmiertelni",
+        "d06_09~rtęcią",
+        "d07_02~umrze",
+        "d07_05~śmierci"
+      ],
+      "payoff": [
+        "d07_09~Umarł"
+      ]
+    },
+    {
+      "id": "armia",
+      "title": "Gliniana armia pod ziemią",
+      "setup": [
+        "d07_05~żołnierzy"
+      ],
+      "clues": [
+        "d08_07~zapadają"
+      ],
+      "payoff": [
+        "d08_08~1974"
+      ]
+    },
+    {
+      "id": "mur",
+      "title": "Mur na grani",
+      "setup": [
+        "d05_09~mury"
+      ],
+      "clues": [
+        "d05_10~murem",
+        "d08_03~murem"
+      ],
+      "payoff": [
+        "d08_10~mur"
+      ]
+    },
+    {
+      "id": "teatr",
+      "title": "To wszystko było w papierowym teatrze",
+      "setup": [
+        "d01_01~teatru"
+      ],
+      "payoff": [
+        "d08_10~teatru"
+      ]
+    },
+    {
+      "id": "slonce",
+      "title": "Słońce i księżyc na nitce",
+      "setup": [
+        "d01_01~słońce"
+      ],
+      "clues": [
+        "d06_04~słońce"
+      ],
+      "payoff": [
+        "d08_07~słońce"
+      ]
+    }
+  ],
+  "spoilers": [
+    {
+      "pattern": "[Cc]esarz",
+      "notBefore": "d04_08~Cesarz",
+      "why": "do 221 roku p.n.e. Zheng jest królem — lektor nie mówi „cesarz” przed tytułem"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "text": "Film ma mieć 8–12 minut; rozpiska na 8 aktów i 78 ujęć (ok. 8 min przy 2,6 słowa/s).",
+      "at": "2026-11-10",
+      "by": "reżyser"
+    },
+    {
+      "id": "D2",
+      "text": "Render pełnej jakości na końcu. Do przeglądu służą szkice 640 × 360 w zakładce Ujęcia (odtwarzanie po kolei).",
+      "at": "2026-11-10",
+      "by": "reżyser"
+    },
+    {
+      "id": "D3",
+      "text": "Zheng ma jedną wycinankę przez cały film: mała lalka to chłopiec, duża — dorosły. Pozostałe postacie to wycinanki uczonych z obszyciem w innej barwie (kupiec purpura, Li Si zieleń, Jing Ke jasne, Fusu niebieski, Zhao Gao szary).",
+      "at": "2026-11-10",
+      "by": "wykonawca (do zatwierdzenia)"
+    },
+    {
+      "id": "D4",
+      "text": "Zdania niepewne mają zastrzeżenie w kwestii: rtęć („podobno”), rzeki z rtęci („według kronik”), Qin → Chiny („najpewniej”). Liczby (600 tys., 700 tys., 120 tys. rodzin, 36 prowincji) za „Zapiskami historyka” Sima Qiana.",
+      "at": "2026-11-10",
+      "by": "wykonawca (do zatwierdzenia)"
+    },
+    {
+      "id": "D5",
+      "text": "Akt 5: drogi, prowincje, podróże i kanał są przed stołem pisarzy, bo stół zasłania środek drogi; zamach młotem jest po zmierzchu, kiedy stół już zniknął.",
+      "at": "2026-11-10",
+      "by": "wykonawca (do zatwierdzenia)"
+    }
+  ]
+}
