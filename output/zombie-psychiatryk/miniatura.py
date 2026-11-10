@@ -9,6 +9,7 @@ Napisy są poza rysunkiem, nakładane na końcu.
 
     python3 miniatura.py          # wszystkie trzy → miniatura-1-izolatka.png, miniatura-2-korytarz.png, …
     python3 miniatura.py 2        # tylko wersja 2
+    python3 miniatura.py 1en      # wersja 1 po angielsku (WARD C, 30 NIGHTS, MOVIE)
 """
 import math
 import random
@@ -94,13 +95,14 @@ def font(size):
 
 
 def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 138), tag_size=46, stretch=1.0,
-           inline=False, top=34, angle=3.0, sub=None, tag_first=False):
+           inline=False, top=34, angle=3.0, sub=None, tag_first=False, badge=None):
     """Napisy: czerwona tabliczka z tytułem i duże słowa z grubym konturem, lekko przekrzywione.
     side — róg kadru: „l” lewy górny, „r” prawy górny; width — najszersze miejsce na napis (przed rozciągnięciem);
     sizes — wysokość pisma wierszy; stretch — poszerzenie liter w poziomie;
     inline — oba słowa w jednym wierszu (tabliczka wtedy pod nim, nie nad); top — górna krawędź; angle — przekrzywienie;
     sub — (tekst, wysokość pisma, kolor): dodatkowy duży wiersz pod spodem;
-    tag_first — tabliczka nad napisem także przy inline."""
+    tag_first — tabliczka nad napisem także przy inline;
+    badge — (tekst, wysokość pisma): napis w samym żółtym obrysie prostokąta pod napisem głównym."""
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     left = side == "l"
@@ -140,6 +142,14 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
         y += 26 - up
     if tag and inline and not tag_first:
         plate(y + 6)
+    if badge:
+        f = font(badge[1])
+        w, h = d.textlength(badge[0], font=f) + 44, round(badge[1] * 1.5)
+        x0, y0 = (x if left else x - w), y + 4
+        box = [x0, y0, x0 + w, y0 + h]
+        d.rectangle(box, outline=R.INK, width=15)  # czarny kontur pod żółtym obrysem, jak przy literach
+        d.rectangle([box[0] + 4, box[1] + 4, box[2] - 4, box[3] - 4], outline=YELLOW, width=7)
+        d.text((x0 + w / 2, y0 + h / 2), badge[0], font=f, fill=YELLOW, anchor="mm", stroke_width=5, stroke_fill=R.INK)
     if stretch != 1.0:  # szersze litery: warstwa napisów rozciągnięta w poziomie od swojego rogu kadru
         wide = layer.resize((round(W * stretch), H), Image.LANCZOS)
         layer = wide.crop((0, 0, W, H) if left else (wide.width - W, 0, wide.width, H))
@@ -165,7 +175,7 @@ def mesh_over(p, x0, y0, x1, y1):
                     p.d.line([p.tp(u), p.tp(v)], fill=(80, 90, 84), width=max(1, int(1.5 * p.zoom * R.SS)))
 
 
-def izolatka():
+def izolatka(lang="pl"):
     """Drzwi izolatki z okienkiem, przed nimi (bliżej kamery) twarz sanitariusza; napis w jednym wierszu nad okienkiem."""
     img = canvas()
     k = 2.2  # sekundy po uderzeniu: głowa przekrzywiona, krew spłynęła, szyba bez pary
@@ -193,6 +203,9 @@ def izolatka():
     R.nurse_face(Shaky(img, 0.3), 262, 556, 1.06, 1.0, 0.3, gaze=(1.0, -0.05))
     img = light(small(img), R.GRADE[2], [(960, 520, 600, 1.0), (262, 548, 340, 0.9)])
     # tabliczka „ODDZIAŁ C” u góry, pod nią „30 NOCY” (prośba reżysera, 10.11.2026)
+    if lang == "en":  # wersja angielska: „WARD C”, „30 NIGHTS”, pod spodem „MOVIE” w żółtym obrysie
+        return titles(img, "30", "NIGHTS", tag="WARD C", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True,
+                      top=30, angle=1.5, tag_first=True, badge=("MOVIE", 52))
     return titles(img, "30", "NOCY", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True, top=30, angle=1.5,
                   tag_first=True)
 
@@ -237,7 +250,8 @@ def dyzurka():
     return titles(img, "ANI", "DŹWIĘKU", side="r", width=470)
 
 
-VERSIONS = {"1": ("izolatka", izolatka), "2": ("korytarz", korytarz), "3": ("dyzurka", dyzurka)}
+VERSIONS = {"1": ("izolatka", izolatka), "2": ("korytarz", korytarz), "3": ("dyzurka", dyzurka),
+            "1en": ("izolatka", lambda: izolatka("en"))}
 
 
 def main(*which):
