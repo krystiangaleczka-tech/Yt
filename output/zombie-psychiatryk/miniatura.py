@@ -69,21 +69,22 @@ def font(size):
     return f
 
 
-def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500):
+def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 138), tag_size=46, stretch=1.0):
     """Napisy: czerwona tabliczka z tytułem i dwa duże wiersze z grubym konturem, lekko przekrzywione.
-    side — róg kadru: „l” lewy górny, „r” prawy górny; width — najszersze miejsce na napis."""
+    side — róg kadru: „l” lewy górny, „r” prawy górny; width — najszersze miejsce na napis (przed rozciągnięciem);
+    sizes — wysokość pisma obu wierszy; stretch — poszerzenie liter w poziomie."""
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     left = side == "l"
     x, y = (40 if left else W - 40), 34
     if tag:
-        f = font(46)
-        w = d.textlength(tag, font=f) + 36
+        f = font(tag_size)
+        w, h = d.textlength(tag, font=f) + 36, round(tag_size * 1.43)
         x0 = x if left else x - w
-        d.rectangle([x0, y, x0 + w, y + 66], fill=RED, outline=R.INK, width=5)
-        d.text((x0 + 18, y + 33), tag, font=f, fill=WHITE, anchor="lm")
-        y += 66 + 14
-    for txt, size, col in ((big1, 190, YELLOW), (big2, 138, WHITE)):
+        d.rectangle([x0, y, x0 + w, y + h], fill=RED, outline=R.INK, width=5)
+        d.text((x0 + 18, y + h / 2), tag, font=f, fill=WHITE, anchor="lm")
+        y += h + 14
+    for txt, size, col in ((big1, sizes[0], YELLOW), (big2, sizes[1], WHITE)):
         if not txt:
             continue
         f = font(size)
@@ -94,6 +95,10 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500):
         d.text((x - 4 if left else x + 4, y - top), txt, font=f, fill=col, anchor="ls" if left else "rs",
                stroke_width=max(7, size // 14), stroke_fill=R.INK)
         y += 26 - top
+    if stretch != 1.0:  # szersze litery: warstwa napisów rozciągnięta w poziomie od swojego rogu kadru
+        wide = layer.resize((round(W * stretch), H), Image.LANCZOS)
+        layer = wide.crop((0, 0, W, H) if left else (wide.width - W, 0, wide.width, H))
+        x = x * stretch if left else W - (W - x) * stretch
     layer = layer.rotate(3.0 if left else -3.0, resample=Image.BICUBIC, center=(x, 34))
     shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     shadow.paste((0, 0, 0, 255), (8, 10), layer.split()[3])
@@ -116,9 +121,10 @@ def izolatka():
     p.rect(812, 100, 950, 380, DOOR, w=0, amp=0)
     p.line([(340, 0), (340, 720)], w=3)
     p.rect(470, 120, 810, 360, None, w=8)
-    R.nurse_face(R.Pen(img, 0.3), 262, 545, 1.0, 1.0, 0.3, gaze=(1.0, -0.15))
-    img = light(small(img), R.GRADE[2], [(900, 330, 600, 1.0), (262, 535, 330, 0.9)])
-    return titles(img, "30", "NOCY")
+    R.nurse_face(R.Pen(img, 0.3), 262, 578, 0.92, 1.0, 0.3, gaze=(1.0, -0.15))
+    img = light(small(img), R.GRADE[2], [(900, 330, 600, 1.0), (262, 568, 330, 0.9)])
+    # duże, poszerzone litery; „NOCY” wchodzi na ramę i ciemną część okienka, nie na twarz pana Henryka
+    return titles(img, "30", "NOCY", width=560, sizes=(236, 172), tag_size=54, stretch=1.14)
 
 
 def korytarz():
