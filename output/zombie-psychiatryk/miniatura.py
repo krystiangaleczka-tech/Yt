@@ -25,6 +25,8 @@ import render2 as R2
 HERE = Path(__file__).parent
 W, H = R.W, R.H
 FONT = HERE.parents[1] / "pilot/fonts/Montserrat.ttf"
+ZFONT = HERE.parents[1] / "pilot/fonts/Creepster-Regular.ttf"  # krój „zombie” (OFL, Google Fonts)
+BLOOD, ZGREEN = (150, 14, 16), (156, 204, 92)
 DOOR = (112, 126, 112)
 YELLOW, WHITE, RED = (255, 222, 74), (250, 250, 244), (196, 30, 30)
 SKIN = (232, 200, 174)  # skóra sanitariusza w render.nurse_face
@@ -95,14 +97,15 @@ def font(size):
 
 
 def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 138), tag_size=46, stretch=1.0,
-           inline=False, top=34, angle=3.0, sub=None, tag_first=False, badge=None):
+           inline=False, top=34, angle=3.0, sub=None, tag_first=False, badge=None, drip=None, after=None):
     """Napisy: czerwona tabliczka z tytułem i duże słowa z grubym konturem, lekko przekrzywione.
     side — róg kadru: „l” lewy górny, „r” prawy górny; width — najszersze miejsce na napis (przed rozciągnięciem);
     sizes — wysokość pisma wierszy; stretch — poszerzenie liter w poziomie;
     inline — oba słowa w jednym wierszu (tabliczka wtedy pod nim, nie nad); top — górna krawędź; angle — przekrzywienie;
     sub — (tekst, wysokość pisma, kolor): dodatkowy duży wiersz pod spodem;
     tag_first — tabliczka nad napisem także przy inline;
-    badge — (tekst, wysokość pisma): napis w samym żółtym obrysie prostokąta pod napisem głównym."""
+    badge — (tekst, wysokość pisma): napis w samym żółtym obrysie prostokąta pod napisem głównym;
+    drip — słowo, z którego dołu lekko cieknie krew; after — (mały tekst, słowo krojem „zombie”, wysokość) za ramką."""
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     left = side == "l"
@@ -137,6 +140,8 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
         else:
             xx = x - 4 if left else x + 4 - d.textlength(txt, font=f)
             for word, col in row:
+                if word == drip:
+                    drips(d, f, word, xx, y - up)
                 d.text((xx, y - up), word, font=f, fill=col, anchor="ls", **stroke)
                 xx += d.textlength(word + " ", font=f)
         y += 26 - up
@@ -150,6 +155,14 @@ def titles(img, big1, big2, side="l", tag="ODDZIAŁ C", width=500, sizes=(190, 1
         d.rectangle(box, outline=R.INK, width=15)  # czarny kontur pod żółtym obrysem, jak przy literach
         d.rectangle([box[0] + 4, box[1] + 4, box[2] - 4, box[3] - 4], outline=YELLOW, width=7)
         d.text((x0 + w / 2, y0 + h / 2), badge[0], font=f, fill=YELLOW, anchor="mm", stroke_width=5, stroke_fill=R.INK)
+        if after:
+            small_txt, zword, zsize = after
+            xa, ym = x0 + w + 18, y0 + h / 2
+            fs = font(round(badge[1] * 0.95))
+            d.text((xa, ym), small_txt, font=fs, fill=WHITE, anchor="lm", stroke_width=5, stroke_fill=R.INK)
+            xa += d.textlength(small_txt, font=fs) + 16
+            fz = ImageFont.truetype(str(ZFONT), zsize)
+            d.text((xa, ym), zword, font=fz, fill=ZGREEN, anchor="lm", stroke_width=6, stroke_fill=R.INK)
     if stretch != 1.0:  # szersze litery: warstwa napisów rozciągnięta w poziomie od swojego rogu kadru
         wide = layer.resize((round(W * stretch), H), Image.LANCZOS)
         layer = wide.crop((0, 0, W, H) if left else (wide.width - W, 0, wide.width, H))
@@ -175,6 +188,31 @@ def mesh_over(p, x0, y0, x1, y1):
                     p.d.line([p.tp(u), p.tp(v)], fill=(80, 90, 84), width=max(1, int(1.5 * p.zoom * R.SS)))
 
 
+def drips(d, f, word, x, base):
+    """Lekko ociekająca krew spod liter: kilka strużek różnej długości spod nóżek liter, rysowanych przed literą,
+    żeby biała litera z konturem przykrywała ich początek. Strużka zwęża się od litery i kończy kroplą."""
+    picks = {"G": (0.62, 34), "H": (0.86, 62), "T": (0.5, 44), "S": (0.38, 26)}  # N i I nad „ZOMBIE” — bez strużek
+    for i, ch in enumerate(word):
+        if ch not in picks:
+            continue
+        fx, L = picks[ch]
+        x0, _, x1, _ = f.getbbox(ch, anchor="ls")
+        cx = x + d.textlength(word[:i], font=f) + x0 + (x1 - x0) * fx
+        top, low, r = 30, 13, 11  # szerokość u litery, szerokość nad kroplą, promień kropli
+        y0, y1 = base - 10, base + L
+        pts = [(cx - top / 2, y0), (cx + top / 2, y0)]
+        for k in range(1, 9):  # boki wklęsłe: krew spływa z litery i zbiera się w kroplę
+            u = k / 8
+            half = low / 2 + (top - low) / 2 * (1 - u) ** 2.2
+            pts.append((cx + half, y0 + (y1 - y0) * u))
+        pts += [(cx - px + cx - cx, py) for px, py in reversed(pts[2:])]
+        pts[len(pts) // 2 + 1:] = [(2 * cx - px, py) for px, py in reversed(pts[2:10])]
+        d.ellipse([cx - r, y1 - r, cx + r, y1 + r * 1.15], fill=BLOOD, outline=R.INK, width=3)
+        d.polygon(pts, fill=BLOOD, outline=R.INK, width=3)
+        d.rectangle([cx - low / 2 + 1.5, y1 - 4, cx + low / 2 - 1.5, y1 + 4], fill=BLOOD)  # strużka w kroplę bez kreski
+        d.ellipse([cx - r * 0.55, y1 - r * 0.1, cx - r * 0.1, y1 + r * 0.45], fill=(214, 90, 90))  # połysk
+
+
 def izolatka(lang="pl"):
     """Drzwi izolatki z okienkiem, przed nimi (bliżej kamery) twarz sanitariusza; napis w jednym wierszu nad okienkiem."""
     img = canvas()
@@ -193,7 +231,10 @@ def izolatka(lang="pl"):
     # kieł pana Henryka: jeden, u góry ust po prawej stronie kadru (prośba reżysera, 10.11.2026)
     lean = R.ease((k - 0.8) / 2.2)
     mx, my = 640 + 12 * lean + 2 * R.noise(k, 8, 0.7), 268 + 8 * lean + 54  # środek ust z render.scene3
-    p.poly([(mx + 1, my - 25), (mx + 18, my - 15), (mx + 11, my + 6)], (238, 240, 228), w=2, amp=0.5)
+    if lang == "en":  # schowany wyżej: wystaje tylko czubek spod górnej krawędzi ust
+        p.poly([(mx + 3, my - 24), (mx + 16, my - 21), (mx + 11, my - 13)], (238, 240, 228), w=2, amp=0.5)
+    else:
+        p.poly([(mx + 1, my - 25), (mx + 18, my - 15), (mx + 11, my + 6)], (238, 240, 228), w=2, amp=0.5)
     mesh_over(p, mx - 1, my - 27, mx + 20, my + 8)
     # siatka jest tylko w okienku (WYTYCZNE 1.1): drzwi po obu stronach ramy zasłaniają jej końce
     p.rect(331, 130, 468, 350, DOOR, w=0, amp=0)
@@ -205,7 +246,8 @@ def izolatka(lang="pl"):
     # tabliczka „ODDZIAŁ C” u góry, pod nią „30 NOCY” (prośba reżysera, 10.11.2026)
     if lang == "en":  # wersja angielska: „WARD C”, „30 NIGHTS”, pod spodem „MOVIE” w żółtym obrysie
         return titles(img, "30", "NIGHTS", tag="WARD C", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True,
-                      top=30, angle=1.5, tag_first=True, badge=("MOVIE", 52))
+                      top=30, angle=1.5, tag_first=True, badge=("MOVIE", 52),
+                      drip="NIGHTS", after=("x", "ZOMBIE", 92))
     return titles(img, "30", "NOCY", width=1000, sizes=(204,), tag_size=54, stretch=1.14, inline=True, top=30, angle=1.5,
                   tag_first=True)
 
