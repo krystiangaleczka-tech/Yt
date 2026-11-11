@@ -9,6 +9,8 @@ for /f %%n in ('dir /b output\pierwszy-cesarz\lektor\*.json ^| find /c /v ""') d
 if %LEKTOR% LSS 67 (echo Lektor ma dopiero %LEKTOR% z 67 kwestii. Najpierw nagraj_lektora.bat - dlugosci ujec biora sie z nagran. & pause & exit /b 1)
 if not defined PROCESY set PROCESY=4
 python output\pierwszy-cesarz\render.py klipy klipy
+rem muzyka i efekty od nowa: ich czasy zależą od długości nagranych kwestii
+python output\pierwszy-cesarz\efekty.py
 echo.
-echo Gotowe. Przenieś na Maca foldery "klipy" i "output\pierwszy-cesarz\lektor".
+echo Gotowe. Przenieś na Maca foldery "klipy", "output\pierwszy-cesarz\lektor" i "output\pierwszy-cesarz\dzwiek".
 pause
