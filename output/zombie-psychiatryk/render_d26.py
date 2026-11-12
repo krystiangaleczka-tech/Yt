@@ -39,8 +39,9 @@ def s_promise(p, t, T):
 def s_pat(p, t, T):
     K.staff_room(p, t)
     K.face_cu(p, 640, 330, 1.0, "irena", t, gaze=(0.0, 0.3), fear=0.0)
-    for side in (-1, 1):  # smutny uśmiech
-        p.line([(640 + side * 18, 412), (640 + side * 28, 404)], w=4)
+    with K.on_face(p, "irena"):
+        for side in (-1, 1):  # smutny uśmiech
+            p.line([(640 + side * 18, 412), (640 + side * 28, 404)], w=4)
     pat = 12 * abs(math.sin(t * 4)) if t < T * 0.7 else 0
     K.limb(p, (W + 60, H + 40), (820, 650), 80, K.narr_sleeve(), outline=4)  # dłoń narratora
     p.ell(800, 640, 50, 32, K.SKIN)

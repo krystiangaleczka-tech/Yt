@@ -88,3 +88,36 @@ python3 studio_import.py media <id projektu>
 ```
 
 `studio_signatures.mjs` liczy podpisy planów kodem Studio (`flowTypes.ts`), żeby plany nie były „nieaktualne”.
+
+## Rig postaci i efekty dźwiękowe (PC, 11.11.2026)
+
+Ujęcia dni 1–30 w większości stały w miejscu (575 z 689 ma kamerę „stat”). 256 z nich dostało grę aktorską:
+
+- `rig_a.py` — rig: głowa obraca się na szyi i skręca (yaw), tułów pochyla się i unosi ramiona, ręka gestykuluje,
+  usta idą za prawdziwym oknem kwestii EN. Akcje: `mowi`, `slucha`, `kiwa`, `kreci`, `odwraca`, `patrzy`, `w_gore`,
+  `w_dol`, `wzrusza`, `nachyla`, `cofa`, `wstrzymuje`, `oddycha`, `rozglada`, `wzdycha`, `budzi`, `kolysze`, `ciezar`,
+  `gest`, `kaszle`, `przelyka`. `Pen.push/pop` w `render.py` to stos przekształceń (pusty = rysunek bez zmian).
+- `rig_dni.py` — tabela: dzień → ujęcie → postać → akcja (z komentarzem: opis kadru i kwestia). Bez rigu zostały celowo
+  twarze za szybą i w okienkach (WYTYCZNE 1.1), rzeczy przy twarzy (słuchawka, kubek, ręcznik, lornetka), dłoń na ustach
+  i ujęcia, w których bezruch pana Henryka jest treścią. Rzeczy rysowane na twarzy po `face_cu` (łzy, uśmiech, nadęte
+  policzki, słuchawka) idą przez `kit_a.on_face`, więc trzymają się głowy.
+- `FILM_RIG=0` — render bez rigu (porównania); ujęcia bez wpisu w tabeli są piksel w piksel takie jak wcześniej.
+- `arkusz_rig.py <png> dzien=N` — arkusz klatek ujęć z rigiem (6 chwil na ujęcie).
+- Kurz w świetle piwnicy i apteki (looki BASE/CELL) — `dzien_base.dust`; `FILM_KURZ=0` wyłącza.
+
+Efekty: `efekty_dni.py` (na PC napisany od nowa — wersja z Maca nie trafiła do repo) syntezuje tło miejsca (piwnica
+z kapaniem, oddział ze świetlówkami wg stanu sieci/agregatu, noc z wiatrem, podwórze, płonące miasto od d20) i dźwięk
+każdego wydarzenia z rozpiski i opisu kadru: kroki, drzwi, kraty, zamki, walenie w drzwi, huki, metal, szuranie, jęki
+zarażonych, oddechy, kaszel, iskry, agregat, woda, strzały, dron, pianino, nucenie, karta dnia („dum”), narastanie przed
+kolejnym dniem. Uderzenia trafiają w chwilę ruchu w kadrze (różnice klatek wideo). Alarm d14, alarm karetki d10,
+alarm z kołysanką d30 płyną przez kilka ujęć: blisko w miejscu źródła, z oddali gdzie indziej.
+`film_en.py dzwiek` miksuje `build/efekty/eNN.wav` z lektorem (−6 dB pod głosem); `eNN_studio.wav` (−8 dB pod
+kwestiami) idzie na ścieżkę Efekty w Studio.
+
+Render 1440p: `FILM_ENC=nvenc python -I film_en.py obraz 1 … 30 -j 6` (koder karty — rysowanie jest wtedy wąskim
+gardłem, ok. 1 h; x264 slow trwał ok. 5 h). Wszystkie jednostki muszą mieć ten sam koder, bo `sklej` łączy je bez
+przekodowania (zimne otwarcie przekodowane NVENC-iem z poprzedniego renderu).
+
+Studio na PC: `python -I studio_pc.py` — zakłada projekt „Oddział C · Do świtu (EN 1440p, PC)”, każde ujęcie jako scenę
+z klipem 720p, kwestie EN na ścieżce Lektor, efekty dzień po dniu na ścieżce Efekty; ujęcia z rigiem mają w opisie
+„Rig (gra aktorska): …”.

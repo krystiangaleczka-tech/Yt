@@ -6,9 +6,11 @@ bliżej kamery rysuje się później; tłum to osobne postacie z własnym tempem
 """
 import math
 import random
+from contextlib import contextmanager
 
 import render as R
 import render2 as R2
+import rig_a as rig
 from render import INK, W, H, ease, noise, blink
 
 SKIN, HAIR, UNI, TROUSERS = R2.SKIN, R2.HAIR, R2.UNI, R2.TROUSERS
@@ -107,6 +109,16 @@ def figure(p, x, y, s, t, who, walk=None, look=0.0, arms=None, eyes=None, mouth=
     eyes 0..1 — otwarcie oczu; mouth 0..1; gaze — (gx, gy) źrenic, domyślnie tam, gdzie twarz."""
     c = _costume(who)
     seed = sum(map(ord, who)) * 13
+    P = rig.pose(who, hint=look if abs(look) > 0.2 else (gaze[0] if gaze else None))  # rig ujęcia (rig_a)
+    if P["active"]:
+        if P["mouth"] is not None:
+            mouth = P["mouth"]
+        look = max(-1.0, min(1.0, look + P["yaw"]))
+        if gaze is not None or P["gx"] or P["gy"]:
+            g0 = gaze if gaze is not None else (look, 0.0)
+            gaze = (max(-1.0, min(1.0, g0[0] + P["gx"])), max(-1.0, min(1.0, g0[1] + P["gy"])))
+        lean = lean + P["bx"] * 2.3
+    shu = P["shrug"] * 14 * s
     if eyes is None:  # samo mruganie, każda postać we własnym rytmie; pan Henryk nie mruga nigdy (MASTER_BIBLE 2.6)
         eyes = 1.0 if who in NO_BLINK else 1 - R.blink(t, seed, 2.6 + (seed % 7) * 0.25)
     ph = (walk or 0.0) * 6
@@ -122,7 +134,8 @@ def figure(p, x, y, s, t, who, walk=None, look=0.0, arms=None, eyes=None, mouth=
             if who == "narrator" and NARRATOR_KNEE and side < 0:  # opatrunek na rozciętym kolanie (d23)
                 p.rect(lx - 15 * s, y - 78 * s, lx + 15 * s, y - 58 * s, WHITE, w=2)
     tx = x + lean * 20 * s
-    p.poly([(tx - 54 * s, y - 280 * s), (tx + 54 * s, y - 280 * s), (x + 56 * s, y - 112 * s), (x - 56 * s, y - 112 * s)], c["top"])
+    p.poly([(tx - 54 * s, y - 280 * s - shu * 0.7), (tx + 54 * s, y - 280 * s - shu * 0.7), (x + 56 * s, y - 112 * s),
+            (x - 56 * s, y - 112 * s)], c["top"])
     if who == "zosia":
         p.poly([(tx - 22 * s, y - 280 * s), (tx, y - 212 * s), (tx + 22 * s, y - 280 * s)], WHITE, w=3)
         p.line([(tx - 14 * s, y - 276 * s), (tx + 18 * s, y - 214 * s)], w=2, color=(170, 40, 40))
@@ -135,15 +148,19 @@ def figure(p, x, y, s, t, who, walk=None, look=0.0, arms=None, eyes=None, mouth=
     hands = {}
     for side in (-1, 1):
         key = "l" if side < 0 else "r"
-        sh = (tx + side * 50 * s, y - 268 * s)
+        sh = (tx + side * 50 * s, y - 268 * s - shu)
         dx, dy = arms.get(key, (side * 14, 95 + (math.sin(ph) * side * 8 if walk is not None else 0)))
+        if P["gesture"] > 0 and key == P["hand"] and key not in arms:  # gest przy mówieniu: dłoń przed tułowiem
+            g = ease(P["gesture"])
+            dx, dy = dx + (side * 38 + P["gdx"] - dx) * g, dy + (44 + P["gdy"] - dy) * g
         hand = (sh[0] + dx * s, sh[1] + dy * s)
         limb(p, sh, hand, 24 * s, c["sleeve"])
         p.ell(hand[0], hand[1], 13 * s, 13 * s, c["skin"])
         hands[key] = hand
-    hx, hy = tx + look * 6 * s, y - 336 * s
+    hx, hy = tx + look * 6 * s + P["hx"] * 46 * s, y - 336 * s + P["hy"] * 46 * s - shu * 0.5
     p.poly([(hx - 14 * s, hy + 40 * s), (hx + 14 * s, hy + 40 * s), (tx + 14 * s, y - 274 * s), (tx - 14 * s, y - 274 * s)],
            c["skin"], w=3)
+    p.push(pivot=(hx, hy + 40 * s), rot=P["rot"])  # głowa obraca się na szyi
     _hair_back(p, c, hx, hy, s)
     p.ell(hx, hy, 46 * s, 52 * s, c["skin"])
     _hair_front(p, c, hx, hy, s)
@@ -152,6 +169,7 @@ def figure(p, x, y, s, t, who, walk=None, look=0.0, arms=None, eyes=None, mouth=
     ew = max(1.5, min(3.0, 3.0 * s))
     gx, gy = gaze if gaze is not None else (look, 0.0)
     if c["hair"] == "mask":
+        p.pop()
         return hands
     for side in (-1, 1):
         if (look > 0.6 and side < 0) or (look < -0.6 and side > 0):
@@ -171,87 +189,223 @@ def figure(p, x, y, s, t, who, walk=None, look=0.0, arms=None, eyes=None, mouth=
         p.ell(fx, hy + 30 * s, 7 * s, (4 + 8 * mouth) * s, (70, 30, 30), w=3)
     else:
         p.line([(fx - 9 * s, hy + 30 * s), (fx + 9 * s, hy + 30 * s)], w=3)
+    p.pop()
     return hands
 
 
 def face_cu(p, x, y, s, who, t, gaze=(0.0, 0.0), blink_k=None, mouth=0.0, fear=0.0, breath=0.0, white=False):
-    """Zbliżenie twarzy (Zosia, Henryk) w skali nurse_face z render.py: środek głowy w (x, y)."""
+    """Zbliżenie twarzy (Zosia, Henryk) w skali nurse_face z render.py: środek głowy w (x, y).
+    Rig (rig_a.pose): tułów pochyla się i unosi ramiona, głowa obraca się wokół szyi, twarz skręca w bok (yaw),
+    usta idą za prawdziwym oknem kwestii — tylko w ujęciach z wpisem w RIG dnia."""
     c = _costume(who)
     skin = c["skin"]
     seed = sum(map(ord, who)) * 17
+    P = rig.pose(who, hint=gaze[0])
+    rr = 120 * s
     if blink_k is None:  # samo mruganie, chyba że ujęcie ustawia oczy; pan Henryk nie mruga nigdy
         blink_k = 0.0 if who in NO_BLINK else R.blink(t, seed, 2.8 + (seed % 5) * 0.3)
-    breath = breath + 0.6 * math.sin(2 * math.pi * 0.27 * t + seed)
-    by = y - breath * 5 * s
+    if P["mouth"] is not None:
+        mouth = P["mouth"]
+    gaze = (max(-1.0, min(1.0, gaze[0] + P["gx"])), max(-1.0, min(1.0, gaze[1] + P["gy"])))
+    breath = (breath + 0.6 * math.sin(2 * math.pi * 0.27 * t + seed)) * P["breath"] + P["breath_add"]
+    if P["lean"]:
+        p.push(pivot=(x, 760), sx=1 + P["lean"])
+    bx, sh = P["bx"] * rr, P["shrug"] * 34 * s
+    by = y - breath * 5 * s + P["by"] * rr
     bot = max(by + 400 * s, 760)  # tułów zawsze wychodzi poza dolną krawędź kadru
     sp = 120 * s + 30 * s * (bot - by - 150 * s) / (250 * s)
-    p.poly([(x - 120 * s, by + 150 * s), (x + 120 * s, by + 150 * s), (x + sp, bot), (x - sp, bot)], c["top"])
-    p.poly([(x - 30 * s, y + 90 * s), (x + 30 * s, y + 90 * s), (x + 34 * s, by + 160 * s), (x - 34 * s, by + 160 * s)], skin)
+    p.poly([(x + bx - 120 * s, by + 150 * s - sh), (x + bx + 120 * s, by + 150 * s - sh), (x + sp, bot), (x - sp, bot)], c["top"])
+    hdx, hdy = bx + P["hx"] * rr, P["by"] * rr + P["hy"] * rr
+    p.poly([(x + hdx - 30 * s, y + hdy + 90 * s), (x + hdx + 30 * s, y + hdy + 90 * s), (x + bx + 34 * s, by + 160 * s),
+            (x + bx - 34 * s, by + 160 * s)], skin)
+    cx_, cy_ = x + bx, by - sh * 0.6  # kołnierz idzie z tułowiem
     if who == "zosia":
-        p.poly([(x - 40 * s, by + 150 * s), (x, by + 230 * s), (x + 40 * s, by + 150 * s)], WHITE, w=3)
-        p.ell(x, y - 150 * s, 52 * s, 40 * s, (52, 40, 36))
+        p.poly([(cx_ - 40 * s, cy_ + 150 * s), (cx_, cy_ + 230 * s), (cx_ + 40 * s, cy_ + 150 * s)], WHITE, w=3)
     elif who == "nowak":  # bluza zapięta pod szyję pod fartuchem
-        p.poly([(x - 44 * s, by + 120 * s), (x + 44 * s, by + 120 * s), (x + 50 * s, by + 260 * s), (x - 50 * s, by + 260 * s)],
+        p.poly([(cx_ - 44 * s, cy_ + 120 * s), (cx_ + 44 * s, cy_ + 120 * s), (cx_ + 50 * s, cy_ + 260 * s), (cx_ - 50 * s, cy_ + 260 * s)],
                (40, 44, 56), w=3)
-        p.line([(x, by + 124 * s), (x, by + 260 * s)], w=3, color=(150, 150, 150))
+        p.line([(cx_, cy_ + 124 * s), (cx_, cy_ + 260 * s)], w=3, color=(150, 150, 150))
     else:
-        p.poly([(x - 40 * s, by + 150 * s), (x, by + 200 * s), (x + 40 * s, by + 150 * s)], c["top"], w=3)
+        p.poly([(cx_ - 40 * s, cy_ + 150 * s), (cx_, cy_ + 200 * s), (cx_ + 40 * s, cy_ + 150 * s)], c["top"], w=3)
+    p.push(pivot=(x, y + 110 * s), rot=P["rot"], dx=hdx, dy=hdy)  # głowa na szyi
+    yaw = P["yaw"]
+    HEAD[who] = (x, P["lean"], (x, y + 110 * s), P["rot"], hdx, hdy, yaw * 30 * s)
+    fx = x + yaw * 30 * s  # twarz skręca, czaszka zostaje
+    hx_ = x + yaw * 8 * s
+    if who == "zosia":
+        p.ell(hx_, y - 150 * s, 52 * s, 40 * s, (52, 40, 36))
     for side in (-1, 1):
-        p.ell(x + side * 122 * s, y + 14 * s, 18 * s, 30 * s, skin)
+        hide = max(0.0, side * yaw)
+        p.ell(x + side * 122 * s - yaw * 14 * s, y + 14 * s, 18 * s * (1 - 0.5 * hide), 30 * s, skin)
     p.ell(x, y + 6 * s, 120 * s, 132 * s, skin, n=34)
     if who == "zosia":
-        p.poly([(x - 126 * s, y - 6 * s), (x - 116 * s, y - 96 * s), (x - 40 * s, y - 140 * s), (x + 40 * s, y - 140 * s),
-                (x + 116 * s, y - 96 * s), (x + 126 * s, y - 6 * s), (x + 80 * s, y - 80 * s), (x, y - 96 * s),
-                (x - 80 * s, y - 80 * s)], (52, 40, 36))
+        p.poly([(hx_ - 126 * s, y - 6 * s), (hx_ - 116 * s, y - 96 * s), (hx_ - 40 * s, y - 140 * s), (hx_ + 40 * s, y - 140 * s),
+                (hx_ + 116 * s, y - 96 * s), (hx_ + 126 * s, y - 6 * s), (hx_ + 80 * s, y - 80 * s), (hx_, y - 96 * s),
+                (hx_ - 80 * s, y - 80 * s)], (52, 40, 36))
     elif who == "nowak":
         for side in (-1, 1):
-            p.ell(x + side * 108 * s, y - 30 * s, 24 * s, 50 * s, (170, 170, 166), w=3)
-        p.line([(x - 60 * s, y - 100 * s), (x + 56 * s, y - 104 * s)], w=2.5, color=(150, 150, 146))
+            p.ell(hx_ + side * 108 * s, y - 30 * s, 24 * s, 50 * s, (170, 170, 166), w=3)
+        p.line([(hx_ - 60 * s, y - 100 * s), (hx_ + 56 * s, y - 104 * s)], w=2.5, color=(150, 150, 146))
     elif who == "irena":
         for k in range(9):
             a = math.pi * (1.0 + k / 8)
-            p.ell(x + math.cos(a) * 108 * s, y - 20 * s + math.sin(a) * 118 * s, 36 * s, 32 * s, (206, 204, 200), w=3)
+            p.ell(hx_ + math.cos(a) * 108 * s, y - 20 * s + math.sin(a) * 118 * s, 36 * s, 32 * s, (206, 204, 200), w=3)
     elif who == "kuba":
-        p.poly([(x - 126 * s, y - 4 * s), (x - 128 * s, y - 90 * s), (x - 80 * s, y - 130 * s), (x - 50 * s, y - 160 * s),
-                (x, y - 136 * s), (x + 46 * s, y - 166 * s), (x + 80 * s, y - 132 * s), (x + 128 * s, y - 90 * s),
-                (x + 126 * s, y - 4 * s), (x + 70 * s, y - 76 * s), (x - 10 * s, y - 70 * s), (x - 76 * s, y - 84 * s)],
+        p.poly([(hx_ - 126 * s, y - 4 * s), (hx_ - 128 * s, y - 90 * s), (hx_ - 80 * s, y - 130 * s), (hx_ - 50 * s, y - 160 * s),
+                (hx_, y - 136 * s), (hx_ + 46 * s, y - 166 * s), (hx_ + 80 * s, y - 132 * s), (hx_ + 128 * s, y - 90 * s),
+                (hx_ + 126 * s, y - 4 * s), (hx_ + 70 * s, y - 76 * s), (hx_ - 10 * s, y - 70 * s), (hx_ - 76 * s, y - 84 * s)],
                (46, 36, 30))
     elif who == "henryk":
         for side in (-1, 1):
-            p.ell(x + side * 112 * s, y - 20 * s, 22 * s, 44 * s, (176, 176, 170), w=3)
+            p.ell(hx_ + side * 112 * s, y - 20 * s, 22 * s, 44 * s, (176, 176, 170), w=3)
         for k in range(3):
-            p.line([(x - 50 * s, y - 70 * s - k * 16 * s), (x + 48 * s, y - 72 * s - k * 16 * s)], w=2, color=(120, 128, 112))
+            p.line([(hx_ - 50 * s, y - 70 * s - k * 16 * s), (hx_ + 48 * s, y - 72 * s - k * 16 * s)], w=2, color=(120, 128, 112))
     big = 1.25 if who == "henryk" else 1.0
     open_ = (0.55 + 0.45 * ease(fear)) * (1 - blink_k)
     for side in (-1, 1):
-        ex, ey = x + side * 46 * s, y + 6 * s
+        ex, ey = fx + side * 46 * s, y + 6 * s
         r = (14 + 8 * ease(fear)) * big
+        rx = r * (1 - 0.3 * max(0.0, side * yaw))  # dalsze oko w skręcie węższe
         ry = (r + 3) * open_
         if ry < 3:
-            p.line([(ex - r * s, ey), (ex + r * s, ey)], w=4)
+            p.line([(ex - rx * s, ey), (ex + rx * s, ey)], w=4)
         else:
-            p.ell(ex, ey, r * s, ry * s, (246, 246, 240), w=3.5)
+            p.ell(ex, ey, rx * s, ry * s, (246, 246, 240), w=3.5)
             pr = min(5.5 if who != "henryk" else 3.5, ry * 0.7)
             if white:  # po przemianie: bielmo zamiast źrenicy (Nowak od d17_08)
                 p.ell(ex, ey, pr * 0.9 * s, pr * 0.9 * s, (204, 208, 198), w=0)
             else:
-                p.ell(ex + gaze[0] * (r - 6) * s, ey + gaze[1] * ry * 0.35 * s, pr * s, pr * s, INK, w=0)
+                p.ell(ex + gaze[0] * (rx - 6) * s, ey + gaze[1] * ry * 0.35 * s, pr * s, pr * s, INK, w=0)
         p.line([(ex - 22 * s, ey - (18 + 14 * fear) * s), (ex + 20 * s, ey - (18 + 14 * fear) * s + side * 4 * s)], w=4)
     if who == "nowak":
         for side in (-1, 1):
-            p.ell(x + side * 46 * s, y + 6 * s, 34 * s, 28 * s, None, w=4)
-        p.line([(x - 12 * s, y + 2 * s), (x + 12 * s, y + 2 * s)], w=4)
+            p.ell(fx + side * 46 * s, y + 6 * s, 34 * s * (1 - 0.3 * max(0.0, side * yaw)), 28 * s, None, w=4)
+        p.line([(fx - 12 * s, y + 2 * s), (fx + 12 * s, y + 2 * s)], w=4)
         for dx, dy in ((96, -10), (104, 20)):  # pot przy skroni
             p.poly([(x + dx * s, y + (dy - 12) * s), (x + (dx + 7) * s, y + dy * s), (x + dx * s, y + (dy + 8) * s),
                     (x + (dx - 7) * s, y + dy * s)], (190, 220, 235), w=2)
-    p.line([(x - 4 * s, y + 30 * s), (x - 10 * s, y + 52 * s), (x + 2 * s, y + 54 * s)], w=3)
+    p.line([(fx - 4 * s, y + 30 * s), (fx - 10 * s, y + 52 * s), (fx + 2 * s, y + 54 * s)], w=3)
     if mouth > 0.15:
-        p.ell(x, y + 84 * s, (8 + 4 * mouth) * s, (4 + 12 * mouth) * s, (70, 30, 30), w=3.5)
+        p.ell(fx, y + 84 * s, (8 + 4 * mouth) * s, (4 + 12 * mouth) * s, (70, 30, 30), w=3.5)
     else:
-        p.line([(x - 18 * s, y + 82 * s), (x + 18 * s, y + 82 * s)], w=4)
+        p.line([(fx - 18 * s, y + 82 * s), (fx + 18 * s, y + 82 * s)], w=4)
     if who == "henryk":
         for side in (-1, 1):
-            p.line([(x + side * 70 * s, y + 40 * s), (x + side * 60 * s, y + 80 * s)], w=2.5, color=(140, 150, 128))
+            p.line([(fx + side * 70 * s, y + 40 * s), (fx + side * 60 * s, y + 80 * s)], w=2.5, color=(140, 150, 128))
+    p.pop()
+    if P["lean"]:
+        p.pop()
+
+
+HEAD = {}  # ostatni układ głowy zbliżenia: postać → (x, lean, pivot, rot, dx, dy, przesunięcie twarzy)
+
+
+@contextmanager
+def on_face(p, who, face=True):
+    """Rysuj w układzie głowy zbliżenia, które przed chwilą narysowało face_cu / nurse_face (łza, uśmiech,
+    nadęte policzki, słuchawka przy uchu) — z rigiem przyklejone do twarzy, bez rigu bez zmian.
+    face=True: rzecz leży na twarzy (idzie też za skrętem twarzy), False: przy uchu / na czaszce."""
+    x, lean, pivot, rot, dx, dy, fs = HEAD.get(who, (640, 0.0, (640, 440), 0.0, 0.0, 0.0, 0.0))
+    n = 0
+    if lean:
+        p.push(pivot=(x, 760), sx=1 + lean)
+        n += 1
+    if rot or dx or dy or (face and fs):
+        p.push(pivot=pivot, rot=rot, dx=dx + (fs if face else 0.0), dy=dy)
+        n += 1
+    try:
+        yield
+    finally:
+        for _ in range(n):
+            p.pop()
+
+
+def narrator_cu(p, x, y, s, fear, t, gaze=(0.0, 0.0), blink_k=0.0, swallow=0.0, breath=0.0, body=None):
+    """Zbliżenie narratora (render.nurse_face) z rigiem rig_a; bez wpisu w RIG rysunek jak w nurse_face
+    (plus poły kurtki, gdy narrator ją nosi). Usta: w akcji „mowi” idą za oknem kwestii, inaczej otwiera je strach."""
+    P = rig.pose("narrator", hint=gaze[0])
+    rr = 120 * s
+    skin = (232, 200, 174)
+    gaze = (max(-1.0, min(1.0, gaze[0] + P["gx"])), max(-1.0, min(1.0, gaze[1] + P["gy"])))
+    swallow = max(swallow, P["swallow"])
+    breath = breath * P["breath"] + P["breath_add"]
+    if P["lean"]:
+        p.push(pivot=(x, 760), sx=1 + P["lean"])
+    bx, by = body or (x, y)
+    bx += P["bx"] * rr
+    by += P["by"] * rr - breath * 5 * s
+    sh = P["shrug"] * 34 * s
+    hdx, hdy = P["bx"] * rr + P["hx"] * rr, P["by"] * rr + P["hy"] * rr
+    p.poly([(bx - 120 * s, by + 150 * s - sh), (bx + 120 * s, by + 150 * s - sh), (bx + 150 * s, by + 400 * s + breath * 5 * s),
+            (bx - 150 * s, by + 400 * s + breath * 5 * s)], (150, 180, 190))
+    p.poly([(x + hdx - 30 * s, y + hdy + 90 * s), (x + hdx + 30 * s, y + hdy + 90 * s), (bx + 34 * s, by + 160 * s),
+            (bx - 34 * s, by + 160 * s)], skin)
+    if swallow > 0:
+        p.line([(x + hdx - 8 * s, y + hdy + 140 * s - swallow * 22 * s), (x + hdx + 8 * s, y + hdy + 138 * s - swallow * 22 * s)], w=3)
+    p.poly([(bx - 40 * s, by + 150 * s - sh * 0.6), (bx, by + 200 * s - sh * 0.6), (bx + 40 * s, by + 150 * s - sh * 0.6)],
+           (244, 244, 240), w=3)
+    _narrator_jacket(p, bx, by, s, sh)
+    p.push(pivot=(x, y + 110 * s), rot=P["rot"], dx=hdx, dy=hdy)
+    yaw = P["yaw"]
+    HEAD["narrator"] = (x, P["lean"], (x, y + 110 * s), P["rot"], hdx, hdy, yaw * 30 * s)
+    fx, hx_ = x + yaw * 30 * s, x + yaw * 8 * s
+    hair = (58, 46, 38)
+    for side in (-1, 1):
+        hide = max(0.0, side * yaw)
+        p.ell(x + side * 122 * s - yaw * 14 * s, y + 14 * s, 18 * s * (1 - 0.5 * hide), 30 * s, skin)
+    p.ell(x, y + 6 * s, 120 * s, 132 * s, skin, n=34)
+    p.poly([(hx_ - 126 * s, y - 10 * s), (hx_ - 120 * s, y - 100 * s), (hx_ - 60 * s, y - 150 * s), (hx_ + 40 * s, y - 156 * s),
+            (hx_ + 112 * s, y - 120 * s), (hx_ + 126 * s, y - 20 * s), (hx_ + 100 * s, y - 70 * s), (hx_ + 20 * s, y - 92 * s),
+            (hx_ - 70 * s, y - 80 * s)], hair)
+    for i in range(9):  # zarost
+        a = math.pi * (0.15 + 0.7 * i / 8)
+        p.line([(fx + math.cos(a) * 92 * s, y + 40 * s + math.sin(a) * 80 * s),
+                (fx + math.cos(a) * 96 * s, y + 44 * s + math.sin(a) * 82 * s)], w=3, color=(120, 100, 88))
+    open_ = (0.4 + 0.6 * ease(fear)) * (1 - blink_k)
+    for side in (-1, 1):
+        ex, ey = fx + side * 46 * s, y + 6 * s
+        r = 14 + 8 * ease(fear)
+        rx = r * (1 - 0.3 * max(0.0, side * yaw))
+        ry = (r + 3) * open_
+        if ry < 3:
+            p.line([(ex - rx * s, ey), (ex + rx * s, ey)], w=4)
+        else:
+            p.ell(ex, ey, rx * s, ry * s, (246, 246, 240), w=3.5)
+            pr = min(5.5, ry * 0.7)
+            p.ell(ex + gaze[0] * (rx - 6) * s, ey + gaze[1] * ry * 0.35 * s, pr * s, pr * s, INK, w=0)
+            if open_ < 0.75:  # ciężka powieka
+                p.line([(ex - rx * s, ey - ry * 0.4 * s), (ex, ey - ry * s - 3 * s), (ex + rx * s, ey - ry * 0.4 * s)], w=4)
+        bl = 16 + 18 * ease(fear)
+        p.line([(ex - 22 * s, ey - bl * s - side * 4 * s * fear), (ex + 20 * s, ey - bl * s + side * 6 * s * fear)], w=4)
+    p.line([(fx - 4 * s, y + 30 * s), (fx - 10 * s, y + 52 * s), (fx + 2 * s, y + 54 * s)], w=3)
+    m = P["mouth"]
+    if m is not None:
+        if m > 0.15:
+            p.ell(fx, y + 84 * s, (8 + 4 * m) * s, (4 + 12 * m) * s, (70, 30, 30), w=3.5)
+        else:
+            p.line([(fx - 18 * s, y + 82 * s), (fx + 18 * s, y + 82 * s)], w=4)
+    elif fear < 0.3:
+        p.line([(fx - 18 * s, y + 82 * s), (fx + 18 * s, y + 82 * s)], w=4)
+    else:
+        p.ell(fx, y + 84 * s, (8 + 6 * fear) * s, (8 + 12 * fear) * s, (70, 30, 30), w=3.5)
+    if fear >= 0.3:
+        dy = (t * 40) % 40
+        p.poly([(x + 104 * s, y - 40 * s + dy), (x + 112 * s, y - 20 * s + dy), (x + 104 * s, y - 12 * s + dy), (x + 96 * s, y - 20 * s + dy)],
+               (190, 220, 235), w=2.5)
+    p.pop()
+    if P["lean"]:
+        p.pop()
+
+
+def _narrator_jacket(p, bx, by, s, sh=0.0):
+    """Poły rozpiętej kurtki narratora po bokach (d02_18–d10_16); środek z mundurkiem zostaje odkryty."""
+    if not NARRATOR_JACKET:
+        return
+    for side in (-1, 1):
+        p.poly([(bx + side * 120 * s, by + 150 * s - sh), (bx + side * 48 * s, by + 150 * s - sh * 0.6), (bx + side * 60 * s, by + 410 * s),
+                (bx + side * 152 * s, by + 410 * s)], JACKET)
+        p.poly([(bx + side * 50 * s, by + 150 * s - sh * 0.6), (bx + side * 34 * s, by + 152 * s - sh * 0.6), (bx + side * 60 * s, by + 230 * s)],
+               (90, 98, 110), w=2.5)  # klapa kołnierza
 
 
 def zombie_profile(p, x, y, s, t, seed=3):
@@ -942,6 +1096,7 @@ def wall_text(p, lines, k=1.0):
     for i in range(7):
         p.line([(120 + i * 170, 40 + (i * 37) % 60), (150 + i * 170, 90 + (i * 53) % 70)], w=2, color=(110, 108, 98))
     end = (640, 360)
+    lines = [(R.tr(txt), size, ry) for txt, size, ry in lines]  # wersja językowa filmu
     for i, (txt, size, ry) in enumerate(lines):
         show = txt if i < len(lines) - 1 else txt[:max(0, int(round(len(txt) * k)))]
         x0, y, f = wall_line(i, txt, size, ry)
@@ -1221,6 +1376,8 @@ def figure_back(p, x, y, s, t, who, walk=None, arms=None, legs=True):
     """Postać od tyłu (odchodzi w głąb), stopy w (x, y), skala jak figure(). arms jak w figure();
     legs=False — nogi rysuje kto inny (schody: st_person). Zwraca dłonie."""
     c = _costume(who)
+    P = rig.pose(who)
+    shu = P["shrug"] * 14 * s
     ph = (walk or 0.0) * 6
     if walk is not None:
         y -= abs(math.sin(ph)) * 5 * s
@@ -1230,19 +1387,21 @@ def figure_back(p, x, y, s, t, who, walk=None, arms=None, legs=True):
         p.poly([(lx - 16 * s, y - 120 * s), (lx + 16 * s, y - 120 * s), (lx + 14 * s, y - 14 * s - lift),
                 (lx - 14 * s, y - 14 * s - lift)], c["bottom"])
         p.ell(lx, y - 8 * s - lift, 18 * s, 9 * s, c["shoes"], w=3)
-    p.poly([(x - 54 * s, y - 280 * s), (x + 54 * s, y - 280 * s), (x + 56 * s, y - 112 * s), (x - 56 * s, y - 112 * s)], c["top"])
+    p.poly([(x - 54 * s, y - 280 * s - shu * 0.7), (x + 54 * s, y - 280 * s - shu * 0.7), (x + 56 * s, y - 112 * s),
+            (x - 56 * s, y - 112 * s)], c["top"])
     arms = arms or {}
     hands = {}
     for side in (-1, 1):
         key = "l" if side < 0 else "r"
-        sh = (x + side * 50 * s, y - 268 * s)
+        sh = (x + side * 50 * s, y - 268 * s - shu)
         dx, dy = arms.get(key, (side * 14, 95 + (math.sin(ph) * -side * 8 if walk is not None else 0)))
         hand = (sh[0] + dx * s, sh[1] + dy * s)
         limb(p, sh, hand, 24 * s, c["sleeve"])
         p.ell(hand[0], hand[1], 13 * s, 13 * s, c["skin"])
         hands[key] = hand
-    hx, hy = x, y - 336 * s
+    hx, hy = x + (P["hx"] - P["yaw"] * 0.15) * 46 * s, y - 336 * s + P["hy"] * 46 * s - shu * 0.5
     p.poly([(hx - 14 * s, hy + 40 * s), (hx + 14 * s, hy + 40 * s), (x + 14 * s, y - 274 * s), (x - 14 * s, y - 274 * s)], c["skin"], w=3)
+    p.push(pivot=(hx, hy + 40 * s), rot=P["rot"])
     p.ell(hx, hy, 46 * s, 52 * s, c["skin"])
     hc = HAIR_BACK.get(c["hair"])
     if c["hair"] in ("henryk", "nowak"):  # łysina z siwymi bokami; u Nowaka siwy wianek z tyłu głowy
@@ -1260,6 +1419,7 @@ def figure_back(p, x, y, s, t, who, walk=None, arms=None, legs=True):
         p.ell(hx, hy - 8 * s, 46 * s, 44 * s, hc)
         if c["hair"] == "bun":
             p.ell(hx, hy - 52 * s, 20 * s, 16 * s, hc)
+    p.pop()
     if who == "nowak":  # fartuch: biały, z rozcięciem na plecach
         p.line([(x, y - 200 * s), (x, y - 112 * s)], w=2.5)
     return hands
@@ -1542,8 +1702,13 @@ def listening(p, t, T, fear=0.3, gaze=(-0.4, 0.2), speaking=False, who="narrator
     else:
         mouth = 0.5 + 0.5 * math.sin(t * 9) if speaking and 0.3 < t < T - 0.4 else 0.0
         face_cu(p, 640, 330, 1.0, who, t, gaze=gaze, mouth=mouth, fear=fear)
-    handset(p, 500, 360)
-    p.line([(510, 490), (420, 620), (300, 700)], w=4, color=(60, 60, 60))
+    P = rig.pose(who)  # słuchawka przy uchu idzie za głową, jeśli ujęcie ma rig
+    hdx, hdy = (P["bx"] + P["hx"]) * 120, (P["by"] + P["hy"]) * 120
+    p.push(pivot=(640, 440), rot=P["rot"], dx=hdx, dy=hdy)
+    handset(p, 500 - P["yaw"] * 14, 360)  # ucho przesuwa się razem ze skrętem twarzy (face_cu: -yaw·14)
+    end = p.local((510, 490))
+    p.pop()
+    p.line([end, (420, 620), (300, 700)], w=4, color=(60, 60, 60))
     if not speaking and int(t * 6) % 3 == 0:  # głos w słuchawce
         for k in range(2):
             p.line([(450 - k * 20, 300 - k * 14), (430 - k * 20, 290 - k * 14)], w=3)

@@ -86,7 +86,8 @@ def s_irena(p, t, T):
     K.staff_room(p, t)
     K.face_cu(p, 640, 330, 1.0, "irena", t, gaze=(0.6, 0.0), mouth=talk(t, T), fear=0.6)
     tear = (t * 0.7) % 1.0  # łza spływa po policzku
-    p.poly([(560, 360 + 140 * tear), (568, 376 + 140 * tear), (560, 384 + 140 * tear), (552, 376 + 140 * tear)], (190, 220, 235), w=2)
+    with K.on_face(p, "irena"):
+        p.poly([(560, 360 + 140 * tear), (568, 376 + 140 * tear), (560, 384 + 140 * tear), (552, 376 + 140 * tear)], (190, 220, 235), w=2)
 
 
 def s_everyone(p, t, T):

@@ -80,14 +80,16 @@ def s_healthy(p, t, T):
 def s_zosia_asks(p, t, T):
     K.staff_room(p, t)
     K.face_cu(p, 640, 330, 1.0, "zosia", t, gaze=(-0.4, 0.0), mouth=talk(t, T), fear=0.3)
-    p.poly([(470, 240), (510, 230), (540, 480), (500, 490)], (230, 228, 220), w=3)
+    with K.on_face(p, "zosia", face=False):  # słuchawka przy uchu idzie za głową
+        p.poly([(470, 240), (510, 230), (540, 480), (500, 490)], (230, 228, 220), w=3)
 
 
 def s_zosia_pale(p, t, T):
     K.staff_room(p, t)
     k = ease((t - 0.4) / 0.8)  # blednie: oczy szeroko, oddech staje
     K.face_cu(p, 640, 330, 1.0, "zosia", t, gaze=(0.0, 0.0), fear=0.3 + 0.6 * k, blink_k=0.0)
-    p.poly([(470, 240), (510, 230), (540, 480), (500, 490)], (230, 228, 220), w=3)
+    with K.on_face(p, "zosia", face=False):  # słuchawka przy uchu idzie za głową
+        p.poly([(470, 240), (510, 230), (540, 480), (500, 490)], (230, 228, 220), w=3)
 
 
 def s_hang_up(p, t, T):
