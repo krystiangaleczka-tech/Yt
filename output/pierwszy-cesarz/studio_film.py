@@ -286,7 +286,8 @@ def dzwiek(lektor=False):
     n1 = sum(c["track_id"] == "a1" for c in p["sequence"]["clips"])
     call(f"/projects/{pid}/flow/log", {"entry": {
         "who": "studio_film.py", "kind": "wgranie", "summary": f"Dźwięk wgrany: muzyka i efekty na cały film" + (f", lektor {n1} kwestii" if lektor else " (lektor jeszcze nie nagrany)"),
-        "details": "Lektor: klon głosu autora (Chatterbox, pilot/assets/ref_clean.wav), output/pierwszy-cesarz/lektor.py. "
+        "details": "Lektor: klon głosu autora (Chatterbox, próbka bez pogłosu pilot/assets/ref_studio.wav, 3 podejścia na kwestię, "
+                   "suche i z odbudowanym pasmem — Podręcznik → Lektor), output/pierwszy-cesarz/lektor.py. "
                    "Muzyka i efekty: synteza w numpy, output/pierwszy-cesarz/efekty.py (pod kwestiami ściszone).",
         "files": ["output/pierwszy-cesarz/lektor.py", "output/pierwszy-cesarz/efekty.py"]}})
     print(f"lektor: {n1} klipów | muzyka i efekty: po 1 klipie | rewizja {p['revision']}")

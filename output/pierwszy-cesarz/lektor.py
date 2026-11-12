@@ -1,13 +1,19 @@
-"""Lektor filmu „Pierwszy cesarz”: kwestie z rozpiski czytane klonem głosu autora (Chatterbox Multilingual, ten sam
-silnik i ta sama próbka co „Dodaj lektora” w Studio: pilot/assets/ref_clean.wav). Jeden proces, model ładowany raz.
+"""Lektor filmu „Pierwszy cesarz”: kwestie z rozpiski czytane klonem głosu autora (Chatterbox Multilingual), sposobem
+z Podręcznika pracowni → Lektor (docos/lektor_studio.py): próbka bez pogłosu, kilka podejść na kwestię, suche
+i z odbudowanym pasmem, wybór podejścia z oddechami na przecinkach. Jeden proces, model ładowany raz.
 
 uruchom:  pilot/.venv-tts/bin/python -I output/pierwszy-cesarz/lektor.py [klucz …]
           (na PC z paczki: nagraj_lektora.bat — ten sam skrypt na karcie NVIDIA)
-wynik:    output/pierwszy-cesarz/lektor/<klucz>.wav (44,1 kHz mono, cisza przycięta) + lektor/<klucz>.json (tekst)
-Gotowe pliki z tym samym tekstem są pomijane, więc przerwane nagrywanie wznawia się od miejsca przerwania.
-Nazwy i liczby czyta się z WYMOWA (tekst mówiony), napis zostaje w zapisie z rozpiski.
+próbka:   pilot/assets/ref_studio.wav (bez pogłosu: docos/lektor_studio.py probka); nie ma jej w repo
+wynik:    lektor/podejscia/<klucz>_s<ziarno>.raw.wav — surowe podejścia, potem docos/lektor_studio.py (środowisko
+          z resemble-enhance: LEKTOR_ENHANCE albo pilot/.venv-enhance / .venv-enhance) robi z nich suche nagrania
+          i kładzie wybrane jako lektor/<klucz>.wav + lektor/<klucz>.json
+Gotowe podejścia z tym samym tekstem i tą samą próbką są pomijane, więc przerwane nagrywanie wznawia się od miejsca
+przerwania. Nazwy i liczby czyta się z WYMOWA (tekst mówiony), napis zostaje w zapisie z rozpiski.
 """
+import hashlib
 import json
+import logging
 import os
 import random
 import re
@@ -21,7 +27,9 @@ sys.path.insert(0, str(REPO / "docs/filmy/pierwszy-cesarz/ujecia"))
 from dane import SLOWNIE, kwestia, ujecia  # noqa: E402
 
 OUT = HERE / "lektor"
-REF = REPO / "pilot/assets/ref_clean.wav"
+POD = OUT / "podejscia"
+REF = REPO / "pilot/assets/ref_studio.wav"
+ZIARNA = [42, 7, 123]   # trzy podejścia na kwestię; różnią się rytmem (pauzy, melodia), nie barwą
 WYMOWA = [("Lü Buwei", "Lu Bułej"), ("Jing Ke", "Dżing Ke"), ("Zhao Gao", "Dżao Gao"), ("Xu Fu", "Sju Fu"), ("Li Si", "Li Sy"),
           ("Huhai", "Hu-haj"), ("Zheng", "Dżeng"), ("Zhao", "Dżao"), ("Qin", "Czin"), ("Chu", "Czu"), ("Wei", "Łej"),
           ("Yan", "Jen"), ("Qi", "Czi"), ("przed naszą erą", "przed naszą erą")]
@@ -35,44 +43,78 @@ def mowiony(txt):
     return txt
 
 
+class Powtorzenia(logging.Handler):
+    """Chatterbox ostrzega, gdy ucina kwestię, bo się powtarza — takie podejście odpada przy wyborze."""
+    def __init__(self):
+        super().__init__(logging.WARNING)
+        self.bylo = False
+
+    def emit(self, record):
+        msg = record.getMessage()
+        if "token_repetition=True" in msg or "alignment_repetition=tensor(True" in msg or "repetition of token" in msg:
+            self.bylo = True
+
+
+def enhance_python():
+    for p in (os.environ.get("LEKTOR_ENHANCE"), REPO / "pilot/.venv-enhance/bin/python",
+              REPO / ".venv-enhance/Scripts/python.exe"):
+        if p and Path(p).exists():
+            return str(p)
+    return None
+
+
 def main(only):
+    if not REF.exists():
+        sys.exit(f"Brak próbki bez pogłosu: {REF}\nZrób ją: <python z resemble-enhance> -I docos/lektor_studio.py probka "
+                 f"<nagranie głosu> pilot/assets/ref_studio.wav (albo skopiuj gotową, nie ma jej w repo).")
+    enh = enhance_python()
+    if not enh:
+        sys.exit("Brak środowiska z resemble-enhance (pilot/.venv-enhance albo .venv-enhance, albo LEKTOR_ENHANCE).")
     import numpy as np
     import soundfile as sf
     import torch
     from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
-    # karta NVIDIA (PC) — kilka sekund na kwestię; bez niej procesor (Mac z 8 GB: ok. 4 min na kwestię)
-    device = os.environ.get("LEKTOR_DEVICE") or ("cuda" if torch.cuda.is_available() else "cpu")
+    # karta NVIDIA (PC) — kilka sekund na podejście; Mac: MPS ok. 1–2 min na podejście, procesor kilka razy wolniej
+    device = os.environ.get("LEKTOR_DEVICE") or ("cuda" if torch.cuda.is_available() else
+                                                 "mps" if torch.backends.mps.is_available() else "cpu")
     if device == "cpu":
         torch.set_num_threads(min(4, os.cpu_count() or 2))
     print(f"urządzenie: {device}", flush=True)
     orig = torch.load
     torch.load = lambda *a, **kw: orig(*a, **{**kw, "map_location": torch.device(device)})
-    OUT.mkdir(exist_ok=True)
+    POD.mkdir(parents=True, exist_ok=True)
+    probka = hashlib.sha256(REF.read_bytes()).hexdigest()[:16]
+    straz = Powtorzenia()
+    logging.getLogger("chatterbox").addHandler(straz)
     jobs = [(u[2], kwestia(u[7])) for u in ujecia() if kwestia(u[7]) and (not only or u[2] in only)]
     model = None
     for n, (klucz, txt) in enumerate(jobs, 1):
-        meta = OUT / f"{klucz}.json"
+        meta_path = POD / f"{klucz}.json"
         spoken = mowiony(txt)
-        if meta.exists() and json.loads(meta.read_text(encoding="utf-8"))["spoken"] == spoken and (OUT / f"{klucz}.wav").exists():
-            continue
-        if model is None:
-            model = ChatterboxMultilingualTTS.from_pretrained(device=device)
-        torch.manual_seed(42), random.seed(42), np.random.seed(42)
-        audio = model.generate(spoken, language_id="pl", audio_prompt_path=str(REF), exaggeration=0.45, cfg_weight=0.45,
-                               temperature=0.7).detach().cpu().numpy().squeeze().astype(np.float32)
-        raw = OUT / f"{klucz}.raw.wav"
-        sf.write(raw, audio, model.sr)
-        # cisza na brzegach precz, ta sama głośność wszystkich kwestii, 44,1 kHz
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-af",
-                        "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,areverse,"
-                        "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.08,areverse,"
-                        "acompressor=threshold=-20dB:ratio=2.5:attack=5:release=80:makeup=1.5,loudnorm=I=-16:TP=-2",
-                        "-ar", "44100", "-ac", "1", "-c:a", "pcm_s16le", str(OUT / f"{klucz}.wav")], check=True)
-        raw.unlink()
-        dur = sf.info(str(OUT / f"{klucz}.wav")).duration
-        meta.write_text(json.dumps({"text": txt, "spoken": spoken, "duration": round(dur, 3)}, ensure_ascii=False), encoding="utf-8")
-        print(f"{n}/{len(jobs)} {klucz}: {dur:.2f} s", flush=True)
+        meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+        if meta.get("spoken") != spoken or meta.get("probka") != probka:
+            meta = {"text": txt, "spoken": spoken, "probka": probka, "podejscia": {}}
+        for z in ZIARNA:
+            raw = POD / f"{klucz}_s{z}.raw.wav"
+            if str(z) in meta["podejscia"] and raw.exists():
+                continue
+            if model is None:
+                model = ChatterboxMultilingualTTS.from_pretrained(device=device)
+            torch.manual_seed(z), random.seed(z), np.random.seed(z)
+            straz.bylo = False
+            audio = model.generate(spoken, language_id="pl", audio_prompt_path=str(REF), exaggeration=0.45,
+                                   cfg_weight=0.45, temperature=0.7).detach().cpu().numpy().squeeze().astype(np.float32)
+            sf.write(raw, audio, model.sr)
+            meta["podejscia"][str(z)] = {"powtorzenie": straz.bylo}
+            meta_path.write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
+            print(f"{n}/{len(jobs)} {klucz} podejście {z}: {len(audio) / model.sr:.2f} s"
+                  + (" (powtórzenie)" if straz.bylo else ""), flush=True)
+    del model
+    if device == "mps":
+        torch.mps.empty_cache()
+    # obróbka i wybór w osobnym środowisku (resemble-enhance ma inne wersje bibliotek niż Chatterbox)
+    subprocess.run([enh, "-I", str(REPO / "docos/lektor_studio.py"), "podejscia", str(OUT)], check=True)
 
 
 if __name__ == "__main__":

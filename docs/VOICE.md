@@ -6,7 +6,11 @@ Model: **Chatterbox Multilingual** (Resemble AI, MIT). Każde nagranie zawiera n
 ## Próbka głosu
 - 15–30 s czystej mowy, jeden głos, cichy pokój, bez muzyki, mikrofon 15–20 cm od ust
 - spokojny, „dokumentalny” ton — model kopiuje też sposób mówienia
-- `pilot/clone_voice.py` przygotowuje próbkę (mono 24 kHz, przycięta cisza, loudnorm, max 30 s)
+- **model kopiuje też pogłos pokoju** — próbkę przepuszcza się przez resemble-enhance:
+  `docos/lektor_studio.py probka` → `pilot/assets/ref_studio.wav`; cały sposób (3 podejścia na kwestię, suche
+  z odbudowanym pasmem, wybór podejścia z oddechami) w Podręczniku pracowni → Lektor (`docs/podrecznik/07_LEKTOR.md`)
+- `pilot/clone_voice.py` przygotowuje starą próbkę `ref_clean.wav` (mono 24 kHz, bez odszumiania — z pogłosem);
+  Studio („Dodaj lektora”) wciąż jej używa, chyba że `DOCOS_VOICE_REF` wskazuje `ref_studio.wav`
 - **próbki nie publikuj** — z niej da się sklonować Twój głos (dlatego nie ma jej w repo)
 
 ## Jak `voice_beats.py` dba o naturalność

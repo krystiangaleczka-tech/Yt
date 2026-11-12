@@ -5,16 +5,24 @@ Przygotowanie (raz)
 - Git, Python 3.10+ i 3.11 (winget install Python.Python.3.11), ffmpeg (winget install Gyan.FFmpeg).
 - Sklonuj repo i przejdź na gałąź filmu:
      git clone -b film/pierwszy-cesarz https://github.com/krystiangaleczka-tech/Yt.git
-- Próbki głosu NIE ma na GitHubie (repo jest publiczne). Skopiuj ref_clean.wav (wysłany osobno) do:
-     Yt\pilot\assets\ref_clean.wav
-  Trzy kwestie nagrane już na Macu też nie są w repo (pliki .wav) — PC nagra je od nowa.
+- Próbki głosu NIE ma na GitHubie (repo jest publiczne). Skopiuj ref_studio.wav (wysłany osobno) do:
+     Yt\pilot\assets\ref_studio.wav
+  To próbka bez pogłosu pokoju (resemble-enhance) — z niej lektor brzmi jak z wyciszonego studia. Stara ref_clean.wav
+  dawała pogłos i zamulony głos, nie używaj jej.
+  Kwestie nagrane już na Macu nie są w repo (pliki .wav) — PC nagra je od nowa. Wybory reżysera (które podejście)
+  są w repo: output\pierwszy-cesarz\lektor\podejscia\wybor.json.
 
 Krok 1 — lektor
 - Dwuklik: Yt\output\pierwszy-cesarz\pc\nagraj_lektora.bat
 - Użyje środowiska z Zombie Psychiatryka (%USERPROFILE%\.zombie-tts\venv), jeśli jest; jeśli nie — założy .venv-tts
   (Python 3.11, PyTorch 2.6 z CUDA, chatterbox-tts 0.1.7; jednorazowo kilka GB).
-- 67 kwestii, z karty NVIDIA kilka sekund na kwestię. Nazwy chińskie czytane po polsku (Dżeng, Czin, Lu Bułej…).
-- Przerwane nagrywanie: uruchom jeszcze raz, gotowe kwestie zostają.
+  Do suchego brzmienia zakłada drugie środowisko .venv-enhance (PyTorch 2.4.1 z CUDA + resemble-enhance; też
+  jednorazowo kilka GB) — osobne, bo resemble-enhance ma inne wersje bibliotek niż Chatterbox.
+- 67 kwestii po 3 podejścia (różnią się rytmem: pauzy, melodia), z karty NVIDIA kilka sekund na podejście.
+  Każde podejście jest suche (bramka, kompresja) i z odbudowanym pasmem; jako kwestię bierze podejście z oddechem
+  na każdym przecinku, a jeśli reżyser wskazał inne w wybor.json — to.
+  Nazwy chińskie czytane po polsku (Dżeng, Czin, Lu Bułej…).
+- Przerwane nagrywanie: uruchom jeszcze raz, gotowe podejścia zostają.
 Długości ujęć liczą się z prawdziwych nagrań, dlatego lektor musi być przed renderem.
 
 Krok 2 — render
@@ -26,7 +34,7 @@ Krok 2 — render
   zależą od długości kwestii lektora. W repo są wersje do obecnego planu (9:46, bez lektora) — do odsłuchu od razu.
 
 Na Macu
-Przenieś TRZY foldery: Yt\klipy, Yt\output\pierwszy-cesarz\lektor oraz Yt\output\pierwszy-cesarz\dzwiek i powiedz Claude’owi, gdzie leżą.
+Przenieś TRZY foldery: Yt\klipy, Yt\output\pierwszy-cesarz\lektor (razem z podejscia — do odsłuchu innych podejść) oraz Yt\output\pierwszy-cesarz\dzwiek i powiedz Claude’owi, gdzie leżą.
 Claude przelicza plan w Studio pod długości nagrań, układa na nowo muzykę i efekty, wgrywa lektora, obraz i dźwięk.
 
 Na Windows napisy i znaki chińskie są w czcionkach Georgia i SimSun (na Macu Baskerville i Songti).
