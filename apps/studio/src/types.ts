@@ -231,6 +231,7 @@ export type Project = {
     height: number;
     ducking: boolean;
     ducking_gain: number;
+    grain?: number;
     tracks: Track[];
     clips: Clip[];
   };

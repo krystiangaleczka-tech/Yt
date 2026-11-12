@@ -3,6 +3,7 @@
 Dzień definiuje FNS (funkcja ujęcia na każde ujęcie rozpiski), LOOK (barwa i światło) i CAM (własny kadr ujęcia),
 a potem woła setup(...) — dostaje SCENES, DUR i frame(t) zgodne z render.py i scripts/kontrola_ujec.py.
 """
+import os
 import math
 import re
 import sys
@@ -149,7 +150,10 @@ def setup(day, fns, look, cam):
             yy, xx = np.ogrid[:H, :W]
             vig = 1 - 0.45 * (((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2) ** 1.2
             arr *= np.clip(vig, 0.35, 1)[..., None]
-        arr += np.random.default_rng(int(t * FPS) // 3 + 13 + day).normal(0, 5, (H, W, 1))  # ziarno 8×/s, jak kreska
+        # Ziarno dokłada eksport Studio (Eksport → Obraz → Ziarno filmu, 5). Wpalone w klip robi go kilka razy
+        # cięższym i przy eksporcie przechodzi drugie kodowanie. ZIARNO=1 tylko dla samodzielnego mp4 bez Studio.
+        if os.environ.get("ZIARNO") == "1":
+            arr += np.random.default_rng(int(t * FPS) // 3 + 13 + day).normal(0, 5, (H, W, 1))  # ziarno 8×/s, jak kreska
         if look[i] is None:  # karta: wejście i wyjście przez czerń
             arr *= min(1.0, lt / 0.4, max(0.0, (T - lt) / 0.4))
         img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
