@@ -121,3 +121,16 @@ przekodowania (zimne otwarcie przekodowane NVENC-iem z poprzedniego renderu).
 Studio na PC: `python -I studio_pc.py` — zakłada projekt „Oddział C · Do świtu (EN 1440p, PC)”, każde ujęcie jako scenę
 z klipem 720p, kwestie EN na ścieżce Lektor, efekty dzień po dniu na ścieżce Efekty; ujęcia z rigiem mają w opisie
 „Rig (gra aktorska): …”.
+
+### Poprawki po pierwszym przeglądzie reżysera (12.11.2026)
+
+- **Bez bzyczenia:** tło nie ma już buczeń sieciowych (fala prostokątna 100 Hz świetlówek, 55/49/25 Hz pod spodem)
+  ani przesterowanego pogłosu (ogon pogłosu był nienormalizowany, +20 dB).
+- **Plan miksu:** każdy dźwięk ma poziom ze skali zdarzenia, napięcia sceny i tempa ujęcia (zasada w Podręczniku →
+  Rytm 10–12, liczby w `build/efekty/eNN.json` → `ujecia[].zdarzenia[].db`). Osobne pliki: `eNN_tlo.wav`,
+  `eNN_zdarzenia.wav` (+ wersje `_studio` ściszone pod kwestiami).
+- **Muzyka:** `muzyka_dni.py` — syntezowana, nastrój z beatów rozpiski (pad, puls, napęd, motyw kołysanki, finał);
+  `build/muzyka/mNN.wav` i frazy `cue/dNN_KK.wav`; `film_en.py dzwiek` miksuje ją pod lektorem (−8 dB pod głosem).
+- **Profil i postacie w oddali:** `kit_a._profile_face` (głowa skręcona o ≥ 0,55 rysuje się z profilu, jak zarażony
+  ze zbliżenia d04_22) i `kit_a.scaled` (kreska i jej drżenie w skali postaci, małe elipsy bez „gotowania się”).
+- Studio: `studio_aktualizuj.py <projekt> --obraz --dzwiek` — nowy obraz ujęć i ścieżki Tło / Efekty / Muzyka.

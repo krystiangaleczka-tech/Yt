@@ -476,10 +476,10 @@ class S:
 def room_ir(rng, rt=0.5, wet=0.25):
     """Prosty pogłos pomieszczenia: zanikający szum (impuls + ogon)."""
     t = np.arange(int(rt * SR)) / SR
-    ir = rng.normal(0, 1, len(t)) * np.exp(-t / (rt / 6.9)) * wet
-    ir = lp(ir, 3500)
-    ir[0] += 1.0
-    return ir
+    tail = lp(rng.normal(0, 1, len(t)) * np.exp(-t / (rt / 6.9)), 3500)
+    tail *= wet / (np.sqrt(np.sum(tail ** 2)) + 1e-12)  # energia ogona = wet² energii dźwięku bezpośredniego
+    tail[0] += 1.0
+    return tail
 
 
 # ============================== ruch w kadrze ==============================
@@ -553,39 +553,117 @@ def place(day, desc, look):
 
 
 def bed(kind, day, n, t0, rng, desc):
-    """Tło ujęcia; płynie przez cięcia (fade 0,12 s robi wołający)."""
+    """Tło ujęcia (bez buczeń sieciowych — dawały głośne bzyczenie): szum pomieszczenia, kapanie w piwnicy, wiatr
+    nocą i na dworze, agregat wojska za płotem od d21, płonące miasto od d20. Głośność ustawia plan miksu."""
     ts = t0 + np.arange(n) / SR
-    room = 0.010 * brown(n, rng) + 0.004 * np.sin(2 * np.pi * 55 * ts)
     d = desc.lower()
-    x = room
+    room = lp(brown(n, rng), 600)
     if kind == "karta":
-        return room * 0.25
+        return room
+    x = room
     if kind == "piwnica":
-        x = room * 1.2 + 0.003 * np.sin(2 * np.pi * 50 * ts)
         sy = S(rng)
         tdrip = rng.uniform(0.3, 1.8)
         while tdrip < n / SR - 0.2:  # kapanie w piwnicy
-            dr = sy.drip() * rng.uniform(0.012, 0.03)
+            dr = sy.drip() * rng.uniform(0.6, 1.4)
             i = n_(tdrip)
-            x[i:i + len(dr)] += dr[: n - i]
+            x[i:i + len(dr)] += dr[: n - i] * 0.5
             tdrip += rng.uniform(1.6, 4.5)
     elif kind == "noc":
         gust = 0.6 + 0.4 * np.sin(2 * np.pi * 0.07 * ts + 1.3) * np.sin(2 * np.pi * 0.023 * ts)
-        x = room + 0.022 * brown(n, rng) * gust + 0.010 * np.sin(2 * np.pi * 49 * ts) * (0.6 + 0.4 * np.sin(ts * 0.9))
+        x = room + 1.6 * lp(brown(n, rng), 900) * gust
     elif kind == "dwor":
         gust = 0.6 + 0.4 * np.sin(2 * np.pi * 0.11 * ts + 0.4)
-        x = room * 0.6 + 0.03 * lp(rng.normal(0, 1, n), 700) * gust
-        if day >= 21:  # agregat wojska za płotem (warsztat: od d21)
-            x = x + 0.008 * lp(fit(S(rng).engine(n / SR, 32, 0.2), n), 300)
-    # stan świata: buczenie świetlówek (sieć d1–2, agregat od d14), agregat w budynku od d14
-    lights = (day <= 2 or day >= 14) and not re.search(r"ciemn|noc|w ciemności|gasi|zgaszon", d)
-    if kind == "oddzial" and lights:
-        x = x + 0.005 * np.sign(np.sin(2 * np.pi * 100 * ts)) * (0.8 + 0.2 * np.sin(ts * 3.1))
-    if day >= 14 and kind in ("oddzial", "piwnica") and not (day == 30 and "agregat gaśnie" in d):
-        x = x + 0.004 * np.sin(2 * np.pi * 25 * ts) * (1 + 0.3 * np.sin(2 * np.pi * 0.5 * ts))
+        x = room * 0.6 + 0.8 * bp(rng.normal(0, 1, n), 150, 900) * gust
+        if day >= 21:  # agregat wojska za płotem (warsztat: od d21) — daleki, przytłumiony
+            x = x + 0.3 * lp(fit(S(rng).engine(n / SR, 32, 0.2), n), 220)
     if day >= 20 and kind in ("dwor", "noc") and re.search(r"miast|okn|dach|podwórz", d):
-        x = x + 0.01 * fit(S(rng).fire(n / SR), n)  # miasto płonie w oddali
+        x = x + 0.25 * fit(S(rng).fire(n / SR), n)  # miasto płonie w oddali
     return x
+
+
+# ============================== plan miksu ==============================
+# Głośność każdego dźwięku = skala zdarzenia × napięcie sceny × tempo ujęcia (Podręcznik → Rytm, „Głośność dźwięku”).
+ARC = {1: 7, 2: 4, 3: 5, 4: 6, 5: 5, 6: 6, 7: 5, 8: 7, 9: 7, 10: 7, 11: 8, 12: 5, 13: 7, 14: 10, 15: 4, 16: 7, 17: 8,
+       18: 3, 19: 5, 20: 6, 21: 7, 22: 6, 23: 8, 24: 7, 25: 7, 26: 5, 27: 6, 28: 4, 29: 8, 30: 10}  # do_studio.py
+SKALA = {  # nazwa zdarzenia → skala
+    "małe": {"krok", "materiał", "papier", "pisanie", "rzecz w dłoni", "miska po blacie", "oddech", "drugi oddech",
+             "wydech po wstrzymaniu", "zapłon świetlówki", "stukanie w rury", "szczękanie zębów", "torba",
+             "rzeczy do torby", "przełącznik", "krótkofalówka", "zamach", "ptaki o świcie", "pisk", "klamka", "klucze",
+             "gotowanie", "wiatr", "cisza: serce", "lina"},
+    "duże": {"huk beczki", "huk regału", "beczka toczy się", "trzask szafy", "agregat zapala", "agregat gaśnie",
+             "zamki puszczają", "strzał", "akord", "drzwi zamykają się", "uderzenie", "walenie w drzwi", "krzyk"},
+}
+POZIOM = {"małe": -34.0, "średnie": -27.0, "duże": -19.0}  # dBFS (RMS w czasie trwania dźwięku) przy napięciu 5/10
+TLO = {"piwnica": -47.0, "oddzial": -49.0, "noc": -43.0, "dwor": -41.0, "karta": -62.0}
+LOUD = re.compile(r"alarm|huk|biegn|krzyk|walenie|ucieka|wbiegają|ruszają|strzał|zatrzaskuj|przemian|ugryz|wyrywa|"
+                  r"przewraca|rzuca|szarp|wali")
+
+
+def skala(name):
+    for k, names in SKALA.items():
+        if name in names:
+            return k
+    return "średnie"
+
+
+def scenes_of(day):
+    """Numery ujęć każdej sceny rozpiski dnia: [(tytuł sceny, [i…])]."""
+    import dzien_base as B
+    d = B.day_tuple(day)
+    out, i = [], 0
+    for stitle, place_, beats in d[2]:
+        idx = []
+        for _, shots in beats:
+            idx += list(range(i, i + len(shots)))
+            i += len(shots)
+        out.append((stitle, idx))
+    return out
+
+
+def mix_plan(day, rows, durs):
+    """Napięcie (0–10) i tempo każdego ujęcia: dzień (krzywa filmu) + ruch kamery + słowa akcji, wygładzone w scenie."""
+    raw = []
+    for (kadr, ruch, sec, desc, sound) in rows:
+        if kadr == "TYT":
+            raw.append(0.0)
+            continue
+        v = ARC[day] - 0.5
+        v += {"szarp": 2.0, "drg": 2.0, "jaz": 1.0, "pan": 0.5, "ręka": 0.5, "naj": 0.5}.get(ruch, 0.0)
+        txt = (desc + " " + (sound or "")).lower()
+        if LOUD.search(txt):
+            v += 1.0
+        if (sound or "").strip().lower().startswith("cisza"):
+            v -= 2.0
+        elif "„" in (sound or "") and not LOUD.search(txt):
+            v -= 1.0  # rozmowa: efekty schodzą pod głos
+        raw.append(max(0.0, min(10.0, v)))
+    plan = [None] * len(rows)
+    for stitle, idx in scenes_of(day):
+        med = float(np.median([durs[i] for i in idx])) if idx else 1.0
+        for k, i in enumerate(idx):
+            nb = [raw[j] for j in idx[max(0, k - 1):k + 2] if rows[j][0] != "TYT"] or [raw[i]]
+            nap = 0.5 * raw[i] + 0.5 * float(np.mean(nb))
+            tempo = "szybkie" if durs[i] < 0.6 * med else ("wolne" if durs[i] > 1.5 * med else "równe")
+            plan[i] = {"scena": stitle, "napiecie": round(nap, 1), "tempo": tempo}
+    return plan
+
+
+def target_db(name, nap, tempo, g):
+    """dBFS zdarzenia: skala + 0,8 dB na punkt napięcia ponad 5 + tempo; g — dawny względny poziom (blisko/daleko)."""
+    db = POZIOM[skala(name)] + 0.8 * (nap - 5) + {"szybkie": 1.5, "wolne": -1.0}.get(tempo, 0.0)
+    db += 0.5 * 20 * math.log10(max(g, 1e-3) / 0.35)  # połowa dawnej różnicy blisko/daleko w obrębie skali
+    return min(db, -9.0)
+
+
+def at_level(x, db):
+    """Skaluje dźwięk tak, by jego RMS w czasie trwania (próbki powyżej 10% szczytu) miał db dBFS."""
+    a = np.abs(x)
+    if not len(x) or a.max() == 0:
+        return x
+    act = x[a > 0.1 * a.max()]
+    rms = math.sqrt(float(np.mean(act ** 2))) + 1e-12
+    return x * (10 ** (db / 20) / rms)
 
 
 # ============================== zdarzenia ==============================
@@ -849,27 +927,30 @@ def day_effects(day, video):
     bedbus = np.zeros(n)
     evbus = np.zeros(n)
     duckmask = np.zeros(n)
-    log = []
     mot = motion(day, video)
     fade = n_(0.12)
-    places = []
-    irs = {"piwnica": room_ir(rng, 0.45, 0.18), "oddzial": room_ir(rng, 0.9, 0.22), "noc": room_ir(rng, 1.1, 0.2),
-           "dwor": room_ir(rng, 0.25, 0.05), "karta": room_ir(rng, 0.3, 0.0)}
-    for i, (sc, (kadr, _, sec, desc, sound)) in enumerate(zip(m.SCENES, rows)):
+    irs = {"piwnica": room_ir(rng, 0.5, 0.4), "oddzial": room_ir(rng, 0.9, 0.5), "noc": room_ir(rng, 1.1, 0.45),
+           "dwor": room_ir(rng, 0.3, 0.12), "karta": room_ir(rng, 0.3, 0.0)}
+    shots = []
+    for i, sc in enumerate(m.SCENES):
         if len(sc) == 4:  # dzień 1 ma własny renderer: okno kwestii w VWIN (en: długość + 0,35 s napisu)
             a, b, ruch, txt = sc
             vs, vl = m.VWIN[i]
             vl = max(0.0, vl - 0.35) if txt else 0.0
         else:
             a, b, ruch, txt, vs, vl = sc
+        shots.append((a, b, ruch, txt, vs, vl))
+    plan = mix_plan(day, rows, [b - a for a, b, *_ in shots])
+    miks = []
+    for i, ((a, b, ruch, txt, vs, vl), (kadr, _, sec, desc, sound)) in enumerate(zip(shots, rows)):
         T = b - a
+        P = plan[i]
+        nap, tempo = P["napiecie"], P["tempo"]
         kind = place(day, desc, m.LOOK[i])
-        places.append(kind)
-        i0, i1 = int(a * SR), min(n, int(b * SR))
-        seg = fit(bed(kind, day, i1 - i0 + fade, a, rng, desc), i1 - i0 + fade)
         silent = (sound or "").strip().lower().startswith("cisza")
-        if silent:
-            seg = seg * 0.35
+        bed_db = TLO[kind] + 0.5 * (nap - 5) - (6.0 if silent else 0.0)
+        i0, i1 = int(a * SR), min(n, int(b * SR))
+        seg = at_level(fit(bed(kind, day, i1 - i0 + fade, a, rng, desc), i1 - i0 + fade), bed_db)
         env = np.ones(len(seg))
         env[:fade] = np.linspace(0, 1, fade)
         env[-fade:] = np.linspace(1, 0, fade)
@@ -878,24 +959,34 @@ def day_effects(day, video):
         if txt and vl > 0:  # okno kwestii (do ściszenia efektów w wersji Studio)
             k0, k1 = int((a + vs) * SR), min(n, int((a + vs + vl) * SR))
             duckmask[k0:k1] = 1
+        entry = {"ujecie": i, "scena": P["scena"], "napiecie": nap, "tempo": tempo, "miejsce": kind,
+                 "tlo_db": round(bed_db, 1), "zdarzenia": []}
+        miks.append(entry)
         if kadr == "TYT":  # karta dnia: niskie „dum”
-            x = sy.boom(1.8)
-            evbus[i0 + n_(0.15): i0 + n_(0.15) + len(x)] += 0.35 * x[: max(0, n - i0 - n_(0.15))]
-            log.append({"t": round(a + 0.15, 3), "ujecie": i, "dzwiek": "karta dnia (dum)"})
+            x = at_level(sy.boom(1.8), -22.0)
+            k = i0 + n_(0.15)
+            evbus[k:k + len(x)] += x[: max(0, n - k)]
+            entry["zdarzenia"].append({"t": 0.15, "dzwiek": "karta dnia (dum)", "skala": "duże", "db": -22.0})
             continue
         if silent and T >= 1.4:
-            x = sy.heartbeat(T - 0.2, 66)
-            evbus[i0 + n_(0.1): i0 + n_(0.1) + len(x)] += 0.15 * x[: max(0, n - i0 - n_(0.1))]
-            log.append({"t": round(a + 0.1, 3), "ujecie": i, "dzwiek": "cisza: serce"})
+            x = at_level(sy.heartbeat(T - 0.2, 66), -33.0)
+            k = i0 + n_(0.1)
+            evbus[k:k + len(x)] += x[: max(0, n - k)]
+            entry["zdarzenia"].append({"t": 0.1, "dzwiek": "cisza: serce", "skala": "małe", "db": -33.0})
         ons = onsets(mot, a, b)
         act = active(mot, a, b)
         for t, x, g, name in rules(day, i, kadr, desc, sound or "", T, ons, act, sy, kind, ruch):
+            db = target_db(name, nap, tempo, g)
+            if silent:
+                db -= 8.0
+            x = at_level(x, db)
             x = fftconvolve(x, irs[kind])[: len(x) + len(irs[kind]) // 2]
             k = i0 + n_(t)
             if k >= n:
                 continue
-            evbus[k:k + len(x)] += g * x[: n - k]
-            log.append({"t": round(a + t, 3), "ujecie": i, "dzwiek": name, "glosnosc": round(g, 2)})
+            evbus[k:k + len(x)] += x[: n - k]
+            if name != "krok":
+                entry["zdarzenia"].append({"t": round(t, 2), "dzwiek": name, "skala": skala(name), "db": round(db, 1)})
     # dźwięki ciągnące się przez kilka ujęć: blisko w miejscu źródła, z oddali gdzie indziej
     for span in spans(day, rows):
         s0, s1, kind = span[:3]
@@ -905,10 +996,10 @@ def day_effects(day, video):
         elif len(span) > 3:
             b -= span[3]
         if kind == "alarm_sekunda":
-            x = sy.alarm(1.0)
+            x = at_level(sy.alarm(1.0), -17.0)
             k = int((a + 0.3) * SR)
-            evbus[k:k + len(x)] += 0.35 * x[: n - k]
-            log.append({"t": round(a + 0.3, 3), "ujecie": s0, "dzwiek": "alarm na sekundę"})
+            evbus[k:k + len(x)] += x[: n - k]
+            miks[s0]["zdarzenia"].append({"t": 0.3, "dzwiek": "alarm na sekundę", "skala": "duże", "db": -17.0})
             continue
         L = int((b - a) * SR)
         if kind == "alarm":
@@ -921,38 +1012,44 @@ def day_effects(day, video):
             mel = [72, 71, 69, 71, 72, 67, 69, 71, 72, 74, 72, 71, 69, 67, 69, 67]
             notes = [(0.3 + k * 0.62, mm) for k, mm in enumerate(mel * 4) if 0.3 + k * 0.62 < b - a - 0.5]
             x = fit(sy.piano(notes, 1.3, 0.8), L)
+        near_db = {"alarm": -17.0, "karetka": -19.0, "agregat": -25.0, "kolysanka": -21.0}[kind]
+        x = at_level(x, near_db)
         gain = np.zeros(L)
         for k in range(s0, s1 + 1):
             sa, sb = m.SCENES[k][0] - a, min(m.SCENES[k][1], b) - a
             near = re.search(SPAN_NEAR.get(kind, r"$^"), rows[k][3].lower())
-            gain[int(sa * SR):int(sb * SR)] = 1.0 if near else 0.35
+            gain[int(sa * SR):int(sb * SR)] = 1.0 if near else 0.3
+            miks[k]["zdarzenia"].append({"t": 0.0, "dzwiek": f"ciągły: {kind}", "skala": "duże",
+                                         "db": round(near_db if near else near_db - 12, 1)})
         gain = np.convolve(gain, np.ones(n_(0.1)) / n_(0.1), mode="same")
         if kind != "kolysanka":
             x = x * np.minimum(1, np.arange(L) / n_(0.05))
         x = x * np.minimum(1, (L - np.arange(L)) / n_(0.06))  # koniec bez trzasku
         far = lp(x, 1400)
-        mix = x * gain + far * (1 - gain) * 0.6
-        base = {"alarm": 0.24, "karetka": 0.26, "agregat": 0.26, "kolysanka": 0.4}[kind]
+        mixs = x * gain + far * (1 - gain) * 0.8
         k = int(a * SR)
-        evbus[k:k + L] += base * mix[: n - k]
-        log.append({"t": round(a, 3), "ujecie": s0, "do_ujecia": s1, "dzwiek": f"ciągły: {kind}"})
-    # narastanie w ostatnich 1,6 s dnia — wejście w kartę następnego
-    if day < 30:  # finał filmu kończy się świtem, bez narastania
-        x = sy.swell(1.6)
+        evbus[k:k + L] += mixs[: n - k]
+    if day < 30:  # narastanie przed kartą następnego dnia; finał kończy się świtem, bez narastania
+        x = at_level(sy.swell(1.6), -27.0)
         k = n - len(x)
-        evbus[k:] += 0.18 * x
-        log.append({"t": round(k / SR, 3), "dzwiek": "narastanie przed kolejnym dniem"})
-    fx = bedbus * 1.6 + evbus * 0.22  # zdarzenia ok. −13 dB pod lektorem, tło nieco głośniej niż w pierwszej wersji
-    fx = np.tanh(fx * 1.1) / 1.1
-    duck = np.convolve(duckmask, np.ones(n_(0.25)) / n_(0.25), mode="same")
-    studio = fx * (1 - 0.6 * np.clip(duck, 0, 1))  # −8 dB pod kwestiami
+        evbus[k:] += x
+        miks[-1]["zdarzenia"].append({"t": round(shots[-1][1] - shots[-1][0] - 1.6, 2), "dzwiek": "narastanie przed kolejnym dniem",
+                                      "skala": "średnie", "db": -27.0})
+    bedbus = np.tanh(bedbus * 1.2) / 1.2
+    evbus = np.tanh(evbus * 1.2) / 1.2
+    fx = bedbus + evbus
+    duck = np.clip(np.convolve(duckmask, np.ones(n_(0.25)) / n_(0.25), mode="same"), 0, 1)
     OUT.mkdir(parents=True, exist_ok=True)
-    write_wav(OUT / f"e{day:02d}.wav", fx)
-    write_wav(OUT / f"e{day:02d}_studio.wav", studio)
-    (OUT / f"e{day:02d}.json").write_text(json.dumps({"dzien": day, "dlugosc": round(n / SR, 3), "miejsca": places,
-                                                      "zdarzenia": sorted(log, key=lambda e: e["t"])},
-                                                     ensure_ascii=False, indent=1), encoding="utf-8")
-    return day, len(log)
+    write_wav(OUT / f"e{day:02d}.wav", fx)  # do miksu filmu (film_en.py ścisza efekty pod głosem sam)
+    write_wav(OUT / f"e{day:02d}_tlo.wav", bedbus)
+    write_wav(OUT / f"e{day:02d}_zdarzenia.wav", evbus)
+    write_wav(OUT / f"e{day:02d}_tlo_studio.wav", bedbus * (1 - 0.37 * duck))  # Studio: −4 dB tła pod kwestiami
+    write_wav(OUT / f"e{day:02d}_zdarzenia_studio.wav", evbus * (1 - 0.5 * duck))  # −6 dB zdarzeń pod kwestiami
+    (OUT / f"e{day:02d}.json").write_text(json.dumps({"dzien": day, "dlugosc": round(n / SR, 3),
+                                                      "zasada": "dB = skala (małe −34 / średnie −27 / duże −19) + 0,8 × (napięcie − 5) "
+                                                                "+ tempo (szybkie +1,5 / wolne −1); tło wg miejsca + 0,5 × (napięcie − 5); cisza −6/−8 dB",
+                                                      "ujecia": miks}, ensure_ascii=False, indent=1), encoding="utf-8")
+    return day, sum(len(e["zdarzenia"]) for e in miks)
 
 
 def write_wav(path, x):

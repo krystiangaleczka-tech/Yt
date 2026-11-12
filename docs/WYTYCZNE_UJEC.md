@@ -72,6 +72,13 @@ przeskoki ze stopnia na stopień albo sunięcie ukosem nad stopniami.
 - Rekwizyt na schodach (puszki, rolka bandaża) też ma miejsce w tej geometrii (`st_can`, `st_proj`), żeby kolejne
   ujęcia pokazywały go w tym samym miejscu.
 
+### 1.11 Postać w oddali to pomniejszone zbliżenie, profil to profil
+Wzorem jest zbliżenie (np. zarażony z profilu w d04_22): w planie ogólnym ta sama postać ma te same proporcje
+i **cieńszą kreskę w skali postaci**, a małe elementy (oczy, źrenice, uszy, usta) nie „gotują się” w kleks.
+Twarz odwrócona w bok bardziej niż o pół (look ≥ 0,55) rysuje się **z profilu**: nos wystaje poza obrys głowy,
+jedno oko jest w głowie (nie na jej krawędzi), ucho z tyłu, usta z przodu — nie przesunięta twarz od przodu.
+W skryptach: `kit_a.scaled` (figure / figure_back / sitting / zarażeni) i `kit_a._profile_face`.
+
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
 - Osobne warstwy: tło bez postaci, postać (PNG RGBA, przezroczyste tło), **pierwszy plan zasłaniający** (drzwi z
@@ -139,6 +146,7 @@ Zanim ujęcie trafi do Studio do oceny:
 | Wariant A, schody: d01, d03, d05, d06, d09, d22, d23 (5.11) | „nie podoba mi się animacja chodzenia po schodach” — schody z boku, postacie od przodu: przeskakiwały ze stopnia na stopień albo sunęły ukosem nad stopniami | 1.10 |
 | Wariant A, kwestie dni 1–30 (6.11) | urwane dopowiedzenia bez czasownika („Kratę owinęliśmy ręcznikami. Nie zadzwoniła.”, „Poszli dalej. W stronę rozdzielni.”) i brak łączników w ciągach zdarzeń; dni przy 80 s ściskały ujęcia bez słów | Rytm 4, MASTER_BIBLE 2.4, D9; 1.9 (60–100 s) |
 | Wariant A, rig dni 1–30 (11.11) | łza, uśmiech, nadęte policzki i słuchawka dorysowane po twarzy w stałym miejscu odklejały się od głowy, gdy głowa dostała ruch (znalezione w kontroli; rysuje się je w `kit_a.on_face`) | 1.4, 1.5 |
+| Wariant A, rig dni 1–30 (12.11) | „oko dziwnie wygląda” w widokach z profilu: po skręcie głowy jedno oko lądowało na obrysie; w oddali twarze jak kleksy (gruba kreska zbliżenia i drżenie na małych oczach) — „wzoruj się na zbliżeniu” | 1.11 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

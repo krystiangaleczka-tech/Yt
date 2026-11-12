@@ -157,9 +157,15 @@ def day_audio(u, out):
             k0 = int((a + vs) * SR)
             k1 = min(n, k0 + len(v))
             voice[k0:k1] += v[: k1 - k0]
-    # pod głosem tło o 6 dB ciszej (płynnie)
+    # pod głosem efekty o 6 dB, muzyka o 8 dB ciszej (płynnie); muzyka: muzyka_dni.py
     env_v = np.convolve((np.abs(voice) > 0.01).astype(float), np.ones(int(0.25 * SR)) / int(0.25 * SR), mode="same")
-    out_ = mix * (1 - 0.5 * np.clip(env_v * 4, 0, 1)) + voice
+    dv = np.clip(env_v * 4, 0, 1)
+    music = np.zeros(n)
+    mus = HERE / "build" / "muzyka" / f"m{u:02d}.wav"
+    if mus.exists():
+        mm = read_wav(mus)
+        music[: min(n, len(mm))] += mm[:n]
+    out_ = mix * (1 - 0.5 * dv) + music * (1 - 0.6 * dv) + voice
     write_wav(out, np.tanh(out_ * 1.05) * 0.9)
 
 

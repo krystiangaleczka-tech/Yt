@@ -103,7 +103,7 @@ def _hair_front(p, c, hx, hy, s):
                 (hx + 48 * s, hy - 2 * s), (hx + 30 * s, hy - 30 * s), (hx, hy - 38 * s), (hx - 30 * s, hy - 30 * s)], (52, 40, 36))
 
 
-def figure(p, x, y, s, t, who, walk=None, look=0.0, arms=None, eyes=None, mouth=0.0, lean=0.0, gaze=None, legs=True):
+def _figure(p, x, y, s, t, who, walk=None, look=0.0, arms=None, eyes=None, mouth=0.0, lean=0.0, gaze=None, legs=True):
     """Postać od przodu, stopy w (x, y); s=1 to ok. 390 px wzrostu. walk — zegar chodu (None: stoi);
     look -1..1 — twarz w bok; arms {'l'|'r': (dx, dy)} — dłoń względem barku w jednostkach s;
     eyes 0..1 — otwarcie oczu; mouth 0..1; gaze — (gx, gy) źrenic, domyślnie tam, gdzie twarz."""
@@ -171,9 +171,11 @@ def figure(p, x, y, s, t, who, walk=None, look=0.0, arms=None, eyes=None, mouth=
     if c["hair"] == "mask":
         p.pop()
         return hands
+    if abs(look) >= PROFILE:  # głowa z profilu — jak zarażony ze zbliżenia d04_22: nos poza obrysem, oko w środku, ucho z tyłu
+        _profile_face(p, c, who, hx, hy, s, 1 if look > 0 else -1, eyes, er, ew, gy, mouth)
+        p.pop()
+        return hands
     for side in (-1, 1):
-        if (look > 0.6 and side < 0) or (look < -0.6 and side > 0):
-            continue  # dalsze oko schowane
         ex, ey = fx + side * 18 * s, hy + 6 * s
         if eyes < 0.25:
             p.line([(ex - er * s, ey), (ex + er * s, ey)], w=ew)
@@ -191,6 +193,44 @@ def figure(p, x, y, s, t, who, walk=None, look=0.0, arms=None, eyes=None, mouth=
         p.line([(fx - 9 * s, hy + 30 * s), (fx + 9 * s, hy + 30 * s)], w=3)
     p.pop()
     return hands
+
+
+PROFILE = 0.55  # od takiego skrętu twarzy (look) postać w planie ogólnym rysuje się z profilu
+
+
+def _profile_face(p, c, who, hx, hy, s, d, eyes, er, ew, gy, mouth):
+    """Twarz z profilu w planie ogólnym, zwrócona w stronę d (1 — w prawo, -1 — w lewo). Proporcje z zombie_profile
+    (głowa 130×150 → 46×52), przesunięte na linię oczu i ust postaci od przodu (oczy +6, usta +30)."""
+    skin = c["skin"]
+    p.ell(hx - d * 25 * s, hy + 6 * s, 8 * s, 12 * s, skin, w=ew)  # ucho z tyłu głowy
+    p.poly([(hx + d * 43 * s, hy + 7 * s), (hx + d * 55 * s, hy + 18 * s), (hx + d * 42 * s, hy + 22 * s)], skin, w=ew)  # nos
+    ex, ey = hx + d * 23 * s, hy + 6 * s
+    if eyes < 0.25:
+        p.line([(ex - er * s, ey), (ex + er * s, ey)], w=ew)
+    else:
+        p.ell(ex, ey, er * 0.9 * s, (er + 0.6) * s * eyes, (246, 246, 240), w=ew)
+        pr = max(1.2, c["pupil"] * 0.8 * s)
+        p.ell(ex + d * er * 0.45 * s, ey + gy * 2.0 * s * eyes, pr, pr, INK, w=0)  # źrenica patrzy przed siebie
+    p.line([(ex - d * er * 0.9 * s, ey - (er + 4) * s), (ex + d * er * 1.1 * s, ey - (er + 5) * s)], w=ew)  # brew
+    if who == "nowak":  # okulary: szkło i zausznik do ucha
+        p.ell(ex, ey, (er + 5) * s, (er + 4) * s, None, w=ew * 0.85)
+        p.line([(ex - d * (er + 5) * s, ey - 1 * s), (hx - d * 18 * s, ey - 3 * s)], w=ew * 0.85)
+    if mouth > 0.15:
+        p.ell(hx + d * 33 * s, hy + 30 * s, 4 * s, (3 + 6 * mouth) * s, (70, 30, 30), w=ew)
+    else:
+        p.line([(hx + d * 24 * s, hy + 30 * s), (hx + d * 39 * s, hy + 29 * s)], w=ew)
+
+
+@contextmanager
+def scaled(p, f):
+    """Kreska i jej drżenie w skali postaci: postać w oddali to pomniejszone zbliżenie (cieńsza kreska, małe elipsy
+    bez „gotowania się” w kleks), a nie zbliżenie z grubą kreską w małym formacie."""
+    old = (p.wscale, p.ascale)
+    p.wscale = p.ascale = max(0.45, min(1.0, f))
+    try:
+        yield
+    finally:
+        p.wscale, p.ascale = old
 
 
 def face_cu(p, x, y, s, who, t, gaze=(0.0, 0.0), blink_k=None, mouth=0.0, fear=0.0, breath=0.0, white=False):
@@ -426,7 +466,7 @@ def zombie_profile(p, x, y, s, t, seed=3):
         p.line([(hx - 40 * s + k * 40 * s, y - 140 * s), (hx - 20 * s + k * 42 * s, y - 120 * s)], w=2.5)
 
 
-def zombie_back(p, x, y, s, t, seed, gown=(150, 160, 152), walk=None, legs=True):
+def _zombie_back(p, x, y, s, t, seed, gown=(150, 160, 152), walk=None, legs=True):
     """Pacjent od tyłu (odchodzi w głąb). walk — zegar kroków albo None; legs=False — nogi rysuje kto inny (schody)."""
     ph = (walk if walk is not None else t * 0.4) * 5
     sway = math.sin(t * 3.1 + seed) * 5 * s
@@ -1205,7 +1245,7 @@ def stair_door(p, t, shadow=0.0, glow=0.0, cam="drzwi", dark=0.55):
     stair_flight(p, t, cam=cam, dark=dark, shadow=shadow, glow=glow)
 
 
-def sitting(p, x, y, s, t, who, look=0.0, gaze=None, eyes=None, mouth=0.0, arms=None):
+def _sitting(p, x, y, s, t, who, look=0.0, gaze=None, eyes=None, mouth=0.0, arms=None):
     """Postać siedząca na podłodze z podkulonymi kolanami; (x, y) — miejsce na podłodze."""
     c = WHO[who]
     hands = figure(p, x, y, s, t, who, look=look, gaze=gaze, eyes=eyes, mouth=mouth, legs=False,
@@ -1372,7 +1412,7 @@ HAIR_BACK = {"orderly": HAIR, "bun": (52, 40, 36), "nowak": (170, 170, 166), "he
              "irena": (206, 204, 200), "mask": (78, 90, 60)}
 
 
-def figure_back(p, x, y, s, t, who, walk=None, arms=None, legs=True):
+def _figure_back(p, x, y, s, t, who, walk=None, arms=None, legs=True):
     """Postać od tyłu (odchodzi w głąb), stopy w (x, y), skala jak figure(). arms jak w figure();
     legs=False — nogi rysuje kto inny (schody: st_person). Zwraca dłonie."""
     c = _costume(who)
@@ -1907,3 +1947,36 @@ def dawn_sky(p, k):
         y = i * 12
         a = (i / 45) ** 1.6 * 70 * k
         p.glow([(-20, y), (W + 20, y), (W + 20, y + 12), (-20, y + 12)], (255, 176, 120, int(a)))
+
+
+def figure(p, x, y, s, t, who, *a, **k):
+    with scaled(p, s):
+        return _figure(p, x, y, s, t, who, *a, **k)
+
+
+def figure_back(p, x, y, s, t, who, *a, **k):
+    with scaled(p, s):
+        return _figure_back(p, x, y, s, t, who, *a, **k)
+
+
+def sitting(p, x, y, s, t, who, *a, **k):
+    with scaled(p, s):
+        return _sitting(p, x, y, s, t, who, *a, **k)
+
+
+def zombie_back(p, x, y, s, t, seed, *a, **k):
+    with scaled(p, s * ST_ZS):
+        return _zombie_back(p, x, y, s, t, seed, *a, **k)
+
+
+_zombie_front = R.zombie
+
+
+def _zombie_scaled(p, x, y, s, t, seed, *a, **k):
+    """R.zombie z kreską w skali postaci (zarażony s=1 ma 270 px, postać 390 px — stąd ×ST_ZS)."""
+    with scaled(p, s * ST_ZS):
+        return _zombie_front(p, x, y, s, t, seed, *a, **k)
+
+
+R.zombie = _zombie_scaled  # dni rysowane z kit_a; zimne otwarcie (render.py / render2.py osobno) zostaje bez zmian
+R.SMALL_CAP = True  # w dniach małe elipsy bez „gotowania się” (oczy i uszy w planie średnim i ogólnym)

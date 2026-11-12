@@ -118,6 +118,9 @@ def voice_len(fn):
         return 2.0
 
 
+SMALL_CAP = False  # kit_a włącza dla dni (zimne otwarcie rysuje się po staremu)
+
+
 class Pen:
     """Rysuje w układzie 1280x720 przez kamerę; kreska lekko „gotuje się” 8 razy na sekundę."""
 
@@ -126,6 +129,9 @@ class Pen:
         self.boil = int(t * 8)
         self.zoom, self.cx, self.cy, self.shake = zoom, cx, cy, shake
         self.xf = []  # stos przekształceń rigu (kit_a.rig): głowa obraca się wokół szyi, tułów pochyla — pusty = bez zmian
+        self.wscale = 1.0  # grubość kreski postaci w oddali (kit_a.scaled): mniejsza postać = cieńsza kreska, jak w zbliżeniu
+        self.ascale = 1.0  # i proporcjonalnie mniejsze drżenie kreski
+        self.small_cap = SMALL_CAP
 
     def push(self, pivot=(0.0, 0.0), rot=0.0, dx=0.0, dy=0.0, sx=1.0, sy=None):
         """Lokalny układ części ciała: skala sx/sy i obrót rot (stopnie) wokół pivot, potem przesunięcie (dx, dy)."""
@@ -165,20 +171,22 @@ class Pen:
         return out
 
     def line(self, pts, w=4, color=INK, amp=1.6):
-        q = [self.tp(p) for p in self.wob(pts, amp)]
-        self.d.line(q, fill=color, width=max(1, int(w * self.zoom * SS)), joint="curve")
+        q = [self.tp(p) for p in self.wob(pts, amp * self.ascale)]
+        self.d.line(q, fill=color, width=max(1, int(w * self.wscale * self.zoom * SS)), joint="curve")
 
     def poly(self, pts, fill, w=4, color=INK, amp=1.6):
-        q = [self.tp(p) for p in self.wob(pts, amp, closed=True)]
+        q = [self.tp(p) for p in self.wob(pts, amp * self.ascale, closed=True)]
         if fill is not None:
             self.d.polygon(q, fill=fill)
         if w:
-            self.d.line(q, fill=color, width=max(1, int(w * self.zoom * SS)), joint="curve")
+            self.d.line(q, fill=color, width=max(1, int(w * self.wscale * self.zoom * SS)), joint="curve")
 
     def rect(self, x0, y0, x1, y1, fill, w=4, **k):
         self.poly([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], fill, w, **k)
 
     def ell(self, cx, cy, rx, ry, fill, w=4, n=26, rot=0.0, **k):
+        if self.small_cap:  # małe elipsy (oczy, źrenice, uszy, usta) nie mogą „gotować się” w kleks; duże kształty bez zmian
+            k["amp"] = min(k.get("amp", 1.6), 0.25 + 0.12 * min(abs(rx), abs(ry)))
         pts = []
         for i in range(n):
             a = 2 * math.pi * i / n
