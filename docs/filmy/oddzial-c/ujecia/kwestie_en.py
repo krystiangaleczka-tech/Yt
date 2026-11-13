@@ -446,7 +446,7 @@ EN = {
     "29.19": "Now.",
     # dzień 30
     "30.6": "We walked slowly, because running is louder than breathing.",
-    "30.10": "A hundred point oh. He's clear.",
+    "30.10": "A hundred point oh. She's clear.",  # o Zosi (PL „Przechodzi”); było „He's” — przegląd 13.11.2026
     "30.11": "To the truck.",
     "30.15": "It was Mr. Henry screaming. He'd finally found his voice.",
     "30.18": "Mr. Henry still didn't blink. He watched over them until morning.",

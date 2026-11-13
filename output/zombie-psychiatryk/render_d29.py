@@ -97,12 +97,13 @@ def s_keycap(p, t, T):
 
 def s_sandwiches(p, t, T):
     K.staff_room(p, t)
-    p.rect(300, 560, 980, 620, (130, 100, 76))
+    K.figure(p, 640, K.TABLE_STAND, 0.95 * K.TABLE_S, t, "irena", look=0.0, gaze=(0.0, 0.8),
+             arms={"r": (60, 120), "l": (-60, 120)})  # za stołem: stół i kanapki przed nią
+    K.staff_table(p)
     n = min(6, int(t / (T * 0.7) * 7))
     for i in range(n):
         x = 380 + i * 90
         p.poly([(x - 34, 556), (x + 34, 556), (x + 28, 536), (x - 28, 536)], (220, 190, 140), w=3)
-    K.figure(p, 640, 760, 0.95, t, "irena", look=0.0, gaze=(0.0, 0.8), arms={"r": (60, 120), "l": (-60, 120)})
 
 
 def s_shirt(p, t, T):

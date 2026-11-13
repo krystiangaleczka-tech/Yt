@@ -493,9 +493,20 @@ def duty_room(p, dark=True, glow=1.0):
     p.rect(800, 120, 1060, 560, (104, 116, 104) if not dark else (70, 82, 84))
     p.rect(850, 170, 1010, 300, tuple(int(c * (0.6 + 0.4 * glow)) for c in (172, 190, 160)), w=5)
     p.rect(1030, 346, 1046, 392, (150, 150, 140), w=2.5)
+    duty_desk(p)
+
+
+# Biurko dyżurki stoi z dala od ściany (nogi do DESK_FLOOR, ściana kończy się na 560), żeby było miejsce za nim:
+# postać za biurkiem ma stopy na DESK_STAND (między ścianą a przednimi nogami) i rysuje się przed biurkiem
+# (przegląd 13.11.2026: stopy przed biurkiem, a blat przecinał tułów — WYTYCZNE 1.5).
+DESK_FLOOR, DESK_STAND, DESK_S = 600, 586, 0.8
+
+
+def duty_desk(p):
+    """Biurko dyżurki: blat i nogi (rysować po postaci, która stoi za nim)."""
     p.rect(470, 420, 790, 450, (110, 84, 60))
-    p.rect(490, 450, 520, 560, (96, 72, 52))
-    p.rect(740, 450, 770, 560, (96, 72, 52))
+    p.rect(490, 450, 520, DESK_FLOOR, (96, 72, 52))
+    p.rect(740, 450, 770, DESK_FLOOR, (96, 72, 52))
 
 
 def desk_phone(p, handset=True):
@@ -1590,10 +1601,18 @@ def iso_door(p, t, inner=None, open_=0.0, wall=(150, 166, 140)):
         p.rect(540, 160, 740, 330, None, w=5)
         p.rect(800, 380, 830, 420, (150, 150, 140), w=2)
         p.text(640, 110, "3", 40, fill=(40, 40, 40))
-    else:
-        p.rect(420 + 400 * open_, 60, 860 + 40 * open_, 640, door)
-        for x0, y0, x1, y1 in ((-50, -50, 420, H + 50), (900, -50, W + 50, H + 50), (420, -50, 900, 60)):
+    else:  # drzwi otwierają się do środka izolatki na zawiasach z lewej: skrzydło zwęża się w otworze, nie wychodzi
+        # za framugę; podłoga korytarza zostaje (przegląd 13.11.2026: skrzydło wystawało za ościeżnicę, znikała podłoga)
+        xr = 420 + 440 * (1 - 0.82 * open_)  # wolna krawędź skrzydła
+        sk = 18 * open_  # skrzydło odchyla się w głąb: górna i dolna krawędź schodzą się w perspektywie
+        p.poly([(420, 60), (xr, 60 + sk), (xr, 640 - sk), (420, 640)], tuple(int(c * (1 - 0.18 * open_)) for c in door))
+        if open_ < 0.5:
+            p.rect(xr - 60, 380 + sk * 0.4, xr - 30, 420, (150, 150, 140), w=2)  # zamek na wolnej krawędzi
+        for x0, y0, x1, y1 in ((-50, -50, 420, H + 50), (860, -50, W + 50, H + 50), (420, -50, 860, 60)):
             p.rect(x0, y0, x1, y1, wall, w=0, amp=0)
+        p.rect(-20, 600, 420, H + 20, (104, 124, 100), w=0, amp=0)
+        p.rect(860, 600, W + 20, H + 20, (104, 124, 100), w=0, amp=0)
+        p.rect(420, 640, 860, H + 20, (104, 124, 100), w=0, amp=0)
     p.rect(400, 40, 880, 660, None, w=8)
 
 
@@ -1673,6 +1692,18 @@ def staff_room(p, t, lights=True, night=False, marks=None, couch=True):
     tally(p, marks if marks is not None else max(15, DAY))  # od dnia 15 (przeprowadzka) kreska co dzień
 
 
+# Stół w pokoju socjalnym: blat 560–620 i nogi do TABLE_FLOOR. Kto stoi za stołem, ma stopy na TABLE_STAND
+# (za przednimi nogami) i skalę × TABLE_S — rysuje się przed stołem, a stół na nim (przegląd 13.11.2026: stopy
+# wystawały spod blatu przed stół, a blat przecinał postać w pasie — WYTYCZNE 1.5).
+TABLE_FLOOR, TABLE_STAND, TABLE_S = 690, 676, 0.88
+
+
+def staff_table(p):
+    p.rect(320, 610, 344, TABLE_FLOOR, (110, 84, 62))
+    p.rect(936, 610, 960, TABLE_FLOOR, (110, 84, 62))
+    p.rect(300, 560, 980, 620, (130, 100, 76))  # blat
+
+
 def chute(p, t, open_=0.0):
     """Drzwiczki zsypu w ścianie korytarza C (obok dyżurki)."""
     p.rect(0, 0, W, H, (150, 166, 140), w=0)
@@ -1729,13 +1760,29 @@ def irena_lying(p, t, x=640, y=520, fever=0.6, eyes=0.0):
         p.ell(x - 190, y + 26, 20 * fever, 6 * fever, (230, 150, 140), w=0)  # rumieńce gorączki
 
 
-def handset(p, x, y, s=1.0):
-    """Słuchawka telefonu na ścianie przy uchu (zbliżenie)."""
+HANDSET_ARM = (395, H + 70)  # łokieć/przedramię trzymające słuchawkę wychodzi spod dolnej krawędzi kadru, z lewej
+
+
+def _hand_colors(who):
+    c = WHO.get(who, WHO["narrator"])
+    return c["skin"], (narr_sleeve() if who == "narrator" else c["sleeve"])
+
+
+def handset(p, x, y, s=1.0, who=None):
+    """Słuchawka telefonu na ścianie przy uchu (zbliżenie). who — czyja dłoń ją trzyma: dłoń na słuchawce i ręka
+    spod kadru (słuchawka nie wisi w powietrzu przy uchu; WYTYCZNE 1.4, przegląd 13.11.2026)."""
+    if who:
+        skin, sleeve = _hand_colors(who)
+        limb(p, HANDSET_ARM, (x + 14 * s, y + 52 * s), 64 * s, sleeve, outline=4)
     p.poly([(x - 30 * s, y - 120 * s), (x + 10 * s, y - 130 * s), (x + 40 * s, y + 120 * s), (x, y + 130 * s)], (230, 228, 220), w=3)
+    if who:
+        p.ell(x + 16 * s, y + 34 * s, 30 * s, 40 * s, skin)  # dłoń obejmuje słuchawkę
+        for k in range(3):  # palce na słuchawce
+            p.line([(x - 6 * s, y + (14 + k * 14) * s), (x + 22 * s, y + (10 + k * 14) * s)], w=2)
 
 
 def listening(p, t, T, fear=0.3, gaze=(-0.4, 0.2), speaking=False, who="narrator", night=False):
-    """Zbliżenie przy telefonie na ścianie pokoju socjalnego: słuchawka przy uchu, kabel do aparatu, głos w słuchawce."""
+    """Zbliżenie przy telefonie na ścianie pokoju socjalnego: słuchawka przy uchu w dłoni, kabel do aparatu, głos."""
     staff_room(p, t, night=night)
     if who == "narrator":
         R.nurse_face(p, 640, 330, 1.0, (0.4 if speaking and 0.3 < t < T - 0.4 else fear), t, gaze=gaze)
@@ -1744,8 +1791,17 @@ def listening(p, t, T, fear=0.3, gaze=(-0.4, 0.2), speaking=False, who="narrator
         face_cu(p, 640, 330, 1.0, who, t, gaze=gaze, mouth=mouth, fear=fear)
     P = rig.pose(who)  # słuchawka przy uchu idzie za głową, jeśli ujęcie ma rig
     hdx, hdy = (P["bx"] + P["hx"]) * 120, (P["by"] + P["hy"]) * 120
+    hx = 500 - P["yaw"] * 14  # ucho przesuwa się razem ze skrętem twarzy (face_cu: -yaw·14)
     p.push(pivot=(640, 440), rot=P["rot"], dx=hdx, dy=hdy)
-    handset(p, 500 - P["yaw"] * 14, 360)  # ucho przesuwa się razem ze skrętem twarzy (face_cu: -yaw·14)
+    hand = p.local((hx + 14, 360 + 52))
+    p.pop()
+    skin, sleeve = _hand_colors(who)
+    limb(p, HANDSET_ARM, hand, 64, sleeve, outline=4)  # ręka od łokcia do dłoni przy uchu
+    p.push(pivot=(640, 440), rot=P["rot"], dx=hdx, dy=hdy)
+    handset(p, hx, 360)
+    p.ell(hx + 16, 360 + 34, 30, 40, skin)  # dłoń obejmuje słuchawkę
+    for k in range(3):
+        p.line([(hx - 6, 360 + 14 + k * 14), (hx + 22, 360 + 10 + k * 14)], w=2)
     end = p.local((510, 490))
     p.pop()
     p.line([end, (420, 620), (300, 700)], w=4, color=(60, 60, 60))

@@ -113,13 +113,23 @@ def setup(day, fns, look, cam, rig=None):
     kit_a.MAINS = day <= 2 or day >= 14  # lampy: z sieci do wieczoru dnia 2, z agregatu od dnia 14 (księga świata)
     rs = rows(day)
     assert len(fns) == len(rs) == len(look), (len(fns), len(rs), len(look))
-    scenes, t0 = [], 0.0
+    plan = []
     for k, ((kadr, ruch, sec, desc, sound), (vs, vl)) in enumerate(zip(rs, voice_windows(day))):
         txt = spoken(sound)
-        if _R.LANG == "en":  # angielski napis i okno kwestii z długości nagrania (en_film.py)
+        if _R.LANG == "en":  # angielski napis, okno kwestii i długość ujęcia z nagrania EN (en_film.timing)
             import en_film
             txt = en_film.text(day, k, sound)
-            vs, vl = en_film.placement(day, k, sound, sec, vs, vl)
+            sec2, vs, vl = en_film.timing(day, k, sound, sec, vs, vl)
+            plan.append([sec2, ruch, txt, vs, vl, sec2 > sec + 1e-6])
+        else:
+            plan.append([sec, ruch, txt, vs, vl, False])
+    if _R.LANG == "en":
+        import en_film
+        secs = en_film.separate([p_[0] for p_ in plan], [k for k, p_ in enumerate(plan) if p_[5]])
+        for p_, s_ in zip(plan, secs):
+            p_[0] = s_
+    scenes, t0 = [], 0.0
+    for sec, ruch, txt, vs, vl, _ in plan:
         scenes.append((t0, t0 + sec, ruch, txt, vs, vl))
         t0 += sec
 

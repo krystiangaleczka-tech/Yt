@@ -134,3 +134,16 @@ z klipem 720p, kwestie EN na ścieżce Lektor, efekty dzień po dniu na ścieżc
 - **Profil i postacie w oddali:** `kit_a._profile_face` (głowa skręcona o ≥ 0,55 rysuje się z profilu, jak zarażony
   ze zbliżenia d04_22) i `kit_a.scaled` (kreska i jej drżenie w skali postaci, małe elipsy bez „gotowania się”).
 - Studio: `studio_aktualizuj.py <projekt> --obraz --dzwiek` — nowy obraz ujęć i ścieżki Tło / Efekty / Muzyka.
+
+### Przegląd całego filmu (13.11.2026)
+
+- **Rytm kwestii EN:** ujęcia były liczone pod polskie kwestie, a `en_film.placement` wpychał dłuższe angielskie nagrania
+  pod cięcie (124 z 287 kwestii kończyło się 0,25 s przed cięciem, d01_18 wychodziła za cięcie). `en_film.timing`
+  wydłuża ujęcie z kwestią: oddech przed ≥ 0,5 s, pauza po 0,6–1,2 s; `separate` trzyma ¼ s różnicy z sąsiadami.
+  Używają go `dzien_base.setup` i `render_d01`. Dni 1–30 EN: 36,8 → 40,3 min.
+- **Kadry:** framugi (d01_12, d14_12), drzwi izolatki otwierane do środka (`kit_a.iso_door`, d16_16), biurko i stół
+  z miejscem za nimi (`kit_a.duty_desk`, `kit_a.staff_table`), słuchawka w dłoni (`kit_a.handset(..., who=)`,
+  `kit_a.listening`), okno łącznika w perspektywie (d13_12), ciągłość paczki (d10_01) i inne — tabela w WYTYCZNE 5.
+- Kolejność po zmianie długości ujęć: `FILM_ENC=nvenc python -I film_en.py obraz 1 … 30 --res 720 -j 6` → `build/en-720`,
+  skasuj `build/efekty/ruch_d*.npy`, `efekty_dni.py --wideo build/en-720`, `muzyka_dni.py`, potem
+  `studio_aktualizuj.py <projekt> --czasy --dzwiek` (obraz, oś, lektor i ścieżki dźwięku na nowych miejscach).

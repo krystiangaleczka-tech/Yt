@@ -197,9 +197,11 @@ def s_look_back(p, t, T):
         x = 200 + k * 90
         p.poly([(x, 420), (x + 45, 340), (x + 90, 420)], (40, 52, 44))
     p.rect(200, 420, 1080, 640, (70, 70, 64))
-    k = ease((t - 0.5) / 0.8)  # stoi twarzą do wnętrza paki; mimo obietnicy odwraca się do szpitala za plecami
-    if k < 0.5:
-        K.figure(p, 640, 900, 1.6, t, "narrator", look=-0.5 * k * 2, gaze=(-0.4, 0.5))
+    k = ease((t - 0.5) / 1.0)  # stoi twarzą do wnętrza paki; mimo obietnicy odwraca się do szpitala za plecami
+    # obrót z fazą pośrednią: najpierw głowa przez profil (look ≥ 0,55 rysuje profil), dopiero potem plecy
+    # (przegląd 13.11.2026: z przodu na plecy skokiem — WYTYCZNE 1.4)
+    if k < 0.65:
+        K.figure(p, 640, 900, 1.6, t, "narrator", look=-min(1.0, k / 0.45), gaze=(-0.4, 0.5))
     else:
         K.figure_back(p, 640, 900, 1.6, t, "narrator")
 

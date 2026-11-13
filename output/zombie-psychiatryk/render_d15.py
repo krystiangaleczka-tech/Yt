@@ -90,7 +90,12 @@ def s_pocket(p, t, T):
     p.text(600, y - 30, "dr J. NOWAK", 22)
     p.rect(300, 380, 900, 720, K.UNI, w=0, amp=0)
     p.rect(300, 380, 900, 720, None, w=4)
-    p.ell(560 + 60 * k, y + 70, 60, 44, K.SKIN)
+    # dłoń trzyma górną krawędź przepustki i wpycha ją do kieszeni, potem odchodzi w górę — z ręką, nie sama
+    # (przegląd 13.11.2026: dłoń bez ręki zostawała na kieszeni)
+    away = ease((t - 0.95) / 0.5)
+    hx, hy = 640 + 360 * away, y - 92 - 380 * away
+    K.limb(p, (W + 140, -160), (hx + 20, hy - 10), 90, K.narr_sleeve(), outline=4)
+    p.ell(hx, hy, 52, 38, K.SKIN)
 
 
 def s_aside(p, t, T):

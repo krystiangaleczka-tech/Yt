@@ -61,7 +61,7 @@ def s02_phone(p, t, T):
 
 def s03_grab(p, t, T):
     K.duty_room(p, dark=True)
-    s, y = 0.85, 640
+    s, y = K.DESK_S, K.DESK_STAND  # za biurkiem: stopy między ścianą a przednimi nogami biurka
     x = 1000 - 300 * ease(t / 1.1)
     sh = (x - 50 * s, y - 268 * s)  # lewy bark
     rest, phone, ear = (-14, 95), ((585 - sh[0]) / s, (408 - sh[1]) / s), (6, -66)
@@ -77,9 +77,7 @@ def s03_grab(p, t, T):
         K.limb(p, (hx - 34 * math.cos(ang), hy - 34 * math.sin(ang)), (hx + 34 * math.cos(ang), hy + 34 * math.sin(ang)),
                14, (196, 186, 152), outline=2.5)
         p.ell(hx, hy, 11 * s, 11 * s, K.SKIN)
-    p.rect(470, 420, 790, 450, (110, 84, 60))
-    p.rect(490, 450, 520, 560, (96, 72, 52))
-    p.rect(740, 450, 770, 560, (96, 72, 52))
+    K.duty_desk(p)
     K.desk_phone(p, handset=False)
     if not held:  # słuchawka leży na blacie przed aparatem, jak po upadku
         p.poly([(560, 414), (626, 410), (628, 418), (562, 422)], (196, 186, 152), w=2.5)
@@ -177,10 +175,18 @@ def s10_slip(p, t, T):
     p.poly([(90, 150), (300, 214), (300, 640), (90, 712)], (24, 28, 28))
     xo = 90 + 210 * (1 - op)
     p.poly([(90, 150), (xo, 214 - 40 * op), (xo, 640 + 46 * op), (90, 712)], (124, 138, 122))
-    if out > 0:  # wysuwa się z otworu bokiem, plecami do ściany
-        K.figure(p, 190 + 170 * out, 760, 1.05, t, "narrator", look=1.0, mouth=0.0, arms={"l": (-20, 70), "r": (10, 90)})
+    nx = 190 + 170 * out  # wysuwa się z otworu bokiem, plecami do ściany
+
+    def narrator():
+        K.figure(p, nx, 760, 1.05, t, "narrator", look=1.0, mouth=0.0, arms={"l": (-20, 70), "r": (10, 90)})
+    # dopóki stoi w otworze, dalsza framuga zasłania jego bok; gdy wychodzi na korytarz, jest przed nią (nie dzieli twarzy)
+    # (przegląd 13.11.2026: framuga przecinała go przez całe ujęcie, także na korytarzu)
+    if out > 0 and nx < 235:
+        narrator()
     p.line([(90, 150), (300, 214)], w=5)
     p.poly([(282, 208), (300, 214), (300, 640), (282, 646)], (150, 166, 140))  # dalsza framuga
+    if out > 0 and nx >= 235:
+        narrator()
     p.poly([(60, 130), (100, 146), (100, 760), (60, 760)], (150, 166, 140))  # bliższa framuga, przed nim
 
 CROWD11 = [(-70, 0.0, 0.34), (-20, 0.4, 0.38), (40, 0.2, 0.36), (95, 0.7, 0.33), (5, 0.9, 0.4)]
@@ -527,14 +533,21 @@ BASE = ((0.9, 0.96, 1.0), (640, 300, 700, 0.45))
 LOOK = [None] + [DARK] * 11 + [WARD] * 6 + [DARK, WARD] + [CELL] * 4 + [WARD, CELL] + [WARD] * 7 + [BASE] * 10
 
 SCENES, t0, VWIN = [], 0.0, []
+_PLAN = []
 for k, (kadr, ruch, sec, desc, sound) in enumerate(ROWS):
-    txt, win = spoken(sound), (0.3, sec - 0.4)  # dzień 1 po polsku: napis przez całe ujęcie
-    if R.LANG == "en":  # angielski: napis tylko w czasie kwestii (en_film.py)
+    txt, win, sec2 = spoken(sound), (0.3, sec - 0.4), sec  # dzień 1 po polsku: napis przez całe ujęcie
+    if R.LANG == "en":  # angielski: napis tylko w czasie kwestii, ujęcie z długości nagrania EN (en_film.timing)
         import en_film
         txt = en_film.text(DAY, k, sound)
         if txt:
-            vs, vl = en_film.placement(DAY, k, sound, sec, 0.5, min(sec - 0.8, len(txt.split()) / 2.7))
+            sec2, vs, vl = en_film.timing(DAY, k, sound, sec, 0.5, min(sec - 0.8, len(txt.split()) / 2.7))
             win = (vs, vl + 0.35)
+    _PLAN.append([sec2, ruch, txt, win, sec2 > sec + 1e-6])
+if R.LANG == "en":
+    import en_film
+    for _p, _s in zip(_PLAN, en_film.separate([p[0] for p in _PLAN], [k for k, p in enumerate(_PLAN) if p[4]])):
+        _p[0] = _s
+for sec, ruch, txt, win, _ in _PLAN:
     SCENES.append((t0, t0 + sec, ruch, txt))
     VWIN.append(win)
     t0 += sec

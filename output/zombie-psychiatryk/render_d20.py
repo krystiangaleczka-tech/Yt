@@ -14,19 +14,14 @@ def talk(t, T, a=0.3, b=0.4, speed=9):
     return 0.5 + 0.5 * math.sin(t * speed) if a < t < T - b else 0.0
 
 
-def handset(p, x, y, s=1.0):
-    p.poly([(x - 30 * s, y - 120 * s), (x + 10 * s, y - 130 * s), (x + 40 * s, y + 120 * s), (x, y + 130 * s)], (230, 228, 220), w=3)
+def handset(p, x, y, s=1.0, who="narrator"):
+    """Słuchawka przy uchu w dłoni (kit_a.handset) — nie wisi w powietrzu (przegląd 13.11.2026)."""
+    K.handset(p, x, y, s, who=who)
 
 
 def listening(p, t, T, fear=0.3, gaze=(-0.4, 0.2), speaking=False):
-    """Narrator przy telefonie na ścianie: słuchawka przy uchu, kabel do aparatu."""
-    K.staff_room(p, t)
-    R.nurse_face(p, 640, 330, 1.0, (0.4 if speaking and 0.3 < t < T - 0.4 else fear), t, gaze=gaze)
-    handset(p, 500, 360)
-    p.line([(510, 490), (420, 620), (300, 700)], w=4, color=(60, 60, 60))
-    if not speaking and int(t * 6) % 3 == 0:  # głos w słuchawce
-        for k in range(2):
-            p.line([(450 - k * 20, 300 - k * 14), (430 - k * 20, 290 - k * 14)], w=3)
+    """Narrator przy telefonie na ścianie: słuchawka przy uchu w dłoni, kabel do aparatu (kit_a.listening)."""
+    K.listening(p, t, T, fear=fear, gaze=gaze, speaking=speaking)
 
 
 def s_malec(p, t, T):
@@ -80,16 +75,16 @@ def s_healthy(p, t, T):
 def s_zosia_asks(p, t, T):
     K.staff_room(p, t)
     K.face_cu(p, 640, 330, 1.0, "zosia", t, gaze=(-0.4, 0.0), mouth=talk(t, T), fear=0.3)
-    with K.on_face(p, "zosia", face=False):  # słuchawka przy uchu idzie za głową
-        p.poly([(470, 240), (510, 230), (540, 480), (500, 490)], (230, 228, 220), w=3)
+    with K.on_face(p, "zosia", face=False):  # słuchawka przy uchu idzie za głową, trzyma ją dłoń
+        K.handset(p, 500, 360, who="zosia")
 
 
 def s_zosia_pale(p, t, T):
     K.staff_room(p, t)
     k = ease((t - 0.4) / 0.8)  # blednie: oczy szeroko, oddech staje
     K.face_cu(p, 640, 330, 1.0, "zosia", t, gaze=(0.0, 0.0), fear=0.3 + 0.6 * k, blink_k=0.0)
-    with K.on_face(p, "zosia", face=False):  # słuchawka przy uchu idzie za głową
-        p.poly([(470, 240), (510, 230), (540, 480), (500, 490)], (230, 228, 220), w=3)
+    with K.on_face(p, "zosia", face=False):  # słuchawka przy uchu idzie za głową, trzyma ją dłoń
+        K.handset(p, 500, 360, who="zosia")
 
 
 def s_hang_up(p, t, T):

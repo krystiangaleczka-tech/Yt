@@ -15,8 +15,8 @@ COLD = ((0.86, 0.96, 0.98), None)  # barwa pierwszego ujęcia filmu (render.GRAD
 
 def s_irena_all(p, t, T):
     K.staff_room(p, t)
-    K.figure(p, 640, 760, 0.95, t, "irena", look=0.0, mouth=talk(t, T, speed=6))
-    p.rect(300, 560, 980, 620, (130, 100, 76))  # stół
+    K.figure(p, 640, K.TABLE_STAND, 0.95 * K.TABLE_S, t, "irena", look=0.0, mouth=talk(t, T, speed=6))  # za stołem
+    K.staff_table(p)
     K.figure_back(p, 240, 900, 1.2, t, "zosia")
     K.figure_back(p, 1050, 900, 1.2, t, "kuba")
 
@@ -113,7 +113,7 @@ def s_hang(p, t, T):
     K.staff_room(p, t)
     k = ease((t - 0.3) / 0.9)
     R.nurse_face(p, 640, 330, 1.0, 0.45 + 0.2 * k, t, gaze=(0.0, 0.8 * k))
-    K.handset(p, 500 - 40 * k, 360 + 170 * k)  # słuchawka opada w dół, obok twarzy
+    K.handset(p, 500 - 40 * k, 360 + 170 * k, who="narrator")  # słuchawka w dłoni opada w dół, obok twarzy
 
 
 def s_barrels(p, t, T):

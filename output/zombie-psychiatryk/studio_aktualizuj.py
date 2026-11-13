@@ -3,6 +3,8 @@
 uruchom (Studio musi działać; najpierw efekty_dni.py i muzyka_dni.py):
   python -I studio_aktualizuj.py <id projektu> [--obraz] [--dzwiek] [-p 6] [--dni 3,5]
 --obraz   rysuje od nowa ujęcia dni (720p) i podmienia materiał scen i klipów na osi (długości bez zmian);
+--czasy   nowe długości ujęć (en_film.timing) po renderze dni (film_en.py obraz --res 720 → build/en-720):
+          obraz ujęć z tego renderu, klipy Obrazu i Lektora przesunięte na nowe miejsca (razem z --dzwiek);
 --dzwiek  usuwa stare „Efekty · dzień N”, zakłada ścieżkę a4 „Tło” i kładzie:
             a4 Tło      — klip na scenę rozpiski (tło miejsca, poziom z planu miksu w tytule),
             a3 Efekty   — klip na ujęcie ze zdarzeniami (każde zdarzenie: skala i dB w tytule),
@@ -89,6 +91,8 @@ def main():
         sc = [{**s, "asset_id": new_asset.get(s["id"], s["asset_id"])} for s in p["scenes"]]
         p = api.call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": sc}}, "PATCH")
         print(f"obraz: podmieniono {len(ops)} klipów", flush=True)
+    if ARGS.czasy:
+        p = czasy(api, pid, only, starts)
     if ARGS.dzwiek:
         KAWALKI.mkdir(parents=True, exist_ok=True)
         p = api.call(f"/projects/{pid}")
@@ -178,6 +182,83 @@ def main():
             print("dziennik:", e)
 
 
+def _cut(job):
+    """Klip 720p ujęcia wycięty z renderu dnia (--wideo-dni), z zapasem na końcu jak studio_pc.cut."""
+    src, a_unit, dur, out = job
+    if out.exists() and out.stat().st_size > 0:
+        return out
+    import subprocess
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-ss", f"{a_unit:.4f}", "-i", str(src), "-t", f"{dur:.4f}",
+                    "-vf", "scale=1280:720:flags=lanczos,tpad=stop_mode=clone:stop_duration=0.25", "-an",
+                    "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p", "-r", "24", str(out)],
+                   check=True)
+    return out
+
+
+def czasy(api, pid, only, starts):
+    """Nowe długości ujęć (en_film.timing: kwestia EN z oddechem przed i pauzą po) w Studio: obraz ujęć wycięty
+    z nowego renderu dni, klipy Obrazu przesunięte i z nową długością (ujęcia idą za nimi), kwestie na ścieżce Lektor
+    przesunięte do nowego startu kwestii, napis ujęcia z kwestie_en. Zimne otwarcie bez zmian."""
+    from concurrent.futures import ThreadPoolExecutor
+    wideo = Path(ARGS.wideo_dni)
+    out_dir = HERE / "build" / "studio_klipy_v3"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    rows = [s for s in SP.shots() if s[0] in only]
+    jobs, meta = [], []
+    for unit, i, a, b, r, txt, vs, vl in rows:
+        f0, f1 = round(a * FPS), round(b * FPS)
+        out = out_dir / f"d{unit:02d}_{i:02d}.mp4"
+        jobs.append((wideo / f"v{unit:02d}.mp4", a - starts[unit], (f1 - f0) / FPS + 0.05, out))
+        meta.append((unit, i, f0, f1 - f0, txt, vs, out))
+    print(f"czasy: wycinam {len(jobs)} ujęć z {wideo}…", flush=True)
+    with ThreadPoolExecutor(ARGS.p) as ex:
+        for n, _ in enumerate(ex.map(_cut, jobs), 1):
+            if n % 100 == 0:
+                print(f"  wycięte {n}/{len(jobs)}", flush=True)
+    p = api.call(f"/projects/{pid}")
+    scenes = {s["id"]: s for s in p["scenes"]}
+    clips = {(c["track_id"], c.get("scene_id")): c for c in p["sequence"]["clips"] if c.get("scene_id")}
+    ops, new_asset, narr = [], {}, {}
+    for n, (unit, i, f0, fd, txt, vs, out) in enumerate(meta, 1):
+        sid = f"scene_d{unit:02d}_{i:02d}"
+        aid = api.upload(pid, out, f"d{unit:02d}_{i:02d} v3 {scenes[sid]['title'][:50]}.mp4")
+        new_asset[sid], narr[sid] = aid, txt or ""
+        ops.append({"type": "update_clip", "clip_id": clips[("v1", sid)]["id"],
+                    "changes": {"asset_id": aid, "start": f0, "duration": fd}})
+        if ("a1", sid) in clips:
+            ops.append({"type": "update_clip", "clip_id": clips[("a1", sid)]["id"], "changes": {"start": f0 + round(vs * FPS)}})
+        if n % 100 == 0:
+            print(f"  wgrane {n}/{len(meta)}", flush=True)
+    p = api.call(f"/projects/{pid}")
+    for k in range(0, len(ops), 200):  # najpierw oś montażu (nowy materiał razem z nową długością), potem ujęcia
+        p = api.call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": ops[k:k + 200]})
+    sc = []
+    for s in p["scenes"]:
+        if s["id"] in new_asset:
+            s = {**s, "asset_id": new_asset[s["id"]], "narration": narr[s["id"]]}
+            if s.get("sentences") and narr[s["id"]]:
+                s["sentences"] = [{**s["sentences"][0], "text": narr[s["id"]], "spoken_text": narr[s["id"]]}] + s["sentences"][1:]
+        sc.append(s)
+    p = api.call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": sc}}, "PATCH")
+    total = max(c["start"] + c["duration"] for c in p["sequence"]["clips"] if c["track_id"] == "v1")
+    print(f"czasy: przesunięto {len(ops)} klipów; film trwa {total / FPS / 60:.2f} min", flush=True)
+    try:
+        api.call(f"/projects/{pid}/flow/log", {"entry": {
+            "who": "studio_aktualizuj.py", "kind": "rytm",
+            "summary": "Długości ujęć z nagrań EN: oddech przed kwestią ≥ 0,5 s, pauza po 0,6–1,2 s; obraz z nowego renderu dni",
+            "details": "Przegląd 13.11.2026 (reżyser: ujęcia kończą się zaraz po kwestii albo ucinają ją w połowie): "
+                       "124 z 287 kwestii kończyło się 0,25 s przed cięciem, 27 zaczynało bez oddechu, d01_18 wychodziła "
+                       "za cięcie. en_film.timing wydłuża ujęcie z kwestią, ujęć bez słów nie skraca. W tym samym renderze "
+                       "poprawki kadrów z przeglądu (framugi d01_12, d14_12; biurko d01_02, d02_16; stół d22_02, d26_01, "
+                       "d29_08; słuchawka w dłoni; drzwi izolatki d16_16; okno łącznika d13_12; d10_01, d10_14, d15_08, "
+                       "d23_08, d30_16; napis d30_10).",
+            "files": ["output/zombie-psychiatryk/en_film.py", "output/zombie-psychiatryk/dzien_base.py",
+                      "output/zombie-psychiatryk/render_d01.py", "output/zombie-psychiatryk/kit_a.py"]}})
+    except SystemExit as e:
+        print("dziennik:", e)
+    return p
+
+
 def _unit_of(title):
     m = re.search(r"(?:dzień |· d)(\d+)", title)
     return int(m.group(1)) if m else -1
@@ -189,6 +270,8 @@ if __name__ == "__main__":
     ap.add_argument("--port", type=int, default=8876)
     ap.add_argument("--obraz", action="store_true")
     ap.add_argument("--dzwiek", action="store_true")
+    ap.add_argument("--czasy", action="store_true", help="nowe długości ujęć: obraz z --wideo-dni, oś i lektor przesunięte")
+    ap.add_argument("--wideo-dni", default=str(HERE / "build" / "en-720"), help="render dni (film_en.py obraz --res 720)")
     ap.add_argument("--dni", default="")
     ap.add_argument("-p", type=int, default=6)
     ARGS = ap.parse_args()
