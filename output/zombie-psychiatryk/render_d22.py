@@ -37,8 +37,8 @@ def s_tap(p, t, T):
 
 def s_count(p, t, T):
     K.staff_room(p, t)
-    K.figure(p, 640, 780, 1.0, t, "zosia", look=0.0, gaze=(0.0, 0.8), mouth=talk(t, T))
-    p.rect(300, 560, 980, 620, (130, 100, 76))  # stół
+    K.figure(p, 640, K.TABLE_STAND, 1.0 * K.TABLE_S, t, "zosia", look=0.0, gaze=(0.0, 0.8), mouth=talk(t, T))  # za stołem
+    K.staff_table(p)
     n = min(6, int(t / (T * 0.7) * 7))  # przesuwa butelki, licząc
     for i in range(6):
         x = 360 + i * 60 + (30 if i < n else 0)

@@ -206,27 +206,27 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
 
     @app.post("/api/projects/import-bundle")
     async def upload_bundle(file: UploadFile):
-        with tempfile.NamedTemporaryFile(suffix=".zip") as temporary:
+        with tempfile.NamedTemporaryFile(suffix=".zip", delete_on_close=False) as temporary:
             length = 0
             while chunk := await file.read(1024 * 1024):
                 length += len(chunk)
                 if length > MAX_BUNDLE:
                     raise ValueError("Pakiet przekracza dwa gigabajty")
                 temporary.write(chunk)
-            temporary.flush()
+            temporary.close()  # Windows: plik musi być zamknięty, zanim otworzy go import
             return import_bundle(store, Path(temporary.name))
 
     @app.post("/api/projects/{project_id}/media")
     async def upload(project_id: str, file: UploadFile):
         store.get(project_id)
-        with tempfile.NamedTemporaryFile() as tmp:
+        with tempfile.NamedTemporaryFile(delete_on_close=False) as tmp:
             total = 0
             while chunk := await file.read(1024 * 1024):
                 total += len(chunk)
                 if total > MAX_UPLOAD:
                     raise ValueError("Maksymalny rozmiar materiału to 300 MB")
                 tmp.write(chunk)
-            tmp.flush()
+            tmp.close()  # Windows: plik musi być zamknięty, zanim otworzy go import_media
             asset, source = import_media(store, project_id, Path(tmp.name), file.filename or "file")
         return {"asset": asset, "source": source, "project": store.get(project_id)}
 
@@ -287,8 +287,8 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
                 suffix=".xml"
             else:
                 raise ValueError("Ten adres nie prowadzi do obsługiwanego materiału")
-        with tempfile.NamedTemporaryFile() as tmp:
-            tmp.write(content); tmp.flush()
+        with tempfile.NamedTemporaryFile(delete_on_close=False) as tmp:
+            tmp.write(content); tmp.close()
             from studio_core.media import HTMLMetadata
             html_meta=HTMLMetadata.extract(content.decode("utf-8","replace")) if suffix==".html" else {}
             asset, source = import_media(store, project_id, Path(tmp.name), str(result.get("title") or "internet")[:100].replace("/", "_") + suffix,

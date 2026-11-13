@@ -116,12 +116,41 @@ def s_shelf(p, t, T):
 
 
 def s_pull(p, t, T):
+    """Henryk w drzwiach na lewej ścianie wciąga ich do środka: otwór drzwi (ciemno), w nim Henryk, ściana z framugą
+    wokół otworu. Narrator i Nowak idą wzdłuż ściany — przed nią — aż narrator stanie na wprost otworu; dopiero wtedy
+    cofa się w drzwi i chowa za framugę. Ręka Henryka wychodzi z drzwi przed framugą: ponagla, potem chwyta rękaw
+    narratora (przegląd 13.11.2026: framuga przecinała ich w pół kroku, ręka szła przez twarz Nowaka)."""
     K.tech_room(p, t, tarp=0.0, running=1.0, lights=True)
-    k = ease(t / T)
-    p.rect(-20, 0, 260, H, (120, 124, 120))  # framuga drzwi, za którą wciąga ich Henryk
-    K.figure(p, 200 + 300 * (1 - k), 780, 1.0, t * 1.5, "narrator", walk=t * 1.5, look=-0.7)
-    K.figure(p, 340 + 300 * (1 - k), 780, 1.0, t * 1.5 + 0.3, "nowak", walk=t * 1.5, look=-0.7)
-    K.figure(p, 120, 780, 1.05, t, "henryk", look=0.7, arms={"r": (140, 0)})
+    k = ease(t / (T * 0.78))
+    step = ease((t - T * 0.72) / (T * 0.28))  # na wprost otworu: krok w głąb drzwi
+    wall = (120, 124, 120)
+    x0, x1 = 40, 250  # otwór drzwi w ścianie po lewej
+    p.rect(-20, 0, x0, H, wall)
+    p.rect(x0, 0, x1, 130, wall)
+    p.rect(x0, 130, x1, H + 20, (40, 42, 44))  # w drzwiach ciemno
+    hs, hx_, hy_ = 0.97, 92, 752
+    K.figure(p, hx_, hy_, hs, t, "henryk", look=0.7, arms={"r": (10, 40)})  # ręka sięgająca — na końcu, przed framugą
+    nx, ny, ns = 150 + 410 * (1 - k), 780 - 26 * step, 1.0 - 0.06 * step
+    wx = nx + 190  # Nowak tuż za nim, wciąż w sali
+    walk_n = t * 1.5 if k < 1 else None
+    if step > 0:  # narrator w drzwiach: za framugą
+        K.figure(p, nx, ny, ns, t * 1.5, "narrator", walk=walk_n, look=-0.7)
+    p.rect(x1, 0, x1 + 26, H + 20, wall)  # framuga po stronie sali
+    p.line([(x1 + 26, 0), (x1 + 26, H + 20)], w=4)
+    p.rect(x0 - 6, 124, x1 + 26, 136, wall)
+    K.figure(p, wx, 780, 1.0, t * 1.5 + 0.3, "nowak", walk=t * 1.5 + 0.3 if k < 1 else None, look=-0.7)
+    if step <= 0:  # narrator jeszcze w sali, przed ścianą
+        K.figure(p, nx, ny, ns, t * 1.5, "narrator", walk=walk_n, look=-0.7)
+    c = K.WHO["henryk"]
+    sh = (hx_ + 50 * hs, hy_ - 268 * hs)  # prawy bark Henryka
+    sleeve = (nx - 44 * ns, ny - 268 * ns + 60 * ns)  # rękaw narratora nad łokciem (bliżej drzwi)
+    grab = ((sleeve[0] - sh[0]) / hs, (sleeve[1] - sh[1]) / hs)
+    wave = (80, 10 + 30 * math.sin(t * 9))  # najpierw ponagla ręką, chwyta, gdy narrator jest blisko
+    g = max(0.0, min(1.0, (330 - nx) / 120))
+    reach = (wave[0] + (grab[0] - wave[0]) * g, wave[1] + (grab[1] - wave[1]) * g)
+    hand = (sh[0] + reach[0] * hs, sh[1] + reach[1] * hs)
+    K.limb(p, sh, hand, 24 * hs, c["sleeve"])
+    p.ell(hand[0], hand[1], 13 * hs, 13 * hs, c["skin"])
 
 
 def s_radio(p, t, T):

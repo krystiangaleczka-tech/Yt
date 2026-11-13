@@ -112,8 +112,9 @@ def s_smile(p, t, T):
     p.rect(0, 0, W, H, (40, 44, 46), w=0)
     K.face_cu(p, 640, 330, 1.0, "henryk", t, gaze=(-0.5, 0.0))
     k = ease((t - 0.4) / 0.6)  # kąciki ust idą w górę
-    for side in (-1, 1):
-        p.line([(640 + side * 18, 412), (640 + side * (24 + 6 * k), 412 - 8 * k)], w=4)
+    with K.on_face(p, "henryk"):
+        for side in (-1, 1):
+            p.line([(640 + side * 18, 412), (640 + side * (24 + 6 * k), 412 - 8 * k)], w=4)
 
 
 def s_breath_fog(p, t, T):
@@ -143,7 +144,7 @@ def s_patrze(p, t, T):
     p.rect(0, 0, W, H, (190, 200, 196), w=0)  # zaparowana szyba
     for i in range(40):
         p.ell(100 + (i * 157) % 1080, 80 + (i * 97) % 560, 30, 20, (205, 214, 210), w=0)
-    word = "PATRZĘ"
+    word = R.tr("PATRZĘ")  # wersja językowa: słowo pisane litera po literze
     n = min(len(word), int(t / (T * 0.8) * len(word)) + 1)
     p.text(600, 360, word[:n], 150, fill=(120, 130, 128))
     off = 260 * ease((t - T * 0.82) / (T * 0.15))  # słowo skończone: dłoń odsuwa się, widać całe „PATRZĘ” z ogonkiem

@@ -37,6 +37,17 @@ nie pozę spoczynkową.
 ### 1.5 Bliżej kamery = rysowane później
 Dłoń zasłania dziurkę od klucza, na której leży; słuchawka, która spadła przed aparat, jest przed nim; postać w drzwiach
 jest przed ich wnętrzem, ale za framugą bliższą kamerze. Przy każdym nowym przedmiocie zadaj pytanie: co jest bliżej?
+- **O kolejności decyduje linia stóp.** Kto stoi za biurkiem czy stołem, ma stopy wyżej niż nogi mebla (bliżej
+  ściany) — i dopiero wtedy mebel rysuje się na nim. Stopy poniżej mebla, a blat przecinający tułów, to postać
+  „przechodząca” przez mebel (`kit_a.duty_desk` / `DESK_STAND`, `kit_a.staff_table` / `TABLE_STAND`).
+- **Przejście przez próg ma kolejność, która się zmienia.** Póki postać idzie wzdłuż ściany, jest przed nią i przed
+  framugą; za framugę chowa się dopiero, gdy stoi na wprost otworu i robi krok w głąb. Framuga nigdy nie dzieli twarzy
+  postaci w pół — ręka sięgająca z drzwi na zewnątrz jest przed framugą.
+
+### 1.12 Co trzymane, ma dłoń i rękę
+Słuchawka przy uchu, przepustka chowana do kieszeni, dłoń na czyjejś piersi — rzecz trzymana ma dłoń, a dłoń rękę,
+która prowadzi do barku tej postaci (albo wychodzi spod kadru tam, gdzie ten bark jest). Nie ma słuchawek wiszących
+przy uchu ani dłoni bez ręki (`kit_a.handset(..., who=)`, `kit_a.listening`).
 
 ### 1.6 Fizyka i ciągłość przedmiotów
 Przedmiot ma przyczynę ruchu (drgania dzwonka zrzucają słuchawkę) i dźwięk (uderzenie o stół). Rzecz pokazana w jednym
@@ -60,6 +71,10 @@ trzymają dłużej. Każdy rodzaj beatu ma swój rytm; dzień ma długość, jak
 od 60 s (spokojny dzień) do ok. 100 s (dzień pełen akcji albo rozmów; reżyser, 6.11.2026); poza tym zakresem przebuduj
 rozpiskę. Dłuższa kwestia wydłuża swoje ujęcie, a nie skraca ujęć bez słów.
 W wariancie A liczy to `docs/filmy/oddzial-c/ujecia/tempo.py`; zasada jest też w Story Bible projektu (pole „Narracja”).
+**Wersja językowa liczy się z własnych nagrań.** Rozpiska liczy ujęcia pod kwestie w języku oryginału; nagranie
+w innym języku bywa dłuższe. Wtedy ujęcie się wydłuża (oddech przed ≥ 0,5 s, pauza po 0,6–1,2 s), a nie kwestia
+przesuwa się pod cięcie — Oddział C EN: `output/zombie-psychiatryk/en_film.timing`. Kontrola: żadna kwestia nie kończy
+się bliżej niż 0,5 s przed cięciem i żadna nie wychodzi za cięcie.
 
 ### 1.10 Ruch po schodach w osi ruchu, stopa na stopniu
 Postacie zestawu są rysowane od przodu i od tyłu, więc schody (i każdą pochylnię) pokazuje się **w osi biegu**:
@@ -71,6 +86,13 @@ przeskoki ze stopnia na stopień albo sunięcie ukosem nad stopniami.
 - Sprawdzaj klatkę w połowie kroku: jedna stopa na stopniu, druga w powietrzu nad krawędzią — nie w stopniu.
 - Rekwizyt na schodach (puszki, rolka bandaża) też ma miejsce w tej geometrii (`st_can`, `st_proj`), żeby kolejne
   ujęcia pokazywały go w tym samym miejscu.
+
+### 1.11 Postać w oddali to pomniejszone zbliżenie, profil to profil
+Wzorem jest zbliżenie (np. zarażony z profilu w d04_22): w planie ogólnym ta sama postać ma te same proporcje
+i **cieńszą kreskę w skali postaci**, a małe elementy (oczy, źrenice, uszy, usta) nie „gotują się” w kleks.
+Twarz odwrócona w bok bardziej niż o pół (look ≥ 0,55) rysuje się **z profilu**: nos wystaje poza obrys głowy,
+jedno oko jest w głowie (nie na jej krawędzi), ucho z tyłu, usta z przodu — nie przesunięta twarz od przodu.
+W skryptach: `kit_a.scaled` (figure / figure_back / sitting / zarażeni) i `kit_a._profile_face`.
 
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
@@ -138,6 +160,14 @@ Zanim ujęcie trafi do Studio do oceny:
 | Wariant A, przegląd dni 1–30 (5.11) | liczba kresek na ścianie nie szła za dniem (d16–20 miały 15) — licznik w kadrze to też ciągłość (`kit_a.tally` liczy z `DAY`) | 1.6 |
 | Wariant A, schody: d01, d03, d05, d06, d09, d22, d23 (5.11) | „nie podoba mi się animacja chodzenia po schodach” — schody z boku, postacie od przodu: przeskakiwały ze stopnia na stopień albo sunęły ukosem nad stopniami | 1.10 |
 | Wariant A, kwestie dni 1–30 (6.11) | urwane dopowiedzenia bez czasownika („Kratę owinęliśmy ręcznikami. Nie zadzwoniła.”, „Poszli dalej. W stronę rozdzielni.”) i brak łączników w ciągach zdarzeń; dni przy 80 s ściskały ujęcia bez słów | Rytm 4, MASTER_BIBLE 2.4, D9; 1.9 (60–100 s) |
+| Wariant A, rig dni 1–30 (11.11) | łza, uśmiech, nadęte policzki i słuchawka dorysowane po twarzy w stałym miejscu odklejały się od głowy, gdy głowa dostała ruch (znalezione w kontroli; rysuje się je w `kit_a.on_face`) | 1.4, 1.5 |
+| Wariant A, rig dni 1–30 (12.11) | „oko dziwnie wygląda” w widokach z profilu: po skręcie głowy jedno oko lądowało na obrysie; w oddali twarze jak kleksy (gruba kreska zbliżenia i drżenie na małych oczach) — „wzoruj się na zbliżeniu” | 1.11 |
+
+| Wariant A EN, przegląd całego filmu (13.11.2026) | „za szybko się kończą zaraz po kwestii, albo mówi i w połowie się ucina”: ujęcia liczone pod polskie kwestie, angielskie nagrania dłuższe — 124 z 287 kwestii kończyło się 0,25 s przed cięciem, 27 bez oddechu przed, d01_18 za cięciem; film dni 1–30: 36,8 → 40,3 min | 1.9 |
+| Wariant A EN, przegląd (13.11.2026) | „ktoś przechodzi przez ramę drzwi, a powinien być nad nią”: dalsza framuga przecinała narratora już na korytarzu (d01_12), framuga dzieliła twarze w pół kroku, ręka Henryka szła przez wnętrze ściany (d14_12); skrzydło drzwi izolatki wystawało za ościeżnicę i znikała podłoga (d16_16) | 1.1, 1.5 |
+| Wariant A EN, przegląd (13.11.2026) | stopy przed biurkiem/stołem, a blat przecinał tułów (d01_02, d02_16, d22_02, d26_01, d29_08); widok za oknem łącznika jako płaski prostokąt na oknach w perspektywie (d13_12) | 1.1, 1.5 |
+| Wariant A EN, przegląd (13.11.2026) | słuchawka wisiała przy uchu bez dłoni (d20, d21, d25, d26, d28, d29 — ok. 20 ujęć); dłoń bez ręki na kieszeni (d15_08); ręka „kogoś trzeciego” spod kadru zamiast od barku Henryka (d23_08) | 1.4, 1.12 |
+| Wariant A EN, przegląd (13.11.2026) | paczka z drona lądowała gdzie indziej, niż leży w następnych ujęciach (d10_01); oko i nos odwracającego się zarażonego nie szły za kołysaniem głowy (d10_14); obrót z przodu na plecy bez profilu (d30_16); „He's clear” o Zosi (d30_10) | 1.2, 1.4, 1.6 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

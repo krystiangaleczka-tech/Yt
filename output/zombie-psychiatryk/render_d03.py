@@ -95,8 +95,9 @@ def s_breathe_h(p, t, T):
 def s_inhale(p, t, T):
     K.pharmacy_front(p, t)
     R.nurse_face(p, 640, 320, 1.0, 0.25, t, gaze=(0, -0.2), breath=1.2 * ease(t / 0.8))
-    for side in (-1, 1):
-        p.ell(640 + side * 76, 390, 22, 16, (238, 186, 168), w=0)
+    with K.on_face(p, "narrator"):  # nadęte policzki idą za głową (rig)
+        for side in (-1, 1):
+            p.ell(640 + side * 76, 390, 22, 16, (238, 186, 168), w=0)
 
 
 def s_exhale(p, t, T):
@@ -165,7 +166,8 @@ def s_noblink(p, t, T):
     k = (t - T * 0.45) / (T * 0.5)  # łza od niemrugania spływa po policzku
     if k > 0:
         y = 340 + 140 * min(1.0, k)
-        p.poly([(590, y - 14), (597, y), (590, y + 8), (583, y)], (190, 220, 235), w=2)
+        with K.on_face(p, "narrator"):
+            p.poly([(590, y - 14), (597, y), (590, y + 8), (583, y)], (190, 220, 235), w=2)
 
 
 def s_ring_above(p, t, T):

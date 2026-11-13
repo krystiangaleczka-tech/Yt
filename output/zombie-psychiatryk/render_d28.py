@@ -141,7 +141,8 @@ def s_irena(p, t, T):
     K.face_cu(p, 640, 330, 1.0, "irena", t, gaze=(0.3, 0.2), mouth=talk(t, T, speed=6), fear=0.2)
     for side in (-1, 1):  # łzy
         y = 360 + ((t * 40) % 120)
-        p.poly([(640 + side * 46, y), (646 + side * 46, y + 14), (640 + side * 46, y + 20), (634 + side * 46, y + 14)], (190, 220, 235), w=2)
+        with K.on_face(p, "irena"):
+            p.poly([(640 + side * 46, y), (646 + side * 46, y + 14), (640 + side * 46, y + 20), (634 + side * 46, y + 14)], (190, 220, 235), w=2)
 
 
 def s_hug(p, t, T):

@@ -8,6 +8,7 @@ import subprocess
 import wave
 
 import numpy as np
+import render as _R0
 from PIL import Image
 
 from render import (FPS, H, HERE, INK, SS, SUFFIX, VOICE_DIR, W, Pen, localize, blink, breath_snd, corridor, creak, ease, framed, handheld,
@@ -347,7 +348,7 @@ def frame(t):
     img = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 255))
     p = Pen(img, t, **framed(CAMERAS[i](lt, T), shake_at(t)))
     SCENE_FN[i](p, lt, T)
-    img = img.convert("RGB").resize((W, H), Image.LANCZOS)
+    img = img.convert("RGB").resize((_R0.OW, _R0.OH), Image.LANCZOS)
     arr = np.asarray(img).astype(np.float32) * np.array(GRADE[i], dtype=np.float32)
     raw = arr  # przed maską światła i migotaniem — z tego szukamy oczu, żeby żadne nie gasło przypadkiem
     if i == 1 and t >= SWITCH_T:
@@ -361,10 +362,10 @@ def frame(t):
         dark = ease((lt - DARK) / 0.3)
         eyes = (raw.mean(axis=2, keepdims=True) > 200).astype(np.float32)
         arr = arr * (1 - dark) + raw * 0.85 * eyes * dark
-    yy, xx = np.ogrid[:H, :W]
+    yy, xx = _R0.grid()
     vig = 1 - 0.45 * (((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2) ** 1.2
     arr *= np.clip(vig, 0.35, 1)[..., None]
-    arr += np.random.default_rng(int(t * FPS) + 7).normal(0, 5, (H, W, 1))
+    arr += np.random.default_rng(int(t * FPS) + 7).normal(0, 5, (_R0.OH, _R0.OW, 1))
     arr *= min(1.0, t / 0.25, max(0.0, (DUR - 0.1 - t) / 0.3))
     img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
     if vs - 0.05 <= t < min(b - 0.05, vs + VOICE_LEN[i] + 0.8) and t < DUR - 0.2:

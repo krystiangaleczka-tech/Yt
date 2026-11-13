@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import render as _R0
 from PIL import Image
 
 from render import FPS, H, SS, W, Pen, ease, framed, handheld, light_mask, subtitle
@@ -20,21 +21,12 @@ _nurse_face = _R.nurse_face
 
 def _living_nurse_face(p, x, y, s, fear, t, gaze=(0.0, 0.0), blink_k=None, swallow=0.0, breath=0.0, body=None):
     """Zbliżenie narratora w dniach: samo mruga i oddycha (MASTER_BIBLE 2.6), chyba że ujęcie ustawia oczy;
-    od d02_18 nosi rozpiętą kurtkę na mundurku."""
+    od d02_18 nosi rozpiętą kurtkę na mundurku. Rysuje kit_a.narrator_cu — z rigiem ujęcia (rig_a), jeśli dzień go ma."""
     if blink_k is None:
         blink_k = _R.blink(t, 777, 3.1)
     breath = breath + 0.6 * math.sin(2 * math.pi * 0.25 * t)
-    out = _nurse_face(p, x, y, s, fear, t, gaze=gaze, blink_k=blink_k, swallow=swallow, breath=breath, body=body)
     import kit_a
-    if kit_a.NARRATOR_JACKET:
-        bx, by = body or (x, y)
-        by -= breath * 5 * s
-        for side in (-1, 1):  # poły kurtki po bokach, środek (mundurek z dekoltem) zostaje odkryty
-            p.poly([(bx + side * 120 * s, by + 150 * s), (bx + side * 48 * s, by + 150 * s), (bx + side * 60 * s, by + 410 * s),
-                    (bx + side * 152 * s, by + 410 * s)], kit_a.JACKET)
-            p.poly([(bx + side * 50 * s, by + 150 * s), (bx + side * 34 * s, by + 152 * s), (bx + side * 60 * s, by + 230 * s)],
-                   (90, 98, 110), w=2.5)  # klapa kołnierza
-    return out
+    return kit_a.narrator_cu(p, x, y, s, fear, t, gaze=gaze, blink_k=blink_k, swallow=swallow, breath=breath, body=body)
 
 
 _R.nurse_face = _living_nurse_face
@@ -49,6 +41,27 @@ CELL = ((0.88, 0.98, 0.92), (640, 280, 520, 0.35))
 BASE = ((0.9, 0.96, 1.0), (640, 300, 700, 0.45))
 DAY = ((0.96, 1.0, 0.98), None)
 DAWN = ((0.92, 0.95, 0.96), None)  # świt dnia 30: barwa bliska pierwszemu ujęciu (render.GRADE[0]), słońce rysuje ujęcie
+
+
+import os as _os
+KURZ = _os.environ.get("FILM_KURZ", "1") != "0"
+
+
+def dust(p, day, i, lt, t, n=36):
+    """Drobinki kurzu w świetle (piwnica, apteka): każde ujęcie ma własny układ; dryfują powoli w górę i na boki,
+    migoczą, gdy obracają się w świetle. Rysowane przez kamerę, więc biorą udział w najeździe i wstrząsie."""
+    import random
+    rng = random.Random(day * 1000 + i)
+    for k in range(n):
+        x0, y0 = rng.uniform(40, W - 40), rng.uniform(30, H - 120)
+        vx, vy = rng.uniform(-6, 6), rng.uniform(-9, -2)
+        sd = rng.randrange(10 ** 6)
+        if math.sin(t * rng.uniform(0.8, 2.2) + sd) < -0.35:
+            continue  # drobinka odwrócona od światła
+        x = x0 + vx * lt + 12 * _R.noise(t, sd, 0.22)
+        y = y0 + vy * lt + 8 * _R.noise(t, sd + 1, 0.3)
+        r = rng.uniform(1.4, 2.6)
+        p.ell(x, y, r, r, (242, 238, 220), w=0, n=10, amp=0)
 
 
 def day_tuple(day):
@@ -87,15 +100,37 @@ def wrap(txt, n=40):
     return "\n".join(out + [line])
 
 
-def setup(day, fns, look, cam):
+def setup(day, fns, look, cam, rig=None):
+    """rig — {numer ujęcia: {postać: akcja}} (rig_a.py): gra aktorska ujęć, które bez niej stały w miejscu."""
     import kit_a
+    import rig_a
+    if rig is None:  # tabela gry aktorskiej wszystkich dni (rig_dni.py); FILM_RIG=0 — render bez rigu (porównania)
+        import os
+        import rig_dni
+        rig = rig_dni.RIG.get(day, {}) if os.environ.get("FILM_RIG", "1") != "0" else {}
+    assert all(0 <= k < len(fns) for k in rig), f"RIG dnia {day}: numer ujęcia poza dniem"
     kit_a.DAY = day
     kit_a.MAINS = day <= 2 or day >= 14  # lampy: z sieci do wieczoru dnia 2, z agregatu od dnia 14 (księga świata)
     rs = rows(day)
     assert len(fns) == len(rs) == len(look), (len(fns), len(rs), len(look))
+    plan = []
+    for k, ((kadr, ruch, sec, desc, sound), (vs, vl)) in enumerate(zip(rs, voice_windows(day))):
+        txt = spoken(sound)
+        if _R.LANG == "en":  # angielski napis, okno kwestii i długość ujęcia z nagrania EN (en_film.timing)
+            import en_film
+            txt = en_film.text(day, k, sound)
+            sec2, vs, vl = en_film.timing(day, k, sound, sec, vs, vl)
+            plan.append([sec2, ruch, txt, vs, vl, sec2 > sec + 1e-6])
+        else:
+            plan.append([sec, ruch, txt, vs, vl, False])
+    if _R.LANG == "en":
+        import en_film
+        secs = en_film.separate([p_[0] for p_ in plan], [k for k, p_ in enumerate(plan) if p_[5]])
+        for p_, s_ in zip(plan, secs):
+            p_[0] = s_
     scenes, t0 = [], 0.0
-    for (kadr, ruch, sec, desc, sound), (vs, vl) in zip(rs, voice_windows(day)):
-        scenes.append((t0, t0 + sec, ruch, spoken(sound), vs, vl))
+    for sec, ruch, txt, vs, vl, _ in plan:
+        scenes.append((t0, t0 + sec, ruch, txt, vs, vl))
         t0 += sec
 
     def camera(i, lt, T):
@@ -136,20 +171,23 @@ def setup(day, fns, look, cam):
         kit_a.NARRATOR_KNEE = day >= 24 or (day == 23 and i >= 19)  # d23_19 wpada z krwią na kolanie, opatrunek potem
         kit_a.HENRYK_SHIRT = day >= 30 or (day == 29 and i >= 9)
         lt, T = t - a, b - a
+        rig_a.set_shot(day, i, lt, T, vs, vl, rig.get(i))
         img = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 255))
         p = Pen(img, t, **framed(camera(i, lt, T), shake(i, lt, t)))
         fns[i](p, lt, T)
-        img = img.convert("RGB").resize((W, H), Image.LANCZOS)
+        if look[i] in (BASE, CELL) and KURZ:  # kurz unosi się w świetle piwnicy i apteki
+            dust(p, day, i, lt, t)
+        img = img.convert("RGB").resize((_R0.OW, _R0.OH), Image.LANCZOS)
         arr = np.asarray(img).astype(np.float32)
         if look[i]:
             grade, mask = look[i]
             arr *= np.array(grade, dtype=np.float32)
             if mask:
                 arr = light_mask(arr, *mask)
-            yy, xx = np.ogrid[:H, :W]
+            yy, xx = _R0.grid()
             vig = 1 - 0.45 * (((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2) ** 1.2
             arr *= np.clip(vig, 0.35, 1)[..., None]
-        arr += np.random.default_rng(int(t * FPS) // 3 + 13 + day).normal(0, 5, (H, W, 1))  # ziarno 8×/s, jak kreska
+        arr += np.random.default_rng(int(t * FPS) // 3 + 13 + day).normal(0, 5, (_R0.OH, _R0.OW, 1))  # ziarno 8×/s, jak kreska
         if look[i] is None:  # karta: wejście i wyjście przez czerń
             arr *= min(1.0, lt / 0.4, max(0.0, (T - lt) / 0.4))
         img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))

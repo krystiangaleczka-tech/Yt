@@ -622,7 +622,8 @@ def register(app, store, jobs, connectors, repo, callbacks):
         crop=body.get("crop",{"x":0,"y":0,"width":1,"height":1})
         x,y,w,h=(float(crop[k]) for k in ("x","y","width","height"))
         if min(x,y)<0 or min(w,h)<=0 or x+w>1.001 or y+h>1.001: raise ValueError("Niepoprawny prostokąt ilustracji")
-        with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".png", delete_on_close=False) as tmp:
+            tmp.close()
             image.crop((round(x*image.width),round(y*image.height),round((x+w)*image.width),round((y+h)*image.height))).save(tmp.name)
             asset,_=import_media(store,pid,Path(tmp.name),f"strona-{page}.png",{"source_url":source.url,"author":source.author,"license":str(body.get("license","")),"provenance":{"source_id":source.id,"page":page,"crop":crop,"kind":"document-extract"}})
         return {"asset":asset,"project":store.get(pid)}
@@ -651,8 +652,8 @@ def register(app, store, jobs, connectors, repo, callbacks):
     async def create_voice(file: UploadFile, name: str="Mój głos"):
         content=await file.read(30*1024*1024+1)
         if len(content)>30*1024*1024: raise ValueError("Próbka jest za duża")
-        with tempfile.NamedTemporaryFile(suffix=Path(file.filename or ".wav").suffix) as tmp:
-            tmp.write(content); tmp.flush()
+        with tempfile.NamedTemporaryFile(suffix=Path(file.filename or ".wav").suffix, delete_on_close=False) as tmp:
+            tmp.write(content); tmp.close()
             return voices.create(name,Path(tmp.name))
 
     @app.patch("/api/voices/{voice_id}")

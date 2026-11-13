@@ -23,3 +23,19 @@ filmu. Zasady poniżej są wspólne.
    ujęciami jest cięcie.
 8. **Tłum to osobne postacie** (opóźnienia, tempo, jeden spóźniony).
 9. **Dźwięk:** ciągłe tło pod całością, osobny dźwięk każdego wydarzenia, lektor.
+10. **Głośność dźwięku wynika ze sceny, nie z biblioteki.** Każdy dźwięk ma poziom z trzech rzeczy:
+    - **skala zdarzenia** — małe (krok, papier, klamka, oddech), średnie (drzwi, zamek, jęk, woda, metal),
+      duże (huk, strzał, alarm, regał, agregat);
+    - **napięcie sceny** (0–10, z krzywej filmu, ruchu kamery i słów akcji, wygładzone w scenie) — im wyższe,
+      tym głośniej i gęściej; rozmowa obniża efekty, „cisza” w rozpisce zostawia ledwie słyszalne tło i serce;
+    - **tempo ujęcia** — krótkie ujęcia w akcji o włos głośniej, długie i spokojne ciszej.
+    Tło miejsca (pomieszczenie, wiatr, kapanie) jest zawsze cicho pod spodem; **żadnych stałych buczeń sieciowych**
+    (50/100 Hz) — świetlówka czy agregat brzmią tylko wtedy, gdy są wydarzeniem w scenie. Pod kwestią efekty
+    schodzą o ok. 6 dB, muzyka o 8 dB.
+11. **Muzyka niesie nastrój beatu, nie ilustruje zdania.** Nastrój z napięcia i treści: brak (cisza, karta,
+    muzyka grana w kadrze), cicha plama, niepokój, puls, napęd (akcja), motyw (wspomnienie, czułość), finał.
+    Sąsiednie beaty o tym samym nastroju to jedna fraza. Motyw, który pojawi się w kadrze (piosenka, melodia
+    postaci), wcześniej wraca w muzyce jako zasiew.
+12. **Plan miksu jest zapisany w projekcie:** opis ujęcia ma wiersz „Dźwięk (plan miksu)” (napięcie, tempo, tło,
+    zdarzenia ze skalą i dB, muzyka), a klipy na ścieżkach Tło / Efekty / Muzyka mają poziom w tytule. Reżyser
+    poprawia go gałką głośności klipu w Montażu — wtedy plan i oś mówią to samo.

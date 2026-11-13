@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import render as _R0
 from PIL import Image
 
 import kit_a as K
@@ -60,7 +61,7 @@ def s02_phone(p, t, T):
 
 def s03_grab(p, t, T):
     K.duty_room(p, dark=True)
-    s, y = 0.85, 640
+    s, y = K.DESK_S, K.DESK_STAND  # za biurkiem: stopy między ścianą a przednimi nogami biurka
     x = 1000 - 300 * ease(t / 1.1)
     sh = (x - 50 * s, y - 268 * s)  # lewy bark
     rest, phone, ear = (-14, 95), ((585 - sh[0]) / s, (408 - sh[1]) / s), (6, -66)
@@ -76,9 +77,7 @@ def s03_grab(p, t, T):
         K.limb(p, (hx - 34 * math.cos(ang), hy - 34 * math.sin(ang)), (hx + 34 * math.cos(ang), hy + 34 * math.sin(ang)),
                14, (196, 186, 152), outline=2.5)
         p.ell(hx, hy, 11 * s, 11 * s, K.SKIN)
-    p.rect(470, 420, 790, 450, (110, 84, 60))
-    p.rect(490, 450, 520, 560, (96, 72, 52))
-    p.rect(740, 450, 770, 560, (96, 72, 52))
+    K.duty_desk(p)
     K.desk_phone(p, handset=False)
     if not held:  # słuchawka leży na blacie przed aparatem, jak po upadku
         p.poly([(560, 414), (626, 410), (628, 418), (562, 422)], (196, 186, 152), w=2.5)
@@ -96,13 +95,13 @@ def s04_listen(p, t, T):
     p.rect(0, 0, W, H, (40, 50, 62), w=0)
     p.rect(980, 120, 1200, 300, (110, 140, 118), w=5)  # szyba drzwi, za nią jasny korytarz
     gx = min(1.0, 0.4 + ease(t / 1.2))
-    R.nurse_face(p, 600, 330, 1.0, 0.7, t, gaze=(gx, -0.1), blink_k=0.0, breath=math.sin(t * 5) * 0.4)
+    K.narrator_cu(p, 600, 330, 1.0, 0.7, t, gaze=(gx, -0.1), blink_k=0.0, breath=math.sin(t * 5) * 0.4)
     handset_cu(p, 600, 330)
 
 
 def s05_mouth(p, t, T):
     p.rect(0, 0, W, H, (40, 50, 62), w=0)
-    R.nurse_face(p, 600, 330, 1.0, 0.25, t, gaze=(1.0, 0.0), breath=0.0)
+    K.narrator_cu(p, 600, 330, 1.0, 0.25, t, gaze=(1.0, 0.0), breath=0.0)
     for side in (-1, 1):  # policzki nadęte od wstrzymanego oddechu
         p.ell(600 + side * 76, 400, 22, 16, (238, 186, 168), w=0)
     handset_cu(p, 600, 330)
@@ -110,7 +109,7 @@ def s05_mouth(p, t, T):
 
 def s06_look(p, t, T):
     p.rect(0, 0, W, H, (40, 50, 62), w=0)
-    R.nurse_face(p, 640, 280, 1.0, 0.5, t, gaze=(0.1, 1.0), blink_k=R.blink(t, 21, 1.6), breath=math.sin(t * 3) * 0.5)
+    K.narrator_cu(p, 640, 280, 1.0, 0.5, t, gaze=(0.1, 1.0), blink_k=R.blink(t, 21, 1.6), breath=math.sin(t * 3) * 0.5)
     # słuchawka trzymana oburącz przed piersią, ponad napisami
     for side in (-1, 1):
         K.limb(p, (640 + side * 170, H + 40), (640 + side * 95, 545), 60, K.UNI, outline=4)
@@ -176,10 +175,18 @@ def s10_slip(p, t, T):
     p.poly([(90, 150), (300, 214), (300, 640), (90, 712)], (24, 28, 28))
     xo = 90 + 210 * (1 - op)
     p.poly([(90, 150), (xo, 214 - 40 * op), (xo, 640 + 46 * op), (90, 712)], (124, 138, 122))
-    if out > 0:  # wysuwa się z otworu bokiem, plecami do ściany
-        K.figure(p, 190 + 170 * out, 760, 1.05, t, "narrator", look=1.0, mouth=0.0, arms={"l": (-20, 70), "r": (10, 90)})
+    nx = 190 + 170 * out  # wysuwa się z otworu bokiem, plecami do ściany
+
+    def narrator():
+        K.figure(p, nx, 760, 1.05, t, "narrator", look=1.0, mouth=0.0, arms={"l": (-20, 70), "r": (10, 90)})
+    # dopóki stoi w otworze, dalsza framuga zasłania jego bok; gdy wychodzi na korytarz, jest przed nią (nie dzieli twarzy)
+    # (przegląd 13.11.2026: framuga przecinała go przez całe ujęcie, także na korytarzu)
+    if out > 0 and nx < 235:
+        narrator()
     p.line([(90, 150), (300, 214)], w=5)
     p.poly([(282, 208), (300, 214), (300, 640), (282, 646)], (150, 166, 140))  # dalsza framuga
+    if out > 0 and nx >= 235:
+        narrator()
     p.poly([(60, 130), (100, 146), (100, 760), (60, 760)], (150, 166, 140))  # bliższa framuga, przed nim
 
 CROWD11 = [(-70, 0.0, 0.34), (-20, 0.4, 0.38), (40, 0.2, 0.36), (95, 0.7, 0.33), (5, 0.9, 0.4)]
@@ -205,9 +212,10 @@ def s13_hold(p, t, T):
     p.rect(0, 0, W, H, (150, 166, 140), w=0)
     p.rect(0, 430, W, H, (104, 124, 100), w=0)
     gx = 0.8 * noise(t, 31, 1.4)
-    R.nurse_face(p, 640, 320, 1.0, 0.28, t, gaze=(gx, 0.0), blink_k=0.0, breath=0.0)
-    for side in (-1, 1):
-        p.ell(640 + side * 76, 390, 22, 16, (238, 186, 168), w=0)
+    K.narrator_cu(p, 640, 320, 1.0, 0.28, t, gaze=(gx, 0.0), blink_k=0.0, breath=0.0)
+    with K.on_face(p, "narrator"):  # nadęte policzki idą za głową (rig)
+        for side in (-1, 1):
+            p.ell(640 + side * 76, 390, 22, 16, (238, 186, 168), w=0)
 
 
 def iso_end_door(p):
@@ -259,7 +267,7 @@ def s18_breathe(p, t, T):
     p.rect(0, 0, W, H, (150, 166, 140), w=0)
     p.rect(0, 430, W, H, (104, 124, 100), w=0)
     br = math.sin(2 * math.pi * 0.25 * t)
-    R.nurse_face(p, 640, 320, 1.0, 0.1, t, gaze=(0.0, 0.3), blink_k=0.45, breath=br * 1.4)
+    K.narrator_cu(p, 640, 320, 1.0, 0.1, t, gaze=(0.0, 0.3), blink_k=0.45, breath=br * 1.4)
 
 
 def s19_isokey(p, t, T):
@@ -336,7 +344,7 @@ def s23_freeze(p, t, T):
 def s24_cover(p, t, T):
     p.rect(0, 0, W, H, (150, 166, 140), w=0)
     p.rect(0, 430, W, H, (104, 124, 100), w=0)
-    R.nurse_face(p, 640, 320, 1.0, 0.85, t, gaze=(0.0, 0.0), blink_k=0.0, breath=0.0)
+    K.narrator_cu(p, 640, 320, 1.0, 0.85, t, gaze=(0.0, 0.0), blink_k=0.0, breath=0.0)
     skin = (184, 194, 170)
     hx, hy = 620 + 4 * noise(t, 33, 3), 404
     K.limb(p, (hx - 380, H + 60), (hx - 60, hy + 30), 80, (150, 154, 148), outline=4)
@@ -402,7 +410,7 @@ def s30_whisper(p, t, T):
 def s31_noanswer(p, t, T):
     K.basement(p, t, 0.85)
     K.figure(p, 300, 760, 0.7, t, "henryk", look=-0.6, gaze=(-0.6, -1.0), eyes=1.0)
-    R.nurse_face(p, 790, 330, 1.0, 0.38, t, gaze=(-0.2, 0.9), blink_k=R.blink(t, 41, 2.6), breath=math.sin(t * 2) * 0.6)
+    K.narrator_cu(p, 790, 330, 1.0, 0.38, t, gaze=(-0.2, 0.9), blink_k=R.blink(t, 41, 2.6), breath=math.sin(t * 2) * 0.6)
 
 
 def s_pov_still(p, t, T):
@@ -412,14 +420,15 @@ def s_pov_still(p, t, T):
 def s_stare(p, t, T):
     p.rect(0, 0, W, H, (40, 50, 62), w=0)
     p.rect(1000, 110, 1240, 300, (110, 140, 118), w=5)
-    R.nurse_face(p, 560, 330, 1.0, 0.75, t, gaze=(1.0, -0.2), blink_k=0.0, breath=math.sin(t * 4) * 0.3)
+    K.narrator_cu(p, 560, 330, 1.0, 0.75, t, gaze=(1.0, -0.2), blink_k=0.0, breath=math.sin(t * 4) * 0.3)
 
 
 def s_hold_dark(p, t, T):
     p.rect(0, 0, W, H, (40, 50, 62), w=0)
-    R.nurse_face(p, 640, 320, 1.0, 0.28, t, gaze=(0.6 * noise(t, 35, 1.5), 0.0), breath=0.0)
-    for side in (-1, 1):
-        p.ell(640 + side * 76, 390, 22, 16, (238, 186, 168), w=0)
+    K.narrator_cu(p, 640, 320, 1.0, 0.28, t, gaze=(0.6 * noise(t, 35, 1.5), 0.0), breath=0.0)
+    with K.on_face(p, "narrator"):  # nadęte policzki idą za głową (rig)
+        for side in (-1, 1):
+            p.ell(640 + side * 76, 390, 22, 16, (238, 186, 168), w=0)
 
 
 def s_profile2(p, t, T):
@@ -438,7 +447,7 @@ def s_profile2(p, t, T):
 def s_recognise(p, t, T):
     p.rect(0, 0, W, H, (150, 166, 140), w=0)
     p.rect(0, 430, W, H, (104, 124, 100), w=0)
-    R.nurse_face(p, 640, 320, 1.0, 0.45, t, gaze=(-0.9, 0.1), blink_k=R.blink(t, 37, 1.4), swallow=max(0.0, 1 - abs(t - 1.4) / 0.2))
+    K.narrator_cu(p, 640, 320, 1.0, 0.45, t, gaze=(-0.9, 0.1), blink_k=R.blink(t, 37, 1.4), swallow=max(0.0, 1 - abs(t - 1.4) / 0.2))
 
 
 def s_beep(p, t, T):
@@ -489,7 +498,7 @@ def s_suspect(p, t, T):
 
 def s_answer(p, t, T):
     K.pharmacy_front(p, t, flick_at(t))
-    R.nurse_face(p, 640, 320, 1.0, 0.35 if 0.3 < t < 1.8 else 0.2, t, gaze=(0.8, 0.0), blink_k=R.blink(t, 39, 1.8))
+    K.narrator_cu(p, 640, 320, 1.0, 0.35 if 0.3 < t < 1.8 else 0.2, t, gaze=(0.8, 0.0), blink_k=R.blink(t, 39, 1.8))
 
 
 def s_sit(p, t, T):
@@ -523,11 +532,31 @@ CELL = ((0.88, 0.98, 0.92), (640, 280, 520, 0.35))
 BASE = ((0.9, 0.96, 1.0), (640, 300, 700, 0.45))
 LOOK = [None] + [DARK] * 11 + [WARD] * 6 + [DARK, WARD] + [CELL] * 4 + [WARD, CELL] + [WARD] * 7 + [BASE] * 10
 
-SCENES, t0 = [], 0.0
-for (kadr, ruch, sec, desc, sound) in ROWS:
-    SCENES.append((t0, t0 + sec, ruch, spoken(sound)))
+SCENES, t0, VWIN = [], 0.0, []
+_PLAN = []
+for k, (kadr, ruch, sec, desc, sound) in enumerate(ROWS):
+    txt, win, sec2 = spoken(sound), (0.3, sec - 0.4), sec  # dzień 1 po polsku: napis przez całe ujęcie
+    if R.LANG == "en":  # angielski: napis tylko w czasie kwestii, ujęcie z długości nagrania EN (en_film.timing)
+        import en_film
+        txt = en_film.text(DAY, k, sound)
+        if txt:
+            sec2, vs, vl = en_film.timing(DAY, k, sound, sec, 0.5, min(sec - 0.8, len(txt.split()) / 2.7))
+            win = (vs, vl + 0.35)
+    _PLAN.append([sec2, ruch, txt, win, sec2 > sec + 1e-6])
+if R.LANG == "en":
+    import en_film
+    for _p, _s in zip(_PLAN, en_film.separate([p[0] for p in _PLAN], [k for k, p in enumerate(_PLAN) if p[4]])):
+        _p[0] = _s
+for sec, ruch, txt, win, _ in _PLAN:
+    SCENES.append((t0, t0 + sec, ruch, txt))
+    VWIN.append(win)
     t0 += sec
 DUR = t0
+# gra aktorska ujęć z rigiem (rig_dni.py; FILM_RIG=0 — bez) i kurz w świetle apteki — jak w dniach z dzien_base
+import os as _os  # noqa: E402
+import rig_a  # noqa: E402
+import rig_dni  # noqa: E402
+RIG = rig_dni.RIG.get(DAY, {}) if _os.environ.get("FILM_RIG", "1") != "0" else {}
 
 
 def camera(i, lt, T):
@@ -561,24 +590,29 @@ def frame(t):
     i = next((k for k, s in enumerate(SCENES) if s[0] <= t < s[1]), len(SCENES) - 1)
     a, b, ruch, txt = SCENES[i]
     lt, T = t - a, b - a
+    rig_a.set_shot(DAY, i, lt, T, VWIN[i][0], max(0.0, VWIN[i][1] - 0.35) if (txt and R.LANG == "en") else 0.0, RIG.get(i))
     img = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 255))
     p = Pen(img, t, **framed(camera(i, lt, T), shake(i, lt, t)))
     FNS[i](p, lt, T)
-    img = img.convert("RGB").resize((W, H), Image.LANCZOS)
+    if LOOK[i] in (BASE, CELL):
+        import dzien_base
+        if dzien_base.KURZ:
+            dzien_base.dust(p, DAY, i, lt, t)
+    img = img.convert("RGB").resize((_R0.OW, _R0.OH), Image.LANCZOS)
     arr = np.asarray(img).astype(np.float32)
     if LOOK[i]:
         grade, mask = LOOK[i]
         arr *= np.array(grade, dtype=np.float32)
         if mask:
             arr = light_mask(arr, *mask)
-        yy, xx = np.ogrid[:H, :W]
+        yy, xx = _R0.grid()
         vig = 1 - 0.45 * (((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2) ** 1.2
         arr *= np.clip(vig, 0.35, 1)[..., None]
-    arr += np.random.default_rng(int(t * FPS) // 3 + 13).normal(0, 5, (H, W, 1))  # ziarno 8×/s, jak kreska
+    arr += np.random.default_rng(int(t * FPS) // 3 + 13).normal(0, 5, (_R0.OH, _R0.OW, 1))  # ziarno 8×/s, jak kreska
     if i == 0:  # karta: wejście i wyjście przez czerń
         arr *= min(1.0, lt / 0.5, max(0.0, (T - lt) / 0.5))
     img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
-    if txt and 0.3 <= lt < T - 0.1:
+    if txt and VWIN[i][0] <= lt < min(T - 0.1, VWIN[i][0] + VWIN[i][1]):
         subtitle(img, wrap(txt))
     return img
 

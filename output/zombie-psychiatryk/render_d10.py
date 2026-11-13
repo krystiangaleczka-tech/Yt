@@ -29,13 +29,13 @@ def s_drone(p, t, T):
     crowd(p, t)
     x = -150 + 1500 * t / T
     K.drone(p, x, 110, 1.0, t)
-    drop = T * 0.4
+    drop = T * 0.47  # zrzut tak, żeby paczka wylądowała tam, gdzie leży w następnych ujęciach (640, 560; ciągłość 1.6)
     if t < drop:
         K.parcel(p, x, 150, 0.5)
     else:  # paczka spada i ląduje na trawie
         f = min(1.0, (t - drop) / 0.6)
         x0 = -150 + 1500 * drop / T
-        K.parcel(p, x0 + 40 * f, 150 + 390 * f * f, 0.5 + 0.2 * f)
+        K.parcel(p, x0 + (640 - x0) * f, 150 + 410 * f * f, 0.5)
 
 
 def s_window_view(p, t, T):
@@ -167,7 +167,8 @@ def s_turning(p, t, T):
     k = ease((t - 0.3) / (T * 0.8))  # najbliższy zarażony odwraca się, bardzo powoli
     x, y, s = 640, 760, 1.6
     K.zombie_back(p, x, y, s, t, 109)
-    hx, hy = x + 5 * s, y - 228 * s
+    # środek głowy jak w _zombie_back (kołysze się z tułowiem) — oko i nos idą za głową, nie stoją w miejscu
+    hx, hy = x + math.sin(t * 3.1 + 109) * 5 * s, y - 228 * s
     if k > 0.3:  # z boku głowy wyłania się oko i nos
         f = (k - 0.3) / 0.7
         p.ell(hx + 30 * s * f, hy - 4 * s, 9 * s * f, 10 * s * f, (236, 238, 226), w=3)
