@@ -209,6 +209,7 @@ class Sequence(Model):
     clips: list[Clip] = Field(default_factory=list)
     ducking: bool = False
     ducking_gain: float = Field(default=.25, ge=0, le=1)
+    grain: float = Field(default=0, ge=0, le=20)  # ziarno przy eksporcie: odchylenie w poziomach RGB (0 = brak)
 
 
 class Project(Model):

@@ -111,6 +111,14 @@ Zanim ujęcie trafi do Studio do oceny:
   Zmiana samych kwestii albo długości: `docs/filmy/oddzial-c/ujecia/podmien_w_miejscu.py` — bez kasowania ujęć.
 - Plik ujęcia ma pokryć całą długość ujęcia na osi (zaokrąglaj liczbę klatek renderu w górę).
 - Nie usuwaj uwag ani markerów reżysera — to jego notatki.
+- **Ziarno filmu dokłada eksport, nie ujęcie.** Klip w ujęciach ma być czysty: losowe ziarno wpalone w każdą klatkę
+  nie daje się skompresować (720p z ziarnem to 5–11 Mb/s, kilka razy więcej niż sam rysunek), a przy eksporcie
+  przechodzi drugie kodowanie. Ziarno ustawia się raz na film: Eksport → Obraz → „Ziarno filmu przy eksporcie”
+  (5 = dotychczasowe ziarno Oddziału C, zmienia się 8×/s, tylko jasność). Skrypty renderu ujęć nie dodają ziarna;
+  `ZIARNO=1` tylko dla samodzielnego mp4 renderowanego bez Studio. Nie włączaj ziarna przy eksporcie dla klipów,
+  które mają je już wpalone (podwójne ziarno) — dotyczy ujęć Oddziału C wgranych przed 12.11.2026.
+- Stare wersje klipów po poprawkach zostają w mediach projektu i rosną w gigabajty; sprzątaj tylko materiały,
+  których nie używa żadne ujęcie, oś ani historia cofania (Oddział C 12.11.2026: 4,2 → 1,9 GB).
 
 ## 5. Skąd te zasady (Zombie Psychiatryk — Oddział C, 3.11.2026)
 

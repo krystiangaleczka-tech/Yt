@@ -176,7 +176,17 @@ def build_command(store: ProjectStore, project: Project, output: Path, *, previe
                 filters.append(f"[{layer}][v{index}]overlay=x='(W-w)/2+({x})*W':y='(H-h)/2+({y})*H':eof_action=pass:repeatlast=0:enable='gte(t,{start})*lt(t,{start+length+hold})'[{next_layer}]")
                 layer = next_layer
             index += 1
-    filters.append(f"[{layer}]format=yuv420p[final]")
+    grain = project.sequence.grain
+    if grain > 0:
+        # Ziarno filmu dokładane raz, na gotowy obraz: klipy w ujęciach są czyste (kilka razy mniejsze),
+        # a ziarno nie przechodzi przez dwa kodowania. Zmienia się 8×/s (jak „gotująca się” kreska),
+        # jednakowo dla R, G i B — tylko jasność. c0s = 1,6 × odchylenie w poziomach RGB (pomiar ffmpeg).
+        cmd += ["-f", "lavfi", "-i", f"color=c=0x808080:s={w}x{h}:r=8:d={total + 1}"]
+        filters.append(f"[{index}:v]format=gray,noise=c0s={min(100, round(grain * 1.6, 2))}:c0f=t,fps={rate},format=yuv420p[grain]")
+        filters.append(f"[{layer}]format=yuv420p[graded];[graded][grain]blend=c0_mode=grainmerge:c1_opacity=0:c2_opacity=0:shortest=1,format=yuv420p[final]")
+        index += 1
+    else:
+        filters.append(f"[{layer}]format=yuv420p[final]")
     if not audio_labels and project.legacy.get("_force_audio"):
         cmd += ["-f", "lavfi", "-t", str(total), "-i", "anullsrc=r=48000:cl=stereo"]
         filters.append(f"[{index}:a]anull[silence]"); audio_labels.append("[silence]")

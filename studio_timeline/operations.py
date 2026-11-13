@@ -25,7 +25,7 @@ def apply_operations(project: Project, operations: list[dict[str, Any]], origin:
                 member.group_id = group
             continue
         if kind == "set_sequence":
-            if origin != "manual" or not set(op.get("changes", {})) <= {"width", "height", "fps_num", "fps_den", "ducking", "ducking_gain"}:
+            if origin != "manual" or not set(op.get("changes", {})) <= {"width", "height", "fps_num", "fps_den", "ducking", "ducking_gain", "grain"}:
                 raise ValueError("Tylko użytkownik zmienia rozmiar sekwencji")
             old_rate=fps(draft)
             draft.sequence = type(draft.sequence).model_validate(draft.sequence.model_dump() | op["changes"])

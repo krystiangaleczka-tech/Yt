@@ -5,6 +5,7 @@ uruchom:  python3 render_d01.py            → dzien01.mp4 (bez dźwięku, do po
           python3 render_d01.py 12.5 40    → klatki kontrolne w podanych sekundach (od początku dnia)
 kontrola: python3 ../../scripts/kontrola_ujec.py render_d01.py
 """
+import os
 import math
 import re
 import subprocess
@@ -574,7 +575,10 @@ def frame(t):
         yy, xx = np.ogrid[:H, :W]
         vig = 1 - 0.45 * (((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2) ** 1.2
         arr *= np.clip(vig, 0.35, 1)[..., None]
-    arr += np.random.default_rng(int(t * FPS) // 3 + 13).normal(0, 5, (H, W, 1))  # ziarno 8×/s, jak kreska
+    # Ziarno dokłada eksport Studio (Eksport → Obraz → Ziarno filmu, 5). Wpalone w klip robi go kilka razy
+    # cięższym i przy eksporcie przechodzi drugie kodowanie. ZIARNO=1 tylko dla samodzielnego mp4 bez Studio.
+    if os.environ.get("ZIARNO") == "1":
+        arr += np.random.default_rng(int(t * FPS) // 3 + 13).normal(0, 5, (H, W, 1))  # ziarno 8×/s, jak kreska
     if i == 0:  # karta: wejście i wyjście przez czerń
         arr *= min(1.0, lt / 0.5, max(0.0, (T - lt) / 0.5))
     img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))

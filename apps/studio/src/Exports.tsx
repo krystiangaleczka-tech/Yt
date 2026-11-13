@@ -466,6 +466,35 @@ export function Exports() {
         ))}
       </div>
       <div className="surface tool-panel">
+        <h2>Obraz</h2>
+        <Field
+          label={`Ziarno filmu przy eksporcie: ${
+            p.sequence.grain ? p.sequence.grain.toFixed(1) : "brak"
+          }`}
+        >
+          <input
+            type="range"
+            min={0}
+            max={12}
+            step={0.5}
+            value={p.sequence.grain ?? 0}
+            onChange={(e) =>
+              s.run(() =>
+                s.edit([
+                  {
+                    type: "set_sequence",
+                    changes: { grain: Number(e.target.value) },
+                  },
+                ]),
+              )
+            }
+          />
+        </Field>
+        <p className="muted">
+          Dokładane raz, na gotowy film. Klipy w ujęciach zostają czyste i lekkie.
+        </p>
+      </div>
+      <div className="surface tool-panel">
         <h2>Miks dźwięku</h2>
         <label className="checkbox">
           <input
