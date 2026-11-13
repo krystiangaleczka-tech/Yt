@@ -1,6 +1,6 @@
 # Lektor: głos jak z wyciszonego studia
 
-Lektor to klon głosu autora (Chatterbox Multilingual). Ma brzmieć sucho i blisko, jak nagrany w wyciszonym studiu:
+Lektor to klon głosu autora (Chatterbox Multilingual; wersja angielska z emocjami: Chatterbox Turbo). Ma brzmieć sucho i blisko, jak nagrany w wyciszonym studiu:
 bez pogłosu pokoju, bez zamulenia, bez dziwnych dźwięków w nazwach. Narzędzie wspólne dla filmów:
 `docos/lektor_studio.py`; skrypt lektora filmu (np. `output/pierwszy-cesarz/lektor.py`) tylko nagrywa podejścia.
 
@@ -24,6 +24,12 @@ bez pogłosu pokoju, bez zamulenia, bez dziwnych dźwięków w nazwach. Narzędz
    w `lektor/podejscia/` do odsłuchu.
 6. **Próbki nie publikuje się** — z niej da się sklonować głos. `pilot/assets/` i pliki `.wav` nie trafiają do repo;
    na drugi komputer próbkę przenosi się osobno.
+7. **Emocje w tekście = Chatterbox Turbo, po angielsku.** Śmiech, westchnienie, szept, dramatyczny ton
+   (`[chuckle] [sigh] [whispering] [dramatic] [gasp]`, pauza `...`) czyta tylko Turbo, a Turbo mówi wyłącznie po
+   angielsku — Multilingual (polski) znaczniki pomija. Wersja angielska: tekst mówiony ze znacznikami w
+   `aktorskie_en.json` filmu, ten sam sposób (próbka bez pogłosu, 3 podejścia, sucho, wybór z oddechami), próbka
+   z angielskiego nagrania autora (`ref_en_studio.wav`). Każde podejście sprawdza Whisper: podejście, w którym nie
+   usłyszał tekstu (zgodność < 0,92 — połknięte słowo, powtórka), odpada przy wyborze jak powtórzenie modelu.
 
 ## Jak
 
@@ -36,9 +42,19 @@ pilot/.venv-tts/bin/python -I output/<film>/lektor.py [klucz …]
 pilot/.venv-enhance/bin/python -I docos/lektor_studio.py podejscia output/<film>/lektor
 ```
 
-Nagrywanie idzie na PC z kartą NVIDIA (kilka sekund na podejście). Na Macu z 8 GB RAM: ok. 1–2 min na podejście
-przez MPS — i tylko przy wolnej pamięci (zamknięty emulator Androida, inne ciężkie programy); przy pełnym swapie
-model staje.
+Wersja angielska z emocjami (Turbo) — na PC dwuklik `output/pierwszy-cesarz/pc/zrob_film_en.bat`, albo:
+
+```bash
+JEZYK=en SILNIK=turbo AKTORSKIE=output/<film>/aktorskie_en.json PROMPT=pilot/assets/ref_en_studio.wav \
+  python -I output/<film>/lektor_en.py [klucz …]     # → lektor_en/podejscia, wybór w lektor_en/
+```
+
+Nagrywanie idzie na PC z kartą NVIDIA (kilka sekund na podejście; RTX 4070, Turbo z Whisperem: 67 kwestii × 3
+podejścia ok. 8 min, obróbka wszystkich ok. 4 min). Na Macu z 8 GB RAM: ok. 1–2 min na podejście przez MPS —
+i tylko przy wolnej pamięci (zamknięty emulator Androida, inne ciężkie programy); przy pełnym swapie model staje.
+
+resemble-enhance na Windows: `deepspeed` (potrzebny tylko do treningu) nie instaluje się z pip, a plik ustawień
+modelu ma ścieżki uniksowe — `lektor_studio.py` obchodzi oba sam (`_resemble_na_windows`).
 
 ## Skąd te zasady
 
@@ -48,3 +64,4 @@ model staje.
 | 12.11.2026 | Pogłos, „nie jak w studiu” | Pogłos pokoju w próbce skopiowany do lektora | 1 |
 | 12.11.2026 | Dziwny dźwięk na „Handan” po filtrach | Odszumianie pogłosu na gotowej kwestii (artefakty) | 1 |
 | 12.11.2026 | Wybór s7 zamiast s42 | s7 ma oddech po „Handan” i po „Dżeng”, spokojniej | 2, 4 |
+| 13.11.2026 | „Musi się śmiać, robić pauzy, emocje — tekst ma być po angielsku” | Multilingual nie czyta znaczników | 7 |

@@ -6,6 +6,7 @@
   (ujęcia z render.BUDUJ), wydarzenia ujęć z ZDARZENIA (czasy od początku ujęcia — te same co w funkcjach ujęć).
 
 uruchom:  python3 efekty.py            → dzwiek/muzyka.wav, dzwiek/efekty.wav (cały film, 44,1 kHz mono)
+          JEZYK=en python efekty.py → dzwiek_en/ (wersja angielska: czasy z nagrań lektor_en/)
 """
 import math
 import sys
@@ -17,10 +18,10 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parents[1] / "docs/filmy/pierwszy-cesarz/ujecia"))
-from dane import okno_kwestii, ujecia  # noqa: E402
+from dane import JEZYK, okno_kwestii, ujecia  # noqa: E402
 
 SR = 44100
-OUT = HERE / "dzwiek"
+OUT = HERE / ("dzwiek_en" if JEZYK == "en" else "dzwiek")  # JEZYK=en: czasy z lektor_en/, polska wersja zostaje w dzwiek/
 RNG = np.random.default_rng(7)
 
 

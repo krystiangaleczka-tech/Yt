@@ -30,14 +30,21 @@ WYMOWA = [("Lü Buwei", "Lu Bułej"), ("Jing Ke", "Dżing Ke"), ("Zhao Gao", "D�
           ("Yan", "Jen"), ("Qi", "Czi"), ("przed naszą erą", "przed naszą erą")]
 
 
-PROBY = int(os.environ.get("PROBY", "4"))  # ile podejść na kwestię, zanim zostanie najlepsze
+STUDIO = os.environ.get("STUDIO", "1") != "0"  # sposób z Podręcznika → Lektor (studio()); STUDIO=0: dawne jedno podejście
+ZIARNA = [42, 7, 123]  # trzy podejścia na kwestię w sposobie studyjnym; różnią się rytmem (pauzy, melodia), nie barwą
+PROBY = int(os.environ.get("PROBY", "4"))  # STUDIO=0: ile podejść na kwestię, zanim zostanie najlepsze
 SPRAWDZ = os.environ.get("SPRAWDZ", "1") != "0"  # Whisper sprawdza każde podejście
 PROG = float(os.environ.get("PROG", "0.92"))  # zgodność tekstu z tym, co usłyszał Whisper, przy której podejście jest dobre
 
 
 def _litery(txt):
     txt = re.sub(r"\[[^\]]*\]", "", txt)  # znaczniki emocji ([sigh], [dramatic] …) nie są wypowiadane
-    return re.sub(r"[^a-ząćęłńóśźżü]", "", txt.lower())
+    if JEZYK == "en":
+        # Whisper pisze liczby cyframi („120,000”), tekst mówiony słowami („a hundred and twenty thousand”) — bez
+        # sprowadzenia obu do jednej postaci dobre podejścia odpadały (13.11.2026: rody, kopiec, koniec, upadek, chu)
+        from transformers.models.whisper.english_normalizer import EnglishTextNormalizer
+        txt = EnglishTextNormalizer({})(txt)
+    return re.sub(r"[^a-ząćęłńóśźżü0-9]", "", txt.lower())
 
 
 # AKTORSKIE=<plik.json>: {klucz: tekst mówiony ze znacznikami} — wersje kwestii z emocjami/westchnieniami dla silnika turbo
@@ -225,6 +232,72 @@ class silnik:
                                temperature=0.7).detach().cpu().numpy().squeeze().astype(np.float32)
 
 
+def enhance_python():
+    for p in (os.environ.get("LEKTOR_ENHANCE"), REPO / "pilot/.venv-enhance/bin/python",
+              REPO / ".venv-enhance/Scripts/python.exe"):
+        if p and Path(p).exists():
+            return str(p)
+    return None
+
+
+def studio(jobs, device):
+    """Podręcznik pracowni → Lektor (docos/lektor_studio.py): próbka bez pogłosu (PROMPT, np. pilot/assets/ref_en_studio.wav),
+    3 podejścia na kwestię (ZIARNA), każde suche i z odbudowanym pasmem, wybór podejścia z oddechem na każdym przecinku;
+    reżyser może wskazać inne w lektor_en/podejscia/wybor.json. Podejście, w którym Whisper nie usłyszał tekstu
+    (połknięte słowo, powtórka, bełkot: zgodność < PROG), odpada przy wyborze tak jak powtórzenie modelu.
+    Gotowe podejścia z tym samym tekstem, silnikiem i próbką są pomijane — przerwane nagrywanie wznawia się."""
+    import hashlib
+
+    import numpy as np
+    import soundfile as sf
+    import torch
+    enh = enhance_python()
+    if not enh:
+        sys.exit("Brak środowiska z resemble-enhance (pilot/.venv-enhance albo .venv-enhance, albo LEKTOR_ENHANCE).")
+    pod = OUT / "podejscia"
+    pod.mkdir(parents=True, exist_ok=True)
+    probka = hashlib.sha256(PROMPT.read_bytes()).hexdigest()[:16]
+    model = asr = None
+    for n, (klucz, txt) in enumerate(jobs, 1):
+        spoken = AKTORSKIE.get(klucz) or mowiony(txt)
+        meta_path = pod / f"{klucz}.json"
+        meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+        if (meta.get("spoken"), meta.get("probka"), meta.get("silnik")) != (spoken, probka, SILNIK):
+            meta = {"text": txt, "spoken": spoken, "probka": probka, "silnik": SILNIK, "podejscia": {}}
+        for z in ZIARNA:
+            raw = pod / f"{klucz}_s{z}.raw.wav"
+            if str(z) in meta["podejscia"] and raw.exists():
+                info = meta["podejscia"][str(z)]
+                if "whisper" in info:  # ocena liczona od nowa z zapisanej transkrypcji (poprawki porównania bez nagrywania)
+                    score = max(zgodnosc(spoken, info["whisper"]), zgodnosc(txt, info["whisper"]))
+                    info.update(powtorzenie=score < PROG, zgodnosc=round(score, 3))
+                    meta_path.write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
+                continue
+            if model is None:
+                if SPRAWDZ:
+                    asr = whisper(device)  # Whisper przed silnikiem: duże modele zostawiają mało wolnej pamięci RAM
+                model = silnik(device)
+            torch.manual_seed(z), random.seed(z), np.random.seed(z)
+            audio = model.generate(spoken, z)
+            sf.write(raw, audio, model.sr)
+            info = {"powtorzenie": False}
+            if asr:
+                heard = asr(audio, model.sr)
+                score = max(zgodnosc(spoken, heard), zgodnosc(txt, heard))  # Whisper pisze imiona i liczby po swojemu
+                info = {"powtorzenie": score < PROG, "zgodnosc": round(score, 3), "whisper": heard}
+            meta["podejscia"][str(z)] = info
+            meta_path.write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
+            print(f"{n}/{len(jobs)} {klucz} podejście {z}: {len(audio) / model.sr:.2f} s"
+                  + (f", zgodność {info['zgodnosc']:.2f}" if asr else "") + ("  (odpada)" if info["powtorzenie"] else ""),
+                  flush=True)
+    del model, asr
+    if device == "cuda":
+        torch.cuda.empty_cache()
+    # obróbka i wybór w osobnym środowisku (resemble-enhance ma inne wersje bibliotek niż Chatterbox)
+    subprocess.run([enh, "-I", str(REPO / "docos/lektor_studio.py"), "podejscia", str(OUT)], check=True,
+                   env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+
+
 def main(only):
     import numpy as np
     import soundfile as sf
@@ -239,6 +312,8 @@ def main(only):
     torch.load = lambda *a, **kw: orig(*a, **{**kw, "map_location": torch.device(device)})
     OUT.mkdir(parents=True, exist_ok=True)
     jobs = [(u[2], kwestia(u[7])) for u in ujecia() if kwestia(u[7]) and (not only or u[2] in only)]
+    if STUDIO:
+        return studio(jobs, device)
     model = asr = None
     for n, (klucz, txt) in enumerate(jobs, 1):
         meta = OUT / f"{klucz}.json"

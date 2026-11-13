@@ -53,11 +53,25 @@ kwestie_en.py, więc napisy i długości się zgadzają. Film 9:05 (VoxCPM2: 9:5
 - lektor_en.py (lektor wersji angielskiej; lektor.py to polski lektor z Maca): SILNIK=turbo | voxcpm | chatterbox | dots | qwen3; AKTORSKIE=<json> (tekst ze znacznikami); SPRAWDZ=0 bez Whispera
   (mało RAM, np. przy równoległym renderze); ZIARNO=<n> inne ziarno przy ponownym nagraniu wybranych kwestii.
   Na Windows silniki czytają wagi bez mapowania pliku (przy zajętym RAM safetensors kończył się „access violation”).
-- Próbka: pilot\assets\ref_en_prompt.wav + .txt (nie ma jej na GitHubie). Nagrania lektor_en\*.wav też nie — w repo są
-  tylko lektor_en\*.json (tekst, długość, ziarno, zgodność z Whisperem), z których plan liczy długości ujęć.
+- Nagrania lektor_en\*.wav nie są na GitHubie — w repo są tylko lektor_en\*.json (tekst, długość, wybrane podejście),
+  z których plan liczy długości ujęć.
+
+Lektor studyjny (13.11.2026, Podręcznik pracowni → Lektor): Turbo ze znacznikami, ale sposobem z Maca — próbka bez pogłosu
+pilot\assets\ref_en_studio.wav (z ref_en.wav przez resemble-enhance; zrob_film_en.bat robi ją sam, jeśli jest ref_en.wav),
+3 podejścia na kwestię (ziarna 42/7/123) w lektor_en\podejscia\, każde suche i z odbudowanym pasmem, wybór z oddechem na
+każdym przecinku; podejścia, w których Whisper nie usłyszał tekstu (zgodność < 0,92), odpadają. Inny wybór reżysera:
+lektor_en\podejscia\wybor.json, np. {"kolumna": 7}, potem
+  .venv-enhance\Scripts\python.exe -I docos\lektor_studio.py podejscia output\pierwszy-cesarz\lektor_en
+- Test A/B próbek (3 kwestie ze znacznikami, podobieństwo do ref_en2.wav): ref_en_studio 0,907, ref_studio z Maca
+  (polska, bez pogłosu) 0,906, dawna ref_en_prompt (z pogłosem) 0,892.
+- STUDIO=0 przywraca dawne jedno podejście (testy A/B silników). Środowisko resemble-enhance: .venv-enhance (zakłada je
+  zrob_film_en.bat) albo LEKTOR_ENHANCE=<python>; na Windows lektor_studio.py sam obchodzi brak deepspeed i ścieżki
+  uniksowe w ustawieniach modelu.
+- Muzyka i efekty wersji angielskiej: JEZYK=en python efekty.py → output\pierwszy-cesarz\dzwiek_en (polska w dzwiek\).
 
 Kolejność: najpierw akceptacja w Studio, dopiero potem render.
-1. zrob_film_en.bat — lektor Turbo, potem podgląd w DocOS Studio (port 8876): projekt „Pierwszy cesarz · The First Emperor
-   (EN, lektor Turbo)”, 79 ujęć z nowymi długościami, lektor na ścieżce a1, obraz ze starego renderu 1440p zmniejszony do 720p
-   i dopasowany tempem do nowych długości (studio_pc.py).
+1. zrob_film_en.bat — lektor studyjny, muzyka i efekty, potem podgląd w DocOS Studio (port 8876): projekt „Pierwszy cesarz ·
+   The First Emperor (EN, lektor studyjny)”, 79 ujęć z nowymi długościami, lektor a1, muzyka a2, efekty a3, obraz ze starego
+   renderu 1440p (KLIPY_STARE, domyślnie klipy_en_1440p) zmniejszony do 720p i dopasowany tempem do nowych długości
+   (studio_pc.py).
 2. Po akceptacji: renderuj_en.bat — klipy 1440p do klipy_en_1440p_turbo i film The_First_Emperor_1440p_turbo.mp4.

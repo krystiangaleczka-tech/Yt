@@ -8,7 +8,9 @@ uruchom (Studio musi działać, ffmpeg w PATH):
 - obraz: gotowe klipy ujęć (--klipy, stary render) zmniejszone do 720p i dopasowane tempem do nowej długości ujęcia
   (setpts) — animacje ujęć i tak rozciągają się na długość ujęcia, więc podgląd ruchu odpowiada przyszłemu renderowi;
 - ścieżka Lektor (a1): kwestie w swoich oknach (start ujęcia + 0,6 s), w opisie ujęcia tekst ze znacznikami emocji;
-- bez muzyki i efektów (na PC ich nie ma), bez eksportu. Kopie klipów: build/studio_klipy (można skasować).
+- muzyka (a2) i efekty (a3) z dzwiek_en/ (JEZYK=en python efekty.py — czasy z nagrań lektora), jeśli są;
+- bez eksportu. Kopie klipów: build/studio_klipy (można skasować; w nazwie liczba klatek, więc po zmianie długości
+  ujęcia klip liczy się od nowa).
 """
 import argparse
 import json
@@ -108,7 +110,7 @@ def main():
         sid = f"scene_d{akt:02d}_{k:02d}"
         if sid in have:
             continue
-        out = tmp / f"d{akt:02d}_{k:02d}.mp4"
+        out = tmp / f"d{akt:02d}_{k:02d}_{f1 - f0}.mp4"  # liczba klatek w nazwie: inna długość ujęcia = nowy klip
         jobs.append((Path(ARGS.klipy) / f"d{akt:02d}_{k:02d}.mp4", (f1 - f0) / FPS, out))
         meta.append((akt, k, klucz, kadr, ruch, opis, dzwiek, f0, f1 - f0, out))
     print(f"projekt {pid}: ujęć {len(UJ)}, film {t:.1f} s, do wgrania {len(meta)}", flush=True)
@@ -124,13 +126,18 @@ def main():
         description = f"({KADR.get(kadr, kadr)} · {RUCH.get(ruch, ruch)}) {opis}"
         if txt and klucz in aktorskie:
             description += f"\nLektor (Chatterbox Turbo, znaczniki emocji): {aktorskie[klucz]}"
+            wm = LEKTOR / f"{klucz}.json"
+            m = json.loads(wm.read_text(encoding="utf-8")) if wm.exists() else {}
+            if "podejscie" in m:
+                description += (f"\nPodejście s{m['podejscie']} ({m['wybral']}); pozostałe do odsłuchu: output/pierwszy-cesarz/"
+                                f"lektor_en/podejscia/{klucz}_s*.wav, inny wybór: lektor_en/podejscia/wybor.json")
         elif dzwiek and not txt:
             description += f"\nDźwięk: {dzwiek}"
         sc = {"id": sid, "title": ("Karta · " if kadr == "TYT" else "") + title_of(opis), "narration": txt,
               "description": description[:3000], "start": f0, "duration": fd, "timing": "measured", "mode": "upload",
               "animation": "static", "asset_id": aid, "role": "reconstruction",
               "legacy": {"flow_section_id": f"seq_a{akt:02d}", "akt": akt, "ujecie": k, "klucz": klucz,
-                         "zrodlo": "output/pierwszy-cesarz/ujecia1.py, ujecia2.py (render.py)", "lektor": "Chatterbox Turbo"}}
+                         "zrodlo": "output/pierwszy-cesarz/ujecia1.py, ujecia2.py (render.py)", "lektor": "Chatterbox Turbo, sposób studyjny"}}
         clips.append({"track_id": "v1", "asset_id": aid, "scene_id": sid, "title": sc["title"][:120], "start": f0, "duration": fd})
         wav = LEKTOR / f"{klucz}.wav"
         if txt and wav.exists():
@@ -139,6 +146,17 @@ def main():
             clips.append({"track_id": "a1", "asset_id": vaid, "scene_id": sid, "title": f"Lektor · {txt[:80]}",
                           "start": f0 + round(okno_kwestii(dzwiek)[0] * FPS), "duration": max(1, math.ceil(wav_len(wav) * FPS))})
         scenes.append(sc)
+    # muzyka i efekty: po jednym klipie na cały film (synteza efekty.py pod długości nagrań lektora)
+    for track, name, vol in (("a2", "muzyka", 0.8), ("a3", "efekty", 1.0)):
+        wav = HERE / "dzwiek_en" / f"{name}.wav"
+        if not meta:
+            break
+        if not wav.exists():
+            print(f"brak {wav} — bez ścieżki {name} (JEZYK=en python efekty.py)", flush=True)
+            continue
+        clips.append({"track_id": track, "asset_id": api.upload(pid, wav, f"{name} — cały film.wav"),
+                      "title": f"{name.capitalize()} · cały film", "start": 0,
+                      "duration": min(round(t * FPS), math.floor(wav_len(wav) * FPS)), "volume": vol})
     p = api.call(f"/projects/{pid}")
     p = api.call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": p["scenes"] + scenes}}, "PATCH")
     ops = [{"type": "add_clip", "clip": c} for c in clips]
@@ -148,11 +166,16 @@ def main():
     try:
         api.call(f"/projects/{pid}/flow/log", {"entry": {
             "who": "studio_pc.py", "kind": "wgranie",
-            "summary": f"Pierwszy cesarz EN do akceptacji: {len(scenes)} ujęć, nowy lektor Chatterbox Turbo ze znacznikami emocji "
-                       f"(film {t:.0f} s); obraz ze starego renderu 1440p dopasowany tempem do nowych długości ujęć",
-            "details": "Render 1440p dopiero po akceptacji reżysera. Teksty ze znacznikami: output/pierwszy-cesarz/aktorskie_en.json; "
-                       "poprzedni lektor (VoxCPM2): output/pierwszy-cesarz/lektor_en_voxcpm.",
-            "files": ["output/pierwszy-cesarz/aktorskie_en.json", "output/pierwszy-cesarz/lektor_en.py", "output/pierwszy-cesarz/studio_pc.py"]}})
+            "summary": f"Pierwszy cesarz EN do akceptacji: {len(scenes)} ujęć, lektor Chatterbox Turbo ze znacznikami emocji "
+                       f"nagrany sposobem studyjnym (film {t:.0f} s), muzyka i efekty pod nowe długości; obraz ze starego "
+                       f"renderu 1440p dopasowany tempem do nowych długości ujęć",
+            "details": "Lektor: Podręcznik pracowni → Lektor — próbka bez pogłosu (pilot/assets/ref_en_studio.wav z ref_en.wav "
+                       "przez resemble-enhance), 3 podejścia na kwestię (ziarna 42/7/123), każde suche i z odbudowanym pasmem, "
+                       "wybór z oddechem na każdym przecinku, bez podejść, w których Whisper nie usłyszał tekstu. Inne podejście: "
+                       "output/pierwszy-cesarz/lektor_en/podejscia/wybor.json. Teksty ze znacznikami: "
+                       "output/pierwszy-cesarz/aktorskie_en.json. Render 1440p dopiero po akceptacji reżysera.",
+            "files": ["output/pierwszy-cesarz/aktorskie_en.json", "output/pierwszy-cesarz/lektor_en.py", "docos/lektor_studio.py",
+                      "output/pierwszy-cesarz/efekty.py", "output/pierwszy-cesarz/studio_pc.py"]}})
     except SystemExit as e:
         print("dziennik:", e)
     print(pid)
@@ -164,7 +187,7 @@ if __name__ == "__main__":
     ap.add_argument("--klipy", default=str(REPO / "klipy_en_1440p"))
     ap.add_argument("--projekt", default="")
     ap.add_argument("-j", type=int, default=3)
-    ap.add_argument("--tytul", default="Pierwszy cesarz · The First Emperor (EN, lektor Turbo)")
+    ap.add_argument("--tytul", default="Pierwszy cesarz · The First Emperor (EN, lektor studyjny)")
     ARGS = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")
     if os.environ.get("JEZYK") != "en":

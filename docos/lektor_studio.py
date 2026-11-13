@@ -52,11 +52,41 @@ def _ffmpeg(src, dst, af=None, sr=44100):
     subprocess.run(cmd + ["-ar", str(sr), "-ac", "1", "-c:a", "pcm_s16le", str(dst)], check=True)
 
 
+def _resemble_na_windows():
+    """resemble-enhance na Windows (13.11.2026, pierwsze uruchomienie na PC):
+    - hparams.yaml modelu zapisuje ścieżki jako pathlib.PosixPath, którego Windows nie tworzy → WindowsPath;
+    - importuje deepspeed tylko do treningu (moduły train/engine), a na Windows nie ma go w pip → puste nazwy."""
+    if sys.platform == "win32":
+        import pathlib
+        pathlib.PosixPath = pathlib.WindowsPath
+    try:
+        import deepspeed  # noqa: F401
+        return
+    except ImportError:
+        pass
+    import types
+
+    def mod(name, **attrs):
+        m = types.ModuleType(name)
+        m.__dict__.update(attrs)
+        sys.modules[name] = m
+        return m
+
+    def brak(*_a, **_kw):
+        raise RuntimeError("deepspeed jest potrzebny tylko do treningu resemble-enhance")
+    ds = mod("deepspeed", DeepSpeedConfig=brak, init_distributed=brak)
+    ds.accelerator = mod("deepspeed.accelerator", get_accelerator=brak)
+    ds.runtime = mod("deepspeed.runtime")
+    ds.runtime.engine = mod("deepspeed.runtime.engine", DeepSpeedEngine=type("DeepSpeedEngine", (), {}))
+    ds.runtime.utils = mod("deepspeed.runtime.utils", clip_grad_norm_=brak)
+
+
 def _enhance(src, dst, lambd):
     """resemble-enhance w kawałkach po 8 s (całość naraz nie mieści się w 8 GB RAM); lambd = siła odszumiania."""
     import torch
     import torchaudio
     from huggingface_hub import snapshot_download
+    _resemble_na_windows()
     from resemble_enhance.enhancer.inference import enhance
 
     run_dir = Path(snapshot_download("ResembleAI/resemble-enhance", allow_patterns=["enhancer_stage2/*"])) / "enhancer_stage2"
