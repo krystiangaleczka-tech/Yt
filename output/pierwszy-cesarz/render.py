@@ -36,6 +36,9 @@ NAPISY = os.environ.get("NAPISY", "1") != "0"
 SZKIC = os.environ.get("SZKIC", "0") == "1"  # szkic do przeglądu w Studio: 640 × 360, 12 kl./s
 if SZKIC:
     papier.Q, FPS = 0.5, 12
+elif os.environ.get("ROZDZIELCZOSC"):  # wysokość klatki, np. ROZDZIELCZOSC=1440 → 2560 × 1440 (ta sama geometria, Q = 2)
+    papier.Q = int(os.environ["ROZDZIELCZOSC"]) / H
+CRF = os.environ.get("CRF", "23" if papier.Q <= 1 else "18")  # większa klatka: mniej kompresji, żeby papier nie poszedł w kostkę
 
 UJ = ujecia()
 KOL = swiat.KOL
@@ -145,7 +148,7 @@ def _klip(arg):
     ow, oh = int(round(W * papier.Q)), int(round(H * papier.Q))
     part = out.with_name(out.stem + ".part.mp4")  # plik niedokończony nie wygląda na gotowy po przerwaniu
     proc = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{ow}x{oh}",
-                             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", "23", "-pix_fmt", "yuv420p", str(part)],
+                             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", CRF, "-preset", "slow", "-threads", os.environ.get("X264_WATKI", "4"), "-pix_fmt", "yuv420p", str(part)],
                             stdin=subprocess.PIPE)
     for f in range(n):
         proc.stdin.write(frame(min(a + f / FPS, b - 1e-3)).tobytes())

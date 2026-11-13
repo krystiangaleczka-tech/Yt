@@ -14,6 +14,9 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
+import os
+import sys
+
 from papier import CX, CY, H, W, Sprite, back, clamp, ease, ease_out, noise, settle
 
 HERE = Path(__file__).resolve().parent
@@ -556,9 +559,22 @@ def weight():
     return Sprite(stack(w, h, parts, seed=40), "odwaznik", rim=2, clean=False)
 
 
+JEZYK = os.environ.get("JEZYK", "pl")
+
+
+def tr(txt):
+    """Napis na wycinku w języku filmu (JEZYK=en: kwestie_en.ETYKIETY)."""
+    if JEZYK != "en":
+        return txt
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "docs/filmy/pierwszy-cesarz/ujecia"))
+    from kwestie_en import ETYKIETY
+    return ETYKIETY.get(txt, txt)
+
+
 @lru_cache(None)
 def tag(txt, size=44):
     """Papierowa zawieszka z napisem (rok, nazwa) — zjeżdża na nitce."""
+    txt = tr(txt)
     f = ImageFont.truetype(FONT_PL, size * 2, index=PL_IDX)
     tw = int(f.getlength(txt) / 2)
     w, h = tw + 64, size + 44
@@ -591,7 +607,7 @@ def theatre():
     im = glue(im, sign, shadow=0.7, off=(5, 7), soft=6)
     for shape in (R(250, -176, 1030, -168), R(250, -82, 1030, -74), R(250, -176, 258, -74), R(1022, -176, 1030, -74)):
         im = glue(im, piece(w, h, shape, gold, "gnieciony", seed=61, contrast=0.9), shadow=0.4)
-    title = glyphs("PIERWSZY CESARZ", 58, FONT_PL, PL_IDX, (640 + ox, -122 + oy), "mm", spacing=0)
+    title = glyphs(tr("PIERWSZY CESARZ"), 58, FONT_PL, PL_IDX, (640 + ox, -122 + oy), "mm", spacing=0)
     im = glue(im, piece(w, h, title, (226, 186, 104), "gladki", rough=0.6, contrast=1.2), shadow=0.7, off=(2, 3), soft=1.5)
     a = np.asarray(im.getchannel("A")).copy()
     a[oy:oy + H, ox:ox + W] = 0  # otwór sceny

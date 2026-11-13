@@ -321,12 +321,31 @@ SLOWNIE = {"230": "dwieście trzydziestym", "221": "dwieście dwudziestym pierws
            "1974": "tysiąc dziewięćset siedemdziesiątym czwartym"}
 
 
+JEZYK = __import__("os").environ.get("JEZYK", "pl")  # JEZYK=en: angielska wersja filmu (kwestie_en.py, lektor_en/)
+
+
 def kwestia(dzwiek):
-    return dzwiek[2:].strip() if dzwiek.startswith("L:") else ""
+    txt = dzwiek[2:].strip() if dzwiek.startswith("L:") else ""
+    return _PL2EN[txt] if txt and JEZYK == "en" else txt
+
+
+def _pl2en():
+    from kwestie_en import EN
+    out = {}
+    for _, _, _, sceny in AKTY:
+        for _, _, beaty in sceny:
+            for _, shots in beaty:
+                for klucz, *_r, dzwiek in shots:
+                    if dzwiek.startswith("L:"):
+                        out[dzwiek[2:].strip()] = EN[klucz]
+    return out
+
+
+_PL2EN = _pl2en() if JEZYK == "en" else {}
 
 
 TEMPO = 2.1  # słowa na sekundę: klon głosu autora czyta wolniej niż przyjęte wcześniej 2,6
-LEKTOR = Path(__file__).resolve().parents[4] / "output/pierwszy-cesarz/lektor"
+LEKTOR = Path(__file__).resolve().parents[4] / ("output/pierwszy-cesarz/lektor" + ("_en" if JEZYK == "en" else ""))
 
 
 def nagranie(dzwiek):
@@ -350,7 +369,7 @@ def okno_kwestii(dzwiek):
         return (0.6, real)
     for k, v in SLOWNIE.items():
         txt = txt.replace(k, v)
-    return (0.6, len(txt.split()) / TEMPO)
+    return (0.6, len(txt.split()) / (2.6 if JEZYK == "en" else TEMPO))
 
 
 def ujecia(akt=None):

@@ -38,3 +38,26 @@ Przenieś TRZY foldery: Yt\klipy, Yt\output\pierwszy-cesarz\lektor (razem z pode
 Claude przelicza plan w Studio pod długości nagrań, układa na nowo muzykę i efekty, wgrywa lektora, obraz i dźwięk.
 
 Na Windows napisy i znaki chińskie są w czcionkach Georgia i SimSun (na Macu Baskerville i Songti).
+
+WERSJA ANGIELSKA 1440p (PC, 11–12.11.2026)
+==========================================
+Tłumaczenie kwestii, napisy na wycinkach i wymowa imion: docs\filmy\pierwszy-cesarz\ujecia\kwestie_en.py.
+Przełączniki: JEZYK=en (wersja angielska, lektor_en\), ROZDZIELCZOSC=1440 (Q=2, ta sama geometria), CRF (18 dla 1440p),
+X264_WATKI (domyślnie 4; więcej wątków x264 przy 1440p zjada po ~3 GB RAM na klip).
+
+Lektor (12.11.2026): Chatterbox Turbo (MIT) ze znacznikami emocji — teksty mówione w output\pierwszy-cesarz\aktorskie_en.json
+([sigh] westchnienie, [chuckle] śmieszek, [whispering] szept, [dramatic], [gasp]; „...” = pauza). Słowa bez zmian względem
+kwestie_en.py, więc napisy i długości się zgadzają. Film 9:05 (VoxCPM2: 9:53).
+- Test A/B (6 kwestii, podobieństwo WavLM do drugiego nagrania autora): VoxCPM2 0,922; Qwen3-TTS 0,906; dots.tts 0,929;
+  Chatterbox Turbo 0,929, ze znacznikami emocji 0,945 (output\pierwszy-cesarz\podobienstwo.py).
+- lektor_en.py (lektor wersji angielskiej; lektor.py to polski lektor z Maca): SILNIK=turbo | voxcpm | chatterbox | dots | qwen3; AKTORSKIE=<json> (tekst ze znacznikami); SPRAWDZ=0 bez Whispera
+  (mało RAM, np. przy równoległym renderze); ZIARNO=<n> inne ziarno przy ponownym nagraniu wybranych kwestii.
+  Na Windows silniki czytają wagi bez mapowania pliku (przy zajętym RAM safetensors kończył się „access violation”).
+- Próbka: pilot\assets\ref_en_prompt.wav + .txt (nie ma jej na GitHubie). Nagrania lektor_en\*.wav też nie — w repo są
+  tylko lektor_en\*.json (tekst, długość, ziarno, zgodność z Whisperem), z których plan liczy długości ujęć.
+
+Kolejność: najpierw akceptacja w Studio, dopiero potem render.
+1. zrob_film_en.bat — lektor Turbo, potem podgląd w DocOS Studio (port 8876): projekt „Pierwszy cesarz · The First Emperor
+   (EN, lektor Turbo)”, 79 ujęć z nowymi długościami, lektor na ścieżce a1, obraz ze starego renderu 1440p zmniejszony do 720p
+   i dopasowany tempem do nowych długości (studio_pc.py).
+2. Po akceptacji: renderuj_en.bat — klipy 1440p do klipy_en_1440p_turbo i film The_First_Emperor_1440p_turbo.mp4.
