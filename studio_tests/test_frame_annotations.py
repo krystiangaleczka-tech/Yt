@@ -58,6 +58,16 @@ class FrameAnnotationTests(unittest.TestCase):
         self.assertEqual(saved['stage_scenes'][0]['status'], 'approved')
         self.assertTrue(saved['scenes'][0]['locked'])
 
+    def test_marker_on_imported_scene_with_readable_id(self):
+        store = self.app.state.store
+        project = store.get(self.pid)
+        imported = Scene(id='scene_d01_06', title='Wei', duration=90)
+        store.mutate(self.pid, project.revision, lambda p: p.scenes.append(imported))
+        response = self.create(scene_id='scene_d01_06', frame=12)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(self.current()['frame_annotations'][0]['scene_id'], 'scene_d01_06')
+        self.assertEqual(self.create(scene_id='scene_d99_99').status_code, 422)
+
     def test_invalid_frame_geometry_and_empty_comment_are_rejected_atomically(self):
         for changes in [
             {'frame': -1}, {'frame': 90}, {'frame': 2.2}, {'text': '   '},
