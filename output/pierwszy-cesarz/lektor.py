@@ -1,6 +1,7 @@
 """Lektor filmu „Pierwszy cesarz”: kwestie z rozpiski czytane klonem głosu autora (Chatterbox Multilingual), sposobem
 z Podręcznika pracowni → Lektor (docos/lektor_studio.py): próbka bez pogłosu, kilka podejść na kwestię, suche
 i z odbudowanym pasmem, wybór podejścia z oddechami na przecinkach. Jeden proces, model ładowany raz.
+Przepis teatru papierowego (Lektor, zasada 8): ustawienia TEATR, wybrane podejście wolniej o 3 %, pauzy z zakresów.
 
 uruchom:  pilot/.venv-tts/bin/python -I output/pierwszy-cesarz/lektor.py [klucz …]
           (na PC z paczki: nagraj_lektora.bat — ten sam skrypt na karcie NVIDIA)
@@ -8,8 +9,8 @@ próbka:   pilot/assets/ref_studio.wav (bez pogłosu: docos/lektor_studio.py pro
 wynik:    lektor/podejscia/<klucz>_s<ziarno>.raw.wav — surowe podejścia, potem docos/lektor_studio.py (środowisko
           z resemble-enhance: LEKTOR_ENHANCE albo pilot/.venv-enhance / .venv-enhance) robi z nich suche nagrania
           i kładzie wybrane jako lektor/<klucz>.wav + lektor/<klucz>.json
-Gotowe podejścia z tym samym tekstem i tą samą próbką są pomijane, więc przerwane nagrywanie wznawia się od miejsca
-przerwania. Nazwy i liczby czyta się z WYMOWA (tekst mówiony), napis zostaje w zapisie z rozpiski.
+Gotowe podejścia z tym samym tekstem, tą samą próbką i tymi samymi ustawieniami są pomijane, więc przerwane
+nagrywanie wznawia się od miejsca przerwania (zmiana ustawień = nowe podejścia). Nazwy i liczby czyta się z WYMOWA (tekst mówiony), napis zostaje w zapisie z rozpiski.
 """
 import hashlib
 import json
@@ -25,6 +26,8 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "docs/filmy/pierwszy-cesarz/ujecia"))
 from dane import SLOWNIE, kwestia, ujecia  # noqa: E402
+sys.path.insert(0, str(REPO / "docos"))
+from lektor_studio import TEATR  # noqa: E402  ustawienia Chatterboxa dla teatru papierowego
 
 OUT = HERE / "lektor"
 POD = OUT / "podejscia"
@@ -93,8 +96,8 @@ def main(only):
         meta_path = POD / f"{klucz}.json"
         spoken = mowiony(txt)
         meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
-        if meta.get("spoken") != spoken or meta.get("probka") != probka:
-            meta = {"text": txt, "spoken": spoken, "probka": probka, "podejscia": {}}
+        if meta.get("spoken") != spoken or meta.get("probka") != probka or meta.get("ustawienia") != TEATR:
+            meta = {"text": txt, "spoken": spoken, "probka": probka, "ustawienia": TEATR, "podejscia": {}}
         for z in ZIARNA:
             raw = POD / f"{klucz}_s{z}.raw.wav"
             if str(z) in meta["podejscia"] and raw.exists():
@@ -103,8 +106,8 @@ def main(only):
                 model = ChatterboxMultilingualTTS.from_pretrained(device=device)
             torch.manual_seed(z), random.seed(z), np.random.seed(z)
             straz.bylo = False
-            audio = model.generate(spoken, language_id="pl", audio_prompt_path=str(REF), exaggeration=0.45,
-                                   cfg_weight=0.45, temperature=0.7).detach().cpu().numpy().squeeze().astype(np.float32)
+            audio = model.generate(spoken, language_id="pl", audio_prompt_path=str(REF),
+                                   **TEATR).detach().cpu().numpy().squeeze().astype(np.float32)
             sf.write(raw, audio, model.sr)
             meta["podejscia"][str(z)] = {"powtorzenie": straz.bylo}
             meta_path.write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
@@ -114,7 +117,7 @@ def main(only):
     if device == "mps":
         torch.mps.empty_cache()
     # obróbka i wybór w osobnym środowisku (resemble-enhance ma inne wersje bibliotek niż Chatterbox)
-    subprocess.run([enh, "-I", str(REPO / "docos/lektor_studio.py"), "podejscia", str(OUT)], check=True)
+    subprocess.run([enh, "-I", str(REPO / "docos/lektor_studio.py"), "podejscia", str(OUT), "--teatr"], check=True)
 
 
 if __name__ == "__main__":

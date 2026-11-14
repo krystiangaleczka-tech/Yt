@@ -10,6 +10,9 @@ naprawiają (12.11.2026: odszumianie pogłosu i EQ na gotowej kwestii brzmiały 
 3. wybór      — podejście z oddechem na każdym przecinku i kropce w środku kwestii, a z równych to spokojniejsze
                 (dłuższe pauzy); bez podejść, w których model się powtórzył. Reżyser może wskazać inne ziarno
                 w <lektor>/podejscia/wybor.json, np. {"handan": 7}
+4. teatr papierowy (podejscia --teatr) — przepis reżysera dla lektora teatru papierowego: wybrane podejście
+                wolniej o 3 % (bez zmiany wysokości głosu), potem pauzy w kwestii losowane z zakresów
+                (docos/pauzy_lektora.py). Nagrywa się je z ustawieniami TEATR (lektor.py filmu).
 
 Układ katalogu lektora filmu:
   <lektor>/podejscia/<klucz>.json            tekst, próbka (sha) i podejścia z flagą powtórzenia — pisze lektor.py
@@ -19,7 +22,7 @@ Układ katalogu lektora filmu:
 
 uruchom w środowisku z resemble-enhance (Mac: pilot/.venv-enhance, PC: .venv-enhance — zakłada je nagraj_lektora.bat):
   python -I docos/lektor_studio.py probka <nagranie.m4a> pilot/assets/ref_studio.wav [sekundy, domyślnie 16]
-  python -I docos/lektor_studio.py podejscia <katalog lektora filmu>
+  python -I docos/lektor_studio.py podejscia <katalog lektora filmu> [--teatr]
 """
 import json
 import re
@@ -32,6 +35,13 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # python -I nie dokłada katalogu skryptu
+import pauzy_lektora  # noqa: E402
+
+# Teatr papierowy — przepis reżysera z 14.11.2026 (próba „Pierwszy cesarz”: wersja C, mocna ekspresja, spowolniona
+# o 3 %, z pauzami losowanymi): „w ten sposób chcę mieć zawsze robiony lektor dla paper theatre”.
+TEATR = {"exaggeration": 1.0, "cfg_weight": 0.3, "temperature": 0.7}   # Chatterbox Multilingual, w lektor.py filmu
+TEMPO = 0.97   # mowa wolniej o 3 % (ffmpeg atempo — wysokość głosu bez zmian), na wybranym podejściu, przed pauzami
 # sucho: cisza na brzegach precz, bramka na szum między słowami, kompresja, mniej buczenia, więcej czytelności
 FX = ("silenceremove=start_periods=1:start_threshold=-42dB,areverse,"
       "silenceremove=start_periods=1:start_threshold=-42dB,areverse,"
@@ -149,7 +159,14 @@ def wybierz(spoken, takes):
     return max(ok, key=ocena)
 
 
-def podejscia(lektor):
+def teatr(zrodlo, dst, spoken, klucz):
+    """Teatr papierowy: wybrane podejście wolniej o 3 %, potem pauzy w kwestii z zakresów. → raport pauz."""
+    tmp = Path(tempfile.mkdtemp()) / "tempo.wav"
+    _ffmpeg(zrodlo, tmp, f"atempo={TEMPO}")
+    return pauzy_lektora.plik(tmp, dst, spoken, pauzy_lektora.ziarno_kwestii(klucz))
+
+
+def podejscia(lektor, teatr_papierowy=False):
     lektor = Path(lektor)
     pod = lektor / "podejscia"
     wybor = json.loads((pod / "wybor.json").read_text(encoding="utf-8")) if (pod / "wybor.json").exists() else {}
@@ -172,6 +189,20 @@ def podejscia(lektor):
         rez = str(wybor[klucz]) if str(wybor.get(klucz, "")) in takes else None
         z = rez or wybierz(meta["spoken"], takes)
         dst, dst_meta = lektor / f"{klucz}.wav", lektor / f"{klucz}.json"
+        if teatr_papierowy:
+            dl = round(sf.info(str(takes[z][0])).duration, 3)
+            stan = {"text": meta["text"], "spoken": meta["spoken"], "podejscie": int(z),
+                    "wybral": "reżyser" if rez else "automat", "probka": meta["probka"],
+                    "teatr": {"tempo": TEMPO, "ziarno_pauz": pauzy_lektora.ziarno_kwestii(klucz), "podejscie_s": dl}}
+            if dst.exists() and dst_meta.exists():
+                stare = json.loads(dst_meta.read_text(encoding="utf-8"))
+                if {k: v for k, v in stare.items() if k not in ("duration", "pauzy")} == stan:
+                    continue
+            raport = teatr(takes[z][0], dst, meta["spoken"], klucz)
+            nowe = {**stan, "duration": round(sf.info(str(dst)).duration, 3), "pauzy": raport}
+            dst_meta.write_text(json.dumps(nowe, ensure_ascii=False), encoding="utf-8")
+            print(f"{klucz}: podejście {z} ({nowe['wybral']}), teatr: {dl:.2f} → {nowe['duration']:.2f} s", flush=True)
+            continue
         nowe = {"text": meta["text"], "spoken": meta["spoken"], "duration": round(sf.info(str(takes[z][0])).duration, 3),
                 "podejscie": int(z), "wybral": "reżyser" if rez else "automat", "probka": meta["probka"]}
         if dst_meta.exists() and json.loads(dst_meta.read_text(encoding="utf-8")) == nowe and dst.exists():
@@ -184,7 +215,7 @@ def podejscia(lektor):
 if __name__ == "__main__":
     if len(sys.argv) >= 4 and sys.argv[1] == "probka":
         probka(sys.argv[2], sys.argv[3], float(sys.argv[4]) if len(sys.argv) > 4 else 16.0)
-    elif len(sys.argv) == 3 and sys.argv[1] == "podejscia":
-        podejscia(sys.argv[2])
+    elif len(sys.argv) in (3, 4) and sys.argv[1] == "podejscia" and sys.argv[3:] in ([], ["--teatr"]):
+        podejscia(sys.argv[2], teatr_papierowy=sys.argv[3:] == ["--teatr"])
     else:
         sys.exit(__doc__)

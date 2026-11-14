@@ -1,4 +1,5 @@
 """Pauzy lektora jak u człowieka — za każdym razem trochę inne (reżyser, 14.11.2026: „człowiek mówi różnie”).
+Część przepisu na lektora teatru papierowego (Podręcznik pracowni → Lektor, zasada 8).
 
 Każda pauza ma zakres od–do zależny od znaku, długości zdania i słowa przed nią; program losuje długość z zakresu
 (ziarno losowania, więc wynik da się powtórzyć albo przelosować) i pilnuje, żeby dwie kolejne pauzy tego samego
@@ -14,11 +15,15 @@ Pauza = cisza między końcem jednego słowa a początkiem następnego. W nagran
 (poniżej -40 dBFS) i przypisuje znakom przestankowym wg pozycji w tekście mówionym; z każdej starej pauzy zostaje
 naturalne wybrzmienie (BRZEG) z obu stron, środek dostaje nową długość. Głos się nie zmienia.
 
-  python -I docos/pauzy_lektora.py <katalog lektora> <wynik.wav> klucz [klucz …] [--ziarno N]
-
-Katalog lektora: <klucz>.wav + <klucz>.json z polem "spoken" (układ docos/lektor_studio.py). Kwestie skleja w podanej
-kolejności; obok wyniku zapisuje <wynik>.json z listą pauz (gdzie, reguła, zakres, wylosowane, było).
+Dwa użycia:
+  - film: pauzy w środku jednej kwestii (lektor_studio.py podejscia --teatr woła plik()); pauzę po kwestii ustala
+    montaż ujęć, nie ten program,
+  - ciągły tekst (próba, bajka): kwestie sklejone w podanej kolejności, z pauzą po zdaniu między nimi:
+      python -I docos/pauzy_lektora.py <katalog lektora> <wynik.wav> klucz [klucz …] [--ziarno N]
+    Katalog lektora: <klucz>.wav + <klucz>.json z polem "spoken" (układ docos/lektor_studio.py). Obok wyniku
+    <wynik>.json z listą pauz (gdzie, reguła, zakres, wylosowane, było).
 """
+import hashlib
 import json
 import random
 import re
@@ -82,14 +87,17 @@ def pauzy_w_nagraniu(y, sr):
     return out, a * hop, (b + 1) * hop
 
 
+def czysty(spoken):
+    """Tekst mówiony bez znaczników aktorskich ([chuckle] itp.), żeby pozycje znaków odpowiadały mowie."""
+    return re.sub(r"\s+", " ", re.sub(r"\[[^\]]*\]", "", spoken)).strip()
+
+
 def znaki(spoken):
     """Znaki w środku kwestii: (pozycja w tekście, znak, słowo przed, czy to nazwa własna, liczba słów zdania)."""
     zdania = [(m.start(), m.end(), len(re.findall(r"\w+", m.group()))) for m in re.finditer(r"[^.!?…]+[.!?…]*", spoken)]
     out = []
     for m in re.finditer(r"(\.\.\.|…|[,;:.!?—–])(?=\s*\w)", spoken):
-        przed = spoken[:m.start()]
-        slowa = re.findall(r"\w+", przed)
-        slowo = slowa[-1]
+        slowo = re.findall(r"\w+", spoken[:m.start()])[-1]
         zd = next((z for z in zdania if z[0] <= m.start() < z[1]), zdania[-1])
         poczatek_zdania = len(re.findall(r"\w+", spoken[zd[0]:m.start()])) == 1
         out.append((m.start(), m.group(1), slowo, slowo[0].isupper() and not poczatek_zdania, zd[2]))
@@ -181,61 +189,91 @@ def ustaw_pauze(y, s, e, cel, sr):
     return np.concatenate([y[s:s + br], np.zeros(srodek, dtype=np.float32), y[e - br:e]])
 
 
+def kwestia(y, sr, spoken, los, nr_zdania=0, klucz=""):
+    """Pauzy w środku jednej kwestii.
+    → (nagranie od mowy do mowy z wybrzmieniem na brzegach, wybrzmienie z przodu, z tyłu [próbki], raport, nr_zdania)."""
+    spoken = czysty(spoken)
+    kand, a, b = pauzy_w_nagraniu(y, sr)
+    zn = znaki(spoken)
+    przyp = przypisz(zn, kand, a, b, sr, len(spoken))
+    zmiany, raport = {}, []   # indeks kandydata → cel
+    for (poz, znak, slowo, nazwa, slow), ip in zip(zn, przyp):
+        if znak in ".!?":
+            nr_zdania += 1
+            od, do, regula = zakres_zdania(slow, nr_zdania, znak)
+            rodzaj = "zdanie"
+        else:
+            od, do, regula = zakres_znaku(znak, slowo, nazwa)
+            rodzaj = "znak"
+        cel = los(rodzaj, od, do)
+        bylo = None if ip is None else round((kand[ip][1] - kand[ip][0]) / sr, 2)
+        raport.append({"kwestia": klucz, "gdzie": f"{slowo}{znak}", "regula": ", ".join(regula),
+                       "od": round(od, 2), "do": round(do, 2), "wylosowane": cel, "bylo": bylo})
+        if ip is None:
+            raport[-1]["uwaga"] = "brak pauzy w nagraniu — zostaje bez pauzy"
+        else:
+            zmiany[ip] = cel
+    for i, (s, e) in enumerate(kand):   # długie pauzy bez znaku w tekście
+        if i not in zmiany and (e - s) / sr > BEZ_ZNAKU_PROG:
+            cel = los("bez_znaku", *BEZ_ZNAKU)
+            zmiany[i] = cel
+            raport.append({"kwestia": klucz, "gdzie": f"{s / sr:.2f} s (bez znaku w tekście)", "regula": "bez znaku",
+                           "od": BEZ_ZNAKU[0], "do": BEZ_ZNAKU[1], "wylosowane": cel, "bylo": round((e - s) / sr, 2)})
+    br = int(BRZEG * sr)
+    pocz, kon = max(0, a - br), min(len(y), b + br)
+    out, last = [], pocz
+    for i in sorted(zmiany):
+        s, e = kand[i]
+        out += [y[last:s], ustaw_pauze(y, s, e, zmiany[i], sr)]
+        last = e
+    out.append(y[last:kon])
+    return np.concatenate(out), a - pocz, kon - b, raport, nr_zdania
+
+
+def ziarno_kwestii(klucz):
+    """Stałe ziarno z klucza kwestii: to samo nagranie dostaje przy każdym przebiegu te same pauzy."""
+    return int(hashlib.sha256(klucz.encode("utf-8")).hexdigest()[:8], 16)
+
+
+def plik(src, dst, spoken, ziarno):
+    """Film: pauzy w środku jednej kwestii, src → dst (brzegi: tylko wybrzmienie, bez ciszy). → raport."""
+    y, sr = sf.read(str(src), dtype="float32")
+    nagr, _, _, raport, _ = kwestia(y, sr, spoken, Losowanie(ziarno), klucz=Path(dst).stem)
+    sf.write(str(dst), nagr, sr, subtype="PCM_16")
+    return raport
+
+
+def wypisz(raport):
+    for p in raport:
+        bylo = f"{p['bylo']:.2f}" if p["bylo"] is not None else "  — "
+        print(f"{p['gdzie']:<34} {bylo} → {p['wylosowane']:.2f} s   [{p['od']:.2f}–{p['do']:.2f}] {p['regula']}"
+              + (f"  ({p['uwaga']})" if p.get("uwaga") else ""))
+
+
 def uloz(katalog, dst, klucze, ziarno=1):
+    """Ciągły tekst: kwestie sklejone w podanej kolejności, między nimi pauza po zdaniu."""
     katalog, dst = Path(katalog), Path(dst)
     los, raport, sr, czesci, nr_zdania = Losowanie(ziarno), [], None, [], 0
     for nk, k in enumerate(klucze):
         y, s_ = sf.read(str(katalog / f"{k}.wav"), dtype="float32")
         sr = sr or s_
         assert s_ == sr, f"{k}: {s_} Hz zamiast {sr} Hz"
-        spoken = json.loads((katalog / f"{k}.json").read_text(encoding="utf-8"))["spoken"]
-        kand, a, b = pauzy_w_nagraniu(y, sr)
-        zn = znaki(spoken)
-        przyp = przypisz(zn, kand, a, b, sr, len(spoken))
-        zmiany = {}   # indeks kandydata → (cel, opis)
-        for (poz, znak, slowo, nazwa, slow), ip in zip(zn, przyp):
-            if znak in ".!?":
-                nr_zdania += 1
-                od, do, regula = zakres_zdania(slow, nr_zdania, znak)
-                rodzaj = "zdanie"
-            else:
-                od, do, regula = zakres_znaku(znak, slowo, nazwa)
-                rodzaj = "znak"
-            cel = los(rodzaj, od, do)
-            bylo = None if ip is None else round((kand[ip][1] - kand[ip][0]) / sr, 2)
-            raport.append({"kwestia": k, "gdzie": f"{slowo}{znak}", "regula": ", ".join(regula),
-                           "od": round(od, 2), "do": round(do, 2), "wylosowane": cel, "bylo": bylo})
-            if ip is None:
-                raport[-1]["uwaga"] = "brak pauzy w nagraniu — zostaje bez pauzy"
-            else:
-                zmiany[ip] = cel
-        for i, (s, e) in enumerate(kand):   # długie pauzy bez znaku w tekście
-            if i not in zmiany and (e - s) / sr > BEZ_ZNAKU_PROG:
-                cel = los("bez_znaku", *BEZ_ZNAKU)
-                zmiany[i] = cel
-                raport.append({"kwestia": k, "gdzie": f"{s / sr:.2f} s (bez znaku w tekście)", "regula": "bez znaku",
-                               "od": BEZ_ZNAKU[0], "do": BEZ_ZNAKU[1], "wylosowane": cel,
-                               "bylo": round((e - s) / sr, 2)})
-        br = int(BRZEG * sr)
-        pocz, kon = max(0, a - br), min(len(y), b + br)
-        out, last = [], pocz
-        for i in sorted(zmiany):
-            s, e = kand[i]
-            out += [y[last:s], ustaw_pauze(y, s, e, zmiany[i], sr)]
-            last = e
-        out.append(y[last:kon])
-        czesci.append([np.concatenate(out), a - pocz, kon - b, 0])   # nagranie, cisza z przodu, z tyłu, pauza po
+        spoken = czysty(json.loads((katalog / f"{k}.json").read_text(encoding="utf-8"))["spoken"])
+        nagr, przod, tyl, r, nr_zdania = kwestia(y, sr, spoken, los, nr_zdania, k)
+        raport += r
+        pauza = 0
         if nk < len(klucze) - 1:   # koniec kwestii = koniec zdania
             nr_zdania += 1
-            ostatnie = re.findall(r"[^.!?…]+[.!?…]*", spoken)[-1]
-            slow = len(re.findall(r"\w+", ostatnie))
+            slow = len(re.findall(r"\w+", re.findall(r"[^.!?…]+[.!?…]*", spoken)[-1]))
             znak = (re.findall(r"[.!?…]", spoken) or ["."])[-1]
             od, do, regula = zakres_zdania(slow, nr_zdania, znak)
             cel = los("zdanie", od, do)
-            raport.append({"kwestia": k, "gdzie": f"{re.findall(chr(92) + 'w+', spoken)[-1]}{znak} (koniec kwestii)",
+            ostatnie_slowo = re.findall(r"\w+", spoken)[-1]
+            raport.append({"kwestia": k, "gdzie": f"{ostatnie_slowo}{znak} (koniec kwestii)",
                            "regula": ", ".join(regula), "od": round(od, 2), "do": round(do, 2), "wylosowane": cel,
                            "bylo": None})
-            czesci[-1][3] = int(cel * sr)
+            pauza = int(cel * sr)
+        czesci.append((nagr, przod, tyl, pauza))
     # między kwestiami: cisza tyle, żeby razem z wybrzmieniem na końcu i przed początkiem następnej dała pauzę
     sklejone = []
     for i, (nagr, _, tyl, pauza) in enumerate(czesci):
@@ -247,10 +285,7 @@ def uloz(katalog, dst, klucze, ziarno=1):
     sf.write(str(dst), wynik, sr, subtype="PCM_16")
     dst.with_suffix(".json").write_text(json.dumps({"ziarno": ziarno, "klucze": klucze, "pauzy": raport},
                                                    ensure_ascii=False, indent=1), encoding="utf-8")
-    for p in raport:
-        bylo = f"{p['bylo']:.2f}" if p["bylo"] is not None else "  — "
-        print(f"{p['gdzie']:<34} {bylo} → {p['wylosowane']:.2f} s   [{p['od']:.2f}–{p['do']:.2f}] {p['regula']}"
-              + (f"  ({p['uwaga']})" if p.get("uwaga") else ""))
+    wypisz(raport)
     print(f"{dst}: {len(wynik) / sr:.1f} s, ziarno {ziarno}")
 
 
