@@ -5,6 +5,8 @@ chcp 65001 >nul
 cd /d "%~dp0..\..\.."
 set JEZYK=en
 set ROZDZIELCZOSC=1440
+rem render koncowy: dokladne kodowanie x264 (render.py domyslnie koduje veryfast - do przegladu w Studio)
+set PRESET=slow
 set PYTHONIOENCODING=utf-8
 if not defined PROCESY set PROCESY=4
 if not defined KLIPY set KLIPY=klipy_en_1440p_turbo

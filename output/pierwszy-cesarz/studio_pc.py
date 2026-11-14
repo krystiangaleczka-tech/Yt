@@ -81,12 +81,69 @@ def dopasuj(job):
     if out.exists() and out.stat().st_size > 0:
         return out
     old = klatki(src) / FPS_IN
-    k = dur / old
+    k = 1.0 if ARGS.stopklatka else dur / old  # stopklatka: ruch w starym tempie, ostatnia klatka stoi do końca ujęcia
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(src), "-vf",
-                    f"setpts=PTS*{k:.6f},fps={FPS_IN},scale=1280:720:flags=lanczos,tpad=stop_mode=clone:stop_duration=0.25",
+                    f"setpts=PTS*{k:.6f},fps={FPS_IN},scale=1280:720:flags=lanczos,tpad=stop_mode=clone:stop_duration={max(0.0, dur - old * k) + 0.25:.4f}",
                     "-an", "-t", f"{dur + 0.25:.4f}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-threads", "2",
                     "-pix_fmt", "yuv420p", str(out)], check=True)
     return out
+
+
+def aktualizuj(api, pid, p, UJ, tmp, okno_kwestii):
+    """Nowe długości ujęć (dane.ujecia()) w istniejącym projekcie: te same ujęcia i klipy (uwagi reżysera zostają),
+    zmienia się start i długość ujęcia, obraz ujęć o nowej długości (--klipy), start kwestii lektora oraz muzyka
+    i efekty (dzwiek_en/, przeliczone pod nowe długości)."""
+    scenes = {s["id"]: s for s in p["scenes"]}
+    clips = p["sequence"]["clips"]
+    plan, jobs, t = {}, [], 0.0
+    for akt, k, klucz, kadr, ruch, sec, opis, dzwiek in UJ:
+        f0, f1 = round(t * FPS), round((t + sec) * FPS)
+        t += sec
+        sid = f"scene_d{akt:02d}_{k:02d}"
+        if sid not in scenes:
+            raise SystemExit(f"brak ujęcia {sid} w projekcie {pid} — najpierw wgraj film bez --aktualizuj")
+        out = tmp / f"d{akt:02d}_{k:02d}_{f1 - f0}.mp4"
+        plan[sid] = (f0, f1 - f0, klucz, dzwiek, out)
+        if scenes[sid]["duration"] != f1 - f0:  # samo przesunięcie: obraz zostaje, nowy klip tylko przy nowej długości
+            jobs.append((Path(ARGS.klipy) / f"d{akt:02d}_{k:02d}.mp4", (f1 - f0) / FPS, out))
+    zmiana = {sid for sid, (f0, fd, *_r) in plan.items() if (scenes[sid]["start"], scenes[sid]["duration"]) != (f0, fd)}
+    dluzsze = {sid for sid, (f0, fd, *_r) in plan.items() if scenes[sid]["duration"] != fd}
+    print(f"projekt {pid}: film {t:.1f} s, ujęć do przesunięcia {len(zmiana)}, nowych klipów obrazu {len(jobs)}", flush=True)
+    with ThreadPoolExecutor(ARGS.j) as ex:
+        list(ex.map(dopasuj, jobs))
+    # najpierw media (każde wgranie podnosi rewizję projektu), potem zmiany na świeżo wczytanym projekcie
+    obraz = {}
+    for sid in sorted(dluzsze):
+        f0, fd, klucz, dzwiek, out = plan[sid]
+        obraz[sid] = api.upload(pid, out, f"{sid[7:]} {klucz}.mp4")
+    dzwieki = {}
+    for track, name in (("a2", "muzyka"), ("a3", "efekty")):
+        wav = HERE / "dzwiek_en" / f"{name}.wav"
+        if wav.exists() and any(c["track_id"] == track for c in clips):
+            dzwieki[track] = (api.upload(pid, wav, f"{name} — cały film.wav"), min(round(t * FPS), math.floor(wav_len(wav) * FPS)))
+    p = api.call(f"/projects/{pid}")
+    clips = p["sequence"]["clips"]
+    nowe = []
+    for s in p["scenes"]:
+        if s["id"] in zmiana:
+            f0, fd, *_r = plan[s["id"]]
+            s = {**s, "start": f0, "duration": fd, "asset_id": obraz.get(s["id"], s["asset_id"])}
+        nowe.append(s)
+    # 1) obraz ujęcia na nowy (dłuższy) klip i muzyka/efekty na nowe nagrania; 2) nowe start/długość ujęć — Studio samo
+    # przesuwa wtedy wszystkie klipy ujęcia (obraz, kwestię lektora) i wydłuża klip obrazu do długości ujęcia
+    ops = []
+    for c in clips:
+        if c.get("scene_id") in obraz and c["track_id"] == "v1":
+            ops.append({"type": "update_clip", "clip_id": c["id"], "changes": {"asset_id": obraz[c["scene_id"]]}})
+        elif c["track_id"] in dzwieki:
+            aid, dur = dzwieki[c["track_id"]]
+            ops.append({"type": "update_clip", "clip_id": c["id"], "changes": {"asset_id": aid, "duration": dur}})
+    for k in range(0, len(ops), 200):
+        p = api.call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": ops[k:k + 200]})
+    p = api.call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": nowe}}, "PATCH")
+    koniec = max(c["start"] + c["duration"] for c in p["sequence"]["clips"]) / FPS
+    print(f"gotowe: przesunięto {len(zmiana)} ujęć, nowy obraz {len(obraz)}, oś {koniec:.1f} s, rewizja {p['revision']}", flush=True)
+    return pid
 
 
 def main():
@@ -103,6 +160,8 @@ def main():
     p = api.call(f"/projects/{pid}")
     have = {s["id"] for s in p["scenes"]}
     UJ = ujecia()
+    if ARGS.aktualizuj:
+        return aktualizuj(api, pid, p, UJ, tmp, okno_kwestii)
     meta, jobs, t = [], [], 0.0
     for akt, k, klucz, kadr, ruch, sec, opis, dzwiek in UJ:
         f0, f1 = round(t * FPS), round((t + sec) * FPS)
@@ -187,6 +246,10 @@ if __name__ == "__main__":
     ap.add_argument("--klipy", default=str(REPO / "klipy_en_1440p"))
     ap.add_argument("--projekt", default="")
     ap.add_argument("-j", type=int, default=3)
+    ap.add_argument("--stopklatka", action="store_true",
+                    help="dłuższe ujęcie bez nowego renderu: stary klip + stopklatka na końcu (przegląd w Studio; render robi reżyser na końcu)")
+    ap.add_argument("--aktualizuj", action="store_true",
+                    help="istniejący projekt: nowe długości ujęć, obraz z --klipy, kwestie i muzyka/efekty na nowe miejsca")
     ap.add_argument("--tytul", default="Pierwszy cesarz · The First Emperor (EN, lektor studyjny)")
     ARGS = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")

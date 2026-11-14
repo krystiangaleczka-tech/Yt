@@ -144,6 +144,7 @@ Zanim ujęcie trafi do Studio do oceny:
 | Pierwszy cesarz (10.11) | kawałki mapy przycięte każdy do własnego obrysu skalowały się jak cała mapa — elementy jednej układanki muszą dzielić jeden układ współrzędnych (`crop=False`) | 1.6 |
 | Pierwszy cesarz (10.11, reżyser) | „od 1:00 do 1:40 mało się dzieje” — ujęcia sali stały w miejscu; za mało paralaksy i dekoracji, które się stawiają; szkic 640 × 360 oddany jako materiał do oceny | 1.8 (każde ujęcie ma wydarzenie), 3 (oceniamy pełną jakość) |
 | Pierwszy cesarz (10.11) | przy zmianie dekoracji wóz i jeździec wisiały w powietrzu, zanim wysunęła się droga — aktorzy wchodzą razem z ziemią, na której stoją | 1.2 |
+| Pierwszy cesarz EN (14.11, Studio) | cięcie padało 0,6 s po ostatnim słowie lektora, bo zaraz zaczynało się następne ujęcie — reżyser: „obcina zaraz po kwestii ujęcie […] i jest to nienaturalne”; obraz trwa jeszcze po kwestii: 1,1 s w środku beatu, 1,4 s na końcu beatu, 1,8 s na końcu sceny, 2,3 s na końcu aktu (dane.py, PAUZA_PO) | Podręcznik 03 (2) |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

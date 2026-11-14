@@ -3,6 +3,14 @@
 - Przed tworzeniem albo poprawianiem jakiegokolwiek ujęcia (skrypt renderu, scena Stage w Studio, obraz generowany do
   ujęcia) przeczytaj [docs/WYTYCZNE_UJEC.md](docs/WYTYCZNE_UJEC.md) i przejdź jego kontrolę (sekcja 3) przed oddaniem
   ujęć reżyserowi.
+- Do autora pisz po polsku — wszystko, co czyta: odpowiedzi, podsumowania w polu „następny krok”, opisy poleceń,
+  pytania i przyciski. Angielski tylko w kodzie i tam, gdzie wymaga go film (np. kwestie lektora wersji EN).
+- **Renderu nie uruchamiasz.** Klipy pełnej jakości i film renderuje wyłącznie reżyser w programie, kiedy
+  wszystko w Studio jest zrobione i zatwierdzone. W trakcie pracy poprawki idą prosto do Studio na istniejących
+  klipach: dłuższe ujęcie = stary klip przedłużony stopklatką, krótsze = przycięty (`studio_pc.py --aktualizuj
+  --stopklatka`). Nowe ujęcie bez klipu albo zmiana rysunku, której nie da się pokazać na starym klipie: zapytaj
+  reżysera, zanim cokolwiek wyrenderujesz. Jak to robić krok po kroku: Podręcznik, „Jak pracujemy” → „Poprawki
+  w Studio i render końcowy”.
 - Autor jest reżyserem: ocenia grę i rytm, nie wyłapuje błędów rysunku. Zmiany robi się w Studio (ujęcia i montaż),
   bez eksportu, dopóki o niego nie poprosi.
 - Nowy błąd kadru zauważony przez reżysera dopisz do tabeli „Skąd te zasady” w wytycznych i, jeśli to nowa klasa błędu,

@@ -33,3 +33,36 @@ Sceny / Canvas → Ujęcia → Montaż → **Continuity Editor** (świat, kontro
 
 Zmiana na wcześniejszym etapie unieważnia zatwierdzenia późniejszych (podpisy). Zmiana ujęć unieważnia recenzję
 jednostki i oznacza jednostki z nią powiązane (rozdział „Dziennik pracy i zmiany w locie”).
+
+## Poprawki w Studio i render końcowy
+
+Render i aktualizacja w Studio to dwa różne kroki:
+
+1. **Render** — komputer rysuje z kodu każdą klatkę ujęcia i zapisuje klip mp4. Trwa długo (teatr papierowy
+   1280 × 720 na MacBooku: ok. 13 s pracy na sekundę filmu, cały film ok. pół godziny i więcej). Do Studio nic wtedy
+   nie trafia.
+2. **Aktualizacja w Studio** — skrypt wgrywa klipy do istniejącego projektu, ustawia długości ujęć, przesuwa kwestie
+   lektora, podmienia muzykę i efekty. Trwa kilka minut. Uwagi reżysera przy ujęciach zostają.
+
+Zasady:
+
+- **W trakcie pracy nikt poza reżyserem nie renderuje.** Film ogląda się w Studio (Ujęcia → odtwarzanie po kolei,
+  Montaż). Render końcowy uruchamia reżyser, kiedy wszystko w Studio jest zrobione i zatwierdzone.
+- **Zmiana długości ujęć** (rytm, pauza po kwestii, nowe nagranie lektora): długości liczy rozpiska filmu, muzykę
+  i efekty przelicza się od nowa (to synteza, kilka minut), a obraz to istniejące klipy — dłuższe ujęcie dostaje
+  stopklatkę na końcu, krótsze jest przycięte. Efekt dźwiękowy pod sam koniec ujęcia może się minąć ze stopklatką
+  o ułamek sekundy; wyrówna to render końcowy.
+- **Zmiana rysunku ujęcia albo nowe ujęcie bez klipu:** najpierw zgoda reżysera, potem render tylko tego ujęcia
+  (`render.py klipy 12 <katalog>`), nigdy całego filmu.
+- **Render końcowy** liczy tylko ujęcia, które zmieniły się od poprzedniego renderu do tego samego katalogu (odcisk
+  klipu: kod ujęcia, stan świata, długość, napis, jakość). Koduje dokładnie (`PRESET=slow`); szybkie kodowanie
+  `veryfast` jest tylko do podglądu.
+
+Przykład — „Pierwszy cesarz” (EN), ujęcia dłuższe o pauzę po kwestii (14.11.2026):
+
+```
+JEZYK=en python3 output/pierwszy-cesarz/efekty.py
+JEZYK=en python3 -I output/pierwszy-cesarz/studio_pc.py --projekt prj_65a9a00a6f9d402c --aktualizuj --stopklatka --klipy build/klipy_en
+```
+
+Render końcowy (reżyser, na PC): `output\pierwszy-cesarz\pc\renderuj_en.bat`.

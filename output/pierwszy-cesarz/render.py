@@ -7,14 +7,23 @@ Ujęcia: ujecia1.py (akty 1–4) i ujecia2.py (akty 5–8), funkcja `s_<klucz>(s
   python3 render.py arkusz [1,2,3] [plik]   — arkusz klatek ujęć (numery od 1) do obejrzenia
   python3 render.py klatka 12.5 [plik]      — jedna klatka filmu (czas w sekundach)
   python3 render.py kontrola [1,2,3]        — test „końca świata” (płótno w barwie pustki), równolegle
-  python3 render.py klipy [1,2,3] <katalog> — klip mp4 na ujęcie
+  python3 render.py klipy [1,2,3] <katalog> — klip mp4 na ujęcie; renderuje tylko ujęcia, których odcisk (kod ujęcia,
+                                              stan świata, długość, napis, jakość…) zmienił się od ostatniego renderu
+  python3 render.py przyjmij <katalog>      — klipy sprzed odcisków: przyjmij jako aktualne (gdy liczba klatek się zgadza)
+  PRESET=slow …                             — kodowanie x264 do renderu końcowego (domyślnie veryfast: przegląd w Studio)
+  WARSTWY=1 …                               — warstwy stałe (na próbę: to, co w ujęciu stoi, rysowane raz)
+  NADPISZ=1 …                               — wszystkie wybrane ujęcia od nowa
   SZKIC=1 …                                 — szkic 640 × 360, 12 kl./s (przegląd w Studio); bez tego pełna jakość
   NAPISY=0 …                                — bez napisów (czyste ujęcia pod lektora i napisy ze Studio)
 Moduł ma SCENES, DUR, FPS i frame(t) — tak jak pozostałe filmy (scripts/kontrola_ujec.py, wgrywanie do Studio).
 """
+import hashlib
+import inspect
+import json
 import math
 import os
 import sys
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -39,6 +48,12 @@ if SZKIC:
 elif os.environ.get("ROZDZIELCZOSC"):  # wysokość klatki, np. ROZDZIELCZOSC=1440 → 2560 × 1440 (ta sama geometria, Q = 2)
     papier.Q = int(os.environ["ROZDZIELCZOSC"]) / H
 CRF = os.environ.get("CRF", "23" if papier.Q <= 1 else "18")  # większa klatka: mniej kompresji, żeby papier nie poszedł w kostkę
+# x264: do oglądania w Studio wystarczy veryfast (obraz prawie ten sam, kodowanie kilka razy szybsze);
+# render końcowy (pc/renderuj*.bat) ustawia PRESET=slow
+PRESET = os.environ.get("PRESET", "veryfast")
+# warstwy stałe (papier.Warstwy) — przyspieszenie w trakcie sprawdzania: domyślnie wyłączone, dopóki porównanie
+# z pełnym renderem nie wykaże, że obraz jest ten sam; WARSTWY=1 włącza je na próbę
+WARSTWY = os.environ.get("WARSTWY", "0") == "1"
 
 UJ = ujecia()
 KOL = swiat.KOL
@@ -84,11 +99,19 @@ def subtitle(img, txt):
         d.text((w / 2, y0 + 8 * q + lh * n + lh / 2 - 2 * q), ln, font=f, fill=(44, 28, 22, 255), anchor="mm")
 
 
-def frame(t, void=None):
+def ziarno(i):
+    """Ziarno ujęcia z jego klucza, nie z miejsca w filmie: wstawienie albo wydłużenie innego ujęcia go nie zmienia."""
+    return zlib.crc32(KOL[i].encode()) % 1000003
+
+
+def uloz(t, void=None):
+    """Klatka w chwili t filmu, ułożona (wycinki, kamera, światło), jeszcze nie narysowana: (Stage, napis albo None).
+    Wszystko zależy tylko od czasu w ujęciu — klip ujęcia jest ten sam bez względu na to, gdzie ujęcie stoi w filmie
+    (poza wejściem z czerni w pierwszym i wyjściem w czerń w ostatnim)."""
     i = next((k for k, s in enumerate(SCENES) if s[0] <= t < s[1]), len(SCENES) - 1)
     a, b, ruch, txt, vs, vl = SCENES[i]
     lt, T = t - a, b - a
-    st = Stage(t, seed=i)
+    st = Stage(lt, seed=ziarno(i))
     st.void = void
     if FNS[i] is None:  # ujęcie jeszcze nie narysowane: pusta scena z kartką
         st.put(Z.sky(), W / 2, H / 2, 0.14, w=1760, anchor=(0.5, 0.5), shadow=None)
@@ -99,12 +122,18 @@ def frame(t, void=None):
             w.build = lt
         st.T = T
         FNS[i](st, w, lt, T)
+    if not void:
+        st.dim *= min(1.0, t / 0.5, max(0.0, (DUR - 0.1 - t) / 1.0))  # film wchodzi z czerni i w nią wychodzi
+    return st, (txt if NAPISY and txt and vs <= lt < min(T - 0.05, vs + vl + 0.35) else None)
+
+
+def frame(t, void=None):
+    st, napis = uloz(t, void)
     if void:  # kontrola „końca świata”: surowe płótno, nienarysowane miejsca zostają w barwie pustki
         return st.render(post=False)
-    st.dim *= min(1.0, t / 0.5, max(0.0, (DUR - 0.1 - t) / 1.0))  # film wchodzi z czerni i w nią wychodzi
     img = st.render()
-    if NAPISY and txt and vs <= lt < min(T - 0.05, vs + vl + 0.35):
-        subtitle(img, txt)
+    if napis:
+        subtitle(img, napis)
     return img
 
 
@@ -148,15 +177,92 @@ def _klip(arg):
     ow, oh = int(round(W * papier.Q)), int(round(H * papier.Q))
     part = out.with_name(out.stem + ".part.mp4")  # plik niedokończony nie wygląda na gotowy po przerwaniu
     proc = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{ow}x{oh}",
-                             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", CRF, "-preset", "slow", "-threads", os.environ.get("X264_WATKI", "4"), "-pix_fmt", "yuv420p", str(part)],
+                             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", CRF, "-preset", PRESET, "-threads", os.environ.get("X264_WATKI", "4"), "-pix_fmt", "yuv420p", str(part)],
                             stdin=subprocess.PIPE)
-    for f in range(n):
-        proc.stdin.write(frame(min(a + f / FPS, b - 1e-3)).tobytes())
+    klatki = [uloz(min(a + f / FPS, b - 1e-3)) for f in range(n)]  # najpierw całe ujęcie ułożone: plan warstw stałych
+    plan = papier.Warstwy([st for st, _ in klatki]) if WARSTWY else None
+    for f, (st, napis) in enumerate(klatki):
+        img = plan.render(f) if plan else st.render()
+        if napis:
+            subtitle(img, napis)
+        proc.stdin.write(img.tobytes())
+        klatki[f] = None  # ułożona klatka już niepotrzebna
     proc.stdin.close()
     if proc.wait():
         raise SystemExit(f"ffmpeg: {out}")
     os.replace(part, out)
+    zapisz_odcisk(out, i, n)
     return i, n
+
+
+# ---- odcisk klipu: renderuje się tylko to, co się zmieniło ----
+# Wersja wyglądu silnika (papier.py i rysowanie w render.py). Zmień ją, gdy zmienia się to, JAK klatka wygląda
+# (światło, cienie, ziarno…) — wtedy wszystkie klipy liczą się od nowa. Przyspieszenia, które obrazu nie zmieniają
+# (np. warstwy stałe), jej nie ruszają.
+SILNIK = "2026-11-14 warstwy, ziarno z ujęcia"
+MODULY_UJEC = {"ujecia1", "ujecia2"}
+PROSTE = (int, float, str, bool, tuple, list, dict, set, frozenset, type(None))
+
+
+def _zrodlo(fn, out):
+    """Kod funkcji ujęcia razem z funkcjami i stałymi modułów ujęć, których używa (rekurencyjnie)."""
+    if ("fn", fn.__module__, fn.__qualname__) in out:
+        return
+    out[("fn", fn.__module__, fn.__qualname__)] = inspect.getsource(fn)
+
+    def names(code):
+        yield from code.co_names
+        for c in code.co_consts:
+            if hasattr(c, "co_names"):
+                yield from names(c)
+    for nm in sorted(set(names(fn.__code__))):
+        v = fn.__globals__.get(nm)
+        if inspect.isfunction(v) and v.__module__ in MODULY_UJEC:
+            _zrodlo(v, out)
+        elif v is not None and isinstance(v, PROSTE):  # stała modułu (atrybuty i wbudowane: nie ma ich w globals)
+            out[("stala", fn.__module__, nm)] = repr(v)
+
+
+def _plik(p):
+    return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+
+
+_WSPOLNE = None
+
+
+def odcisk(i):
+    """Wszystko, od czego zależy obraz klipu ujęcia i: kod ujęcia (i funkcji, których używa), stan świata, długość,
+    napis, jakość, kodek, język, wycinki (zestaw.py), świat (swiat.py), wersja silnika. Inny odcisk = klip od nowa."""
+    global _WSPOLNE
+    if _WSPOLNE is None:
+        _WSPOLNE = [SILNIK, _plik(HERE / "zestaw.py"), _plik(HERE / "swiat.py"), os.environ.get("JEZYK", "pl")]
+    a, b, ruch, txt, vs, vl = SCENES[i]
+    zr = {}
+    _zrodlo(FNS[i], zr)
+    dane = [_WSPOLNE, KOL[i], KOL[i] in BUDUJ, sorted((repr(k), v) for k, v in zr.items()), repr(swiat.stan(i)),
+            round(b - a, 6), math.ceil((b - a) * FPS - 1e-9), papier.Q, FPS, NAPISY, CRF, PRESET,
+            txt if NAPISY else "", round(vs, 6), round(vl, 6), i == 0, i == len(SCENES) - 1]
+    return hashlib.sha256(json.dumps(dane, ensure_ascii=False, default=str).encode()).hexdigest()[:20]
+
+
+def _plik_odcisku(out):
+    return Path(out).with_suffix(".odcisk.json")
+
+
+def zapisz_odcisk(out, i, n):
+    _plik_odcisku(out).write_text(json.dumps({"ujecie": ODN[i], "klucz": KOL[i], "klatki": n, "odcisk": odcisk(i)},
+                                             ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def aktualny(out, i):
+    """Klip istnieje i powstał z tych samych danych, co teraz."""
+    j = _plik_odcisku(out)
+    if not Path(out).exists() or not j.exists():
+        return False
+    try:
+        return json.loads(j.read_text(encoding="utf-8")).get("odcisk") == odcisk(i)
+    except ValueError:
+        return False
 
 
 def rozgrzej(ktore=None):
@@ -197,7 +303,11 @@ def klipy(out, only=None, procs=None):
     idx = [i for i in range(len(SCENES)) if FNS[i] is not None and (not only or i + 1 in only)]
     if (procs or PROCESY) > 1 and sys.platform != "win32":
         rozgrzej(set(idx))
-    idx = [i for i in idx if not (out / f"{ODN[i]}.mp4").exists() or os.environ.get("NADPISZ") == "1"]  # wznowienie: gotowe zostają
+    # tylko to, co się zmieniło: klip z tym samym odciskiem zostaje (także po przerwanym renderze)
+    stare = len(idx)
+    idx = [i for i in idx if os.environ.get("NADPISZ") == "1" or not aktualny(out / f"{ODN[i]}.mp4", i)]
+    print(f"klipy: do renderu {len(idx)} z {stare} (reszta bez zmian), PRESET={PRESET}, warstwy stałe: {'tak' if WARSTWY else 'nie'}",
+          flush=True)
     done = {}
     for i, n in rownolegle(_klip, [(i, out / f"{ODN[i]}.mp4") for i in idx], procs):
         done[i] = (out / f"{ODN[i]}.mp4", n)
@@ -221,5 +331,19 @@ if __name__ == "__main__":
         sys.exit(1 if bad else 0)
     elif cmd == "klipy":
         klipy(sys.argv[-1], only)
+    elif cmd == "przyjmij":
+        # klipy wyrenderowane przed odciskami: przyjmij je jako zgodne z obecnymi danymi (tylko gdy liczba klatek się zgadza)
+        import subprocess
+        out = Path(sys.argv[-1])
+        for i in range(len(SCENES)):
+            clip = out / f"{ODN[i]}.mp4"
+            if FNS[i] is None or not clip.exists() or (only and i + 1 not in only) or _plik_odcisku(clip).exists():
+                continue
+            n = math.ceil((SCENES[i][1] - SCENES[i][0]) * FPS - 1e-9)
+            got = int(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-show_entries",
+                                      "stream=nb_read_packets", "-of", "csv=p=0", str(clip)], capture_output=True, text=True).stdout or 0)
+            print(f"{ODN[i]} {KOL[i]}: {'przyjęty' if got == n else f'NIE — {got} klatek, ujęcie ma {n}'}")
+            if got == n:
+                zapisz_odcisk(clip, i, n)
     else:
         print(arkusz(only, sys.argv[3] if len(sys.argv) > 3 else None))

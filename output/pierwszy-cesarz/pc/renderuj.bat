@@ -8,6 +8,8 @@ python -m pip install --quiet --user numpy pillow
 for /f %%n in ('dir /b output\pierwszy-cesarz\lektor\*.json ^| find /c /v ""') do set LEKTOR=%%n
 if %LEKTOR% LSS 67 (echo Lektor ma dopiero %LEKTOR% z 67 kwestii. Najpierw nagraj_lektora.bat - dlugosci ujec biora sie z nagran. & pause & exit /b 1)
 if not defined PROCESY set PROCESY=4
+rem render koncowy: dokladne kodowanie x264 (render.py domyslnie koduje veryfast - do przegladu w Studio)
+set PRESET=slow
 python output\pierwszy-cesarz\render.py klipy klipy
 rem muzyka i efekty od nowa: ich czasy zależą od długości nagranych kwestii
 python output\pierwszy-cesarz\efekty.py

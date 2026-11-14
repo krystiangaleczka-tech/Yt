@@ -372,19 +372,29 @@ def okno_kwestii(dzwiek):
     return (0.6, len(txt.split()) / (2.6 if JEZYK == "en" else TEMPO))
 
 
+# Pauza po kwestii, zanim padnie cięcie (podręcznik, „Rytm” 2 i 3). Reżyser 14.11.2026: przy 0,6 s „obcina zaraz po
+# kwestii ujęcie, bo następuje następne, i jest to nienaturalne” — obraz ma jeszcze chwilę trwać po ostatnim słowie,
+# a im większa granica (beat → scena → akt), tym dłużej, bo koniec sceny to długie trzymanie.
+PAUZA_PO = {"ujecie": 1.1, "beat": 1.4, "scena": 1.8, "akt": 2.3}
+
+
 def ujecia(akt=None):
     """Płaska lista ujęć: (akt, nr w akcie, klucz, kadr, ruch, sekundy, opis, dźwięk). Długość ujęcia z kwestią liczy się
-    z kwestii; sąsiednie ujęcia różnią się co najmniej o ¼ s (podręcznik, „Rytm” 2)."""
+    z kwestii: oddech przed + nagranie + pauza po (PAUZA_PO wg granicy, na której ujęcie stoi); sąsiednie ujęcia
+    różnią się co najmniej o ¼ s (podręcznik, „Rytm” 2)."""
     out, prev = [], None
     for n, _, _, sceny in AKTY:
         k = 0
-        for _, _, beaty in sceny:
-            for _, shots in beaty:
-                for klucz, kadr, ruch, sec, opis, dzwiek in shots:
+        for si, (_, _, beaty) in enumerate(sceny):
+            for bi, (_, shots) in enumerate(beaty):
+                for ui, (klucz, kadr, ruch, sec, opis, dzwiek) in enumerate(shots):
                     k += 1
                     if sec is None:
-                        sec = round(0.6 + okno_kwestii(dzwiek)[1] + 0.6, 1)
-                        if okno_kwestii(dzwiek)[1] > 6.5:  # długie zdanie: dłuższy oddech po nim
+                        granica = ("ujecie" if ui < len(shots) - 1 else "beat" if bi < len(beaty) - 1
+                                   else "scena" if si < len(sceny) - 1 else "akt")
+                        start, mowa = okno_kwestii(dzwiek)
+                        sec = round(start + mowa + PAUZA_PO[granica], 1)
+                        if mowa > 6.5:  # długie zdanie: dłuższy oddech po nim
                             sec = round(sec + 0.3, 1)
                     if prev is not None and abs(sec - prev) < 0.25:
                         sec = round(sec + 0.3, 1)

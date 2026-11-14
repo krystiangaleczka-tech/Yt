@@ -7,7 +7,8 @@ filmu. Zasady poniżej są wspólne.
    światło, coś spada. Cięcie pada po wydarzeniu. Statyczna ilustracja zdania z lekkim zoomem to błąd.
 2. **Długość z treści, nigdy z siatki.** Otwarcie sceny 4–7 s; akcja 1–1,8 s; reakcja bez słów 1,2–2 s; detal
    1,5–2,5 s; napięcie i cisza 2,5–6 s; ujęcie z kwestią: oddech przed (0,5–1,2 s) + kwestia (~2,6 słowa/s) + pauza
-   po (0,3–1,2 s). Sąsiednie ujęcia różnią się co najmniej o ¼ s.
+   po: co najmniej 1 s, zanim padnie cięcie — dłużej na końcu beatu (~1,4 s), sceny (~1,8 s) i aktu (~2,3 s); cięcie
+   zaraz po ostatnim słowie (0,6 s) reżyser odbiera jako nienaturalne. Sąsiednie ujęcia różnią się co najmniej o ¼ s.
 3. **Rytm sceny:** szeroko i długo na otwarcie → coraz krótsze ujęcia do kulminacji → długie trzymanie albo krótkie
    żądło na koniec. Jednostka trwa tyle, ile wynika z treści, w zakresie ustalonym dla filmu (np. 60–100 s); dzień z dużą ilością mowy po prostu trwa dłużej.
 4. **Lektor dopowiada, obraz pokazuje.** Kwestia nie opisuje tego, co widać. Cisza zostaje w co trzecim–czwartym
