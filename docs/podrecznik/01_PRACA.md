@@ -34,35 +34,69 @@ Sceny / Canvas → Ujęcia → Montaż → **Continuity Editor** (świat, kontro
 Zmiana na wcześniejszym etapie unieważnia zatwierdzenia późniejszych (podpisy). Zmiana ujęć unieważnia recenzję
 jednostki i oznacza jednostki z nią powiązane (rozdział „Dziennik pracy i zmiany w locie”).
 
+## Podgląd na żywo (teatr papierowy)
+
+Od 15.11.2026 ujęcia teatru papierowego („Pierwszy cesarz”) Studio rysuje **na żywo z kodu**, bez klipów mp4:
+
+- Python (`output/<film>/na_zywo.py`) liczy tylko ruch ujęcia — kto gdzie stoi, jak duży, jak rozmyty, gdzie kamera
+  i światło — ok. 1 ms na klatkę. Karta graficzna w przeglądarce rysuje z tego klatkę tymi samymi wzorami co
+  `render.py` (ok. 4 ms zamiast ok. 450 ms). Różnica z renderem: średnio ok. 5/255 na kanał, głównie inne ziarno.
+- Studio uruchamia ten serwer samo, kiedy ujęcia projektu mają w `legacy.teatr` film, język i kod ujęcia
+  (`{"film": "pierwszy-cesarz", "jezyk": "en", "odn": "d01_06"}`; log: `.docos-studio/logs/teatr-<film>-<język>.log`).
+- **Po zapisaniu kodu** ujęć albo świata obraz w „Ujęciach” i „Montażu” odświeża się sam po ok. 1 s; po zmianie
+  zestawu wycinków po kilku sekundach. Błąd w kodzie pokazuje się na podglądzie, a widać ostatnią dobrą wersję.
+- Znaczek „NA ŻYWO · kod vN” w rogu podglądu; przycisk „klip mp4” wraca do klipów (przełącznik wspólny dla Ujęć
+  i Montażu), „na żywo” — z powrotem. Klipy mp4 zostają na osi jako zapas.
+- Render końcowy dalej robi `render.py` z tego samego kodu (reżyser, `pc\renderuj*.bat`).
+- Ręcznie, jedno ujęcie z porównaniem z Pythonem (klawisz P): `JEZYK=en python3 -I output/pierwszy-cesarz/na_zywo.py 6`
+  → http://127.0.0.1:8899.
+
+Czego jeszcze nie ma: napis na podglądzie jest rysowany czcionką przeglądarki (minimalnie inny niż w renderze),
+nitki bez wygładzania krawędzi; inne filmy potrzebują własnego `na_zywo.py` (ten sam wzór).
+
 ## Poprawki w Studio i render końcowy
 
-Render i aktualizacja w Studio to dwa różne kroki:
+Trzy różne rzeczy, których nie wolno mylić:
 
-1. **Render** — komputer rysuje z kodu każdą klatkę ujęcia i zapisuje klip mp4. Trwa długo (teatr papierowy
-   1280 × 720 na MacBooku: ok. 13 s pracy na sekundę filmu, cały film ok. pół godziny i więcej). Do Studio nic wtedy
-   nie trafia.
-2. **Aktualizacja w Studio** — skrypt wgrywa klipy do istniejącego projektu, ustawia długości ujęć, przesuwa kwestie
-   lektora, podmienia muzykę i efekty. Trwa kilka minut. Uwagi reżysera przy ujęciach zostają.
+1. **Render końcowy** — wygenerowanie gotowego filmu do wrzucenia na YouTube (pełna jakość, `pc\renderuj*.bat`).
+   Dla reżysera „render” znaczy właśnie to. Uruchamia go **wyłącznie reżyser**, w programie, kiedy wszystko
+   w Studio jest zrobione i zatwierdzone.
+2. **Klipy ujęć do Studio** — komputer rysuje z kodu klatki jednego ujęcia i zapisuje krótki klip mp4 (podgląd
+   1280 × 720, szybkie kodowanie `veryfast`). Tak nowy rysunek trafia do Studio. Trwa to ok. 13 s pracy na
+   sekundę ujęcia (30 ujęć, ok. 4 min filmu — kilkanaście minut). To zwykła praca wykonawcy, nie render końcowy.
+3. **Aktualizacja w Studio** — skrypt wgrywa klipy do istniejącego projektu, podmienia obraz ujęć, ustawia
+   długości, przesuwa kwestie lektora, podmienia muzykę i efekty. Uwagi reżysera przy ujęciach zostają.
 
 Zasady:
 
-- **W trakcie pracy nikt poza reżyserem nie renderuje.** Film ogląda się w Studio (Ujęcia → odtwarzanie po kolei,
-  Montaż). Render końcowy uruchamia reżyser, kiedy wszystko w Studio jest zrobione i zatwierdzone.
+- **Zmiana rysunku albo nowe ujęcie w filmie z podglądem na żywo:** wystarczy zapisać kod — Studio pokaże zmianę
+  samo. Klipów mp4 do Studio nie rysujesz.
+- **Zmiana rysunku w filmie bez podglądu na żywo:** narysuj klipy tylko zmienionych ujęć i podmień je w Studio — oś,
+  lektor, muzyka i uwagi zostają. Nigdy nie rysuj całego filmu, żeby poprawić kilka ujęć.
 - **Zmiana długości ujęć** (rytm, pauza po kwestii, nowe nagranie lektora): długości liczy rozpiska filmu, muzykę
   i efekty przelicza się od nowa (to synteza, kilka minut), a obraz to istniejące klipy — dłuższe ujęcie dostaje
-  stopklatkę na końcu, krótsze jest przycięte. Efekt dźwiękowy pod sam koniec ujęcia może się minąć ze stopklatką
-  o ułamek sekundy; wyrówna to render końcowy.
-- **Zmiana rysunku ujęcia albo nowe ujęcie bez klipu:** najpierw zgoda reżysera, potem render tylko tego ujęcia
-  (`render.py klipy 12 <katalog>`), nigdy całego filmu.
+  stopklatkę na końcu, krótsze jest przycięte. Rysowanie od nowa nie jest tu potrzebne. Efekt dźwiękowy pod sam
+  koniec ujęcia może się minąć ze stopklatką o ułamek sekundy; wyrówna to render końcowy.
 - **Render końcowy** liczy tylko ujęcia, które zmieniły się od poprzedniego renderu do tego samego katalogu (odcisk
-  klipu: kod ujęcia, stan świata, długość, napis, jakość). Koduje dokładnie (`PRESET=slow`); szybkie kodowanie
-  `veryfast` jest tylko do podglądu.
+  klipu: kod ujęcia, stan świata, długość, napis, jakość). Koduje dokładnie (`PRESET=slow`).
+- 15.11.2026 wykonawca pomylił klipy ujęć z renderem końcowym i zamiast nowych klipów dał do Studio same obrazy
+  z klatkami — reżyser: „dla mnie render to jest render, czyli końcowe wygenerowanie filmu do wrzucenia na
+  YouTube”. Podgląd z obrazów (`studio_pc.py --podglad`) to tylko awaryjna szybka ilustracja, nie zamiast klipów.
 
 Przykład — „Pierwszy cesarz” (EN), ujęcia dłuższe o pauzę po kwestii (14.11.2026):
 
 ```
 JEZYK=en python3 output/pierwszy-cesarz/efekty.py
 JEZYK=en python3 -I output/pierwszy-cesarz/studio_pc.py --projekt prj_65a9a00a6f9d402c --aktualizuj --stopklatka --klipy build/klipy_en
+```
+
+Przykład — nowy rysunek 30 ujęć (15.11.2026; co się zmieniło: `output/pierwszy-cesarz/poprawki/2026-11-15.json`):
+
+```
+cd output/pierwszy-cesarz
+JEZYK=en PROCESY=3 python3 render.py klipy 3,6,31 ../../build/klipy_en_nowe
+cd ../..
+JEZYK=en python3 -I output/pierwszy-cesarz/studio_pc.py --projekt prj_65a9a00a6f9d402c --podmien 3,6,31 --klipy build/klipy_en_nowe --zmiany output/pierwszy-cesarz/poprawki/2026-11-15.json
 ```
 
 Render końcowy (reżyser, na PC): `output\pierwszy-cesarz\pc\renderuj_en.bat`.

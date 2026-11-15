@@ -146,6 +146,88 @@ def aktualizuj(api, pid, p, UJ, tmp, okno_kwestii):
     return pid
 
 
+
+def podglad(api, pid, p, UJ, numery, zmiany, kiedy):
+    """Zmiana rysunku bez renderu klipów: dla każdego ujęcia trzy klatki kontrolne (początek, środek, koniec) z obecnego kodu
+    jako obraz w Bibliotece Studio, a w opisie ujęcia — co się zmieniło. Klip na osi zostaje stary do renderu końcowego,
+    który robi reżyser; długości ujęć, lektor i montaż się nie zmieniają."""
+    sys.path.insert(0, str(HERE))
+    import render
+    from PIL import Image, ImageDraw, ImageFont
+    font = ImageFont.truetype(next(f for f in ("/System/Library/Fonts/Helvetica.ttc", "C:/Windows/Fonts/arial.ttf",
+                                               "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf") if Path(f).exists()), 22)
+    katalog = HERE / "build" / "podglad"
+    katalog.mkdir(parents=True, exist_ok=True)
+    obrazy = {}
+    for n in numery:
+        akt, k, klucz = UJ[n - 1][:3]
+        a, b = render.SCENES[n - 1][:2]
+        pasek = Image.new("RGB", (1920, 360))
+        for j, f in enumerate((0.1, 0.5, 0.9)):
+            kl = render.frame(a + (b - a) * f).convert("RGB").resize((640, 360), Image.LANCZOS)
+            d = ImageDraw.Draw(kl)
+            d.rectangle([0, 0, 150, 30], fill=(0, 0, 0))
+            d.text((8, 3), f"{(b - a) * f:.1f} s", fill=(255, 220, 90), font=font)
+            pasek.paste(kl, (640 * j, 0))
+        plik = katalog / f"d{akt:02d}_{k:02d}.png"
+        pasek.save(plik)
+        nazwa = f"d{akt:02d}_{k:02d} {klucz} · nowy rysunek {kiedy} (podgląd, bez renderu).png"
+        obrazy[f"scene_d{akt:02d}_{k:02d}"] = (api.upload(pid, plik, nazwa), nazwa, n)
+        print(f"  podgląd {n} {klucz}", flush=True)
+    p = api.call(f"/projects/{pid}")
+    nowe = []
+    for s in p["scenes"]:
+        if s["id"] in obrazy:
+            aid, nazwa, n = obrazy[s["id"]]
+            akt, k, klucz, kadr, ruch, sec, opis, dzwiek = UJ[n - 1]
+            linie = [x for x in s.get("description", "").split("\n")[1:] if not x.startswith("Nowy rysunek")]
+            nota = (f"Nowy rysunek ({kiedy}): {zmiany[str(n)]}. Klip na osi jest jeszcze stary — nowy powstanie przy renderze "
+                    f"końcowym. Podgląd: obraz „{nazwa}” w Bibliotece.")
+            opis_ = "\n".join([f"({KADR.get(kadr, kadr)} · {RUCH.get(ruch, ruch)}) {opis}"] + linie + [nota])
+            s = {**s, "title": ("Karta · " if kadr == "TYT" else "") + title_of(opis), "description": opis_[:3000],
+                 "legacy": {**s.get("legacy", {}), "do_renderu": {"od": kiedy, "zmiana": zmiany[str(n)], "podglad": aid}}}
+        nowe.append(s)
+    p = api.call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": nowe}}, "PATCH")
+    print(f"gotowe: {len(obrazy)} ujęć z podglądem nowego rysunku, rewizja {p['revision']}", flush=True)
+    return pid
+
+
+def podmien(api, pid, p, UJ, numery, zmiany, kiedy):
+    """Nowy rysunek ujęć w Studio: świeżo narysowane klipy (--klipy, render.py klipy) na miejsce starych. Długości ujęć,
+    kwestie lektora, muzyka, efekty i uwagi reżysera zostają; klip dostaje 0,25 s zapasu (stopklatka) na zaokrąglenia."""
+    ARGS.stopklatka = True  # klip ma już długość ujęcia: nie zmieniamy tempa, najwyżej dokładamy stopklatkę
+    scenes = {s["id"]: s for s in p["scenes"]}
+    jobs, meta = [], {}
+    for n in numery:
+        akt, k, klucz = UJ[n - 1][:3]
+        sid = f"scene_d{akt:02d}_{k:02d}"
+        src = Path(ARGS.klipy) / f"d{akt:02d}_{k:02d}.mp4"
+        fd = scenes[sid]["duration"]
+        out = HERE / "build" / "studio_klipy" / f"d{akt:02d}_{k:02d}_{fd}_{int(src.stat().st_mtime)}.mp4"  # nowy plik = nowa nazwa
+        jobs.append((src, fd / FPS, out))
+        meta[sid] = (out, klucz, n)
+    with ThreadPoolExecutor(ARGS.j) as ex:
+        list(ex.map(dopasuj, jobs))
+    obraz = {sid: api.upload(pid, out, f"{sid[6:]} {klucz} · nowy rysunek {kiedy}.mp4") for sid, (out, klucz, n) in meta.items()}
+    p = api.call(f"/projects/{pid}")
+    ops = [{"type": "update_clip", "clip_id": c["id"], "changes": {"asset_id": obraz[c["scene_id"]]}}
+           for c in p["sequence"]["clips"] if c["track_id"] == "v1" and c.get("scene_id") in obraz]
+    for k in range(0, len(ops), 200):
+        p = api.call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": ops[k:k + 200]})
+    nowe = []
+    for s in p["scenes"]:
+        if s["id"] in obraz:
+            n = meta[s["id"]][2]
+            linie = [x for x in s.get("description", "").split("\n") if not x.startswith("Nowy rysunek")]
+            linie.append(f"Nowy rysunek ({kiedy}): {zmiany[str(n)]} — już w klipie na osi.")
+            leg = {k: v for k, v in s.get("legacy", {}).items() if k != "do_renderu"}
+            s = {**s, "asset_id": obraz[s["id"]], "description": "\n".join(linie)[:3000], "legacy": {**leg, "nowy_rysunek": kiedy}}
+        nowe.append(s)
+    p = api.call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": nowe}}, "PATCH")
+    koniec = max(c["start"] + c["duration"] for c in p["sequence"]["clips"]) / FPS
+    print(f"gotowe: nowy rysunek w {len(obraz)} ujęciach, oś {koniec:.1f} s, rewizja {p['revision']}", flush=True)
+    return pid
+
 def main():
     from dane import LEKTOR, kwestia, okno_kwestii, ujecia
     aktorskie = json.loads((HERE / "aktorskie_en.json").read_text(encoding="utf-8"))
@@ -162,6 +244,12 @@ def main():
     UJ = ujecia()
     if ARGS.aktualizuj:
         return aktualizuj(api, pid, p, UJ, tmp, okno_kwestii)
+    if ARGS.podmien:
+        zmiany = json.loads(Path(ARGS.zmiany).read_text(encoding="utf-8"))
+        return podmien(api, pid, p, UJ, [int(x) for x in ARGS.podmien.split(",")], zmiany["ujecia"], zmiany["kiedy"])
+    if ARGS.podglad:
+        zmiany = json.loads(Path(ARGS.zmiany).read_text(encoding="utf-8"))
+        return podglad(api, pid, p, UJ, [int(x) for x in ARGS.podglad.split(",")], zmiany["ujecia"], zmiany["kiedy"])
     meta, jobs, t = [], [], 0.0
     for akt, k, klucz, kadr, ruch, sec, opis, dzwiek in UJ:
         f0, f1 = round(t * FPS), round((t + sec) * FPS)
@@ -196,6 +284,7 @@ def main():
               "description": description[:3000], "start": f0, "duration": fd, "timing": "measured", "mode": "upload",
               "animation": "static", "asset_id": aid, "role": "reconstruction",
               "legacy": {"flow_section_id": f"seq_a{akt:02d}", "akt": akt, "ujecie": k, "klucz": klucz,
+                         "teatr": {"film": "pierwszy-cesarz", "jezyk": "en", "odn": f"d{akt:02d}_{k:02d}"},  # rysowanie na żywo
                          "zrodlo": "output/pierwszy-cesarz/ujecia1.py, ujecia2.py (render.py)", "lektor": "Chatterbox Turbo, sposób studyjny"}}
         clips.append({"track_id": "v1", "asset_id": aid, "scene_id": sid, "title": sc["title"][:120], "start": f0, "duration": fd})
         wav = LEKTOR / f"{klucz}.wav"
@@ -250,6 +339,11 @@ if __name__ == "__main__":
                     help="dłuższe ujęcie bez nowego renderu: stary klip + stopklatka na końcu (przegląd w Studio; render robi reżyser na końcu)")
     ap.add_argument("--aktualizuj", action="store_true",
                     help="istniejący projekt: nowe długości ujęć, obraz z --klipy, kwestie i muzyka/efekty na nowe miejsca")
+    ap.add_argument("--podglad", default="",
+                    help="numery ujęć (np. 3,6,31): zmiana rysunku bez renderu — klatki kontrolne jako obraz w Bibliotece i opis zmiany")
+    ap.add_argument("--podmien", default="",
+                    help="numery ujęć: nowy rysunek — klipy z --klipy (render.py klipy) na miejsce starych, oś i dźwięk bez zmian")
+    ap.add_argument("--zmiany", default="", help="przy --podglad: plik JSON {kiedy, ujecia: {numer: co się zmieniło}}")
     ap.add_argument("--tytul", default="Pierwszy cesarz · The First Emperor (EN, lektor studyjny)")
     ARGS = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")

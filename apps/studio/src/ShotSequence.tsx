@@ -3,6 +3,7 @@ import { Image as ImageIcon } from "lucide-react";
 import { mediaUrl } from "./api";
 import { fps } from "./timing";
 import type { Asset, Project, Scene } from "./types";
+import { naZywoWlaczone, odnSceny, teatrProjektu } from "./teatr";
 
 type Shot = { kind: "video" | "image" | "poster" | "empty"; src: string };
 
@@ -42,7 +43,8 @@ export default function ShotSequence({
 }) {
   const [index, setIndex] = useState(start);
   const first = useRef<HTMLVideoElement>(null),
-    second = useRef<HTMLVideoElement>(null);
+    second = useRef<HTMLVideoElement>(null),
+    ekran = useRef<HTMLCanvasElement>(null);
   const assets = useMemo(
     () => new Map<string, Asset>(project.assets.map((a) => [a.id, a])),
     [project.assets],
@@ -68,7 +70,18 @@ export default function ShotSequence({
     const limit = current.duration / fps(p);
     let video: HTMLVideoElement | null = null,
       show: (() => void) | null = null;
-    if (now.kind === "video") {
+    // teatr na żywo: ujęcie rysowane z kodu, jeśli jego ruch i wycinki są już wczytane (inaczej klip mp4)
+    const teatr = naZywoWlaczone() ? teatrProjektu(p) : null,
+      odn = teatr ? odnSceny(p, current.id) : null,
+      zywo = !!(teatr && odn && teatr.gotowy(odn));
+    if (teatr && odn && !zywo) void teatr.przygotuj(odn);
+    if (ekran.current) ekran.current.style.visibility = zywo ? "visible" : "hidden";
+    if (zywo) {
+      for (const v of slots) {
+        v.pause();
+        v.style.visibility = "hidden";
+      }
+    } else if (now.kind === "video") {
       // Wcześniej wczytany odtwarzacz albo ten, który teraz nie jest widoczny (poprzednia klatka zostaje na ekranie).
       const target =
         slots.find((v) => v.dataset.scene === current.id) ||
@@ -93,6 +106,8 @@ export default function ShotSequence({
         v.style.visibility = "hidden";
       }
     const next = p.scenes[index + 1];
+    const nastepny = teatr && next ? odnSceny(p, next.id) : null;
+    if (teatr && nastepny) void teatr.przygotuj(nastepny);
     if (next) {
       const upcoming = shotSource(p, next, byId);
       if (upcoming.kind === "video") {
@@ -116,6 +131,10 @@ export default function ShotSequence({
         if (video.ended) endedAt ||= clock;
         t = video.currentTime + (endedAt ? (clock - endedAt) / 1000 : 0);
       } else t = (clock - began) / 1000;
+      if (zywo && teatr && odn) {
+        const klatka = teatr.klatka(odn, t);
+        if (klatka) ekran.current?.getContext("2d")?.drawImage(klatka, 0, 0);
+      }
       if (t >= limit - half) {
         if (index + 1 < live.current.project.scenes.length) setIndex(index + 1);
         else live.current.onEnd();
@@ -142,6 +161,7 @@ export default function ShotSequence({
   );
   return (
     <div className="shot-sequence">
+      <canvas ref={ekran} className="teatr-sekwencja" width={1280} height={720} style={{ visibility: "hidden" }} />
       <video ref={first} muted playsInline preload="auto" />
       <video ref={second} muted playsInline preload="auto" />
       {scene && shot.kind !== "video" && (

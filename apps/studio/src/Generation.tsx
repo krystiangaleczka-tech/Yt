@@ -36,6 +36,8 @@ import {
 import type { Asset, Scene, Project, Job, Animation } from "./types";
 import { fps, time } from "./timing";
 import ShotSequence from "./ShotSequence";
+import TeatrEkran, { NaZywoPrzycisk, useTeatr } from "./TeatrEkran";
+import { odnSceny } from "./teatr";
 import AirPlayButton from "./AirPlay";
 
 export const animations: { id: Animation; name: string }[] = [
@@ -93,6 +95,9 @@ export default function Generation() {
   const asset = p.assets.find((a) => a.id === scene?.asset_id);
   const rate = fps(p);
   const index = p.scenes.findIndex((x) => x.id === scene?.id);
+  // teatr papierowy na żywo: ujęcie rysowane z kodu zamiast klipu mp4 (teatr.ts)
+  const { teatr, naZywo } = useTeatr(p);
+  const teatrOdn = teatr ? odnSceny(p, scene?.id) : null;
   const activeJobs = s.jobs.filter(
     (j) => j.project_id === p.id && ["QUEUED", "RUNNING"].includes(j.status),
   );
@@ -606,6 +611,14 @@ export default function Generation() {
                   src={`/api/projects/${p.id}/scenes/${scene.id}/poster?revision=${p.revision}&frame=0`}
                   alt={`Podgląd: ${scene.title}`}
                 />
+              ) : teatr && teatrOdn && naZywo ? (
+                <TeatrEkran
+                  teatr={teatr}
+                  odn={teatrOdn}
+                  seconds={scene.duration / rate}
+                  playing={playing}
+                  onEnd={() => setPlaying(false)}
+                />
               ) : asset?.kind === "image" ? (
                 <img src={mediaUrl(p.id, asset.id)} alt={scene.title} />
               ) : asset?.kind === "video" ? (
@@ -622,6 +635,7 @@ export default function Generation() {
                   <span>Wybierz materiał do tego ujęcia</span>
                 </div>
               )}
+              {teatrOdn && !naZywo && !sequence && <NaZywoPrzycisk />}
               <div className="preview-corner">
                 <span>
                   {scene.role === "illustration"

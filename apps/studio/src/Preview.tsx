@@ -9,6 +9,7 @@ import {
   syncMedia,
   pauseMedia,
 } from "./playback";
+import { naZywoWlaczone, odnSceny, teatrProjektu } from "./teatr";
 
 export default function Preview({
   project,
@@ -138,6 +139,8 @@ export default function Preview({
       ctx.fillRect(0, 0, W, H);
     }
     const rate = fps(p);
+    // teatr papierowy na żywo: klipy obrazu ujęć rysowanych z kodu (teatr.ts) zamiast klatek z mp4
+    const teatr = naZywoWlaczone() ? teatrProjektu(p) : null;
     const primary = primaryAudioClip(p, at),
       clock = primary ? audios.current.get(primary.id) : undefined,
       waiting =
@@ -235,7 +238,14 @@ export default function Preview({
             ih = img.naturalHeight;
           }
         }
-        if (
+        const odnKlipu =
+          teatr && track.kind === "video" ? odnSceny(p, c.scene_id) : null;
+        const zywa = odnKlipu ? teatr!.klatka(odnKlipu, seconds) : null;
+        if (zywa) {
+          image = zywa;
+          iw = zywa.width;
+          ih = zywa.height;
+        } else if (
           (!c.template || c.template === "media") &&
           asset?.kind === "video"
         ) {
@@ -386,6 +396,9 @@ export default function Preview({
   }
   const redraw = useRef(draw);
   redraw.current = draw;
+  // teatr na żywo: po wczytaniu ruchu ujęcia albo nowej wersji kodu klatka rysuje się od nowa
+  const teatrPodgladu = teatrProjektu(project);
+  useEffect(() => (teatrPodgladu ? teatrPodgladu.subskrybuj(() => redraw.current()) : undefined), [teatrPodgladu]);
   useEffect(() => {
     const p = project;
     const assets = assetIndex;
@@ -405,6 +418,12 @@ export default function Preview({
           .slice(0, 12),
       ],
       needed = new Set(nearby.map((c) => c.asset_id).filter(Boolean));
+    const teatr = naZywoWlaczone() ? teatrProjektu(p) : null;
+    if (teatr)
+      for (const c of nearby) {
+        const odn = odnSceny(p, c.scene_id);
+        if (odn) void teatr.przygotuj(odn); // ruch i wycinki pobliskich ujęć, zanim dojdzie do nich głowica
+      }
     for (const assetId of needed) {
       const asset = assets.get(assetId!);
       if (asset?.kind === "image" && !images.current.has(asset.id)) {
