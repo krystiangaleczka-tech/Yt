@@ -634,6 +634,8 @@ LALKI = {"zheng": ("emperor", None), "uczony": ("scholar_left", None), "uczony2"
 
 @lru_cache(None)
 def lalka(key):
+    if key in ("zheng_dziecko", "zheng_krol"):
+        return Sprite(dziecko(korona=key == "zheng_krol"), f"lalka-{key}", rim=2)
     name, color = LALKI[key]
     scale = 1.0 if name == "emperor" else 0.7
     if color is None:
@@ -805,9 +807,13 @@ def prop(key):
         w, h, parts = 210, 130, [(poly([(4, 4), (206, 4), (206, 110), (172, 126), (138, 110), (104, 126), (70, 110), (36, 126), (4, 110)]),
                                  (26, 24, 30)), (rect(4, 4, 206, 16), GOLD)]
     elif key == "robotnik":
-        w, h, parts = 110, 130, [(ell(55, 22, 13, 15), (60, 44, 34)), (poly([(40, 38), (70, 38), (76, 92), (34, 92)]), (60, 44, 34)),
-                                (rect(42, 90, 52, 128), (60, 44, 34)), (rect(58, 90, 68, 128), (60, 44, 34)), (rect(4, 40, 106, 46), (96, 72, 50)),
-                                (poly([(2, 50), (26, 50), (22, 84), (6, 84)]), (150, 118, 76)), (poly([(84, 50), (108, 50), (104, 84), (88, 84)]), (150, 118, 76))]
+        c = (104, 80, 58)  # jaśniejszy brąz: sylwetka ma być widoczna na ciemnym zboczu
+        w, h, parts = 110, 130, [(ell(55, 22, 13, 15), c), (poly([(40, 38), (70, 38), (76, 92), (34, 92)]), c),
+                                (rect(42, 90, 52, 128), c), (rect(58, 90, 68, 128), c), (rect(4, 40, 106, 46), (120, 90, 60)),
+                                (poly([(2, 50), (26, 50), (22, 84), (6, 84)]), (184, 148, 92)), (poly([(84, 50), (108, 50), (104, 84), (88, 84)]), (184, 148, 92))]
+    elif key == "list_pieczec":  # zwój z czerwoną pieczęcią
+        w, h, parts = 96, 44, [(rect(10, 8, 86, 36), (226, 212, 180)), (rect(2, 4, 14, 40), (120, 82, 50)), (rect(82, 4, 94, 40), (120, 82, 50)),
+                               (ell(48, 22, 10, 10), LAKA)]
     elif key == "chlop":
         w, h, parts = 170, 180, [(ell(70, 30, 15, 17), (70, 50, 36)), (poly([(40, 14), (100, 14), (70, 2)]), (176, 150, 96)),
                                 (poly([(52, 48), (90, 48), (98, 120), (46, 120)]), (96, 110, 120)), (rect(54, 118, 68, 176), (70, 50, 36)),
@@ -817,6 +823,133 @@ def prop(key):
         raise KeyError(key)
     return Sprite(stack(w, h, parts, seed=sum(map(ord, key))), f"rekwizyt-{key}", rim=2, clean=False)
 
+
+
+# ---------- chłopiec Zheng: wycinanka cesarza przerobiona na dziecko ----------
+
+def _maska(size, pts, blur=0.0):
+    m = Image.new("L", size, 0)
+    ImageDraw.Draw(m).polygon(pts, fill=255)
+    if blur:
+        m = m.filter(ImageFilter.GaussianBlur(blur))
+    return np.asarray(m, np.float32) / 255.0
+
+
+def _naloz(pm, rgb, m):
+    m = m[..., None]
+    pm[..., :3] = pm[..., :3] * (1 - m) + np.asarray(rgb, np.float32) * m
+    pm[..., 3:4] = pm[..., 3:4] * (1 - m) + m
+
+
+def _dwuliniowo(arr, ys, xs):
+    h, w = arr.shape[:2]
+    x0 = np.clip(np.floor(xs).astype(int), 0, w - 1)
+    y0 = np.clip(np.floor(ys).astype(int), 0, h - 1)
+    x1, y1 = np.clip(x0 + 1, 0, w - 1), np.clip(y0 + 1, 0, h - 1)
+    wx, wy = (xs - np.floor(xs))[..., None], (ys - np.floor(ys))[..., None]
+    out = (arr[y0, x0] * (1 - wx) + arr[y0, x1] * wx) * (1 - wy) + (arr[y1, x0] * (1 - wx) + arr[y1, x1] * wx) * wy
+    out[(xs < 0) | (xs > w - 1) | (ys < 0) | (ys > h - 1)] = 0
+    return out
+
+
+def _rozmyj(m, r):
+    return np.asarray(Image.fromarray((np.clip(m, 0, 1) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(r)), np.float32) / 255
+
+
+@lru_cache(None)
+def dziecko(korona=False, seed=5):
+    """Zheng jako chłopiec: ta sama wycinanka cesarza bez brody i wąsów, z większą głową (tułów krótszy i węższy).
+    korona=False — przed koronacją: zamiast korony włosy dziecka z dwoma kokami przewiązanymi czerwoną wstążką."""
+    a = np.asarray(raw("emperor"), np.float32) / 255.0
+    H_, W_ = a.shape[:2]
+    pm = a.copy()
+    pm[..., :3] *= pm[..., 3:4]
+    rng = np.random.default_rng(seed)
+    yy, xx = np.mgrid[0:H_, 0:W_]
+    lum = a[..., :3] @ np.array([0.3, 0.59, 0.11], np.float32)
+    szum = lambda: (1 + 0.04 * rng.standard_normal((H_, W_, 1))).astype(np.float32)
+    size = (W_, H_)
+
+    # zarost: wąsy, broda i bokobrody — ciemne piksele w obrysie zarostu
+    obrys = _maska(size, [(456, 243), (500, 243), (504, 268), (506, 300), (506, 340), (502, 398), (466, 400), (458, 360), (450, 322),
+                          (438, 292), (440, 282), (456, 268)]) > 0.5
+    broda = np.asarray(Image.fromarray(((obrys & (lum < 0.42)) * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(5)), bool) & obrys
+    profil = np.interp(yy, [243, 250, 256, 262, 270, 279, 286, 292, 300, 330], [492, 495, 496, 493, 493, 488, 478, 470, 467, 466])
+    kol = _maska(size, [(438, 300), (452, 308), (466, 314), (478, 314), (488, 310), (500, 322), (506, 342), (497, 398), (466, 400),
+                        (457, 362), (448, 322)])
+    dz_c = broda & (kol > 0.5)  # pod brodą: kołnierz
+    dz_s = broda & ~dz_c & (xx <= profil + 0.5)  # podbródek i szyja chłopca
+    dz_t = broda & ~dz_c & ~dz_s  # przed twarzą: tło
+    pm[broda] = 0
+    # skóra: dyfuzja tylko z sąsiedniej skóry (policzek, nos, szyja), potem faktura
+    x0, x1, y0, y1 = 396, 524, 220, 340
+    win = pm[y0:y1, x0:x1].copy()
+    aw = a[y0:y1, x0:x1]
+    ok = (aw[..., 3] > 0.9) & (aw[..., 0] > 0.5) & (aw[..., 0] - aw[..., 2] > 0.2) & (lum[y0:y1, x0:x1] > 0.33) & ~broda[y0:y1, x0:x1]
+    hole = dz_s[y0:y1, x0:x1]
+    K = (ok | hole).astype(np.float32)[..., None]
+    V = win * K
+    V[hole] = win[ok].mean(0)
+    for _ in range(1400):
+        VK = V * K
+        Vn = np.roll(VK, 1, 0) + np.roll(VK, -1, 0) + np.roll(VK, 1, 1) + np.roll(VK, -1, 1)
+        Kn = np.roll(K, 1, 0) + np.roll(K, -1, 0) + np.roll(K, 1, 1) + np.roll(K, -1, 1)
+        V = np.where(hole[..., None], Vn / np.maximum(Kn, 1e-6), V)
+    V[..., :3] *= (1 + 0.035 * rng.standard_normal(V[..., :3].shape)).astype(np.float32)
+    win[hole] = V[hole]
+    win[hole, 3] = 1.0
+    pm[y0:y1, x0:x1] = win
+    # kołnierz: biała spodnia szata z cieniem przy szyi i czerwona lamówka
+    t = np.clip((yy - 302) / 30.0, 0, 1)[..., None]
+    _naloz(pm, (np.array([176, 156, 128], np.float32) * (1 - t) + np.array([224, 206, 174], np.float32) * t) / 255 * szum(), dz_c * 1.0)
+    lam = _maska(size, [(484, 306), (500, 322), (508, 342), (503, 398), (495, 398), (500, 342), (494, 326), (481, 310)], 0.8)
+    _naloz(pm, np.array([150, 42, 32], np.float32) / 255 * szum(), lam * (broda | (kol > 0.5)))
+    # usta i dolna warga
+    pm[..., :3] *= (1 - 0.45 * _maska(size, [(484, 257), (495, 255), (495, 257.5), (485, 259.5)], 0.6))[..., None]
+    warga = _maska(size, [(485, 259), (494, 258), (493, 263), (487, 263)], 1.0)[..., None] * 0.25
+    pm[..., :3] = pm[..., :3] * (1 - warga) + np.array([0.70, 0.40, 0.34], np.float32) * warga
+    # brwi dziecka: cieńsze i jaśniejsze
+    brwi = _maska(size, [(440, 180), (476, 181), (500, 186), (500, 201), (476, 196), (440, 203)], 1.0) * (lum < 0.3)
+    pm[..., :3] = pm[..., :3] * (1 - 0.4 * brwi[..., None]) + np.array([0.62, 0.44, 0.32], np.float32) * 0.4 * brwi[..., None] * pm[..., 3:4]
+    # miękka krawędź profilu i wygładzone szwy
+    pm[dz_t] = 0
+    strefa = dz_s & (xx > profil - 1.5)
+    pm[strefa] *= np.clip(profil + 0.8 - xx, 0, 1)[strefa][..., None]
+    szew = np.asarray(Image.fromarray((broda * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(5)), bool) & ~dz_t & (~broda | dz_c)
+    roz = np.dstack([_rozmyj(pm[..., c], 0.9) for c in range(4)])
+    pm[szew] = pm[szew] * 0.5 + roz[szew] * 0.5
+
+    if not korona:  # korona → włosy dziecka; nowe włosy leżą pod spodem, twarz, ucho i stare włosy zostają na wierzchu
+        linia = np.interp(np.arange(W_), [330, 340, 355, 380, 400, 420, 440, 470, 490, 505, 540],
+                          [240, 196, 188, 180, 172, 166, 163, 164, 167, 172, 172])
+        usun = ((yy < linia[None, :] + 2) & (xx >= 330) & (xx < 540)) | ((xx < 346) & (yy < 240))
+        pm[usun] = 0
+        wl = piece(W_, H_, poly([(493, 168), (488, 156), (474, 138), (452, 123), (428, 116), (404, 118), (382, 128), (366, 146), (355, 170),
+                                 (349, 200), (351, 232), (360, 262), (392, 262), (420, 220), (440, 180)]), (24, 22, 26), seed=seed, contrast=0.7)
+        for n, (cx_, cy_, rx, ry) in enumerate(((396, 114, 17, 15), (450, 107, 16, 14))):  # dwa koki
+            wl = glue(wl, piece(W_, H_, ell(cx_, cy_, rx, ry), (28, 26, 30), seed=seed + 3 + n, contrast=0.9, shade=0.35), shadow=0.35)
+        for n, pts in enumerate(([(381, 123), (409, 119), (411, 127), (383, 131)], [(436, 115), (463, 112), (465, 120), (438, 123)])):
+            wl = glue(wl, piece(W_, H_, poly(pts), LAKA, seed=seed + 9 + n, contrast=0.7), shadow=0.35)  # wstążki
+        d = ImageDraw.Draw(wl)
+        for r0, a0, a1 in ((40, 205, 262), (52, 214, 270), (61, 200, 248), (70, 222, 266)):  # pasma zaczesane do tyłu
+            d.arc((450 - r0 * 1.25, 182 - r0, 450 + r0 * 1.25, 182 + r0), a0, a1, fill=(70, 78, 98, 70), width=2)
+        w_ = np.asarray(wl, np.float32) / 255.0
+        w_[..., :3] *= w_[..., 3:4]
+        pm = pm + w_ * (1 - pm[..., 3:4])
+        gr = piece(W_, H_, poly([(426, 162), (494, 160), (496, 168), (490, 174), (484, 170), (478, 177), (470, 172), (462, 179), (454, 173),
+                                 (446, 180), (438, 174), (430, 178), (424, 170)]), (24, 22, 26), seed=seed + 21, contrast=0.7)  # grzywka
+        g = np.asarray(gr, np.float32) / 255.0
+        g[..., :3] *= g[..., 3:4]
+        pm = g + pm * (1 - g[..., 3:4])
+
+    # proporcje dziecka: głowa bez zmian, tułów o 40% krótszy i u dołu o 20% węższy (wokół osi lalki)
+    cut, sy, sx_min, cx = 300, 0.6, 0.8, 461.0
+    yo, xo = np.mgrid[0:int(cut + (H_ - cut) * sy), 0:W_].astype(np.float32)
+    ys = np.where(yo < cut, yo, cut + (yo - cut) / sy)
+    k = np.clip((ys - cut) / 160.0, 0, 1)
+    out = _dwuliniowo(pm, ys, cx + (xo - cx) / (1 - (1 - sx_min) * (k * k * (3 - 2 * k))))
+    al = np.clip(out[..., 3:4], 1e-6, 1)
+    return Image.fromarray((np.dstack([np.clip(out[..., :3] / al, 0, 1), out[..., 3]]) * 255).astype(np.uint8))
 
 @lru_cache(None)
 def ribbon(key):

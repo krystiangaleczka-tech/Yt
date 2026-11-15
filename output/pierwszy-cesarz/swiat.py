@@ -71,7 +71,7 @@ def stan(i):
         waga=f(po("miara") and not po("zmierzch")), odwaznik=f(po("miara") and not po("zmierzch")), waga_rot=0.0,
         zwoj=f(po("pismo") and not po("ksiegi")), zwoj_lot=0.0,
         uczony=f(po("ksiegi") and not po("uczeni")), uczony_lean=0.0, ogien=0.0,
-        mur=f(po("mur")), armia=f(po("armia") and not po("cisza")), armia_t=None,
+        mur=f(po("mur")), armia=f(po("armia") and not po("podroz")), armia_t=None,  # armia zapada się na początku podróży
         posag=f(po("posagi") and not po("upadek")), posag_fall=0.0,
         kanal=f(po("kanal")), kanal2=f(po("kanal2")), urzednicy=f(po("prowincje") and not po("powstanie")),
         stela=f(po("stela")), palac=f(po("palac") and not po("upadek")), kopiec=f(po("kopiec")),
@@ -195,15 +195,21 @@ def wlocznie(st, t, x, p=0.635, band="droga", h=124, n=2, flag=None, up=1.0, see
                p - j * 0.004, h=h, anchor=(1.0, 1.0), rot=0.8 * math.sin(ph * 0.7))
 
 
-def woz(st, t, x, p=0.645, h=74, flip=1.0, sy=1.0, rot=0.0, ladunek=None):
-    """Wóz na drodze; ladunek — wycinek jadący na wozie (lalka, ryby, zasłona): (sprite, wysokość, przesunięcie x, y)."""
+def woz(st, t, x, p=0.645, h=74, flip=1.0, sy=1.0, rot=0.0, ladunek=None, kon=True):
+    """Wóz na drodze; ladunek — wycinek jadący na wozie (lalka, ryby, zasłona): (sprite, wysokość, przesunięcie x, y)
+    albo lista takich wycinków. Wóz ciągnie koń z woźnicą na grzbiecie (wycinanka jeźdźca), dyszel sięga mu do boku."""
     ph = x / 21.0
     y = Z.ground("droga", clamp(x, -300, 1500)) + 10 - abs(math.sin(ph)) * 3.5 - 5 * max(0.0, math.sin(ph * 0.31)) ** 8 + ZAPAD[0]
     r = 1.6 * math.sin(ph * 0.9) + 0.5 * noise(t, 83, 0.7) + rot
-    if ladunek:
-        spr, lh, dx, dy = ladunek
+    for spr, lh, dx, dy in ([ladunek] if isinstance(ladunek, tuple) else ladunek or []):
         st.put(spr, x + dx * flip, y - h * 0.62 + dy, p - 0.002, h=lh, rot=r * 1.5, sx=flip)
     st.put(Z.S("wagon", 0.6), x, y, p, h=h, rot=r, sx=flip, sy=sy)
+    if kon:  # koń idzie stępa: kołysze się w rytm przebytej drogi, nie zegara
+        s = h / 74.0
+        hx = x + 66 * s * flip
+        ph2 = hx / 30.0
+        hy = Z.ground("droga", clamp(hx, -300, 1500)) + 8 * s - abs(math.sin(ph2)) * 4 * s + ZAPAD[0]
+        st.put(Z.S("rider", 0.6), hx, hy, p + 0.002, h=100 * s, rot=2.5 * math.sin(ph2 * 2 + 0.5) + 0.4 * noise(t, 82, 0.6), sx=flip)
     return y
 
 
@@ -321,13 +327,14 @@ def armia(st, t, w):
                    rot=0.4 * noise(t, 950 + rn * 20 + j, 0.4) + settle((k - 0.7) / 0.3 if k < 1 else 0, 1.5, 4), tint=tint)
 
 
-def wstega(st, key, x0, x1, k, p=0.672, dy=20, band="droga"):
-    """Wstęga (kanał, rzeka rtęci) rozwijana od x0 do x1 wzdłuż pasma wzgórz. k = 0..1."""
+def wstega(st, key, x0, x1, k, p=0.672, dy=20, band="droga", sy=1.0, blask=0.0):
+    """Wstęga (kanał, rzeka rtęci) rozwijana od x0 do x1 wzdłuż pasma wzgórz. k = 0..1; blask > 0 — połysk (rtęć) nałożony addytywnie."""
     if k <= 0:
         return
     y0, y1 = Z.ground(band, x0) + dy, Z.ground(band, x1) + dy
-    st.put(Z.ribbon(key), x0, y0, p, w=(x1 - x0), anchor=(0.0, 0.5), sx=max(0.02, ease_out(k)),
-           rot=math.degrees(math.atan2(y1 - y0, x1 - x0)), shadow=(2, 3, 4, 0.35))
+    st.put(Z.ribbon(key), x0, y0, p, w=(x1 - x0), anchor=(0.0, 0.5), sx=max(0.02, ease_out(k)), sy=sy,
+           rot=math.degrees(math.atan2(y1 - y0, x1 - x0)), shadow=None if blask else (2, 3, 4, 0.35),
+           **({"mode": "add", "alpha": blask, "tint": (0.85, 0.9, 1.0)} if blask else {}))
 
 
 def kraj_dodatki(st, t, w):

@@ -8,15 +8,15 @@ import random
 
 import zestaw as Z
 from papier import CX, CY, back, clamp, ease, ease_out, noise, settle
-from swiat import (BAN, EMP, I, KOLUMNA, MALY, PODBITE, TRON, URNA, P, jezdziec, kam, lalka, lerp, pr, sala, stol, swiat, swiatlo,
+from swiat import (BAN, EMP, I, KOLUMNA, MALY, PODBITE, TRON, URNA, ZAPAD, P, jezdziec, kam, lalka, lerp, pr, sala, stol, swiat, swiatlo,
                    urzednik, wlocznie, woz)
 
 
 # ---------- pomocnicze ----------
 
 def krol(st, t, h=EMP[2], k=1.0, x=TRON[0], y=TRON[1], flip=1.0, lean=0.0, sink=0.0, lift=0.0, p=0.785):
-    """Zheng w sali tronowej (na podwyższeniu albo na posadzce)."""
-    lalka(st, t, "zheng", x, h, k, y=y, p=p, flip=flip, lean=lean, sink=sink, lift=lift, seed=7)
+    """Zheng w sali tronowej (na podwyższeniu albo na posadzce); mała lalka to król-chłopiec bez brody."""
+    lalka(st, t, "zheng_krol" if h <= MALY else "zheng", x, h, k, y=y, p=p, flip=flip, lean=lean, sink=sink, lift=lift, seed=7)
 
 
 def za_oknem(st, x, flag=None, seed=3, h=250):
@@ -79,7 +79,7 @@ def s_handan(st, w, t, T):
     st.dof = 1.4
     swiat(st, t, w)
     lalka(st, t, "ojciec", 890, 286, pr(t, 1.3, 1.1), flip=-1)
-    lalka(st, t, "zheng", 772, MALY, pr(t, 3.0, 1.0), seed=8)
+    lalka(st, t, "zheng_dziecko", 772, MALY, pr(t, 3.0, 1.0), seed=8)
     swiatlo(st, w, t)
 
 
@@ -92,7 +92,7 @@ def s_oblezenie(st, w, t, T):
     st.dof = 1.4
     swiat(st, t, w)
     lalka(st, t, "ojciec", 890 + back_, 286, flip=-1, lean=3 * ease(pr(t, 1.0, 1.0)))
-    lalka(st, t, "zheng", 772 + back_ * 1.4, MALY, lean=4 * ease(pr(t, 1.2, 1.0)), seed=8)
+    lalka(st, t, "zheng_dziecko", 772 + back_ * 1.4, MALY, lean=4 * ease(pr(t, 1.2, 1.0)), seed=8)
     swiatlo(st, w, t, extra=(1.03, 0.98, 0.94))
 
 
@@ -104,7 +104,7 @@ def s_kupiec(st, w, t, T):
     swiat(st, t, w)
     woz(st, t, lerp(1420, 1150, ease_out(pr(t, 1.6, 2.2))), flip=-1)
     lalka(st, t, "ojciec", 916, 286, flip=1, lean=2 * settle((t - 1.6) / 1.5, 1.2))
-    lalka(st, t, "zheng", 808, MALY, seed=8)
+    lalka(st, t, "zheng_dziecko", 808, MALY, seed=8)
     lalka(st, t, "kupiec", 1050, 300, pr(t, 0.6, 1.1), flip=-1, lean=-4 * ease(pr(t, 2.2, 0.7)))
     for n, x in enumerate((968, 1000, 984)):
         kk = pr(t, 3.4 + n * 0.5, 0.5)
@@ -119,17 +119,20 @@ def _noc(w, n=0.85):
 
 
 def s_ucieczka(st, w, t, T):
-    """Noc: ojciec i kupiec znikają, wóz odjeżdża na zachód obok włóczni straży; chłopiec zostaje sam."""
+    """Noc: ojciec i kupiec chowają się pod rampę i wyrastają na wozie; koń ciągnie wóz na zachód obok włóczni straży,
+    chłopiec zostaje sam."""
     _noc(w)
     go = ease(pr(t, 1.4, T - 1.6))
     kam(st, t, 5, lerp(930, 700, ease(pr(t, 1.0, T - 1.2))), 520, 1.35, 0.72, truck=0.8)
     st.dof = 1.2
     swiat(st, t, w)
-    woz(st, t, lerp(1150, 470, go), flip=-1, ladunek=(Z.lalka("kupiec"), 62, 4, 6) if t > 1.1 else None)
+    na_wozie = [(Z.lalka(k), hh, dx, 6 + 46 * (1 - back(pr(t, t0, 0.6), 1.3)))  # wyrastają zza skrzyni na wozie
+                for k, hh, dx, t0 in (("ojciec", 60, -34, 1.05), ("kupiec", 62, -10, 1.25)) if t > t0]
+    woz(st, t, lerp(1150, 470, go), flip=-1, ladunek=na_wozie)
     wlocznie(st, t, 1100, n=1, h=104, seed=6)  # straż stoi za wzgórzem i nie rusza się
     lalka(st, t, "ojciec", 916, 286, sink=pr(t, 0.2, 0.9))
     lalka(st, t, "kupiec", 1050, 300, flip=-1, sink=pr(t, 0.4, 0.9))
-    lalka(st, t, "zheng", 808, MALY, seed=8, flip=-1 if t > 2.2 else 1, lean=-3 * ease(pr(t, 2.2, 1.0)))
+    lalka(st, t, "zheng_dziecko", 808, MALY, seed=8, flip=-1 if t > 2.2 else 1, lean=-3 * ease(pr(t, 2.2, 1.0)))
     swiatlo(st, w, t)
 
 
@@ -140,7 +143,7 @@ def s_sam(st, w, t, T):
     kam(st, t, 6, 830, 590, 2.2, 0.8, lens=1.9)
     st.dof = 2.4
     swiat(st, t, w)
-    lalka(st, t, "zheng", 808 + 30 * ease(pr(t, 0.6, 1.0)), MALY, seed=8, flip=-1, lean=5 * ease(pr(t, 0.6, 0.8)))
+    lalka(st, t, "zheng_dziecko", 808 + 30 * ease(pr(t, 0.6, 1.0)), MALY, seed=8, flip=-1, lean=5 * ease(pr(t, 0.6, 0.8)))
     swiatlo(st, w, t)
 
 
@@ -150,7 +153,7 @@ def s_powrot(st, w, t, T):
     kam(st, t, 7, x + 30, 525, 1.8, 0.645, lens=1.68, truck=0.85)
     st.dof = 1.5
     swiat(st, t, w)
-    woz(st, t, x, flip=-1, ladunek=(Z.lalka("zheng"), 70, 6, 8))
+    woz(st, t, x, flip=-1, ladunek=(Z.lalka("zheng_dziecko"), 70, 6, 8))
     swiatlo(st, w, t)
 
 
@@ -161,7 +164,7 @@ def s_krol13(st, w, t, T):
     kam(st, t, 8, lerp(350, 360, k), lerp(580, 566, k), lerp(1.7, 1.95, k), 0.8)
     st.dof = 2.0
     swiat(st, t, w)
-    lalka(st, t, "zheng", EMP[0], MALY, pr(t, 0.5, 1.2), seed=7, lift=10 * ease(pr(t, 3.6, 1.0)),
+    lalka(st, t, "zheng_krol", EMP[0], MALY, pr(t, 0.5, 1.2), seed=7, lift=10 * ease(pr(t, 3.6, 1.0)),
           lean=-2 * ease(pr(t, 3.6, 1.0)) + 1.5 * settle((t - 4.4) / 1.4, 1.5))
     swiatlo(st, w, t)
 
@@ -384,6 +387,7 @@ def s_poselstwo(st, w, t, T):
 
 STOLIK = (930, 280)  # sala: stół z podarunkami (x, szerokość)
 JINGKE, LEKARZ, LISI_X = 1096, 1, 150
+LEZY = 70  # o ile unieść leżącą lalkę Jing Ke, żeby leżała na posadzce nad rampą, a nie pod nią
 
 
 def _sala_zamach(st, t, w, stolik=1.0, zwoj="zwiniety", szkatula=1.0, lisi=0.0, bow=0.0, lift=0.0):
@@ -488,7 +492,7 @@ def s_cios(st, w, t, T):
     flip = -math.cos(math.pi * turn)
     krol(st, t, x=476, y=708, flip=flip, lean=4 * cut, p=0.82)
     st.put(Z.prop("miecz"), 476 + 70 * flip, 500, 0.826, w=240, anchor=(0.1, 0.5), rot=lerp(-118, 24, cut))
-    lalka(st, t, "jingke", 600 + 26 * fall, 300, p=0.818, flip=-1, lean=7 + 80 * fall, sink=0.24 * fall)
+    lalka(st, t, "jingke", 600 + 26 * fall, 300, p=0.818, flip=-1, lean=7 + 80 * fall, lift=LEZY * fall)  # osuwa się i leży na posadzce
 
 
 def s_pretekst(st, w, t, T):
@@ -499,8 +503,8 @@ def s_pretekst(st, w, t, T):
     _sala_zamach(st, t, w, zwoj=None, lift=46 - 30 * ease(pr(t, 1.6, 1.0)), lisi=4 * ease(pr(t, 2.4, 0.8)))
     krol(st, t, x=476, y=708, p=0.82, lean=0.0)
     st.put(Z.prop("miecz"), 546, 500, 0.826, w=240, anchor=(0.1, 0.5), rot=lerp(24, 82, ease(pr(t, 0.6, 1.2))))  # miecz opada
-    lalka(st, t, "jingke", 626, 300, p=0.818, flip=-1, lean=87, sink=0.24)
-    st.put(Z.prop("sztylet"), KOLUMNA - 6, 470, P.lalki + 0.002, w=60, anchor=(0.9, 0.5), rot=-24, shadow=(2, 3, 3, 0.4))
+    lalka(st, t, "jingke", 626, 300, p=0.818, flip=-1, lean=87, lift=LEZY)
+    st.put(Z.prop("sztylet"), KOLUMNA + 12, 470, P.lalki + 0.002, w=60, anchor=(0.9, 0.5), rot=-24, shadow=(2, 3, 3, 0.4))  # ostrze w kolumnie
 
 
 # ---------- akt 4 · Koniec sześciu królestw ----------
@@ -514,6 +518,10 @@ def s_ksiaze(st, w, t, T):
     kam(st, t, 31, lerp(960, 1000, ease(t / T)), 506, 1.75, 0.62, lens=1.64, truck=0.7)
     st.dof = 1.2
     swiat(st, t, w)
+    jx, _, _, jk = w.jezdziec  # zwój z pieczęcią w uniesionej ręce jeźdźca
+    jy = Z.ground("droga", jx) + 8 - abs(math.sin(jx / 34.0)) * 9 * jk + ZAPAD[0]
+    st.put(Z.prop("list_pieczec"), jx + 17, jy - 60 - 6 * ease(pr(t, 1.8, 0.6)), 0.647, w=30, rot=-14 + 10 * ease(pr(t, 1.8, 0.6)),
+           shadow=(2, 3, 3, 0.35))
     swiatlo(st, w, t, extra=(1.03, 0.98, 0.94))
 
 

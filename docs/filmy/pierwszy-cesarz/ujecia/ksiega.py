@@ -44,10 +44,12 @@ SWIAT = {
     ],
     "characters": [
         {"id": "zheng", "name": "Zheng", "aliases": ["Pierwszy Cesarz"], "role": "syn zakładnika, król Qin od 247 p.n.e., Pierwszy Cesarz od 221 p.n.e.",
-         "look": "jedna wycinanka przez cały film: czarna szata ze złotymi smokami, korona z koralikami, ręka wskazująca w prawo",
-         "costume": "mała lalka (205) jako chłopiec i król-chłopiec do " + r("dorosl", "duża") + ", potem duża (352)",
+         "look": "wycinanka cesarza: czarna szata ze złotymi smokami, korona z koralikami, ręka wskazująca w prawo; "
+                 "chłopiec i król-chłopiec mają tę samą wycinankę bez brody, z większą głową i krótszym tułowiem",
+         "costume": "chłopiec (205) bez korony, z dwoma kokami, do " + r("krol13", "247") + "; król-chłopiec (205) w koronie do "
+                    + r("dorosl", "duża") + ", potem dorosły (352)",
          "traits": "nie chodzi — obraca się na patyczku, pochyla, unosi, opada pod rampę",
-         "states": [{"from": r("dorosl", "duża"), "state": "dorosły (duża lalka)"}, {"from": r("koniec", "opada"), "state": "nie żyje — lalki nie ma na scenie"}]},
+         "states": [{"from": r("krol13", "247"), "state": "król-chłopiec (mała lalka w koronie)"}, {"from": r("dorosl", "duża"), "state": "dorosły (duża lalka)"}, {"from": r("koniec", "opada"), "state": "nie żyje — lalki nie ma na scenie"}]},
         {"id": "lu", "name": "Lü Buwei", "role": "kupiec, potem kanclerz i regent", "look": "wycinanka uczonego w purpurowym obszyciu",
          "leaves": r("trucizna", "truciznę")},
         {"id": "ojciec", "name": "ojciec", "role": "książę Qin, zakładnik w Handanie (Yiren)", "look": "wycinanka uczonego w brązowym obszyciu",
@@ -88,6 +90,8 @@ SWIAT = {
         {"id": "noc", "name": "noc: księżyc zamiast słońca", "from": r("zmierzch", "księżyc"), "to": r("cisza", "słońce")},
         {"id": "cesarz_zyje", "name": "lalka cesarza stoi na scenie", "from": r("dorosl", "duża"), "to": r("koniec", "opada")},
         {"id": "czarne_stoja", "name": "na wzgórzach stoją czarne chorągwie Qin", "from": r("czarne", "czarne"), "to": r("upadek", "chorągwie")},
+        {"id": "armia_stoi", "name": "gliniana armia stoi na scenie", "from": r("armia", "żołnierze"), "to": r("podroz", "zapadają"),
+         "note": "Armia jest w grobowcu: przy spisku, liście do Fusu i powstaniu jej nie ma."},
     ],
     "events": [
         {"at": r("regent", "mały"), "note": "kanclerz rządzi za małego króla", "needs": ["krol_maly"]},
@@ -99,8 +103,8 @@ SWIAT = {
         {"at": r("drogi", "wóz"), "note": "wóz jedzie drogą przez środek sceny", "needsOff": ["dwor"]},
         {"at": r("mlot", "noc"), "note": "zamach młotem na nocnej drodze", "needs": ["noc"], "needsOff": ["dwor"]},
         {"at": r("armia", "żołnierze"), "note": "gliniana armia wstaje nocą", "needs": ["noc", "cesarz_zyje"]},
-        {"at": r("spisek", "powozie"), "note": "Li Si i Zhao Gao tają śmierć cesarza", "needsOff": ["cesarz_zyje"]},
-        {"at": r("powstanie", "czarne"), "note": "czarne chorągwie zaczynają padać", "needs": ["czarne_stoja"]},
+        {"at": r("spisek", "powozie"), "note": "Li Si i Zhao Gao tają śmierć cesarza", "needsOff": ["cesarz_zyje", "armia_stoi"]},
+        {"at": r("powstanie", "czarne"), "note": "czarne chorągwie zaczynają padać", "needs": ["czarne_stoja"], "needsOff": ["armia_stoi"]},
         {"at": r("studnia", "dzień"), "note": "odkrycie armii w 1974 roku", "needsOff": ["noc", "czarne_stoja"]},
     ],
     "threads": [
@@ -118,7 +122,7 @@ SWIAT = {
         {"id": "fusu", "title": "Syn zesłany pod mur", "setup": [r("uczeni", "Fusu")], "payoff": [r("list", "Fusu")]},
         {"id": "smierc", "title": "Jedyny wróg: śmierć", "setup": [r("zmierzch", "śmierć")],
          "clues": [r("morze", "nieśmiertelni"), r("rtec", "rtęcią"), r("meteor", "umrze"), r("armia", "śmierci")], "payoff": [r("koniec", "Umarł")]},
-        {"id": "armia", "title": "Gliniana armia pod ziemią", "setup": [r("armia", "żołnierzy")], "clues": [r("cisza", "zapadają")],
+        {"id": "armia", "title": "Gliniana armia pod ziemią", "setup": [r("armia", "żołnierzy")], "clues": [r("podroz", "zapadają")],
          "payoff": [r("studnia", "1974")]},
         {"id": "mur", "title": "Mur na grani", "setup": [r("mur", "mury")], "clues": [r("robotnicy", "murem"), r("list", "murem")],
          "payoff": [r("qin", "mur")]},
@@ -146,12 +150,21 @@ SWIAT = {
         {"id": "D7", "text": "Teatr ma się „stawiać”: na początku scen dekoracja wjeżdża od nowa (niebo na nitkach, ziemia od dołu), kamera w "
          "każdym ujęciu jedzie bokiem (paralaksa), przedplan z kulis (gałąź, trzciny, kolumna), życie w tle (ptaki, wędrowcy).",
          "at": "2026-11-10", "by": "reżyser"},
+        {"id": "D8", "text": "Zamiast D3: chłopiec Zheng ma własną lalkę — wycinankę cesarza bez brody, z większą głową i krótszym tułowiem; "
+         "do koronacji (247 p.n.e.) bez korony, z dwoma kokami dziecka, potem ta sama lalka w koronie jako król-chłopiec. Dorosły "
+         "Zheng to pełna wycinanka cesarza. Powód: mała lalka w koronie i z brodą wyglądała jak trzeci dorosły.", "at": "2026-11-15",
+         "by": "reżyser"},
+        {"id": "D9", "text": "Każdy wóz i powóz ciągnie koń z woźnicą na grzbiecie (wycinanka jeźdźca zaprzężona w dyszel). Uwaga "
+         "reżysera na klatce ujęcia d01_06: „ten powóz musi ciągnąć koń!”.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D10", "text": "Gliniana armia zapada się pod ziemię przy zmianie dekoracji na początku ostatniej podróży (d07_08), więc "
+         "nie zasłania powozu, spisku, Fusu ani powstania; o świcie (d08_07) wraca tylko słońce. W finale (d08_10) armia staje jeszcze "
+         "raz jako obraz zamykający.", "at": "2026-11-15", "by": "reżyser"},
     ],
 }
 
 BIBLIA = {
-    "characters": "Zheng (Pierwszy Cesarz) — jedna wycinanka przez cały film: mała lalka to chłopiec z Handanu i król-chłopiec, duża to dorosły "
-                  "król i cesarz. Lü Buwei — kupiec i kanclerz (purpurowe obszycie). Li Si — doradca (zielone). Jing Ke — zamachowiec (jasne). "
+    "characters": "Zheng (Pierwszy Cesarz) — wycinanka cesarza; chłopiec z Handanu to ta sama wycinanka bez brody i korony, z kokami "
+                  "dziecka, król-chłopiec — w koronie, duża lalka to dorosły król i cesarz. Lü Buwei — kupiec i kanclerz (purpurowe obszycie). Li Si — doradca (zielone). Jing Ke — zamachowiec (jasne). "
                   "Fusu — najstarszy syn (niebieskie). Zhao Gao — eunuch (szare, w sali większy od wszystkich). Huhai — mała lalka cesarza "
                   "w niebieskim obszyciu. Pisarz, uczeni, klęczący urzędnicy, jeździec, gliniani żołnierze.",
     "chronology": "259 p.n.e. narodziny w Handanie · 257 ucieczka ojca · ok. 250 powrót do Qin · 247 król · 238 bunt, 235 śmierć Lü Buweia · "

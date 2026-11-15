@@ -33,10 +33,11 @@ AKTY = [
                  "niebieska chorągiew drży", "L: Qin właśnie oblegało to miasto, więc sąsiedzi mieli powód, żeby nienawidzić chłopca z rodziny wroga."),
             ]),
             ("Kupiec", [
-                ("kupiec", "PŚ", "naj", N, "obok ojca wysuwa się lalka kupca w purpurowym obszyciu, za nim wtacza się wóz ze skrzynią, a na rampie "
+                ("kupiec", "PŚ", "naj", N, "obok ojca wysuwa się lalka kupca w purpurowym obszyciu, za nim koń wtacza wóz ze skrzynią, a na rampie "
                  "rośnie stos monet", "L: Ojca wypatrzył jednak bogaty kupiec Lü Buwei, który uznał, że książę na wygnaniu to towar, na którym "
                  "można zarobić królestwo."),
-                ("ucieczka", "PP", "jaz", N, "noc: wóz z ojcem i kupcem odjeżdża na zachód obok włóczni straży; mały chłopiec zostaje pod bramą sam",
+                ("ucieczka", "PP", "jaz", N, "noc: ojciec i kupiec chowają się pod rampę i wyrastają na wozie, a koń ciągnie wóz na zachód obok włóczni straży; "
+                 "mały chłopiec zostaje pod bramą sam",
                  "L: Kupiec przekupił straże i wywiózł księcia do Qin, a chłopiec został w Handanie wśród wrogów."),
                 ("sam", "Z", "stat", 2.4, "zbliżenie małej lalki pod wielką bramą: za nią przechodzą włócznie straży, lalka cofa się pod mur",
                  "kroki straży, wiatr"),
@@ -268,7 +269,8 @@ AKTY = [
         ]),
         ("Ostatnia podróż", "droga nocą, potem przód sceny", [
             ("Choroba", [
-                ("podroz", "PP", "jaz", N, "noc: powóz cesarza z czarną chorągwią toczy się drogą na wschód, coraz wolniej, i staje",
+                ("podroz", "PP", "jaz", N, "noc: gliniani żołnierze zapadają się pod ziemię, a drogą na wschód toczy się powóz cesarza z czarną chorągwią, "
+                 "coraz wolniej, aż staje",
                  "L: W 210 roku przed naszą erą wyruszył w kolejną podróż po kraju i w drodze zachorował."),
                 ("koniec", "PŚ", "stat", N, "z góry zjeżdża zawieszka „210 p.n.e.”; lalka cesarza przechyla się i powoli opada pod rampę, "
                  "chorągwie ze smokiem zostają nad pustym miejscem", "L: Umarł latem, daleko od stolicy, mając czterdzieści dziewięć lat."),
@@ -281,7 +283,8 @@ AKTY = [
             ("Powóz", [
                 ("spisek", "PŚ", "stat", N, "przy powozie wysuwają się dwie lalki: Li Si w zielonym i eunuch Zhao Gao w szarym; pochylają się ku sobie, "
                  "a na powóz opada czarna zasłona", "L: Kanclerz Li Si i eunuch Zhao Gao zataili jego śmierć, bo chcieli sami wybrać następcę."),
-                ("ryby", "PP", "jaz", N, "powóz jedzie dalej, a za nim wóz z górą ryb; kamera jedzie z nimi",
+                ("ryby", "PP", "jaz", N, "Li Si i Zhao Gao chowają się pod rampę, a powóz jedzie dalej, za nim wóz z górą ryb; "
+                 "kamera jedzie z nimi",
                  "L: Powóz jechał dalej jak gdyby nigdy nic, a żeby upał nie zdradził prawdy, obok postawiono wozy z solonymi rybami."),
             ]),
             ("List", [
@@ -297,7 +300,7 @@ AKTY = [
                  "jedna po drugiej", "L: Już rok później chłopi pędzeni do służby na granicy wzniecili powstanie i poszedł za nimi cały kraj."),
                 ("upadek", "PO", "odj", N, "padają ostatnie czarne chorągwie, zrywają się nitki chorągwi ze smokiem, a miasto staje w czerwonej łunie",
                  "L: Dynastia, która miała trwać dziesięć tysięcy pokoleń, upadła po piętnastu latach."),
-                ("cisza", "PO", "stat", 3.6, "świt: gliniani żołnierze zapadają się pod ziemię, księżyc odjeżdża w górę, a słońce wraca na nitce; "
+                ("cisza", "PO", "stat", 3.6, "świt: księżyc odjeżdża w górę, a słońce wraca na nitce; "
                  "na scenie zostaje mur na grani i ani jednej chorągwi", "wiatr"),
             ]),
         ]),

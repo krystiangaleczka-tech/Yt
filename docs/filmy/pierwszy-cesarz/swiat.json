@@ -70,10 +70,14 @@
         "Pierwszy Cesarz"
       ],
       "role": "syn zakładnika, król Qin od 247 p.n.e., Pierwszy Cesarz od 221 p.n.e.",
-      "look": "jedna wycinanka przez cały film: czarna szata ze złotymi smokami, korona z koralikami, ręka wskazująca w prawo",
-      "costume": "mała lalka (205) jako chłopiec i król-chłopiec do d02_03~duża, potem duża (352)",
+      "look": "wycinanka cesarza: czarna szata ze złotymi smokami, korona z koralikami, ręka wskazująca w prawo; chłopiec i król-chłopiec mają tę samą wycinankę bez brody, z większą głową i krótszym tułowiem",
+      "costume": "chłopiec (205) bez korony, z dwoma kokami, do d01_09~247; król-chłopiec (205) w koronie do d02_03~duża, potem dorosły (352)",
       "traits": "nie chodzi — obraca się na patyczku, pochyla, unosi, opada pod rampę",
       "states": [
+        {
+          "from": "d01_09~247",
+          "state": "król-chłopiec (mała lalka w koronie)"
+        },
         {
           "from": "d02_03~duża",
           "state": "dorosły (duża lalka)"
@@ -259,6 +263,13 @@
       "name": "na wzgórzach stoją czarne chorągwie Qin",
       "from": "d04_07~czarne",
       "to": "d08_06~chorągwie"
+    },
+    {
+      "id": "armia_stoi",
+      "name": "gliniana armia stoi na scenie",
+      "from": "d07_05~żołnierze",
+      "to": "d07_08~zapadają",
+      "note": "Armia jest w grobowcu: przy spisku, liście do Fusu i powstaniu jej nie ma."
     }
   ],
   "events": [
@@ -333,7 +344,8 @@
       "at": "d08_01~powozie",
       "note": "Li Si i Zhao Gao tają śmierć cesarza",
       "needsOff": [
-        "cesarz_zyje"
+        "cesarz_zyje",
+        "armia_stoi"
       ]
     },
     {
@@ -341,6 +353,9 @@
       "note": "czarne chorągwie zaczynają padać",
       "needs": [
         "czarne_stoja"
+      ],
+      "needsOff": [
+        "armia_stoi"
       ]
     },
     {
@@ -467,7 +482,7 @@
         "d07_05~żołnierzy"
       ],
       "clues": [
-        "d08_07~zapadają"
+        "d07_08~zapadają"
       ],
       "payoff": [
         "d08_08~1974"
@@ -548,6 +563,36 @@
       "text": "Akt 5: drogi, prowincje, podróże i kanał są przed stołem pisarzy, bo stół zasłania środek drogi; zamach młotem jest po zmierzchu, kiedy stół już zniknął.",
       "at": "2026-11-10",
       "by": "wykonawca (do zatwierdzenia)"
+    },
+    {
+      "id": "D6",
+      "text": "Lektor wstrzymany na prośbę reżysera (nagrywanie klonem głosu trwało ok. 4 min na kwestię przy 8 GB RAM). Długości ujęć liczone z tempa zmierzonego na 3 nagranych kwestiach (2,1 słowa/s) — film 9:46.",
+      "at": "2026-11-10",
+      "by": "reżyser"
+    },
+    {
+      "id": "D7",
+      "text": "Teatr ma się „stawiać”: na początku scen dekoracja wjeżdża od nowa (niebo na nitkach, ziemia od dołu), kamera w każdym ujęciu jedzie bokiem (paralaksa), przedplan z kulis (gałąź, trzciny, kolumna), życie w tle (ptaki, wędrowcy).",
+      "at": "2026-11-10",
+      "by": "reżyser"
+    },
+    {
+      "id": "D8",
+      "text": "Zamiast D3: chłopiec Zheng ma własną lalkę — wycinankę cesarza bez brody, z większą głową i krótszym tułowiem; do koronacji (247 p.n.e.) bez korony, z dwoma kokami dziecka, potem ta sama lalka w koronie jako król-chłopiec. Dorosły Zheng to pełna wycinanka cesarza. Powód: mała lalka w koronie i z brodą wyglądała jak trzeci dorosły.",
+      "at": "2026-11-15",
+      "by": "reżyser"
+    },
+    {
+      "id": "D9",
+      "text": "Każdy wóz i powóz ciągnie koń z woźnicą na grzbiecie (wycinanka jeźdźca zaprzężona w dyszel). Uwaga reżysera na klatce ujęcia d01_06: „ten powóz musi ciągnąć koń!”.",
+      "at": "2026-11-15",
+      "by": "reżyser"
+    },
+    {
+      "id": "D10",
+      "text": "Gliniana armia zapada się pod ziemię przy zmianie dekoracji na początku ostatniej podróży (d07_08), więc nie zasłania powozu, spisku, Fusu ani powstania; o świcie (d08_07) wraca tylko słońce. W finale (d08_10) armia staje jeszcze raz jako obraz zamykający.",
+      "at": "2026-11-15",
+      "by": "reżyser"
     }
   ]
 }

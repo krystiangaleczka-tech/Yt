@@ -121,12 +121,12 @@ def s_robotnicy(st, w, t, T):
         r = random.Random(70 + j)
         stop = 1.6 + j * 0.42 if j % 3 == 1 else None  # co trzeci zostaje pod murem
         tt = min(t, stop) if stop else t
-        x = 250 + j * 46 + (26 + r.uniform(-4, 4)) * tt
+        x = 400 + j * 52 + (26 + r.uniform(-4, 4)) * tt  # idą po prawej części grani, nie za cesarzem
         if not Z.MF_X - 350 < x < Z.MF_X + 350:
             continue
         sink = ease(pr(t, stop, 1.2)) * 40 if stop else 0.0
         st.put(Z.prop("robotnik"), x, Z.ridge(x) + 15 + sink - abs(math.sin(x / 7.0)) * 2.5 * (0 if stop and t > stop else 1), P.gory - 0.002,
-               h=34, haze=0.16, shadow=(2, 2, 3, 0.25), rot=2 * math.sin(x / 9.0))
+               h=50, haze=0.1, shadow=(2, 2, 3, 0.25), rot=2 * math.sin(x / 9.0))
     swiatlo(st, w, t)
 
 
@@ -213,6 +213,7 @@ def s_zmierzch(st, w, t, T):
 def s_mlot(st, w, t, T):
     """Noc: drogą jadą dwa powozy; żelazny młot miażdży pierwszy z nich, drugi staje w miejscu."""
     ti = 2.7
+    w.emp = 0.0  # cesarz jedzie drugim powozem, nie stoi na rampie
     x1 = lerp(520, 760, min(t, ti) / ti)
     x2 = x1 - 196 + 0  # drugi powóz (cesarski) jedzie za pierwszym i staje po uderzeniu
     hit = pr(t, ti, 0.16)
@@ -335,7 +336,7 @@ def s_kopiec(st, w, t, T):
         x = 1070 + j * 22 + 13 * max(0.0, t - 2.4)
         fx = (x - (kx - kw / 2)) / kw
         if t > 2.4 and 0.05 < fx < 0.5:
-            st.put(Z.prop("robotnik"), x, ky - hh + mound.top(fx) * hh + 14 - abs(math.sin(x / 6.0)) * 2, P.miasto + 0.018, h=32,
+            st.put(Z.prop("robotnik"), x, ky - hh + mound.top(fx) * hh + 14 - abs(math.sin(x / 6.0)) * 2, P.miasto + 0.018, h=46,
                    shadow=(2, 2, 3, 0.25), rot=-8)
     swiatlo(st, w, t)
 
@@ -365,14 +366,16 @@ def s_rzeki(st, w, t, T):
     kam(st, t, 65, lerp(780, 900, ease(t / T)), 590, 1.7, 0.74, truck=0.8)
     st.dof = 1.4
     swiat(st, t, w)
-    wstega(st, "rtec", 400, 1320, pr(t, 0.4, 2.6), p=0.672, dy=24)
-    wstega(st, "rtec", 430, 1320, pr(t, 1.3, 2.6), p=0.735, dy=26, band="przod")
+    for k, p, dy, band, x0 in ((pr(t, 0.4, 2.6), 0.672, 24, "droga", 400), (pr(t, 1.3, 2.6), 0.735, 26, "przod", 430)):
+        wstega(st, "rtec", x0, 1320, k, p=p, dy=dy, band=band, sy=1.7)
+        wstega(st, "rtec", x0, 1320, k, p=p + 0.0005, dy=dy, band=band, sy=1.7, blask=0.35 + 0.15 * math.sin(t * 3.1 + p * 40))
     swiatlo(st, w, t)
     st.spot = (850, 580, 0.74, 560, 0.3)
 
 
 def s_podroz(st, w, t, T):
-    """Noc: powóz cesarza toczy się drogą na wschód, coraz wolniej, i staje."""
+    """Noc: gliniana armia zapada się pod ziemię; powóz cesarza toczy się drogą na wschód, coraz wolniej, i staje."""
+    w.armia = 1 - pr(t, 0.0, 1.6)  # zmiana dekoracji: gliniana armia zapada się pod ziemię, zostaje w grobowcu
     x = lerp(430, 730, ease_out(pr(t, 0.0, T - 1.2)))
     kam(st, t, 66, x + 70, 524, 1.8, 0.645, lens=1.68, truck=0.85)
     st.dof = 1.4
@@ -408,15 +411,15 @@ def s_spisek(st, w, t, T):
 
 
 def s_ryby(st, w, t, T):
-    """Powóz jedzie dalej, a za nim wóz z górą ryb; kamera jedzie z nimi."""
+    """Li Si i Zhao Gao chowają się pod rampę; powóz jedzie dalej, a za nim wóz z górą ryb; kamera jedzie z nimi."""
     x = lerp(730, 1060, (t / T) ** 0.95)
     w.powoz, w.zaslona = x, 1.0
     kam(st, t, 69, x - 70, 528, 1.9, 0.645, lens=1.76, truck=0.85)
     st.dof = 1.4
     swiat(st, t, w)
     woz(st, t, x - 190, h=66, ladunek=(Z.prop("ryby"), 30, -6, 18))
-    lalka(st, t, "lisi", 590, 310, lean=5)
-    lalka(st, t, "zhaogao", 880, 310, flip=-1, lean=-5)
+    lalka(st, t, "lisi", 590, 310, lean=5, sink=pr(t, 0.2, 0.9))  # spiskowcy chowają się pod rampę, powóz jedzie dalej
+    lalka(st, t, "zhaogao", 880, 310, flip=-1, lean=-5, sink=pr(t, 0.4, 0.9))
     swiatlo(st, w, t)
 
 
@@ -490,8 +493,7 @@ def s_upadek(st, w, t, T):
 
 
 def s_cisza(st, w, t, T):
-    """Świt: gliniani żołnierze zapadają się pod ziemię, księżyc odjeżdża, słońce wraca na nitce."""
-    w.armia = 1 - pr(t, 0.3, 1.9)
+    """Świt: księżyc odjeżdża, słońce wraca na nitce."""
     w.moon = 1 - pr(t, 0.4, 1.0)
     w.noc = 1 - ease(pr(t, 0.6, 2.6))
     w.sun = pr(t, 1.3, 1.6)
@@ -536,7 +538,7 @@ def s_qin(st, w, t, T):
     kam(st, t, 77, 640, lerp(360, 322, k), m, 1.0, lens=m ** 0.55, truck=1.0, drift=0.4)
     st.dof = 0.0
     swiat(st, t, w)
-    off = ease(pr(t, T - 2.3, 0.9))
+    off = ease(pr(t, T - 3.6, 0.9))  # scena gaśnie, a szyld z tytułem świeci jeszcze, zanim film zejdzie w czerń
     st.put(Z.black(), CX, CY, 0.992, w=1300, anchor=(0.5, 0.5), alpha=off, shadow=None, blur=0)
-    Z.theatre_put(st, 0.9 - 0.4 * off)
+    Z.theatre_put(st, 0.9 - 0.2 * off)
     swiatlo(st, w, t)
