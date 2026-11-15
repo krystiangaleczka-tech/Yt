@@ -1255,7 +1255,7 @@ function VersionTools() {
   const s = useStudio(),
     p = s.project!;
   const [versions, setVersions] = useState<
-      { id: string; name: string; revision: number; clips: number }[]
+      { id: string; name: string; revision: number; clips: number; created_at?: string }[]
     >([]),
     [name, setName] = useState("Wariant A"),
     [compare, setCompare] = useState<Project | null>(null);
@@ -1288,6 +1288,9 @@ function VersionTools() {
             <strong>{v.name}</strong>
             <small>
               Rewizja {v.revision} · {v.clips} klipów
+              {v.created_at
+                ? ` · ${new Date(v.created_at).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}`
+                : ""}
             </small>
             <div className="button-row">
               <Button

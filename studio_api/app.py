@@ -64,6 +64,7 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "[::1]", "testserver"])
     app.state.store = store; app.state.jobs = jobs; app.state.connectors = connectors
     from studio_api.annotations import register_annotations
+    from studio_api.teatr import register_teatr
     register_annotations(app, store)
     workspace = Workspace(store)
     app.state.workspace = workspace
@@ -75,6 +76,7 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     motion_render=register_inserts(app, store, jobs, connectors)
     from studio_api.tv import register_tv
     register_tv(app, store)
+    register_teatr(app, store, root)
 
     @app.middleware("http")
     async def local_mutations(request: Request, call_next):

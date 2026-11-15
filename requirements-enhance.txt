@@ -1,0 +1,18 @@
+# Środowisko resemble-enhance (lektor „jak ze studia”: docos/lektor_studio.py) — osobne, bo resemble-enhance ma
+# inne wersje bibliotek niż Chatterbox. Kolejność instalacji (tak działa pilot/.venv-enhance na Macu):
+#   python3.11 -m venv .venv-enhance
+#   pip install torch==2.4.1 torchaudio==2.4.1        (PC z kartą NVIDIA: --index-url https://download.pytorch.org/whl/cu124)
+#   pip install resemble-enhance==0.0.1 --no-deps     (jego zależności, m.in. deepspeed, do samej odbudowy niepotrzebne)
+#   pip install -r requirements-enhance.txt
+numpy<2
+librosa>=0.10
+omegaconf>=2.3
+resampy
+rich
+scipy
+soundfile
+tabulate
+matplotlib
+pandas
+tqdm
+huggingface_hub

@@ -7212,3 +7212,30 @@ textarea::placeholder {
   color: var(--accent);
   flex-shrink: 0;
 }
+
+/* Teatr papierowy na żywo (teatr.ts): klatki rysowane kodem zamiast klipu mp4 */
+.teatr-ekran { position: absolute; inset: 0; background: #101113; }
+.teatr-ekran > canvas { width: 100%; height: 100%; display: block; object-fit: contain; }
+.shot-sequence .teatr-sekwencja { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+.teatr-czeka { position: absolute; inset: 0; display: grid; place-content: center; color: #f4f2eb; background: #101113c0;
+  font-size: 13px; }
+.teatr-blad { position: absolute; left: 8px; right: 8px; top: 8px; max-height: 60%; overflow: auto; margin: 0; padding: 8px;
+  background: #3a1712ee; color: #ffd7cc; border: 1px solid #e2684f; border-radius: 6px; font: 11px/1.35 ui-monospace, Menlo, monospace;
+  white-space: pre-wrap; cursor: auto; }
+.teatr-pasek { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+  background: linear-gradient(transparent, #000000b0); cursor: auto; }
+.teatr-pasek input[type=range] { flex: 1; min-width: 60px; accent-color: #e0b25c; }
+.teatr-znak { position: absolute; left: 8px; top: 8px; z-index: 1; padding: 2px 7px; border-radius: 4px; background: #000000a0;
+  color: #e0b25c; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; white-space: nowrap; pointer-events: none; }
+.teatr-pasek { padding-left: 110px; opacity: 0; transition: opacity 0.15s; }
+.teatr-ekran:hover .teatr-pasek, .teatr-pasek:focus-within { opacity: 1; }
+.teatr-czas { color: #f4f2eb; font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.teatr-pasek button, .teatr-wroc { background: #00000080; color: #f4f2eb; border: 1px solid #ffffff40; border-radius: 4px;
+  padding: 2px 8px; font-size: 11px; cursor: pointer; }
+.teatr-wroc { position: absolute; right: 8px; top: 8px; z-index: 2; }
+
+/* Montaż: zapasowy pełny ekran (okno nie pozwala stronie na prawdziwy) — odtwarzacz na całe okno */
+.editor-player.fullscreen.okno { position: fixed; inset: 0; z-index: 2147483000; width: 100vw; height: 100vh; }
+/* Montaż: ujęcie, które leci pod głowicą */
+.biezace-ujecie { margin-left: 10px; color: #e0b25c; font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 40%; }

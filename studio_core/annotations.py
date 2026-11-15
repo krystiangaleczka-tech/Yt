@@ -16,7 +16,8 @@ class AnnotationStroke(Model):
 
 class FrameAnnotation(Model):
     id: str = Field(default_factory=lambda: uid("ann_"), pattern=r"^ann_[a-f0-9]{16}$")
-    scene_id: str = Field(pattern=r"^(scene|stage)_[a-f0-9]{16}$")
+    # Scenes made by import scripts carry readable ids (scene_d01_06); the API checks the scene exists.
+    scene_id: str = Field(pattern=r"^(scene|stage)_[A-Za-z0-9_-]{1,64}$")
     frame: int = Field(ge=0, strict=True)
     fps_num: int = Field(default=30, ge=1, le=240000, strict=True)
     fps_den: int = Field(default=1, ge=1, le=10000, strict=True)

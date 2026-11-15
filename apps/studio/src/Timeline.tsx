@@ -98,7 +98,10 @@ export default function Timeline() {
     [assistant, setAssistant] = useState(false),
     [library, setLibrary] = useState(true),
     [history, setHistory] = useState({ undo: 0, redo: 0 }),
-    [full, setFull] = useState(false),
+    [fsFull, setFull] = useState(false),
+    // zapasowy pełny ekran: odtwarzacz zajmuje całe okno, kiedy okno (np. panel przeglądarki w aplikacji) nie pozwala
+    // stronie wejść na prawdziwy pełny ekran
+    [oknoFull, setOknoFull] = useState(false),
     [idle, setIdle] = useState(false),
     [proposed, setProposed] = useState<Proposal | null>(null);
   const [marked, setMarked] = useState<string[]>([]),
@@ -113,6 +116,7 @@ export default function Timeline() {
     idleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
     stillRef = useRef(frame);
   const [view, setView] = useState<LaneWindow>(() => laneWindow(null));
+  const full = fsFull || oknoFull;
   // Inspektor dostaje klatkę tylko poza odtwarzaniem — w czasie Play nie przerysowuje się 30 razy na sekundę.
   if (!playing) stillRef.current = frame;
   const stillFrame = stillRef.current;
@@ -130,19 +134,51 @@ export default function Timeline() {
     };
   }, []);
   function toggleFull() {
+    if (oknoFull) {
+      setOknoFull(false);
+      return;
+    }
     if (document.fullscreenElement) {
       void document.exitFullscreen().catch(() => {});
       return;
     }
     const el = playerRef.current;
-    if (!el?.requestFullscreen) {
-      s.notify("Przeglądarka nie obsługuje pełnego ekranu", true);
+    if (!el) return;
+    const wOknie = () => {
+      setOknoFull(true);
+      el.focus({ preventScroll: true });
+    };
+    if (!el.requestFullscreen || !document.fullscreenEnabled) {
+      wOknie();
       return;
     }
+    // Panel przeglądarki w aplikacji Claude nie odpowiada na prośbę o pełny ekran (ani zgoda, ani odmowa):
+    // po chwili bez odpowiedzi odtwarzacz zajmuje całe okno.
+    let odpowiedz = false;
+    const zapas = window.setTimeout(() => {
+      if (!odpowiedz && !document.fullscreenElement) wOknie();
+    }, 400);
     el.requestFullscreen()
-      .then(() => el.focus({ preventScroll: true }))
-      .catch(() => s.notify("Przeglądarka nie pozwoliła na pełny ekran", true));
+      .then(() => {
+        odpowiedz = true;
+        clearTimeout(zapas);
+        setOknoFull(false);
+        el.focus({ preventScroll: true });
+      })
+      .catch(() => {
+        odpowiedz = true;
+        clearTimeout(zapas);
+        wOknie();
+      });
   }
+  useEffect(() => {
+    if (!oknoFull) return;
+    const esc = (e: globalThis.KeyboardEvent) => {
+      if (e.key === "Escape") setOknoFull(false);
+    };
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [oknoFull]);
   // Na pełnym ekranie w czasie odtwarzania przyciski chowają się po chwili bez ruchu myszy.
   function wake() {
     setIdle(false);
@@ -528,7 +564,7 @@ export default function Timeline() {
         <section
           ref={playerRef}
           tabIndex={-1}
-          className={`editor-player surface ${full ? "fullscreen" : ""} ${full && idle ? "idle" : ""}`}
+          className={`editor-player surface ${full ? "fullscreen" : ""} ${oknoFull ? "okno" : ""} ${full && idle ? "idle" : ""}`}
           onMouseMove={full ? wake : undefined}
           onDoubleClick={(e) => {
             if ((e.target as HTMLElement).tagName === "CANVAS") toggleFull();
@@ -603,6 +639,19 @@ export default function Timeline() {
                 {time(frame, rate, true)}{" "}
                 <span>/ {time(total, rate, true)}</span>
               </span>
+              {(() => {
+                // ujęcie, które leci pod głowicą (numer jak na liście ujęć)
+                const n = p.scenes.findIndex((x) => frame >= x.start && frame < x.start + x.duration);
+                if (n < 0) return null;
+                const sc = p.scenes[n],
+                  odn = /^scene_(d\d\d_\d\d)$/.exec(sc.id)?.[1];
+                return (
+                  <span className="biezace-ujecie" title={sc.title}>
+                    ujęcie {n + 1}/{p.scenes.length}
+                    {odn ? ` · ${odn}` : ""} · {sc.title}
+                  </span>
+                );
+              })()}
               <div className="player-spacer" />
               <AirPlayButton
                 label="Montaż na telewizor (AirPlay)"
@@ -793,6 +842,9 @@ export default function Timeline() {
           </span>
           <span>
             {p.sequence.clips.length} klipów · rewizja {p.revision}
+            {p.updated_at
+              ? ` · ${new Date(p.updated_at).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "medium" })}`
+              : ""}
           </span>
         </div>
       </section>

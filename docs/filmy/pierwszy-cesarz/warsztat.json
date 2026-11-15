@@ -1,0 +1,46 @@
+{
+  "pipeline": "## Technika\n\nUjęcia są **rysowane kodem** w Pythonie (PIL + numpy) jako teatr papierowy.\n\n- **Wycinki**: PNG z `output/imperium-papierowe/assets` (cesarz, uczeni, miasto, most, góry, chmury, drzewa, stół, waga…) oraz wycinanki z kodu (`zestaw.py`: chorągwie królestw, mur, żołnierze, płomienie, mapa, sala, fale, dżonka, rekwizyty) z papierów pobranych z tych samych plików.\n- **Silnik** (`papier.py`): plan głębi `p` = odwrotność odległości od kamery; kamera jedzie wózkiem i ma obiektyw, więc bliskie plany rosną i przesuwają się szybciej (paralaksa); każdy wycinek rzuca miękki cień na plany za nim; głębia ostrości; światło, winieta, ziarno co 3 klatki.\n- **Świat** (`swiat.py`): stan sceny liczony z kamieni milowych rozpiski (`po(\"mur\")`), trzy scenografie (`swiat`, `sala`, `morze`), lalki (`lalka`), rekwizyty.\n- **Ujęcia** (`ujecia1.py`, `ujecia2.py`): funkcja `s_<klucz>(st, w, t, T)` — zmienia stan w czasie (wydarzenie), ustawia kamerę (`kam`), woła scenografię.\n- **Format**: 1280 × 720, 24 kl./s; szkic do przeglądu 640 × 360, 12 kl./s (`SZKIC=1`). Napis = pasek papieru w czasie kwestii.",
+  "method": "## Kolejność pracy nad aktem\n\n1. Scenariusz i rozpiska: `docs/filmy/pierwszy-cesarz/ujecia/dane.py` (akt → scena → beat → ujęcie z kluczem).\n2. Księga świata: `ujecia/ksiega.py` (wątki, rekwizyty, zasady; odwołania po kluczach).\n3. `python3 output/pierwszy-cesarz/studio_film.py plan` — plan, księga i warsztat do Studio + kontrola ciągłości.\n4. Rysunek: funkcja ujęcia; `SZKIC=1 python3 render.py arkusz 12,13` — arkusz klatek; pełne klatki do kontroli rysunku.\n5. `python3 render.py kontrola` — test „końca świata” (płótno w barwie pustki).\n6. `python3 output/pierwszy-cesarz/studio_film.py klipy` — szkice do zakładki Ujęcia i na oś (przegląd: odtwarzanie po kolei).\n7. Recenzja aktu i wpis w dzienniku. **Render pełnej jakości na końcu**: `studio_film.py klipy pelne`.\n\nNa komputerze z 8 GB RAM render idzie w 3 procesach z rozwidlenia po `rozgrzej()` (wspólna pamięć wycinków).",
+  "files": [
+    {
+      "path": "docs/filmy/pierwszy-cesarz/ujecia/dane.py",
+      "role": "rozpiska: akty, sceny, beaty, ujęcia i kwestie lektora"
+    },
+    {
+      "path": "docs/filmy/pierwszy-cesarz/ujecia/ksiega.py",
+      "role": "księga świata, Story Bible i warsztat (źródło dla Studio)"
+    },
+    {
+      "path": "output/pierwszy-cesarz/papier.py",
+      "role": "silnik: plany głębi, kamera wieloplanowa, cienie, światło"
+    },
+    {
+      "path": "output/pierwszy-cesarz/zestaw.py",
+      "role": "wycinki, wycinanki z kodu i scena wzorcowa"
+    },
+    {
+      "path": "output/pierwszy-cesarz/swiat.py",
+      "role": "stan świata z kamieni milowych, lalki, trzy scenografie"
+    },
+    {
+      "path": "output/pierwszy-cesarz/ujecia1.py",
+      "role": "ujęcia aktów 1–4"
+    },
+    {
+      "path": "output/pierwszy-cesarz/ujecia2.py",
+      "role": "ujęcia aktów 5–8"
+    },
+    {
+      "path": "output/pierwszy-cesarz/render.py",
+      "role": "klatka, arkusz klatek, kontrola „końca świata”, klipy"
+    },
+    {
+      "path": "output/pierwszy-cesarz/studio_film.py",
+      "role": "plan, księga i klipy do Studio"
+    },
+    {
+      "path": "output/imperium-papierowe/assets",
+      "role": "wycinki PNG (jeden styl, jedno światło)"
+    }
+  ]
+}

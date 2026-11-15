@@ -53,6 +53,12 @@ przy uchu ani dłoni bez ręki (`kit_a.handset(..., who=)`, `kit_a.listening`).
 Przedmiot ma przyczynę ruchu (drgania dzwonka zrzucają słuchawkę) i dźwięk (uderzenie o stół). Rzecz pokazana w jednym
 ujęciu jest taka sama w następnym (telefon na biurku w dyżurce = telefon w zbliżeniu). Zakładaj przy tym, co widz wie:
 zamknięte drzwi sprawdza się klamką, a nie tylko się o nich mówi.
+- Pojazd ma to, co go napędza: wóz i powóz ciągnie koń, a ktoś nim powozi.
+- Postać wygląda na swój wiek i ma tylko te atrybuty, które ma w tej chwili historii: dziecko nie nosi korony, zanim
+  zostało królem. Jedna lalka nie gra dziecka i dorosłego.
+- Na scenie stoi tylko to, co jest w tym miejscu i czasie. Dekoracja z innej sceny (gliniana armia z grobowca) nie
+  stoi przy murze ani przy powozie. Kogo lektor wymienia, ten jest w kadrze: „zginął pod kolumną” znaczy, że leży pod
+  kolumną.
 
 ### 1.7 Tłum to osobne postacie
 Każdy w grupie ma własne opóźnienie, tempo i własną reakcję (jeden przystaje, drugi się spóźnia, trzeci unosi ręce
@@ -168,6 +174,15 @@ Zanim ujęcie trafi do Studio do oceny:
 | Wariant A EN, przegląd (13.11.2026) | stopy przed biurkiem/stołem, a blat przecinał tułów (d01_02, d02_16, d22_02, d26_01, d29_08); widok za oknem łącznika jako płaski prostokąt na oknach w perspektywie (d13_12) | 1.1, 1.5 |
 | Wariant A EN, przegląd (13.11.2026) | słuchawka wisiała przy uchu bez dłoni (d20, d21, d25, d26, d28, d29 — ok. 20 ujęć); dłoń bez ręki na kieszeni (d15_08); ręka „kogoś trzeciego” spod kadru zamiast od barku Henryka (d23_08) | 1.4, 1.12 |
 | Wariant A EN, przegląd (13.11.2026) | paczka z drona lądowała gdzie indziej, niż leży w następnych ujęciach (d10_01); oko i nos odwracającego się zarażonego nie szły za kołysaniem głowy (d10_14); obrót z przodu na plecy bez profilu (d30_16); „He's clear” o Zosi (d30_10) | 1.2, 1.4, 1.6 |
+| Pierwszy cesarz, teatr papierowy (10.11) | stół na przodzie sceny zasłaniał drogę, po której jechał wóz — plan bliższy kamery zabiera cały pas za sobą (znalezione na arkuszu; ujęcia na drodze przeniesione przed pojawienie się stołu) | 1.5 |
+| Pierwszy cesarz (10.11) | kamera wieloplanowa opuszczona w dół „topiła” chorągwie i włócznie za bliższym pasmem wzgórz — w pionie kamera się pochyla, nie jedzie (`trucky=0` w `papier.Cam`), więc linie ziemi zostają jak w kadrze wzorcowym | 1.3 |
+| Pierwszy cesarz (10.11) | pasek napisu zasłaniał wydarzenie przy dolnej krawędzi (lalka opadająca pod rampę) — kadr ustawia się tak, żeby wydarzenie było nad paskiem (znalezione w kontroli) | 1.8 |
+| Pierwszy cesarz (10.11) | kawałki mapy przycięte każdy do własnego obrysu skalowały się jak cała mapa — elementy jednej układanki muszą dzielić jeden układ współrzędnych (`crop=False`) | 1.6 |
+| Pierwszy cesarz (10.11, reżyser) | „od 1:00 do 1:40 mało się dzieje” — ujęcia sali stały w miejscu; za mało paralaksy i dekoracji, które się stawiają; szkic 640 × 360 oddany jako materiał do oceny | 1.8 (każde ujęcie ma wydarzenie), 3 (oceniamy pełną jakość) |
+| Pierwszy cesarz (10.11) | przy zmianie dekoracji wóz i jeździec wisiały w powietrzu, zanim wysunęła się droga — aktorzy wchodzą razem z ziemią, na której stoją | 1.2 |
+| Pierwszy cesarz EN (14.11, Studio) | cięcie padało 0,6 s po ostatnim słowie lektora, bo zaraz zaczynało się następne ujęcie — reżyser: „obcina zaraz po kwestii ujęcie […] i jest to nienaturalne”; obraz trwa jeszcze po kwestii: 1,1 s w środku beatu, 1,4 s na końcu beatu, 1,8 s na końcu sceny, 2,3 s na końcu aktu (dane.py, PAUZA_PO) | Podręcznik 03 (2) |
+| Pierwszy cesarz EN (15.11, reżyser, Studio) | uwaga na klatce ujęcia 6: „ten powóz musi ciągnąć koń!” — żaden wóz w filmie nie miał konia; reżyser pytał też, czemu w ujęciu 6 są trzy postacie: chłopca grała zmniejszona lalka cesarza w koronie, więc wyglądał jak trzeci dorosły, a ojciec, zamiast wsiąść na wóz, zapadał się pod scenę | 1.6 |
+| Pierwszy cesarz EN (15.11, przegląd obsady) | gliniana armia stała na scenie od budowy grobowca do świtu, także przy spisku, u Fusu pod murem i w powstaniu, i zasłaniała powóz; Jing Ke, o którym lektor mówi „zginął pod kolumną”, w ogóle nie był widoczny | 1.6 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

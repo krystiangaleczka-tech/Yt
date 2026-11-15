@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teatr na żywo</title>
+<style>
+  :root { --tlo: #15110e; --panel: #221b16; --tekst: #efe4d2; --cichy: #a8987f; --akcent: #e0b25c; --blad: #e2684f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--tlo); color: var(--tekst); font: 14px/1.4 -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px; }
+  header { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; margin-bottom: 10px; }
+  h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  #status { color: var(--cichy); }
+  #scena { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 6px; overflow: hidden; }
+  #scena canvas, #scena img { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #wzorzec { display: none; }
+  #napis { position: absolute; left: 50%; transform: translateX(-50%); bottom: 2.8%; display: none; text-align: center;
+           background: rgba(238, 224, 192, 0.93); color: #2c1c16; border-radius: 0.35vw; padding: 0.5% 1.6%;
+           font: 600 clamp(9px, 2.05vw, 28px)/1.28 Baskerville, "Baskerville Old Face", Georgia, serif;
+           box-shadow: 3px 4px 0 rgba(20, 12, 8, 0.35); white-space: pre; }
+  #etykieta { position: absolute; left: 8px; top: 8px; background: rgba(0, 0, 0, 0.6); color: var(--akcent); padding: 2px 8px;
+              border-radius: 4px; font-size: 12px; }
+  .pasek { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+  button, input[type=number] { background: var(--panel); color: var(--tekst); border: 1px solid #3a2f26; border-radius: 6px;
+                               padding: 6px 12px; font: inherit; cursor: pointer; }
+  button[aria-pressed=true] { border-color: var(--akcent); color: var(--akcent); }
+  input[type=range] { flex: 1; min-width: 200px; accent-color: var(--akcent); }
+  input[type=number] { width: 70px; }
+  #czas { font-variant-numeric: tabular-nums; color: var(--cichy); min-width: 150px; }
+  #blad { display: none; white-space: pre-wrap; background: #3a1712; color: #ffd7cc; border: 1px solid var(--blad); border-radius: 6px;
+          padding: 10px; margin-top: 10px; font: 12px/1.4 ui-monospace, Menlo, monospace; }
+  #pomiar { color: var(--cichy); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="tytul">Teatr na żywo</h1>
+    <span id="status">wczytuję…</span>
+  </header>
+  <div id="scena">
+    <canvas id="gl" width="1280" height="720"></canvas>
+    <img id="wzorzec" alt="Ta sama klatka narysowana przez Pythona">
+    <div id="napis"></div>
+    <div id="etykieta">na żywo (WebGL)</div>
+  </div>
+  <div class="pasek">
+    <button id="graj" title="Spacja">▶ Graj</button>
+    <button id="wstecz" title="←">◀ klatka</button>
+    <button id="dalej" title="→">klatka ▶</button>
+    <input id="suwak" type="range" min="0" max="0" value="0">
+    <span id="czas">0.00 s</span>
+  </div>
+  <div class="pasek">
+    <button id="python" aria-pressed="false" title="P">Python (wzorzec renderu)</button>
+    <label>ujęcie <input id="numer" type="number" min="1" max="79"></label>
+    <button id="zmien">Pokaż ujęcie</button>
+    <span id="pomiar"></span>
+  </div>
+  <div id="blad"></div>
+</main>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const canvas = $("gl");
+const gl = canvas.getContext("webgl2", { antialias: false, premultipliedAlpha: true, preserveDrawingBuffer: true });
+if (!gl) document.body.innerHTML = "<p style='padding:20px'>Ta przeglądarka nie ma WebGL2.</p>";
+const W = 1280, H = 720;
+const SHADOW = [0.16, 0.09, 0.05], HAZE = [0.93, 0.83, 0.66];
+
+// ---------- shadery ----------
+function program(vs, fs) {
+  const p = gl.createProgram();
+  for (const [type, src] of [[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]]) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    gl.attachShader(p, s);
+  }
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  const u = {};
+  const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < n; i++) { const a = gl.getActiveUniform(p, i); u[a.name] = gl.getUniformLocation(p, a.name); }
+  return { p, u };
+}
+
+// Wycinek: prostokąt w pikselach wycinka, obrócony i przeskalowany jak w Stage._sprite, poszerzony o zapas na rozmycie/cień.
+const VS_SPRITE = `#version 300 es
+in vec2 c;                 // narożnik 0..1
+uniform vec2 S, K, R, A, size, off, scr;
+uniform float pad;
+out vec2 uv;
+void main() {
+  vec2 e = (c * 2.0 - 1.0) * pad / max(abs(K), vec2(1e-4));     // zapas w pikselach wycinka
+  vec2 local = c * size - A * size + e;
+  vec2 d = local * K;
+  vec2 p = S + vec2(R.x * d.x - R.y * d.y, R.y * d.x + R.x * d.y) + off;
+  uv = (local + A * size) / size;
+  gl_Position = vec4(p.x / scr.x * 2.0 - 1.0, 1.0 - p.y / scr.y * 2.0, 0.0, 1.0);
+}`;
+const FS_SPRITE = `#version 300 es
+precision highp float;
+in vec2 uv;
+uniform sampler2D tex;
+uniform vec2 pxUV;          // ile uv to jeden piksel ekranu (w osi x i y)
+uniform float tpp, radius, alpha, haze, mode, cien, sila;
+uniform vec3 tint, shadowCol, hazeCol;
+out vec4 o;
+vec4 tap(vec2 q, float lod) {
+  if (q.x < 0.0 || q.y < 0.0 || q.x > 1.0 || q.y > 1.0) return vec4(0.0);
+  return textureLod(tex, q, lod);
+}
+vec4 probka(float r) {
+  if (r < 0.35) return tap(uv, log2(max(tpp, 1.0)) - 0.25);
+  float lod = log2(max(1.0, max(tpp, tpp * r * 0.55)));
+  vec4 s = tap(uv, lod) * 0.16;
+  for (int i = 0; i < 4; i++) {
+    float a = float(i) * 1.5708 + 0.785;
+    s += tap(uv + vec2(cos(a), sin(a)) * pxUV * r * 0.6, lod) * 0.12;
+  }
+  for (int i = 0; i < 8; i++) {
+    float a = float(i) * 0.7854;
+    s += tap(uv + vec2(cos(a), sin(a)) * pxUV * r * 1.3, lod) * 0.045;
+  }
+  return s;
+}
+void main() {
+  vec4 t = probka(radius);
+  if (cien > 0.5) {                       // cień: sama sylwetka w ciepłym brązie, „over”
+    float a = t.a * sila;
+    o = vec4(shadowCol * a, a);
+    return;
+  }
+  vec3 rgb = t.rgb * tint;
+  float a = t.a;
+  rgb += (hazeCol * a - rgb) * haze;
+  rgb *= alpha; a *= alpha;
+  if (mode < 0.5) o = vec4(rgb, a);
+  else if (mode < 1.5) o = vec4(rgb, 0.0);
+  else o = vec4(1.0 - a + rgb, 1.0);
+}`;
+const VS_LINIA = `#version 300 es
+in vec2 p;
+in vec4 col;
+uniform vec2 scr;
+out vec4 c;
+void main() { c = col; gl_Position = vec4(p.x / scr.x * 2.0 - 1.0, 1.0 - p.y / scr.y * 2.0, 0.0, 1.0); }`;
+const FS_LINIA = `#version 300 es
+precision highp float;
+in vec4 c;
+out vec4 o;
+void main() { o = vec4(c.rgb * c.a, c.a); }`;
+// Światło jak Stage._post: plama reflektora, ciepłe światło z lewej + winieta, barwa ujęcia, kontrast, ziarno co 3 klatki.
+const VS_PELNY = `#version 300 es
+in vec2 c;
+void main() { gl_Position = vec4(c * 2.0 - 1.0, 0.0, 1.0); }`;
+const FS_POST = `#version 300 es
+precision highp float;
+uniform sampler2D scena;
+uniform vec2 scr;
+uniform vec3 grade;
+uniform float dim, ziarno;
+uniform vec4 spot;          // x, y, promień (px), ciemność; promień 0 = bez plamy
+out vec4 o;
+float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+void main() {
+  vec2 f = gl_FragCoord.xy;
+  vec3 c = texture(scena, f / scr).rgb;
+  float x = f.x, y = scr.y - f.y;
+  if (spot.z > 0.0) {
+    float d = sqrt(pow(x - spot.x, 2.0) + pow((y - spot.y) * 1.15, 2.0)) / spot.z;
+    c *= 1.0 - spot.w * pow(clamp(d - 0.35, 0.0, 1.0), 1.3);
+  }
+  float key = 1.05 - 0.13 * (x / scr.x) - 0.10 * (y / scr.y);
+  float vig = 1.0 - 0.34 * pow(pow((x - scr.x * 0.5) / (scr.x * 0.5), 2.0) + pow((y - scr.y * 0.5) / (scr.y * 0.5), 2.0), 1.25);
+  c *= key * clamp(vig, 0.3, 1.0);
+  c *= grade * dim;
+  c = clamp(c, 0.0, 1.0);
+  c += 0.10 * (c * c * (3.0 - 2.0 * c) - c);
+  c += (hash(f + ziarno * 17.13) - 0.5) * 0.038;
+  o = vec4(c, 1.0);
+}`;
+
+const P_SPR = program(VS_SPRITE, FS_SPRITE), P_LIN = program(VS_LINIA, FS_LINIA), P_POST = program(VS_PELNY, FS_POST);
+const kwadrat = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, kwadrat);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
+const vaoKw = gl.createVertexArray();
+gl.bindVertexArray(vaoKw);
+for (const pr of [P_SPR, P_POST]) {
+  const loc = gl.getAttribLocation(pr.p, "c");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+}
+const linBuf = gl.createBuffer(), vaoLin = gl.createVertexArray();
+gl.bindVertexArray(vaoLin);
+gl.bindBuffer(gl.ARRAY_BUFFER, linBuf);
+const lp = gl.getAttribLocation(P_LIN.p, "p"), lc = gl.getAttribLocation(P_LIN.p, "col");
+gl.enableVertexAttribArray(lp); gl.vertexAttribPointer(lp, 2, gl.FLOAT, false, 24, 0);
+gl.enableVertexAttribArray(lc); gl.vertexAttribPointer(lc, 4, gl.FLOAT, false, 24, 8);
+
+// płótno pośrednie: scena bez światła, potem przejście „post”
+const fboTex = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, fboTex);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, W, H, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+const fbo = gl.createFramebuffer();
+gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTex, 0);
+
+// ---------- dane ujęcia i wycinki ----------
+let dane = null, tekstury = [], wersja = -1, klatka = 0, gra = false, start = 0, startKl = 0, rysowane = -1;
+const cache = new Map();   // plik → tekstura WebGL (nie wczytuje się drugi raz po przeliczeniu)
+gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+async function tekstura(plik) {
+  if (cache.has(plik)) return cache.get(plik);
+  const blob = await (await fetch("/wycinki/" + plik)).blob();
+  const bmp = await createImageBitmap(blob, { premultiplyAlpha: "none", colorSpaceConversion: "none" });
+  const t = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, bmp);   // alfa już wymnożona w pliku
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  bmp.close();
+  cache.set(plik, t);
+  return t;
+}
+async function wczytaj() {
+  const d = await (await fetch("/dane.json", { cache: "no-store" })).json();
+  const t0 = performance.now();
+  tekstury = await Promise.all(d.wycinki.map((w) => tekstura(w.plik)));
+  dane = d;
+  $("tytul").textContent = `Teatr na żywo · ujęcie ${d.numer} · ${d.odn} ${d.klucz}`;
+  $("numer").value = d.numer;
+  $("suwak").max = d.klatki.length - 1;
+  klatka = Math.min(klatka, d.klatki.length - 1);
+  rysowane = -1;
+  return performance.now() - t0;
+}
+
+// ---------- rysowanie klatki ----------
+const linie = [];
+function rysujLinie(k) {
+  linie.length = 0;
+  for (const l of k.l) {
+    const h = l.w / 2;
+    for (let i = 0; i + 3 < l.p.length; i += 2) {
+      const x0 = l.p[i], y0 = l.p[i + 1], x1 = l.p[i + 2], y1 = l.p[i + 3];
+      const dx = x1 - x0, dy = y1 - y0, n = Math.hypot(dx, dy) || 1, nx = -dy / n * h, ny = dx / n * h;
+      const v = [[x0 + nx, y0 + ny], [x1 + nx, y1 + ny], [x0 - nx, y0 - ny], [x1 + nx, y1 + ny], [x1 - nx, y1 - ny], [x0 - nx, y0 - ny]];
+      for (const [x, y] of v) linie.push(x, y, l.c[0], l.c[1], l.c[2], l.a);
+    }
+  }
+  if (!linie.length) return;
+  gl.useProgram(P_LIN.p);
+  gl.uniform2f(P_LIN.u.scr, W, H);
+  gl.bindVertexArray(vaoLin);
+  gl.bindBuffer(gl.ARRAY_BUFFER, linBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(linie), gl.STREAM_DRAW);
+  gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
+  gl.drawArrays(gl.TRIANGLES, 0, linie.length / 6);
+}
+function rysuj(n) {
+  const k = dane.klatki[n];
+  const t0 = performance.now();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.viewport(0, 0, W, H);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.enable(gl.BLEND);
+  // linie (nitki) leżą w kolejności rysowania między wycinkami — tu kładziemy je po wycinkach swojego miejsca
+  const poLiniach = new Map();
+  for (const l of k.l) { if (!poLiniach.has(l.i)) poLiniach.set(l.i, []); poLiniach.get(l.i).push(l); }
+  const u = P_SPR.u;
+  const rysujNitki = (i) => { const ls = poLiniach.get(i); if (ls) { rysujLinie({ l: ls }); gl.useProgram(P_SPR.p); gl.bindVertexArray(vaoKw); } };
+  gl.useProgram(P_SPR.p);
+  gl.bindVertexArray(vaoKw);
+  gl.uniform2f(u.scr, W, H);
+  gl.uniform3fv(u.shadowCol, SHADOW);
+  gl.uniform3fv(u.hazeCol, HAZE);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.uniform1i(u.tex, 0);
+  k.e.forEach((e, i) => {
+    rysujNitki(i);
+    const [ti, Sx, Sy, kx, ky, rot, ax, ay, alpha, blur, sdx, sdy, soft, sila, tr, tg, tb, haze, mode] = e;
+    const w = dane.wycinki[ti];
+    gl.bindTexture(gl.TEXTURE_2D, tekstury[ti]);
+    const rr = rot * Math.PI / 180;
+    gl.uniform2f(u.S, Sx, Sy);
+    gl.uniform2f(u.K, kx, ky);
+    gl.uniform2f(u.R, Math.cos(rr), Math.sin(rr));
+    gl.uniform2f(u.A, ax, ay);
+    gl.uniform2f(u.size, w.w, w.h);
+    gl.uniform2f(u.pxUV, 1 / (Math.abs(kx) * w.w), 1 / (Math.abs(ky) * w.h));
+    gl.uniform1f(u.tpp, w.tw / (Math.max(Math.abs(kx), Math.abs(ky)) * w.w));
+    if (sila > 0 && mode === 0) {     // cień pada na wszystko, co już leży za wycinkiem
+      const r = Math.hypot(soft, blur);
+      gl.uniform1f(u.cien, 1);
+      gl.uniform1f(u.sila, sila * alpha);
+      gl.uniform1f(u.radius, r);
+      gl.uniform1f(u.pad, 2.6 * r + 2);
+      gl.uniform2f(u.off, sdx, sdy);
+      gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+    gl.uniform1f(u.cien, 0);
+    gl.uniform1f(u.radius, blur);
+    gl.uniform1f(u.pad, 3 * blur + 2);
+    gl.uniform2f(u.off, 0, 0);
+    gl.uniform1f(u.alpha, alpha);
+    gl.uniform1f(u.haze, haze);
+    gl.uniform3f(u.tint, tr, tg, tb);
+    gl.uniform1f(u.mode, mode);
+    if (mode === 0) gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
+    else if (mode === 1) gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE);
+    else gl.blendFuncSeparate(gl.ZERO, gl.SRC_COLOR, gl.ZERO, gl.ONE);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  });
+  rysujNitki(k.e.length);
+  // światło, barwa, ziarno
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, W, H);
+  gl.disable(gl.BLEND);
+  gl.useProgram(P_POST.p);
+  gl.bindVertexArray(vaoKw);
+  gl.bindTexture(gl.TEXTURE_2D, fboTex);
+  gl.uniform1i(P_POST.u.scena, 0);
+  gl.uniform2f(P_POST.u.scr, W, H);
+  gl.uniform3fv(P_POST.u.grade, k.gr);
+  gl.uniform1f(P_POST.u.dim, k.dim);
+  gl.uniform1f(P_POST.u.ziarno, k.ns % 997);
+  gl.uniform4fv(P_POST.u.spot, k.spot || [0, 0, 0, 0]);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  const napis = $("napis");
+  if (k.napis) { napis.textContent = zawin(k.napis); napis.style.display = "block"; } else napis.style.display = "none";
+  czasy.push(performance.now() - t0);
+  if (czasy.length > 60) czasy.shift();
+  rysowane = n;
+}
+function zawin(txt, n = 60) {   // jak render.wrap
+  const out = []; let line = "";
+  for (const w of txt.split(/\s+/)) {
+    if (line.length + w.length + 1 > n && line) { out.push(line); line = w; } else line = (line + " " + w).trim();
+  }
+  out.push(line);
+  return out.join("\n");
+}
+
+// ---------- odtwarzanie ----------
+const czasy = [], klatkiNaSek = [];
+function ustaw(n) {
+  if (!dane) return;
+  klatka = (n + dane.klatki.length) % dane.klatki.length;
+  $("suwak").value = klatka;
+  $("czas").textContent = `${(klatka / dane.fps).toFixed(2)} s / ${dane.T.toFixed(2)} s · klatka ${klatka + 1}`;
+  if ($("python").getAttribute("aria-pressed") === "true") wzorzec();
+}
+function petla(now) {
+  if (dane) {
+    if (gra) {
+      const n = startKl + Math.floor((now - start) / 1000 * dane.fps);
+      if (n !== klatka) ustaw(n);
+    }
+    if (rysowane !== klatka) {
+      rysuj(klatka);
+      klatkiNaSek.push(now);
+      while (klatkiNaSek.length && now - klatkiNaSek[0] > 1000) klatkiNaSek.shift();
+      const sr = czasy.reduce((a, b) => a + b, 0) / Math.max(1, czasy.length);
+      $("pomiar").textContent = `rysowanie klatki ${sr.toFixed(1)} ms · ${gra ? klatkiNaSek.length + " kl./s" : "pauza"}`;
+    }
+  }
+  requestAnimationFrame(petla);
+}
+function graj(on) {
+  gra = on;
+  $("graj").textContent = on ? "❚❚ Pauza" : "▶ Graj";
+  start = performance.now();
+  startKl = klatka;
+  if (on && $("python").getAttribute("aria-pressed") === "true") przelaczPython(false);
+}
+let wzorzecT = null;
+function wzorzec() {
+  const t = (klatka / dane.fps).toFixed(3);
+  if (wzorzecT === t) return;
+  wzorzecT = t;
+  $("wzorzec").src = `/klatka?t=${t}&v=${wersja}`;
+}
+function przelaczPython(on) {
+  $("python").setAttribute("aria-pressed", on);
+  $("wzorzec").style.display = on ? "block" : "none";
+  $("napis").style.visibility = on ? "hidden" : "visible";   // klatka z Pythona ma napis wtopiony w obraz
+  $("etykieta").textContent = on ? "Python (render.py) — wzorzec" : "na żywo (WebGL)";
+  if (on) { graj(false); wzorzecT = null; wzorzec(); }
+}
+$("graj").onclick = () => graj(!gra);
+$("wstecz").onclick = () => { graj(false); ustaw(klatka - 1); };
+$("dalej").onclick = () => { graj(false); ustaw(klatka + 1); };
+$("suwak").oninput = (ev) => { graj(false); ustaw(+ev.target.value); };
+$("python").onclick = () => przelaczPython($("python").getAttribute("aria-pressed") !== "true");
+$("zmien").onclick = async () => { $("status").textContent = "liczę ujęcie…"; await fetch("/ujecie?n=" + $("numer").value); };
+document.addEventListener("keydown", (ev) => {
+  if (ev.target.tagName === "INPUT" && ev.target.type === "number") return;
+  if (ev.code === "Space") { ev.preventDefault(); graj(!gra); }
+  if (ev.code === "ArrowLeft") { graj(false); ustaw(klatka - 1); }
+  if (ev.code === "ArrowRight") { graj(false); ustaw(klatka + 1); }
+  if (ev.code === "KeyP") przelaczPython($("python").getAttribute("aria-pressed") !== "true");
+});
+
+// ---------- przeliczanie po zapisie kodu ----------
+async function sprawdz() {
+  try {
+    const s = await (await fetch("/wersja", { cache: "no-store" })).json();
+    const klucz = s.wersja + ":" + s.odn + ":" + s.stan;
+    if (klucz !== wersja && s.stan !== "liczę") {
+      wersja = klucz;
+      if (s.stan === "błąd") {
+        $("blad").style.display = "block";
+        $("blad").textContent = "Błąd w kodzie — obraz z poprzedniej wersji:\n\n" + s.blad;
+        $("status").textContent = `wersja ${s.wersja}: błąd`;
+      } else {
+        const ms = await wczytaj();
+        $("blad").style.display = "none";
+        $("status").textContent = `wersja ${s.wersja}: ruch policzony w ${s.czas} s` +
+          (s.moduly && s.moduly.length ? ` (zmiana: ${s.moduly.join(", ")})` : "") + ` · wycinki ${Math.round(ms)} ms`;
+        ustaw(klatka);
+        wzorzecT = null;
+        if ($("python").getAttribute("aria-pressed") === "true") wzorzec();
+      }
+    } else if (s.stan === "liczę") $("status").textContent = "liczę ruch…";
+  } catch (e) { $("status").textContent = "serwer nie odpowiada"; }
+  setTimeout(sprawdz, 500);
+}
+sprawdz();
+requestAnimationFrame(petla);
+</script>
+</body>
+</html>
