@@ -506,27 +506,24 @@ def s_dary(st, w, t, T):
 
 
 def s_sztylet(st, w, t, T):
-    """Detal stołu: zwój leży w poprzek blatu i rozwija się w stronę narysowaną przez reżysera; kiedy jest rozwinięty,
-    ze środka mapy wyłania się sztylet (reżyser 15.11)."""
-    k = ease(pr(t, 0.5, 2.6))
+    """Detal stołu: zwinięta mapa odjeżdża w górę, a na jej miejsce zjeżdża na nitkach gotowa, rozwinięta mapa
+    z deszczułek; po chwili z jej środka wyłania się sztylet (reżyser 15.11: „po prostu połóż na nowo rozwinięty zwój”)."""
     on = _sala_zamach(st, t, w, zwoj=None)
-    (ax, ay), (bx, by) = ZWOJ_A, ZWOJ_B
-    c0x, c0y = ZWOJ[0] - ax / 2, ZWOJ[1] - ay / 2  # róg przy wałku (tylny koniec)
-    kam(st, t, 25, c0x + bx / 2 + ax / 2 + 6, c0y + by / 2 + ay / 2 - 4, 3.3, 0.85, lens=2.6, truck=0.8)
+    mx, my = ZWOJ[0] + 24, ZWOJ[1] + 6  # środek rozwiniętej mapy na blacie
+    kam(st, t, 25, mx + 4, my - 10, 3.3, 0.85, lens=2.6, truck=0.8)
     st.dof = 3.0
-    n = int(round(k * 16))
-    if n > 0:  # rozwinięta część mapy leży płasko na blacie
-        spr = Z.zwoj_plaski(n)
-        st.put(spr, c0x, c0y, P.rekwizyty + 0.006, w=spr.w * Z.ZWOJ_SKALA, anchor=spr.origin, shadow=(2, 3, 4, 0.35))
-    f = ease(pr(t, 3.3, 0.6))  # sztylet wyłania się ze środka mapy
+    zwin = 1 - pr(t, 0.3, 0.7)  # zwinięta mapa odjeżdża w górę na nitce
+    Z.hang(st, Z.S("bamboo", 0.5), ZWOJ[0], ZWOJ[1] - 14, P.rekwizyty + 0.010, zwin, t, 180, drop=420, sway=0.3, w=58, rot0=-45,
+           string=zwin < 1, anchor=(0.5, 0.5), shadow=(3, 5, 5, 0.4))
+    roz = pr(t, 0.9, 1.0)  # rozwinięta mapa zjeżdża na dwóch nitkach i kładzie się na blacie
+    Z.hang(st, Z.S("ledger", 0.5), mx, my - 31, P.rekwizyty + 0.006, roz, t, 181, drop=420, sway=0.15, w=116, rot0=6,
+           string=roz < 1, strings=(0.2, 0.8), shadow=(3, 5, 5, 0.4))
+    f = ease(pr(t, 2.6, 0.6))  # sztylet wyłania się ze środka mapy
     if f > 0:
-        mx, my = c0x + ax / 2 + bx / 2, c0y + ay / 2 + by / 2
-        st.put(Z.prop("sztylet"), mx, my - 3 * (1 - f), P.rekwizyty + 0.008, w=46 * (0.5 + 0.5 * back(f, 1.4)), anchor=(0.5, 0.5),
-               rot=-45, alpha=min(1.0, f * 2), shadow=(2, 3, 3, 0.4))
-        st.put(Z.glow(), mx, my, P.rekwizyty + 0.009, w=90, anchor=(0.5, 0.5), mode="add",
-               alpha=0.35 * math.sin(math.pi * pr(t, 3.3, 1.0)), shadow=None, tint=(1.0, 0.95, 0.85))
-    rx, ry = ZWOJ[0] + bx * k, ZWOJ[1] + by * k  # wałek toczy się po blacie i chudnie
-    st.put(Z.S("bamboo", 0.5), rx, ry, P.rekwizyty + 0.010, w=60, sy=1 - 0.55 * k, anchor=(0.5, 0.5), rot=-45, shadow=(3, 5, 5, 0.4))
+        st.put(Z.prop("sztylet"), mx + 4, my + 1 + 2 * (1 - f), P.rekwizyty + 0.008, w=54 * (0.5 + 0.5 * back(f, 1.4)), anchor=(0.5, 0.5),
+               rot=-12, alpha=min(1.0, f * 2), shadow=(2, 3, 3, 0.4))
+        st.put(Z.glow(), mx + 4, my + 1, P.rekwizyty + 0.009, w=110, anchor=(0.5, 0.5), mode="add",
+               alpha=0.35 * math.sin(math.pi * pr(t, 2.6, 1.0)), shadow=None, tint=(1.0, 0.95, 0.85))
     krol(st, t)
     lalka(st, t, "jingke", JINGKE, 300, flip=-1, lean=-6, p=0.812)
 

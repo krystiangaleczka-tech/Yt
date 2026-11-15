@@ -357,7 +357,7 @@ ZDARZENIA.update({
     "wymarsz": [(0.3, "drum", 0.9), (0.3, "hooves", 8.0), (0.8, "march", 8.0), (1.7, "whoosh", 0.3), (2.9, "whoosh", 0.3)],
     "zhao": [(0.0, "hooves", 2.6), (0.6, "crack", 1.0), (2.5, "whoosh", 0.8), (2.92, "thud", 1.2), (3.0, "drum", 0.7)],
     "poselstwo": [(0.0, "wagon", 10.0), (5.0, "whoosh", 0.5), (5.6, "drum", 0.6)],
-    "sztylet": [(0.5, "roll", 2.6), (3.3, "sword", 0.8)],
+    "sztylet": [(0.3, "whoosh", 0.35), (0.9, "whoosh", 0.4), (1.85, "knock", 0.5), (2.6, "sword", 0.8)],
     "lekarz": [(0.0, "steps", 1.0), (1.0, "sword", 0.7), (1.75, "sword", 0.7), (1.95, "whoosh", 0.7), (2.65, "thud", 1.0),
                (2.68, "knock", 0.8), (2.8, "stun", 6.0)],
     "pretekst": [(0.4, "sword", 0.8), (0.8, "thud", 0.9), (0.0, "whoosh", 0.3), (2.0, "whoosh", 0.25), (4.0, "whoosh", 0.25),
