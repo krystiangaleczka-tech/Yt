@@ -139,8 +139,49 @@ def sword(sec=0.4):
     return whoosh(sec, 1500, 8000) * 1.3
 
 
+def buzz(sec=0.32):
+    """Brzęczyk „źle”: czerwony X nad postacią."""
+    n, t = N(sec), tt(N(sec))
+    sq = np.sign(np.sin(2 * math.pi * 110 * t)) * 0.5 + np.sign(np.sin(2 * math.pi * 165 * t)) * 0.3
+    return band(sq, 90, 2400) * env(n, 0.005, 0.25) * np.minimum(1, (sec - t) / 0.04) * 0.35
+
+
+def gulp(sec=0.35):
+    n, t = N(sec), tt(N(sec))
+    f = 180 * np.exp(-t / 0.12) + 70
+    return np.sin(2 * math.pi * np.cumsum(f) / SR) * env(n, 0.01, 0.12) * 0.5
+
+
+def cough(sec=0.9):
+    """Kaszel: trzy szorstkie wydechy, coraz słabsze."""
+    n = N(sec)
+    out = np.zeros(n)
+    for k, (d, g) in enumerate(((0.0, 1.0), (0.24, 0.8), (0.5, 0.55))):
+        L = N(0.2)
+        x = band(RNG.normal(0, 1, L), 250, 2600) * env(L, 0.004, 0.07) * g
+        x += np.sin(2 * math.pi * 140 * tt(L)) * env(L, 0.004, 0.05) * 0.4 * g
+        i = N(d)
+        out[i:i + L] += x[:n - i]
+    return out * 0.55
+
+
+def rattle(sec=1.4):
+    """Ostatnie tchnienie: niski, rzężący wydech."""
+    n, t = N(sec), tt(N(sec))
+    x = band(RNG.normal(0, 1, n), 90, 900) * (0.5 + 0.5 * np.sin(2 * math.pi * 22 * t) ** 2)
+    return x * np.sin(np.linspace(0, math.pi, n)) ** 1.5 * np.exp(-t / 0.9) * 0.45
+
+
+def shout(sec=0.6):
+    """Okrzyk wojska przy uniesieniu włóczni: wiele gardeł naraz."""
+    n, t = N(sec), tt(N(sec))
+    x = sum(band(np.sign(np.sin(2 * math.pi * f * t + RNG.uniform(0, 6))), 250, 1600) for f in (118, 131, 147, 165))
+    return x * env(n, 0.04, 0.3) * 0.12 + clash(sec)[:n] * 0.3
+
+
 SFX = {"gong": gong, "whoosh": whoosh, "knock": knock, "drum": drum, "crack": crack, "clash": clash, "coin": coin,
-       "thud": thud, "splash": splash, "sword": sword, "gong_s": lambda: gong(2.5, 220) * 0.6}
+       "thud": thud, "splash": splash, "sword": sword, "gong_s": lambda: gong(2.5, 220) * 0.6,
+       "buzz": buzz, "gulp": gulp, "cough": cough, "rattle": rattle, "shout": shout, "tick": lambda: knock(900, 0.08) * 0.5}
 
 
 # ---------- tło miejsca ----------
@@ -250,6 +291,76 @@ ZDARZENIA = {
 }
 
 
+# Uwagi reżysera w Studio 15.11.2026: nowe wydarzenia ujęć mają swój dźwięk (X, picie trucizny, okrzyk wojska, pisanie,
+# kaszel i rzężenie, zamroczenie, łopot skrzydeł i flagi, plusk ryb, dudnienie kopca); czasy jak w ujecia1.py / ujecia2.py.
+ZDARZENIA.update({
+    "odprawa": [(1.1, "whoosh", 0.4), (1.5, "buzz", 1.0), (1.98, "buzz", 1.0), (3.3, "march", 2.0)],
+    "trucizna": [(0.9, "whoosh", 0.3), (2.0, "whoosh", 0.3), (3.0, "gulp", 0.9), (3.4, "gulp", 0.8), (4.45, "coin", 0.7),
+                 (4.55, "knock", 0.6), (4.7, "cough", 0.6), (5.0, "thud", 0.5)],
+    "machina": [(0.8, "drum", 0.8), (2.0, "drum", 0.8), (3.2, "drum", 0.9), (0.8, "march", 9.0)]
+               + [(a, "shout", 1.0) for a in (4.9, 6.2, 7.5)] + [(a, "drum", 1.0) for a in (4.9, 6.2, 7.5)],
+    "kusze": [(a + d, "whoosh", 0.8) for a in (0.6, 2.7) for d in (0.0, 0.15, 0.3)] + [(1.9, "thud", 0.6), (4.0, "thud", 0.7)],
+    "kanal": [(0.6, "water", 11.0), (0.6, "dig", 8.0), (9.3, "water", 3.0)],
+    "wymarsz": [(0.3, "drum", 0.9), (0.3, "hooves", 8.0), (0.8, "march", 8.0), (1.7, "whoosh", 0.3), (2.9, "whoosh", 0.3)],
+    "zhao": [(0.0, "hooves", 2.6), (0.6, "crack", 1.0), (2.5, "whoosh", 0.8), (2.92, "thud", 1.2), (3.0, "drum", 0.7)],
+    "poselstwo": [(0.0, "wagon", 10.0), (5.0, "whoosh", 0.5), (5.6, "drum", 0.6)],
+    "sztylet": [(0.5, "roll", 2.6), (3.3, "sword", 0.8)],
+    "lekarz": [(0.0, "steps", 1.0), (1.0, "sword", 0.7), (1.75, "sword", 0.7), (1.95, "whoosh", 0.7), (2.65, "thud", 1.0),
+               (2.68, "knock", 0.8), (2.8, "stun", 6.0)],
+    "pretekst": [(0.4, "sword", 0.8), (0.8, "thud", 0.9), (0.0, "whoosh", 0.3), (2.0, "whoosh", 0.25), (4.0, "whoosh", 0.25),
+                 (6.0, "whoosh", 0.4), (6.6, "thud", 0.8), (6.8, "gong_s", 0.6)],
+    "wei": [(0.3, "gong_s", 0.4), (0.5, "dig", 2.0), (2.6, "water", 8.0), (5.6, "crack", 0.9), (5.65, "rumble", 2.0), (6.6, "whoosh", 0.4)],
+    "chu": [(0.2, "march", 7.5), (0.2, "drum", 0.9), (1.2, "drum", 0.9), (2.2, "drum", 0.9), (3.2, "drum", 0.9), (4.2, "drum", 0.9)],
+    "chu_yan": [(0.85, "crack", 1.0), (1.45, "crack", 0.9), (0.0, "hooves", 2.5), (0.0, "march", 2.5)],
+    "qi": [(0.0, "hooves", 1.5), (0.0, "march", 1.6), (1.5, "whoosh", 0.4), (3.2, "crack", 0.6), (3.7, "whoosh", 0.5), (3.8, "flap", 2.4)],
+    "czarne": [(0.5 + n * 0.42, "drum", 0.8) for n in range(6)] + [(3.0, "march", 4.0), (5.6, "gong", 0.8)],
+    "cesarz": [(0.8, "whoosh", 0.6), (1.2, "whoosh", 0.5), (1.75, "whoosh", 0.5), (2.85, "whoosh", 1.0), (3.15, "whoosh", 0.6),
+               (3.6, "gong", 1.0)],
+    "posagi": [(1.2 + j * 0.11, "clash", 0.25) for j in range(22)] + [(1.7, "fire", 5.0), (3.4, "thud", 0.9), (3.4, "rumble", 1.6)],
+    "drogi": [(0.0, "wagon", 7.3), (0.6, "roll", 1.5)],
+    "prowincje": [(0.3, "whoosh", 0.7)] + [(1.3 + n * 0.075, "tick", 0.6) for n in range(36)] + [(4.3, "whoosh", 0.7)]
+                 + [(4.8 + n * 0.06, "tick", 0.4) for n in range(36)] + [(5.4 + n * 0.45, "knock", 0.4) for n in range(6)],
+    "rody": [(0.0, "wagon", 15.5), (0.3, "wagon", 15.0), (0.0, "hooves", 15.0)],
+    "stela": [(0.0, "wagon", 2.6), (4.7, "rumble", 1.6), (4.8, "thud", 0.7)],
+    "kanal2": [(0.4, "water", 8.0), (1.2, "whoosh", 0.4)],
+    "pismo": [(0.1, "roll", 1.0), (0.4, "knock", 0.6), (2.2, "whoosh", 0.4), (3.5, "pisanie", 4.8)],
+    "moneta": [(0.3, "roll", 1.9), (2.2, "coin", 0.9), (0.0, "pisanie", 4.4)],
+    "miara": [(0.2, "whoosh", 0.3), (0.3, "whoosh", 0.4), (1.3, "knock", 0.5), (1.7, "whoosh", 0.4), (2.6, "coin", 0.8), (2.65, "knock", 0.4),
+              (3.4, "tick", 0.5), (4.2, "tick", 0.4)],
+    "mur": [(0.2, "whoosh", 0.3)] + [(0.5 + n * 0.28, "knock", 0.35) for n in range(30)],
+    "robotnicy": [(0.0, "steps", 13.0)] + [(0.6 + n * 1.6, "knock", 0.35) for n in range(7)],
+    "ognie": [(0.5, "fire", 4.0), (1.6, "fire", 3.0), (2.8, "fire", 1.8)],
+    "ksiegi": [(0.0, "whoosh", 0.3), (1.5, "fire", 4.0), (2.0, "whoosh", 0.7), (2.85, "whoosh", 0.9)],
+    "popiol": [(0.0, "fire", 3.6)],
+    "uczeni": [(a + d, "buzz", 0.9) for a in (1.3, 2.1, 2.9) for d in (0.0, 0.48)] + [(2.3, "thud", 0.4), (3.1, "thud", 0.4),
+                                                                                     (3.9, "thud", 0.4), (7.3, "steps", 3.0)],
+    "zmierzch": [(0.3, "whoosh", 0.5), (2.2, "knock", 0.5), (2.9, "knock", 0.5), (6.7, "whoosh", 0.4)],
+    "mlot": [(0.0, "wagon", 2.7), (1.7, "whoosh", 1.0), (2.7, "crack", 1.2), (2.7, "thud", 1.2), (2.95, "thud", 0.6), (3.0, "cough", 0.4)],
+    "morze": [(0.2, "whoosh", 0.6), (2.6, "rumble", 2.8)],
+    "xufu": [(0.0, "water", 10.8)],
+    "rtec": [(0.3, "knock", 0.5), (3.6, "coin", 0.5), (5.3, "coin", 0.5), (7.0, "coin", 0.5)],
+    "przejscia": [(0.0, "steps", 11.9)],
+    "meteor": [(0.7, "whoosh", 1.0), (1.6, "thud", 1.4), (1.6, "crack", 0.9), (1.6, "rumble", 2.4), (1.7, "fire", 4.0), (3.0, "whoosh", 0.4)],
+    "kopiec": [(0.4, "thud", 0.5), (0.4, "rumble", 2.2), (2.2, "steps", 6.0)],
+    "twarze": [(5.8, "knock", 0.7)],
+    "podroz": [(0.0, "wagon", 8.0), (2.2, "cough", 0.8), (4.4, "cough", 0.8), (6.6, "cough", 0.9)],
+    "koniec": [(0.9, "cough", 1.0), (2.0, "cough", 1.0), (2.9, "rattle", 1.0), (4.2, "gong", 0.8)],
+    "ryby": [(0.0, "wagon", 12.0), (3.2, "whoosh", 0.3), (4.05, "splash", 0.5), (7.4, "whoosh", 0.3), (8.25, "splash", 0.5)],
+    "list": [(0.6, "flap", 3.6), (1.9, "whoosh", 0.5), (2.8, "knock", 0.3), (6.6, "thud", 0.3)],
+    "huhai": [(1.6, "drum", 0.5), (1.6, "whoosh", 0.4)],
+    "powstanie": [(0.4, "march", 11.0), (0.4, "drum", 0.9), (2.8, "crack", 0.8), (3.5, "crack", 0.8), (4.2, "crack", 0.8), (6.0, "drum", 0.8)],
+    "upadek": [(0.4, "crack", 0.9), (0.9, "crack", 0.9), (1.4, "crack", 0.9), (1.0, "thud", 1.0), (1.2, "fire", 9.0),
+               (2.4, "crack", 1.0), (2.9, "whoosh", 0.6), (5.5, "fire", 5.0), (6.0, "rumble", 4.0)],
+    "cisza": [(0.3, "whoosh", 0.3), (1.3, "whoosh", 0.3)],
+    "studnia": [(0.54 + 0.9 * k, "thud", 0.5) for k in range(3)] + [(0.22 + 1.1 * k, "thud", 0.4) for k in range(3)]
+               + [(3.2, "thud", 0.6), (3.3, "whoosh", 0.4), (5.0, "whoosh", 0.4), (5.6, "rumble", 1.2)],
+    "grobowiec": [(0.8, "whoosh", 0.3)] + [(0.4 + j * 0.16, "knock", 0.3) for j in range(14)] + [(3.0, "rumble", 4.0)],
+})
+
+
+DLUGIE = ("march", "hooves", "fire", "water", "wagon", "steps", "dig", "roll", "rumble", "flap", "pisanie", "stun")
+
+
 def long_sound(kind, sec):
     if kind == "march":
         return marching(sec)
@@ -260,6 +371,29 @@ def long_sound(kind, sec):
     if kind == "water":
         return band(RNG.normal(0, 1, N(sec)), 200, 3000) * 0.08 * (0.6 + 0.4 * np.sin(2 * math.pi * tt(N(sec)) / 2.3) ** 2) \
             * np.minimum(1, tt(N(sec)) / 0.5)
+    if kind == "rumble":  # dudnienie ziemi (kopiec, wyspa, meteoryt)
+        x = band(RNG.normal(0, 1, N(sec)), 30, 140) * 0.5
+        return x * np.minimum(1, tt(N(sec)) / 0.4) * np.minimum(1, (sec - tt(N(sec))) / 0.6)
+    if kind in ("flap", "pisanie", "stun"):
+        n = N(sec)
+        out = np.zeros(n)
+        k = 0.0
+        step = {"flap": 0.16, "pisanie": 0.22, "stun": 0.35}[kind]
+        while k < sec - 0.1:
+            if kind == "flap":  # skrzydła albo płótno flagi
+                L = N(0.09)
+                s_ = band(RNG.normal(0, 1, L), 300, 2500) * env(L, 0.01, 0.04) * 0.25
+            elif kind == "pisanie":  # pędzel po deszczułce
+                L = N(0.16)
+                s_ = band(RNG.normal(0, 1, L), 2500, 7000) * np.sin(np.linspace(0, math.pi, L)) * 0.12
+            else:  # ćwierkanie gwiazdek nad głową zamroczonego
+                L = N(0.25)
+                f = 2400 + 900 * np.sin(np.linspace(0, math.pi, L))
+                s_ = np.sin(2 * math.pi * np.cumsum(f) / SR) * env(L, 0.01, 0.1) * 0.08
+            i = N(k)
+            out[i:i + len(s_)] += s_[:n - i]
+            k += step * RNG.uniform(0.8, 1.2)
+        return out
     if kind in ("wagon", "steps", "dig", "roll"):
         n = N(sec)
         out = np.zeros(n)
@@ -347,7 +481,7 @@ def main():
         for at, kind, g in evs:
             if at >= sec:
                 continue
-            s = long_sound(kind, min(g, sec - at)) if kind in ("march", "hooves", "fire", "water", "wagon", "steps", "dig", "roll") \
+            s = long_sound(kind, min(g, sec - at)) if kind in DLUGIE \
                 else SFX[kind]() * g
             j = N(t0 + at)
             fx[j:j + len(s)] += s[:n - j]

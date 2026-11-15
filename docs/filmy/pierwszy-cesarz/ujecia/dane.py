@@ -200,7 +200,7 @@ AKTY = [
                  "L: Na północy kazał połączyć stare mury w jeden, żeby zatrzymać jeźdźców ze stepu."),
                 ("robotnicy", "PP", "pan", N, "po grani pod murem suną sylwetki ludzi z koszami na nosidłach; jeden po drugim przystają i znikają za granią",
                  "L: Budowały go setki tysięcy żołnierzy, skazańców i chłopów, a wielu zostało pod murem na zawsze."),
-                ("ognie", "Z", "stat", 2.6, "na wieży strażniczej zapala się ogień sygnałowy, a po chwili odpowiada mu ogień na następnej wieży",
+                ("ognie", "Z", "stat", 4.6, "na wieży strażniczej zapala się ogień sygnałowy, a po chwili odpowiada mu ogień na następnej wieży",
                  "trzask ognia, wiatr"),
             ]),
         ]),
@@ -212,7 +212,7 @@ AKTY = [
                 ("ksiegi", "PŚ", "stat", N, "uczony z deszczułką wysuwa się obok stołu; cesarz pochyla się z wyciągniętą ręką, zwój bambusowy leci ze stołu "
                  "do trójnogu, płomienie z bibuły skaczą w górę, a scena czerwienieje", "L: Kiedy uczeni zaczęli chwalić dawne czasy, kazał spalić "
                  "ich księgi."),
-                ("popiol", "D", "stat", 2.2, "detal trójnogu: zwój czernieje i zapada się, płomienie przygasają", "trzask ognia, cisza"),
+                ("popiol", "D", "stat", 3.6, "detal trójnogu: zwój czernieje i zapada się, płomienie przygasają", "trzask ognia, cisza"),
                 ("uczeni", "PŚ", "stat", N, "obok uczonego wysuwają się dwaj następni, po czym wszyscy trzej po kolei opadają pod rampę; czwarta lalka, "
                  "w niebieskim obszyciu — książę Fusu — kłania się cesarzowi, odwraca i odjeżdża ze sceny", "L: Rok później kazał stracić kilkuset "
                  "uczonych, a własnego syna Fusu, który się za nimi ujął, zesłał na północ pod mur."),
@@ -261,7 +261,7 @@ AKTY = [
             ("Żołnierze z gliny", [
                 ("armia", "PO", "jaz", N, "zza wzgórz i zza rampy wysuwają się rząd po rzędzie gliniani żołnierze, każdy we własnej chwili",
                  "L: Kazał ulepić z gliny tysiące żołnierzy naturalnej wielkości, żeby strzegli go także po śmierci."),
-                ("twarze", "Z", "pan", 2.6, "kamera przesuwa się po twarzach pierwszego rzędu; ostatni żołnierz dojeżdża na miejsce spóźniony",
+                ("twarze", "Z", "pan", 7.8, "kamera przesuwa się po twarzach pierwszego rzędu; ostatni żołnierz dojeżdża na miejsce spóźniony",
                  "cisza, jeden stuk"),
                 ("rzeki", "PP", "jaz", N, "między rzędami żołnierzy suną srebrne wstęgi rzek z rtęci",
                  "L: Według kronik w grobowcu płynęły rzeki z rtęci, a kusze miały same strzelać do każdego, kto wejdzie."),
@@ -300,7 +300,7 @@ AKTY = [
                  "jedna po drugiej", "L: Już rok później chłopi pędzeni do służby na granicy wzniecili powstanie i poszedł za nimi cały kraj."),
                 ("upadek", "PO", "odj", N, "padają ostatnie czarne chorągwie, zrywają się nitki chorągwi ze smokiem, a miasto staje w czerwonej łunie",
                  "L: Dynastia, która miała trwać dziesięć tysięcy pokoleń, upadła po piętnastu latach."),
-                ("cisza", "PO", "stat", 3.6, "świt: księżyc odjeżdża w górę, a słońce wraca na nitce; "
+                ("cisza", "PO", "stat", 5.6, "świt: księżyc odjeżdża w górę, a słońce wraca na nitce; "
                  "na scenie zostaje mur na grani i ani jednej chorągwi", "wiatr"),
             ]),
         ]),
@@ -380,6 +380,12 @@ def okno_kwestii(dzwiek):
 # a im większa granica (beat → scena → akt), tym dłużej, bo koniec sceny to długie trzymanie.
 PAUZA_PO = {"ujecie": 1.1, "beat": 1.4, "scena": 1.8, "akt": 2.3}
 
+# Ujęcia z kwestią wydłużone o tyle sekund po kwestii, bo akcja potrzebuje czasu — uwagi reżysera w Studio 15.11.2026
+# („wydłuż”, „wydłuż o 4 s”, „wydłuż 3×”) i nowe wydarzenia z jego markerów (mapa 36 prowincji, sztylet, waga…).
+WYDLUZ = {"prowincje": 5.0, "rody": 4.0, "mur": 3.0, "robotnicy": 3.0, "zmierzch": 2.5, "mlot": 3.0, "xufu": 4.0,
+          "przejscia": 4.0, "armia": 3.0, "list": 3.0, "powstanie": 3.0, "upadek": 3.0, "lekarz": 2.0, "trucizna": 1.5,
+          "miara": 2.0, "podroz": 1.5, "koniec": 2.0, "studnia": 2.0, "grobowiec": 2.5, "sztylet": 1.5, "czarne": 1.5}
+
 
 def ujecia(akt=None):
     """Płaska lista ujęć: (akt, nr w akcie, klucz, kadr, ruch, sekundy, opis, dźwięk). Długość ujęcia z kwestią liczy się
@@ -399,6 +405,7 @@ def ujecia(akt=None):
                         sec = round(start + mowa + PAUZA_PO[granica], 1)
                         if mowa > 6.5:  # długie zdanie: dłuższy oddech po nim
                             sec = round(sec + 0.3, 1)
+                        sec = round(sec + WYDLUZ.get(klucz, 0.0), 1)
                     if prev is not None and abs(sec - prev) < 0.25:
                         sec = round(sec + 0.3, 1)
                     prev = sec

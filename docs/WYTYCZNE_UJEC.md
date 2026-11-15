@@ -81,6 +81,13 @@ przeskoki ze stopnia na stopień albo sunięcie ukosem nad stopniami.
 - Rekwizyt na schodach (puszki, rolka bandaża) też ma miejsce w tej geometrii (`st_can`, `st_proj`), żeby kolejne
   ujęcia pokazywały go w tym samym miejscu.
 
+### 1.11 Rekwizyt w ręce jest w dłoni, a czynność z kwestii widać
+Miecz, sztylet, czarka czy list, które postać trzyma, mają rękojeść albo brzeg **w jej dłoni** i idą za nią, kiedy się
+porusza lub odwraca (ten sam punkt dłoni w każdym ujęciu tej sceny). O czym mówi lektor, to lalka robi na scenie:
+„wypił truciznę” — podnosi czarkę do ust; „kopali studnię” — narzędzie uderza w ziemię i lecą grudy; „zachorował” —
+kaszle; „zginął” — widać śmierć, a nie tylko zniknięcie. Postać ma stałą skalę: grozę pokazuje się gestem, cieniem
+i światłem, nie powiększeniem lalki.
+
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
 - Osobne warstwy: tło bez postaci, postać (PNG RGBA, przezroczyste tło), **pierwszy plan zasłaniający** (drzwi z
@@ -98,7 +105,8 @@ przeskoki ze stopnia na stopień albo sunięcie ukosem nad stopniami.
 
 Zanim ujęcie trafi do Studio do oceny:
 1. **Arkusz klatek**: początek, środek, koniec ujęcia i **każde zdarzenie** (wejście postaci, odskok, uderzenie, najazd,
-   zgaśnięcie światła) — obejrzyj go, nie tylko wyrenderuj.
+   zgaśnięcie światła) — obejrzyj go, nie tylko wyrenderuj. Czytaj klatkę razem z kwestią lektora: to, o czym mówi
+   (postać, wojsko, rzecz), ma być widać w całości, a nie jako czubek zza bliższego planu.
 2. **Skrajne położenia**: przy każdym otworze obejrzyj klatkę, w której ruchoma rzecz jest najbliżej krawędzi otworu.
 3. **Automatycznie**: `python3 scripts/kontrola_ujec.py output/<film>/render.py` — szuka pustych krawędzi kadru
    (koniec świata), gasnących jasnych elementów i robi arkusz klatek do obejrzenia. W ciemnych ujęciach z winietą
@@ -153,10 +161,21 @@ Zanim ujęcie trafi do Studio do oceny:
 | Pierwszy cesarz (10.11) | kawałki mapy przycięte każdy do własnego obrysu skalowały się jak cała mapa — elementy jednej układanki muszą dzielić jeden układ współrzędnych (`crop=False`) | 1.6 |
 | Pierwszy cesarz (10.11, reżyser) | „od 1:00 do 1:40 mało się dzieje” — ujęcia sali stały w miejscu; za mało paralaksy i dekoracji, które się stawiają; szkic 640 × 360 oddany jako materiał do oceny | 1.8 (każde ujęcie ma wydarzenie), 3 (oceniamy pełną jakość) |
 | Pierwszy cesarz (10.11) | przy zmianie dekoracji wóz i jeździec wisiały w powietrzu, zanim wysunęła się droga — aktorzy wchodzą razem z ziemią, na której stoją | 1.2 |
+| Syn słońca (13.11, arkusz) | głowy węża przy kadziach, chata-pułapka, spichlerz i Himiko chowały się za bliższym pasmem wzgórz, cedrami albo parawanem — rzecz, która ma grać przed pasmem, stoi na planie bliższym niż ono (szyja węża przechodzi na bliższy plan w połowie długości) | 1.5 |
+| Syn słońca (13.11, arkusz) | most niebios i wyspa Onogoro za wysoko: bogom ucinało głowy, a łódź z żaglem zasłaniała lalki na pokładzie — przy nowej dekoracji sprawdza się, czy aktorzy mieszczą się w kadrze ujęcia, a nie tylko w kadrze wzorcowym | 1.3, 1.5 |
+| Syn słońca (13.11, arkusz) | Ninigi i łodzie stały, zanim wysunęła się rampa i fale (zmiana dekoracji) | 1.2 |
+| Syn słońca (13.11, pełna jakość) | w lesie Kumano (las, wrona) wojsko szło za rzędami cedrów, a wojsko Nagasunehiko za bliższym pasmem wzgórz — lektor mówił o wojsku, a widać było tylko czubki włóczni; na małym arkuszu szkicu tego nie wyłapano, dopiero na klatce 1280 × 720 | 1.5, 3.1 |
+| Syn słońca (13.11, dekoracja) | Japonia stała na tych samych chińskich górach, sosnach i kulisie z gałęzią co „Pierwszy cesarz” — reżyser: nie kopiować scenerii poprzedniego filmu; każdy kraj i epoka dostaje własny krajobraz (tu Fudżi, łagodne wzgórza z polanami, wiśnie, bambus) | Podręcznik 04 |
 | Pierwszy cesarz EN (14.11, Studio) | cięcie padało 0,6 s po ostatnim słowie lektora, bo zaraz zaczynało się następne ujęcie — reżyser: „obcina zaraz po kwestii ujęcie […] i jest to nienaturalne”; obraz trwa jeszcze po kwestii: 1,1 s w środku beatu, 1,4 s na końcu beatu, 1,8 s na końcu sceny, 2,3 s na końcu aktu (dane.py, PAUZA_PO) | Podręcznik 03 (2) |
 | Pierwszy cesarz EN (15.11, reżyser, Studio) | uwaga na klatce ujęcia 6: „ten powóz musi ciągnąć koń!” — żaden wóz w filmie nie miał konia; reżyser pytał też, czemu w ujęciu 6 są trzy postacie: chłopca grała zmniejszona lalka cesarza w koronie, więc wyglądał jak trzeci dorosły, a ojciec, zamiast wsiąść na wóz, zapadał się pod scenę | 1.6 |
 | Pierwszy cesarz EN (15.11, przegląd obsady) | gliniana armia stała na scenie od budowy grobowca do świtu, także przy spisku, u Fusu pod murem i w powstaniu, i zasłaniała powóz; Jing Ke, o którym lektor mówi „zginął pod kolumną”, w ogóle nie był widoczny | 1.6 |
 | Pierwszy cesarz EN (15.11, reżyser) | „widzę dwóch cesarzy patrzących na siebie, beżowy i fioletowy” — ojciec i kupiec to ta sama czarno-złota dworska wycinanka, różniła je tylko barwa obszycia; woźnica wyglądał jak jeździec-posłaniec Qin, chłopiec w Handanie nosił szatę cesarską; po zmianie strojów: „ojcu musisz zmienić posturę i twarz” — ojciec i kupiec stali tak samo ze zwojem; ojciec klęczy teraz na innej wycinance | 1.6 |
+| Pierwszy cesarz EN (15.11, reżyser, markery w 50 ujęciach) | kanał z wodą wisiał w powietrzu na początku ujęć ze zmianą dekoracji i stał na scenie do końca filmu („zaś ten kanał z wodą, nie wiem, co tu robi”); poza tym był cienką niebieską kreską („nie wiadomo, o co chodzi”) | 1.2, 1.6 |
+| Pierwszy cesarz EN (15.11, reżyser) | sztylet Jing Ke i miecz króla nie w dłoni, zwój na stole w złym kierunku, waga kołysała się cała zamiast belki i szal | 1.11, 1.4 |
+| Pierwszy cesarz EN (15.11, reżyser) | lektor mówi o czynności, a lalka nic nie robi: trucizna, kopanie studni, choroba i śmierć cesarza, egzekucja uczonych, podział na 36 prowincji, pisanie (pisarz schowany za stołem) | 1.11 |
+| Pierwszy cesarz EN (15.11, reżyser) | eunuch Zhao Gao jako olbrzymia lalka bez podpisu („kto to jest i czemu on jest taki ogromny?”) | 1.11 |
+| Pierwszy cesarz EN (15.11, reżyser) | stela wyrastała, zanim kamera do niej dojechała, i była za mała; łodzie nie chowały się za ostatnią falą, tylko stały przed nią; gałąź kulisy zasłaniała chorągwie | 1.3, 1.5, 1.8 |
+| Pierwszy cesarz EN (15.11, reżyser) | 15 ujęć za krótkich na swoją akcję („wydłuż”, „wydłuż 3×”) — dane.WYDLUZ | 1.8 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

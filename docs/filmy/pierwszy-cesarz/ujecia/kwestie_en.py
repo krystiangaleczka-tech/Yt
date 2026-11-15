@@ -86,7 +86,11 @@ ETYKIETY = {"PIERWSZY CESARZ": "THE FIRST EMPEROR", "247 p.n.e.": "247 BC", "221
             "ojciec Zhenga, książę Qin": "Zheng's father, a Qin prince", "Zheng": "Zheng", "kupiec Lü Buwei": "Lü Buwei, a merchant",
             "król Zheng": "King Zheng", "kanclerz Lü Buwei": "Chancellor Lü Buwei", "król Zheng, dorosły": "King Zheng, grown up",
             "Li Si, doradca": "Li Si, adviser", "Jing Ke z Yan": "Jing Ke of Yan", "nadworny lekarz": "the court physician",
-            "Fusu, najstarszy syn": "Fusu, eldest son", "eunuch Zhao Gao": "Zhao Gao, a eunuch", "Huhai, młodszy syn": "Huhai, younger son"}
+            "Fusu, najstarszy syn": "Fusu, eldest son", "eunuch Zhao Gao": "Zhao Gao, a eunuch", "Huhai, młodszy syn": "Huhai, younger son",
+            # tabliczki z uwag reżysera (15.11.2026)
+            "ZABIĆ KRÓLA!": "KILL THE KING!", "KRÓL": "KING", "Pierwszy Cesarz": "FIRST EMPEROR",
+            "kanał Zhengguo": "Zhengguo Canal", "kanał Lingqu": "Lingqu Canal", "trzy miesiące później": "three months later",
+            "36 komanderii": "36 commanderies"}
 
 # tekst mówiony: liczby słowami i chińskie imiona zapisane tak, jak ma je przeczytać angielski lektor
 SLOWNIE_EN = {"230 BC": "two hundred and thirty B.C.", "221 BC": "two hundred and twenty-one B.C.",

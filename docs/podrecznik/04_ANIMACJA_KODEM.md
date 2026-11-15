@@ -23,5 +23,8 @@ z tych samych klocków, a wygląd filmu jest powtarzalny. Konkretne pliki danego
 - Ruch po schodach i pochylniach pokazuje się w osi ruchu (postać od przodu albo od tyłu); stopy stoją na stopniach
   policzonych z geometrii miejsca, krok to przeniesienie jednej stopy (Wytyczne kadru 1.10).
 - Stan świata bierze się z księgi (lampa, kreski na ścianie, kto ma rekwizyt), nie z pamięci.
+- Każdy film ma scenerię swojego kraju i epoki. Silnik, papiery i sposób pracy są wspólne, ale krajobrazu poprzedniego
+  filmu (góry, drzewa, kulisy) nie przenosi się do nowego — reżyser zobaczył Japonię na chińskich górach z „Pierwszego
+  cesarza” (13.11). Dla Japonii: Fuji, okrągłe pagórki z polanami, wiśnie, bambus.
 - Po narysowaniu: arkusz klatek ze środka każdego ujęcia i z każdego wydarzenia; obejrzeć, potem wgrać.
 - W Studio: przegląd każdego ujęcia w zakładce Ujęcia (bez renderowania całego filmu do mp4).

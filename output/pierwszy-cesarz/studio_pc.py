@@ -133,17 +133,48 @@ def aktualizuj(api, pid, p, UJ, tmp, okno_kwestii):
     # przesuwa wtedy wszystkie klipy ujęcia (obraz, kwestię lektora) i wydłuża klip obrazu do długości ujęcia
     ops = []
     for c in clips:
-        if c.get("scene_id") in obraz and c["track_id"] == "v1":
-            ops.append({"type": "update_clip", "clip_id": c["id"], "changes": {"asset_id": obraz[c["scene_id"]]}})
+        if c.get("scene_id") in obraz and c["track_id"] == "v1":  # z nową długością: krótszy klip nie może zostać na starej
+            ops.append({"type": "update_clip", "clip_id": c["id"], "changes": {"asset_id": obraz[c["scene_id"]],
+                                                                               "duration": min(c["duration"], plan[c["scene_id"]][1])}})
         elif c["track_id"] in dzwieki:
             aid, dur = dzwieki[c["track_id"]]
             ops.append({"type": "update_clip", "clip_id": c["id"], "changes": {"asset_id": aid, "duration": dur}})
     for k in range(0, len(ops), 200):
         p = api.call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": ops[k:k + 200]})
     p = api.call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": nowe}}, "PATCH")
+    if ARGS.lektor:
+        p = nowy_lektor(api, pid, UJ, okno_kwestii)
     koniec = max(c["start"] + c["duration"] for c in p["sequence"]["clips"]) / FPS
     print(f"gotowe: przesunięto {len(zmiana)} ujęć, nowy obraz {len(obraz)}, oś {koniec:.1f} s, rewizja {p['revision']}", flush=True)
     return pid
+
+
+def nowy_lektor(api, pid, UJ, okno_kwestii):
+    """Nowe nagrania lektora (lektor_en/*.wav, np. po przepisie teatru papierowego: 3% wolniej i pauzy z zakresów):
+    każda kwestia wgrana od nowa, klip na ścieżce Lektor dostaje nowy plik, start (ujęcie + oddech) i długość."""
+    from dane import LEKTOR
+    p = api.call(f"/projects/{pid}")
+    sceny = {s["id"]: s for s in p["scenes"]}
+    glos = {}
+    for akt, k, klucz, kadr, ruch, sec, opis, dzwiek in UJ:
+        sid = f"scene_d{akt:02d}_{k:02d}"
+        wav = LEKTOR / f"{klucz}.wav"
+        if okno_kwestii(dzwiek)[1] and wav.exists() and sid in sceny:
+            glos[sid] = (api.upload(pid, wav, f"lektor {klucz} (teatr).wav"), wav_len(wav), okno_kwestii(dzwiek)[0])
+    p = api.call(f"/projects/{pid}")
+    sceny = {s["id"]: s for s in p["scenes"]}
+    ops = []
+    for c in p["sequence"]["clips"]:
+        if c["track_id"] == "a1" and c.get("scene_id") in glos:
+            aid, dl, oddech = glos[c["scene_id"]]
+            ops.append({"type": "update_clip", "clip_id": c["id"], "changes": {
+                "asset_id": aid, "start": sceny[c["scene_id"]]["start"] + round(oddech * FPS), "duration": max(1, math.ceil(dl * FPS))}})
+    for k in range(0, len(ops), 200):
+        p = api.call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": ops[k:k + 200]})
+    nowe = [{**s, "voice_asset_id": glos[s["id"]][0]} if s["id"] in glos else s for s in p["scenes"]]
+    p = api.call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": nowe}}, "PATCH")
+    print(f"lektor: {len(ops)} kwestii z nowym nagraniem", flush=True)
+    return p
 
 
 
@@ -339,6 +370,8 @@ if __name__ == "__main__":
                     help="dłuższe ujęcie bez nowego renderu: stary klip + stopklatka na końcu (przegląd w Studio; render robi reżyser na końcu)")
     ap.add_argument("--aktualizuj", action="store_true",
                     help="istniejący projekt: nowe długości ujęć, obraz z --klipy, kwestie i muzyka/efekty na nowe miejsca")
+    ap.add_argument("--lektor", action="store_true",
+                    help="przy --aktualizuj: nowe nagrania lektora (lektor_en/*.wav) na ścieżkę Lektor, z nowymi długościami")
     ap.add_argument("--podglad", default="",
                     help="numery ujęć (np. 3,6,31): zmiana rysunku bez renderu — klatki kontrolne jako obraz w Bibliotece i opis zmiany")
     ap.add_argument("--podmien", default="",

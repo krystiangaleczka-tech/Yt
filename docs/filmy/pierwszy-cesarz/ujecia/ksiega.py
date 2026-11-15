@@ -164,13 +164,25 @@ SWIAT = {
         {"id": "D10", "text": "Gliniana armia zapada się pod ziemię przy zmianie dekoracji na początku ostatniej podróży (d07_08), więc "
          "nie zasłania powozu, spisku, Fusu ani powstania; o świcie (d08_07) wraca tylko słońce. W finale (d08_10) armia staje jeszcze "
          "raz jako obraz zamykający.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D12", "text": "Kanały (Zhengguo, Lingqu) są na scenie od wykopania (d02_11) do ujęcia „pismo” (d05_06), gdzie zwijają się "
+         "przy zmianie dekoracji; przy każdej zmianie dekoracji rozwijają się na nowo razem z ziemią. Reżyser 15.11: „zaś ten kanał z wodą, "
+         "nie wiem, co tu robi” (d07_05, d07_08, d08_01, d08_08, d08_09).", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D13", "text": "Uwagi reżysera z markerów 15.11 zmieniają wydarzenia ujęć: X nad kanclerzem i nad stracanymi uczonymi, "
+         "kanclerz pije truciznę, zwój z mapą rozwija się na stole i ze środka wyłania się sztylet, Jing Ke dwa razy dosięga króla, zanim "
+         "trafi go torba lekarza, król zabija go mieczem, tabliczki „KRÓL” → „PIERWSZY CESARZ”, mapa 36 komanderii, cesarz przewraca się "
+         "na powozie po ataku młotem, chory kaszle w ostatniej podróży i umiera, ptak przynosi Fusu list, Zhao Gao ma zwykły wzrost "
+         "i podpis, chłopi kopią studnię, kopiec drży. 15 ujęć dłuższych (dane.WYDLUZ), film 11:03.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D14", "text": "Lektor EN zbudowany od nowa przepisem teatru papierowego (Podręcznik → Lektor, zasada 8): te same podejścia "
+         "Chatterbox Turbo z emocjami, 3% wolniej i pauzy w kwestiach losowane z zakresów (lektor_studio.py podejscia --teatr). "
+         "Reżyser wybrał ten wariant zamiast nagrania od nowa silnikiem Multilingual (bez znaczników emocji).", "at": "2026-11-15",
+         "by": "reżyser"},
     ],
 }
 
 BIBLIA = {
     "characters": "Zheng (Pierwszy Cesarz) — wycinanka cesarza; chłopiec z Handanu to ta sama wycinanka bez brody i korony, z kokami "
                   "dziecka, król-chłopiec — w koronie, duża lalka to dorosły król i cesarz. Lü Buwei — kupiec i kanclerz (cała szata z fioletowego jedwabiu). Ojciec — zakładnik, klęczy, w spłowiałym płótnie. Chłopiec w Handanie — prosta granatowa szata. Li Si — doradca (zielone). Jing Ke — zamachowiec (jasne). "
-                  "Fusu — najstarszy syn (niebieskie). Zhao Gao — eunuch (szare, w sali większy od wszystkich). Huhai — mała lalka cesarza "
+                  "Fusu — najstarszy syn (niebieskie). Zhao Gao — eunuch (szare, zwykłego wzrostu; nad Huhaiem nachyla się i szepcze). Huhai — mała lalka cesarza "
                   "w niebieskim obszyciu. Pisarz, uczeni, klęczący urzędnicy, jeździec, gliniani żołnierze.",
     "chronology": "259 p.n.e. narodziny w Handanie · 257 ucieczka ojca · ok. 250 powrót do Qin · 247 król · 238 bunt, 235 śmierć Lü Buweia · "
                   "230 Han · 228 Zhao · 227 zamach Jing Ke · 225 Wei · 223 Chu · 222 Yan · 221 Qi i tytuł cesarza · ok. 218 zamach młotem · "

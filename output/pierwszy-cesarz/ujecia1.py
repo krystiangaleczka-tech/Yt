@@ -42,6 +42,28 @@ def mapa(st, t, x, y, wd, k, covers=None, qin_dx=0.0, p=0.83, lift=0.0):
                    alpha=min(1.0, c * 4), shadow=(2, 3, 3, 0.35), blur=0)
 
 
+def iks(st, x, y, t, t0, h=200, p=P.rekwizyty + 0.03, mig=2):
+    """Czerwony krzyż nad postacią: miga mig razy od chwili t0 (0,3 s widać, 0,18 s nie), potem gaśnie
+    (reżyser 15.11: „czerwony X migoczący 2 razy z dźwiękiem”)."""
+    for n in range(mig):
+        a = t0 + n * 0.48
+        if a <= t < a + 0.3:
+            k = pr(t, a, 0.08)
+            st.put(Z.prop("x"), x, y, p, h=h * (0.8 + 0.2 * back(k, 1.6)), anchor=(0.5, 0.5), rot=-4 + 8 * n, shadow=(4, 6, 6, 0.45))
+
+
+def sztylet_w_dloni(st, x, flip, p, lean=0.0, y=507):
+    """Sztylet Jing Ke w dłoni (reżyser 15.11: większy, ostrze ku górze przed nim). x — oś lalki, flip — zwrot lalki."""
+    st.put(Z.prop("sztylet"), x + 65 * flip, y, p + 0.003, w=120, anchor=(36 / 210, 0.5), sx=flip, rot=(-14 + lean * 0.6) * flip,
+           shadow=(2, 3, 3, 0.4))
+
+
+def miecz_w_dloni(st, x, flip, kat, p=0.826, y=454):
+    """Miecz króla rękojeścią w dłoni wyciągniętej ręki (reżyser 15.11: „aby był przy dłoni rękojeść”).
+    kat — kierunek ostrza względem twarzy postaci: 0 przed siebie poziomo, ujemny w górę, dodatni w dół."""
+    st.put(Z.prop("miecz"), x + 114 * flip, y, p, w=230, anchor=(0.12, 0.5), sx=flip, rot=kat * flip, shadow=(3, 4, 4, 0.4))
+
+
 # ---------- akt 1 · Zakładnik ----------
 
 def s_teatr(st, w, t, T):
@@ -254,26 +276,43 @@ def s_bunt(st, w, t, T):
 
 
 def s_odprawa(st, w, t, T):
-    """Król wskazuje ręką; kanclerz odwraca się i odjeżdża ku wyjściu, urzędnicy kłaniają się królowi."""
-    turn1, turn2 = ease(pr(t, 0.3, 0.6)), ease(pr(t, 2.3, 0.6))
+    """Król wskazuje ręką; nad kanclerzem miga dwa razy czerwony X; kanclerz odwraca się i odjeżdża ku wyjściu,
+    urzędnicy kłaniają się królowi."""
+    turn1, turn2 = ease(pr(t, 0.3, 0.6)), ease(pr(t, 2.6, 0.6))
     flip = math.cos(math.pi * turn1) if turn2 <= 0 else -math.cos(math.pi * turn2)
     kam(st, t, 13, 700, 430, lerp(1.1, 1.16, ease(t / T)), 0.8)
     st.dof = 0.8
     sala(st, t, w)
-    krol(st, t, lean=5 * ease(pr(t, 1.1, 0.5)) - 3 * ease(pr(t, 4.0, 1.0)))
-    lalka(st, t, "kupiec", KANCLERZ + 1000 * ease(pr(t, 3.0, T - 3.0)) ** 1.3, 344, flip=flip, lean=-3 * turn1 * (1 - turn2))
+    krol(st, t, lean=5 * ease(pr(t, 1.1, 0.5)) - 3 * ease(pr(t, 4.2, 1.0)))
+    kx = KANCLERZ + 1000 * ease(pr(t, 3.3, T - 3.3)) ** 1.3
+    lalka(st, t, "kupiec", kx, 344, flip=flip, lean=-3 * turn1 * (1 - turn2))
+    iks(st, KANCLERZ, 520, t, 1.5)
     for n in range(2):
-        urzednik(st, t, n, bow=9 * ease(pr(t, 3.8 + n * 0.4, 0.6)))
+        urzednik(st, t, n, bow=9 * ease(pr(t, 4.0 + n * 0.4, 0.6)))
 
 
 def s_trucizna(st, w, t, T):
-    """Kanclerz sam na skraju sceny, przed nim czarka; lalka powoli opada pod rampę, czarka zostaje."""
+    """Kanclerz sam na skraju sceny; czarka zjeżdża na nitce, on bierze ją do ust i pije truciznę (reżyser 15.11:
+    „zrób, że pije poison”), czarka spada, lalka chwieje się i powoli opada pod rampę."""
     w.noc, w.sun_y = 0.35, 260.0 + 90 * ease(t / T)  # zachód: słońce schodzi w czasie ujęcia
     kam(st, t, 14, lerp(1000, 960, ease(t / T)), lerp(520, 560, ease(t / T)), lerp(1.6, 2.0, ease(t / T)), 0.8, lens=1.6)
     st.dof = 2.0
     swiat(st, t, w)
-    lalka(st, t, "kupiec", 1020, 330, pr(t, 0.2, 0.9), flip=-1, lean=-5 * ease(pr(t, 1.6, 0.8)), sink=pr(t, 2.6, T - 2.9) * 0.999)
-    Z.hang(st, Z.prop("czarka"), 930, 640, P.rekwizyty, pr(t, 0.9, 0.9), t, 160, drop=440, sway=0.6, h=52, shadow=(3, 4, 4, 0.4))
+    pije = ease(pr(t, 2.9, 0.4)) * (1 - ease(pr(t, 3.9, 0.3)))
+    sink = pr(t, 4.6, T - 4.9) * 0.999
+    lean = -5 * ease(pr(t, 1.6, 0.8)) + 9 * pije - 12 * ease(pr(t, 4.1, 0.5)) * (1 - sink)  # odchyla głowę przy piciu, potem się zgina
+    lalka(st, t, "kupiec", 1020, 330, pr(t, 0.2, 0.9), flip=-1, lean=lean, sink=sink)
+    if t < 2.0:  # czarka zjeżdża na nitce przed kanclerza
+        Z.hang(st, Z.prop("czarka"), 930, 640, P.rekwizyty, pr(t, 0.9, 0.9), t, 160, drop=440, sway=0.6, h=52, shadow=(3, 4, 4, 0.4))
+    elif t < 4.0:  # kanclerz bierze czarkę do ust i przechyla ją
+        k = ease(pr(t, 2.0, 0.8))
+        cx, cy = lerp(930, 992, k), lerp(666, 444, k)
+        st.put(Z.prop("czarka"), cx, cy, P.lalki + 0.016, h=52, anchor=(0.5, 0.5), rot=lerp(0, 58, ease(pr(t, 2.7, 0.4))) - 20 * ease(pr(t, 3.8, 0.2)),
+               shadow=(3, 4, 4, 0.4))
+    else:  # czarka wypada mu z ręki i spada na rampę
+        f = pr(t, 4.0, 0.55)
+        st.put(Z.prop("czarka"), lerp(972, 930, f), lerp(452, 676, f * f) - 14 * math.sin(math.pi * pr(t, 4.55, 0.3)), P.rekwizyty,
+               h=52, anchor=(0.5, 1.0) if f >= 1 else (0.5, 0.5), rot=lerp(40, 95, f) if f < 1 else 95, shadow=(3, 4, 4, 0.4))
     swiatlo(st, w, t)
 
 
@@ -302,53 +341,73 @@ def s_mapa(st, w, t, T):
 
 
 def s_machina(st, w, t, T):
-    """Za wzgórzami wyrastają rząd za rzędem lasy włóczni z czarnymi proporcami."""
+    """Za wzgórzami wyrastają rząd za rzędem lasy włóczni z czarnymi proporcami; potem całe wojsko trzy razy unosi
+    włócznie (reżyser 15.11: „wszystkie włócznie podnoszą się na 0,6 s do góry 3×”)."""
     w.lean = 3 * settle((t - 0.4) / 1.6, 1.2)
     kam(st, t, 17, 660, 390, lerp(1.0, 1.1, ease(t / T)), 0.62, truck=0.5)
     st.dof = 0.5
     swiat(st, t, w)
+    unies = sum(math.sin(math.pi * pr(t, a, 0.6)) for a in (4.9, 6.2, 7.5))
     for n, (band, p, h, x) in enumerate((("dal", 0.444, 86, 1330), ("srodek", 0.524, 106, 1360), ("droga", 0.635, 124, 1330))):
-        wlocznie(st, t, x, p=p, band=band, h=h, n=5, up=pr(t, 0.8 + n * 1.2, 1.1), seed=10 + n * 3)
+        wlocznie(st, t, x, p=p, band=band, h=h, n=5, up=pr(t, 0.8 + n * 1.2, 1.1), seed=10 + n * 3, lift=0.34 * h * unies)
     swiatlo(st, w, t)
 
 
 def s_kusze(st, w, t, T):
-    """Zza wzgórza wylatuje chmara strzał, zatacza łuk przez niebo i wbija się w zbocze góry."""
+    """Zza wzgórza wylatuje chmara strzał, zatacza łuk przez niebo i wbija się w zbocze góry; zaraz po niej druga salwa
+    (reżyser 15.11: „dodaj jeszcze jedną salwę”)."""
     kam(st, t, 18, lerp(680, 730, ease(t / T)), 360, 1.12, 0.5, truck=0.4)
     st.dof = 0.6
     swiat(st, t, w)
     wlocznie(st, t, 620, n=2, seed=10)
-    for j in range(38):
-        r = random.Random(40 + j)
-        f = clamp((t - 0.6 - j * 0.03 - r.uniform(0, 0.25)) / 1.25)
-        if f <= 0:
-            continue
-        x0, y0 = 330 + r.uniform(-90, 90), 590
-        x1, y1 = 900 + r.uniform(-130, 150), 395 + r.uniform(-40, 50)
-        pos = lambda q: (lerp(x0, x1, q), lerp(y0, y1, q) - (250 + r.uniform(-30, 30)) * math.sin(math.pi * q) * (1 - 0.25 * q))
-        (xa, ya), (xb, yb) = pos(max(0.0, f - 0.02)), pos(min(1.0, f + 0.02) if f < 1 else 1.0)
-        ang = math.degrees(math.atan2(yb - ya, xb - xa)) if f < 1 else 58 + r.uniform(-10, 10)
-        st.put(Z.prop("strzala"), *pos(f), 0.47, w=40, anchor=(0.9, 0.5), rot=ang, shadow=(2, 3, 3, 0.3))
+    for salwa, (t0, dx, dy, seed) in enumerate(((0.6, 0, 0, 40), (2.7, 70, -30, 140))):
+        for j in range(38):
+            r = random.Random(seed + j)
+            f = clamp((t - t0 - j * 0.03 - r.uniform(0, 0.25)) / 1.25)
+            if f <= 0:
+                continue
+            x0, y0 = 330 + r.uniform(-90, 90), 590
+            x1, y1 = 900 + dx + r.uniform(-130, 150), 395 + dy + r.uniform(-40, 50)
+            pos = lambda q: (lerp(x0, x1, q), lerp(y0, y1, q) - (250 + r.uniform(-30, 30)) * math.sin(math.pi * q) * (1 - 0.25 * q))
+            (xa, ya), (xb, yb) = pos(max(0.0, f - 0.02)), pos(min(1.0, f + 0.02) if f < 1 else 1.0)
+            ang = math.degrees(math.atan2(yb - ya, xb - xa)) if f < 1 else 58 + r.uniform(-10, 10)
+            st.put(Z.prop("strzala"), *pos(f), 0.47 + 0.002 * salwa, w=40, anchor=(0.9, 0.5), rot=ang, shadow=(2, 3, 3, 0.3))
     swiatlo(st, w, t)
 
 
 def s_kanal(st, w, t, T):
-    """Wzdłuż drogi rozwija się niebieska wstęga kanału, a przy niej wyskakują zielone poletka."""
-    w.kanal = pr(t, 0.5, T - 1.8)
+    """Robotnicy kopią kanał: przed nimi rozwija się niebieska wstęga wody między nasypami, za nią wyskakują zielone
+    poletka, a gdy woda płynie, sunie po niej łódź z ziarnem (reżyser 15.11: „wyraźniej to pokaż, bo nie wiadomo,
+    o co chodzi”)."""
+    w.kanal = pr(t, 0.6, T - 3.6)
+    podpis(w, t, "kanał Zhengguo", 520, 452, 1.4, 4.0)
     kam(st, t, 19, lerp(430, 640, ease(t / T)), 590, 1.9, 0.67, lens=1.7, truck=0.8)
     st.dof = 1.6
     swiat(st, t, w)
+    front = 300 + 460 * ease_out(w.kanal)  # czoło wykopu
+    for j in range(4):  # kopacze przy czole wykopu: idą za wodą, pochylają się nad ziemią
+        x = front + 10 + j * 26 + 6 * math.sin(t * 2 + j)
+        if w.kanal < 1 or t < T - 2.6:
+            st.put(Z.prop("robotnik"), x, Z.ground("droga", x) + 30 - abs(math.sin(t * 5 + j)) * 3, 0.6705, h=40,
+                   rot=8 * math.sin(t * 4.5 + j * 1.3), shadow=(2, 2, 3, 0.3))
+    f = pr(t, T - 3.2, 3.0)  # łódź z workami ziarna płynie kanałem
+    if f > 0:
+        x = lerp(320, 700, f)
+        st.put(Z.boat(), x, Z.ground("droga", x) + 22 + 1.5 * math.sin(t * 3), 0.6728, h=34, rot=2 * math.sin(t * 2.2),
+               shadow=(2, 3, 3, 0.35))
     swiatlo(st, w, t)
 
 
 # ---------- akt 3 · Wojna i zamach ----------
 
 def s_wymarsz(st, w, t, T):
-    """Wojsko rusza na wschód — las włóczni za wzgórzem, jeździec na przedzie; kamera jedzie z nimi."""
+    """Król odwraca się w lewo, po chwili w prawo i wskazuje wschód; wojsko rusza — las włóczni za wzgórzem, jeździec
+    na przedzie; kamera jedzie z nimi."""
     go = 0.12 * ease(pr(t, 0.3, 1.0)) + 0.88 * pr(t, 0.8, T - 0.8) ** 1.15
     x = 330 + 330 * go
     w.wlocznie, w.jezdziec = x - 40, x + 60
-    w.lean = 3.0 * settle(t / 1.4, 1.0)
+    w.flip = math.cos(math.pi * ease(pr(t, 1.7, 0.45))) if t < 2.9 else -math.cos(math.pi * ease(pr(t, 2.9, 0.45)))
+    w.lean = 3.0 * settle(t / 1.4, 1.0) + 4.0 * ease(pr(t, 3.4, 0.4)) * (1 - 0.4 * ease(pr(t, 5.0, 1.0)))
     kam(st, t, 20, lerp(505, 640, ease(t / T)), 532, 1.55, 0.64, lens=1.45, truck=0.85)
     st.dof = 1.2
     swiat(st, t, w)
@@ -372,31 +431,42 @@ def s_han(st, w, t, T):
 
 
 def s_zhao(st, w, t, T):
-    """Pada chorągiew Zhao; pod bramą Handanu, tam gdzie stał mały chłopiec, staje duża lalka króla."""
+    """Pada chorągiew Zhao; pod bramą Handanu stoi przez chwilę mały chłopiec, a na niego spada z góry duża lalka króla
+    i go zasłania (reżyser 15.11) — dorosły król wrócił tam, gdzie był dzieckiem."""
     w.fall["zhao"] = pr(t, 0.6, 0.95)
     w.emp = 0.0  # król nie stoi teraz na swoim miejscu: jest w Handanie
     w.jezdziec, w.wlocznie = lerp(560, 760, pr(t, 0.0, 2.6)), lerp(430, 640, pr(t, 0.0, 2.6))
+    spad = pr(t, 2.5, 0.42)
+    hit = pr(t, 2.92, 0.12)
     k = ease(t / T)
-    kam(st, t, 22, lerp(770, 800, k), lerp(500, 480, k), lerp(1.3, 1.5, k), 0.8)
+    kam(st, t, 22, lerp(770, 800, k), lerp(500, 480, k), lerp(1.3, 1.5, k), 0.8, shake=7 * hit * (1 - pr(t, 3.0, 0.5)))
     st.dof = 1.4
     swiat(st, t, w)
-    lalka(st, t, "zheng", 790, EMP[2], pr(t, 2.4, 1.3), seed=7, lean=2 * settle((t - 4.0) / 1.6, 1.2))
+    lalka(st, t, "zheng_dziecko", 784, MALY, pr(t, 0.1, 0.6), seed=8, p=P.lalki + 0.004, sink=pr(t, 2.95, 0.2))
+    if t >= 2.5:  # duża lalka spada z góry na nitkach i ląduje z przysiadem
+        lalka(st, t, "zheng", 790, EMP[2], 1.0, seed=7, lift=640 * (1 - spad) ** 2 - 10 * math.sin(math.pi * pr(t, 2.92, 0.35)),
+              lean=2 * settle((t - 4.0) / 1.6, 1.2))
     swiatlo(st, w, t, extra=(1.03, 0.98, 0.94))
 
 
 def s_poselstwo(st, w, t, T):
-    """Spod chorągwi Yan rusza na zachód wóz ze skrzynią; chorągiew kołysze się za nim."""
+    """Spod turkusowej chorągwi Yan rusza na zachód wóz ze skrzynią; chorągiew kołysze się za nim, a nad wozem zjeżdża
+    tabliczka „ZABIĆ KRÓLA!” (reżyser 15.11)."""
     x = lerp(1010, 540, (t / T) ** 0.95)
-    w.chwiej = {"yan": 6 * math.sin(t * 2.4) * math.exp(-t * 0.5)}
+    w.chwiej = {"yan": 10 * math.sin(t * 2.6) * (1 - 0.55 * pr(t, 0.0, T))}
     kam(st, t, 23, x - 20, 525, 1.8, 0.645, lens=1.68, truck=0.85)
     st.dof = 1.5
     swiat(st, t, w)
     woz(st, t, x, flip=-1, ladunek=(Z.prop("szkatula"), 34, 14, 14))
+    Z.hang(st, Z.tag("ZABIĆ KRÓLA!"), x + 6, Z.ground("droga", x) - 150, P.rekwizyty + 0.02, pr(t, 5.0, 0.9), t, 95, drop=460, sway=1.6,
+           h=46, shadow=(4, 6, 6, 0.4))
     swiatlo(st, w, t)
 
 
 STOLIK = (930, 280)  # sala: stół z podarunkami (x, szerokość)
 JINGKE, LEKARZ, LISI_X = 1096, 1, 150
+ZWOJ = (862.5, 601.5)  # środek zwiniętej mapy na stole z podarunkami (z markera reżysera w ujęciu ze sztyletem)
+ZWOJ_A, ZWOJ_B = Z.ZWOJ_A, Z.ZWOJ_B  # wzdłuż wałka (głąb blatu) i kierunek rozwijania (wzdłuż blatu)
 LEZY = 70  # o ile unieść leżącą lalkę Jing Ke, żeby leżała na posadzce nad rampą, a nie pod nią
 
 
@@ -410,8 +480,8 @@ def _sala_zamach(st, t, w, stolik=1.0, zwoj="zwiniety", szkatula=1.0, lisi=0.0, 
         if szkatula > 0:
             bx, by = on(0.74, 0.34)
             st.put(Z.prop("szkatula"), bx, by + (1 - back(szkatula, 1.3)) * 0 , P.rekwizyty + 0.006, h=44 * szkatula, shadow=(3, 4, 4, 0.4))
-        if zwoj == "zwiniety":
-            st.put(Z.S("bamboo", 0.5), *on(0.38, 0.30), P.rekwizyty + 0.004, w=84, anchor=(0.5, 0.5), rot=-8, shadow=(3, 5, 5, 0.4))
+        if zwoj == "zwiniety":  # wzdłuż głębi blatu, jak w ujęciu ze sztyletem
+            st.put(Z.S("bamboo", 0.5), *ZWOJ, P.rekwizyty + 0.004, w=58, anchor=(0.5, 0.5), rot=-45, shadow=(3, 5, 5, 0.4))
         return on
     return None
 
@@ -427,19 +497,27 @@ def s_dary(st, w, t, T):
 
 
 def s_sztylet(st, w, t, T):
-    """Detal stołu: zwój rozwija się po blacie i na końcu odsłania sztylet."""
-    k = ease(pr(t, 0.5, T - 1.5))
+    """Detal stołu: zwój leży w poprzek blatu i rozwija się w stronę narysowaną przez reżysera; kiedy jest rozwinięty,
+    ze środka mapy wyłania się sztylet (reżyser 15.11)."""
+    k = ease(pr(t, 0.5, 2.6))
     on = _sala_zamach(st, t, w, zwoj=None)
-    ax, ay = on(0.10, 0.44)
-    bx, by = on(0.60, 0.26)
-    kam(st, t, 25, lerp(ax, bx, 0.5), lerp(ay, by, 0.5) - 6, 3.1, 0.85, lens=2.5, truck=0.8)
+    (ax, ay), (bx, by) = ZWOJ_A, ZWOJ_B
+    c0x, c0y = ZWOJ[0] - ax / 2, ZWOJ[1] - ay / 2  # róg przy wałku (tylny koniec)
+    kam(st, t, 25, c0x + bx / 2 + ax / 2 + 6, c0y + by / 2 + ay / 2 - 4, 3.3, 0.85, lens=2.6, truck=0.8)
     st.dof = 3.0
-    wd = 150
-    st.put(Z.S("ledger", 0.5), ax, ay, P.rekwizyty + 0.006, w=wd, anchor=(0.0, 0.62), sx=max(0.04, k), rot=-4, shadow=(3, 5, 5, 0.4))
-    st.put(Z.prop("sztylet"), bx - 6, by + 12, P.rekwizyty + 0.008, w=58, anchor=(0.5, 0.5), rot=-22, alpha=pr(k, 0.86, 0.1),
-           shadow=(2, 3, 3, 0.4))
-    rx, ry = lerp(ax + 8, bx + 22, k), lerp(ay - 14, by - 2, k)
-    st.put(Z.S("bamboo", 0.5), rx, ry, P.rekwizyty + 0.010, w=84 * (1 - 0.45 * k), anchor=(0.5, 0.5), rot=-8 - 300 * k, shadow=(3, 5, 5, 0.4))
+    n = int(round(k * 16))
+    if n > 0:  # rozwinięta część mapy leży płasko na blacie
+        spr = Z.zwoj_plaski(n)
+        st.put(spr, c0x, c0y, P.rekwizyty + 0.006, w=spr.w * Z.ZWOJ_SKALA, anchor=spr.origin, shadow=(2, 3, 4, 0.35))
+    f = ease(pr(t, 3.3, 0.6))  # sztylet wyłania się ze środka mapy
+    if f > 0:
+        mx, my = c0x + ax / 2 + bx / 2, c0y + ay / 2 + by / 2
+        st.put(Z.prop("sztylet"), mx, my - 3 * (1 - f), P.rekwizyty + 0.008, w=46 * (0.5 + 0.5 * back(f, 1.4)), anchor=(0.5, 0.5),
+               rot=-45, alpha=min(1.0, f * 2), shadow=(2, 3, 3, 0.4))
+        st.put(Z.glow(), mx, my, P.rekwizyty + 0.009, w=90, anchor=(0.5, 0.5), mode="add",
+               alpha=0.35 * math.sin(math.pi * pr(t, 3.3, 1.0)), shadow=None, tint=(1.0, 0.95, 0.85))
+    rx, ry = ZWOJ[0] + bx * k, ZWOJ[1] + by * k  # wałek toczy się po blacie i chudnie
+    st.put(Z.S("bamboo", 0.5), rx, ry, P.rekwizyty + 0.010, w=60, sy=1 - 0.55 * k, anchor=(0.5, 0.5), rot=-45, shadow=(3, 5, 5, 0.4))
     krol(st, t)
     lalka(st, t, "jingke", JINGKE, 300, flip=-1, lean=-6, p=0.812)
 
@@ -453,48 +531,78 @@ def s_atak(st, w, t, T):
     _sala_zamach(st, t, w, zwoj=None, lift=16 * go)
     krol(st, t, x=TRON[0] - 46 * go, lean=-7 * go)
     lalka(st, t, "jingke", x, 300, flip=-1, lean=-12 * go, p=0.82, y=708)
-    st.put(Z.prop("sztylet"), x - 74, 492, 0.822, w=60, anchor=(0.5, 0.5), sx=-1, rot=8)
+    sztylet_w_dloni(st, x, -1, 0.82, lean=-12 * go)
 
 
 def _poscig(a):
-    """Miejsce na okręgu dookoła kolumny: (x, plan, zwrot) — z przodu lalka idzie w lewo, z tyłu w prawo."""
-    return KOLUMNA + 148 * math.cos(a), P.lalki + (0.022 if math.sin(a) > 0 else -0.022), (-1.0 if math.sin(a) > 0 else 1.0)
+    """Miejsce na elipsie dookoła kolumny (przez pół sali, reżyser 15.11: „biegaj bardziej po tym pokoju”):
+    (x, plan, zwrot) — z przodu lalka biegnie w lewo, z tyłu w prawo."""
+    return KOLUMNA + 300 * math.cos(a), P.lalki + (0.022 if math.sin(a) > 0 else -0.022), (-1.0 if math.sin(a) > 0 else 1.0)
 
 
 def s_kolumna(st, w, t, T):
-    """Król ucieka dookoła kolumny: znika za nią i wychodzi z drugiej strony, zamachowiec krok za nim."""
-    a = 0.75 * math.pi + 2 * math.pi * 2.25 * (t / T) ** 1.05
-    kam(st, t, 27, 670, 470, 1.3, 0.8)
+    """Król ucieka dookoła kolumny przez całą salę: znika za nią i wychodzi z drugiej strony, zamachowiec daleko za nim
+    ze sztyletem w dłoni; miecz króla w pochwie wisi ostrzem w dół."""
+    a = 0.75 * math.pi + 2 * math.pi * 1.6 * (t / T) ** 1.05
+    kam(st, t, 27, 680, 470, 1.18, 0.8)
     st.dof = 1.0
     _sala_zamach(st, t, w, zwoj=None, lift=16)
     kx, kp, kf = _poscig(a)
-    jx, jp, jf = _poscig(a - 1.15)
-    st.put(Z.prop("miecz"), kx - 24 * kf, 548, kp - 0.002, w=230, anchor=(0.12, 0.5), rot=-62 if kf > 0 else -118)  # miecz w pochwie na plecach
+    jx, jp, jf = _poscig(a - 2.1)
+    st.put(Z.prop("miecz"), kx - 20 * kf, 488, kp - 0.002, w=230, anchor=(0.12, 0.5), rot=92 + 10 * kf)  # miecz w pochwie u pasa, ostrzem w dół
     lalka(st, t, "zheng", kx, EMP[2], p=kp, flip=kf, lean=5 * kf, seed=7)
     lalka(st, t, "jingke", jx, 300, p=jp, flip=jf, lean=9 * jf)
-    st.put(Z.prop("sztylet"), jx + 74 * jf, 492, jp + 0.002, w=60, anchor=(0.5, 0.5), sx=jf, rot=8 * jf)
+    sztylet_w_dloni(st, jx, jf, jp, lean=9)
 
 
 def s_lekarz(st, w, t, T):
-    """Klęczący lekarz unosi się i ciska torbą z lekami: torba leci łukiem i trafia zamachowca."""
+    """Jing Ke rozpędza się ku królowi, dobiega na 80% drogi i dwa razy pchnięciem dochodzi do niego (80→100→80→100%);
+    lekarz ciska torbą z lekami, torba trafia zamachowca w głowę i krąży mu nad nią jak przy zamroczeniu (reżyser 15.11)."""
     podpis(w, t, "nadworny lekarz", 1168, 404, 0.3, 2.4)  # tabliczka: pierwsze pojawienie się
-    f = pr(t, 2.0, 0.75)
-    hit = pr(t, 2.75, 0.3)
-    kam(st, t, 28, lerp(860, 800, ease(t / T)), 480, 1.2, 0.8)
+    kx, cel = 476, 566  # król i miejsce, z którego sztylet sięga króla (100%)
+    start = 800
+    p80 = start + (cel - start) * 0.8
+    if t < 1.0:
+        jx = lerp(start, p80, ease(pr(t, 0.0, 1.0)))
+    else:
+        u = t - 1.0  # dwa pchnięcia: 80 → 100 → 80 → 100 %
+        faza = [(0.35, p80, cel), (0.4, cel, p80), (0.35, p80, cel)]
+        jx = cel
+        for d, a, b in faza:
+            if u < d:
+                jx = lerp(a, b, ease(u / d))
+                break
+            u -= d
+    hit = pr(t, 2.65, 0.25)
+    jx += 70 * ease(hit)  # cofa się po uderzeniu torbą
+    zamr = pr(t, 2.65, 0.3)
+    kam(st, t, 28, lerp(780, 700, ease(t / T)), 480, 1.18, 0.8)
     st.dof = 0.9
-    _sala_zamach(st, t, w, zwoj=None, lift=16 + 30 * ease(pr(t, 0.8, 0.7)), bow=-8 * ease(pr(t, 1.6, 0.3)) + 12 * ease(pr(t, 1.95, 0.2)))
-    krol(st, t, x=476, y=708, flip=-1, lean=-4, p=0.82)
-    jx = 604 - 22 * ease(hit)
-    lalka(st, t, "jingke", jx, 300, p=0.82, flip=-1, lean=-9 + 16 * settle((t - 2.75) / 1.6, 2.0) + 6 * ease(hit))
-    st.put(Z.prop("sztylet"), jx - 74, 492, 0.822, w=60, anchor=(0.5, 0.5), sx=-1, rot=8 + 30 * ease(hit))
-    if 0 < f:
-        bx = lerp(1150, jx + 20, min(1.0, f)) + 60 * ease(pr(t, 2.75, 0.6))
-        by = lerp(500, 470, min(1.0, f)) - 150 * math.sin(math.pi * min(1.0, f)) + 250 * ease(pr(t, 2.75, 0.7)) ** 2
+    _sala_zamach(st, t, w, zwoj=None, lift=16 + 30 * ease(pr(t, 0.8, 0.7)), bow=-8 * ease(pr(t, 1.5, 0.3)) + 12 * ease(pr(t, 1.85, 0.2)))
+    pchn = max(0.0, 1 - abs(jx - cel) / (p80 - cel))
+    krol(st, t, x=kx, y=708, flip=-1, lean=-4 - 6 * pchn, p=0.82)
+    lean = -9 * (1 - zamr) + zamr * (8 * math.sin(t * 3.1) - 2)  # zamroczony kołysze się
+    lalka(st, t, "jingke", jx, 300, p=0.82, flip=-1, lean=lean - 5 * pchn)
+    sztylet_w_dloni(st, jx, -1, 0.82, lean=lean)
+    f = pr(t, 1.95, 0.7)
+    if 0 < f < 1:  # torba leci łukiem do głowy zamachowca
+        bx = lerp(1150, jx - 10, f)
+        by = lerp(500, 448, f) - 150 * math.sin(math.pi * f)
         st.put(Z.prop("torba"), bx, by, 0.83, h=44, anchor=(0.5, 0.5), rot=-400 * f)
+    elif f >= 1:  # torba i gwiazdki krążą mu nad głową
+        hx, hy = jx - 10, 392
+        for n in range(4):
+            a = t * 2 * math.pi * 0.9 + n * math.pi / 2
+            ox, oy = 46 * math.cos(a), 11 * math.sin(a)
+            pz = 0.821 if math.sin(a) > 0 else 0.815
+            if n == 0:
+                st.put(Z.prop("torba"), hx + ox, hy + oy - 4, pz, h=36, anchor=(0.5, 0.5), rot=12 * math.sin(a), shadow=(2, 3, 3, 0.3))
+            else:
+                st.put(Z.prop("gwiazdka"), hx + ox, hy + oy, pz, h=18, anchor=(0.5, 0.5), rot=t * 200 + n * 40, shadow=(1, 2, 2, 0.3))
 
 
 def s_cios(st, w, t, T):
-    """Nad ramieniem króla wysuwa się miecz i zatacza łuk; Jing Ke przechyla się i osuwa pod kolumnę."""
+    """Król odwraca się do zamachowca z mieczem w dłoni, miecz zatacza łuk; Jing Ke przechyla się i osuwa pod kolumnę."""
     turn = ease(pr(t, 0.1, 0.3))
     cut = ease(pr(t, 0.55, 0.3))
     fall = ease(pr(t, 0.85, 0.6))
@@ -503,20 +611,37 @@ def s_cios(st, w, t, T):
     _sala_zamach(st, t, w, zwoj=None, lift=46)
     flip = -math.cos(math.pi * turn)
     krol(st, t, x=476, y=708, flip=flip, lean=4 * cut, p=0.82)
-    st.put(Z.prop("miecz"), 476 + 70 * flip, 500, 0.826, w=240, anchor=(0.1, 0.5), rot=lerp(-118, 24, cut))
+    if abs(flip) > 0.05:
+        miecz_w_dloni(st, 476, flip, lerp(-75, 35, cut))
     lalka(st, t, "jingke", 600 + 26 * fall, 300, p=0.818, flip=-1, lean=7 + 80 * fall, lift=LEZY * fall)  # osuwa się i leży na posadzce
 
 
 def s_pretekst(st, w, t, T):
-    """Jing Ke leży pod kolumną, sztylet tkwi w niej wbity; król stoi nieruchomo, urzędnicy podnoszą się."""
+    """Król wbija miecz w serce leżącego pod kolumną Jing Ke; sztylet zamachowca od początku koziołkuje w powietrzu
+    i na końcu spada, dobijając go (reżyser 15.11); urzędnicy podnoszą się."""
     k = ease(t / T)
     kam(st, t, 30, lerp(600, 660, k), lerp(480, 430, k), lerp(1.5, 1.06, k), 0.8)
     st.dof = 0.9
     _sala_zamach(st, t, w, zwoj=None, lift=46 - 30 * ease(pr(t, 1.6, 1.0)), lisi=4 * ease(pr(t, 2.4, 0.8)))
-    krol(st, t, x=476, y=708, p=0.82, lean=0.0)
-    st.put(Z.prop("miecz"), 546, 500, 0.826, w=240, anchor=(0.1, 0.5), rot=lerp(24, 82, ease(pr(t, 0.6, 1.2))))  # miecz opada
-    lalka(st, t, "jingke", 626, 300, p=0.818, flip=-1, lean=87, lift=LEZY)
-    st.put(Z.prop("sztylet"), KOLUMNA + 12, 470, P.lalki + 0.002, w=60, anchor=(0.9, 0.5), rot=-24, shadow=(2, 3, 3, 0.4))  # ostrze w kolumnie
+    pch = ease(pr(t, 0.4, 0.4))
+    krol(st, t, x=476, y=708, p=0.82, lean=6 * pch * (1 - 0.6 * ease(pr(t, 1.4, 0.8))))
+    serce = (806, 606)
+    if pch < 1:  # miecz idzie z dłoni w pierś leżącego
+        hx, hy = 476 + 114, 454
+        st.put(Z.prop("miecz"), lerp(hx, serce[0] - 30, pch), lerp(hy, serce[1] - 150, pch), 0.826, w=230, anchor=(0.12, 0.5),
+               rot=lerp(20, 78, pch), shadow=(3, 4, 4, 0.4))
+    else:  # miecz tkwi w piersi: ostrze schodzi za ciało
+        st.put(Z.prop("miecz"), serce[0] - 30, serce[1] - 150, 0.8175, w=230, anchor=(0.12, 0.5), rot=78 + 1.5 * settle((t - 0.8) / 0.8, 2),
+               shadow=(3, 4, 4, 0.4))
+    dob = pr(t, T - 2.0, 0.6)
+    lalka(st, t, "jingke", 626, 300, p=0.818, flip=-1, lean=87 + 3 * math.sin(math.pi * pr(t, 0.8, 0.3)) + 3 * math.sin(math.pi * pr(t, T - 1.4, 0.3)),
+          lift=LEZY)
+    if dob < 1:  # sztylet koziołkuje w powietrzu, potem spada w zamachowca
+        x = lerp(lerp(700, 760, 0.5 + 0.5 * math.sin(t * 1.3)), serce[0] - 40, ease(dob))
+        y = lerp(300 + 14 * math.sin(t * 2.1), serce[1] - 40, dob * dob)
+        st.put(Z.prop("sztylet"), x, y, 0.83, w=96, anchor=(0.5, 0.5), rot=t * 540 * (1 - dob) + lerp(0, 100, dob), shadow=(3, 4, 4, 0.35))
+    else:
+        st.put(Z.prop("sztylet"), serce[0] - 40, serce[1] - 40, 0.8172, w=96, anchor=(0.62, 0.5), rot=100, shadow=(3, 4, 4, 0.35))
 
 
 # ---------- akt 4 · Koniec sześciu królestw ----------
@@ -538,40 +663,55 @@ def s_ksiaze(st, w, t, T):
 
 
 def s_wei(st, w, t, T):
-    """Miasto pod chorągwią Wei: woda z papieru zalewa mury, chorągiew przewraca się, potem woda opada."""
-    w.fall["wei"] = pr(t, 3.9, 0.95)
-    up = ease(pr(t, 0.8, 3.0)) * (1 - 0.75 * ease(pr(t, T - 1.6, 1.4)))
+    """Miasto pod chorągwią Wei o świcie: wschodzi słońce, kopacze Qin przekopują brzeg rzeki, woda z papieru
+    podnosi się i zalewa mury, chorągiew przewraca się, zjeżdża tabliczka „trzy miesiące później”, potem woda opada
+    (reżyser 15.11: „niech się więcej dzieje”, „słońce wschodzi!”)."""
+    w.sun_y = lerp(470, 96, ease(pr(t, 0.0, 2.6)))
+    w.fall["wei"] = pr(t, 5.6, 0.95)
+    w.wlocznie = 470 + 30 * ease(pr(t, 0.5, 2.0))  # wojsko Qin przygląda się z lewej
+    up = ease(pr(t, 2.6, 3.0)) * (1 - 0.75 * ease(pr(t, T - 1.6, 1.4)))
+    w.zawieszki = [("trzy miesiące później", 860, 300, pr(t, 6.6, 0.9) * (1 - pr(t, T - 1.4, 0.6)))]
     k = ease(t / T)
-    kam(st, t, 32, lerp(900, 880, k), lerp(480, 470, k), lerp(1.3, 1.5, k), 0.5, lens=1.38, truck=0.4)
+    kam(st, t, 32, lerp(860, 880, k), lerp(470, 470, k), lerp(1.25, 1.45, k), 0.5, lens=1.34, truck=0.4,
+        shake=3 * pr(t, 5.6, 0.2) * (1 - pr(t, 5.8, 0.6)))
     st.dof = 0.8
     swiat(st, t, w)
+    for j in range(6):  # kopacze z koszami przekopują brzeg, zanim woda ruszy
+        x = 520 + j * 46 + 8 * math.sin(t * 1.7 + j)
+        zejdz = ease(pr(t, 2.4 + j * 0.1, 0.8))
+        st.put(Z.prop("robotnik"), x, Z.ground("srodek", x) + 22 + 40 * zejdz - abs(math.sin(t * 5 + j)) * 3, 0.5395, h=44,
+               rot=9 * math.sin(t * 4 + j * 1.4), shadow=(2, 2, 3, 0.3))
     for i in range(3):
         st.put(Z.waves(i), 930 + (24 - i * 5) * math.sin(t * 1.4 + i * 1.9) * (1 if i % 2 else -1),
-               lerp(640, 500 + i * 28, up) + 4 * math.sin(t * 1.7 + i), 0.505 + i * 0.006, w=1700, anchor=(0.5, 0.0), haze=0.12,
+               lerp(660, 500 + i * 28, up) + 4 * math.sin(t * 1.7 + i), 0.505 + i * 0.006, w=1700, anchor=(0.5, 0.0), haze=0.12,
                tint=(0.80, 0.88, 0.92))
     swiatlo(st, w, t)
 
 
 def s_chu(st, w, t, T):
-    """Przed chorągwią Chu przesuwają się cztery rzędy włóczni, aż zasłaniają wzgórza."""
+    """Przed chorągwią Chu szybko przesuwa się sześć rzędów włóczni, jeden za drugim, aż zasłaniają wzgórza
+    (reżyser 15.11: „jeszcze więcej chorągwi i szybciej”)."""
     w.chwiej = {"chu": 3 * math.sin(t * 9) * pr(t, 1.5, 1.0)}
     kam(st, t, 33, lerp(780, 900, ease(t / T)), 500, 1.45, 0.62, lens=1.36, truck=0.8)
     st.dof = 1.0
     swiat(st, t, w)
-    for n, (band, p, h, v) in enumerate((("dal", 0.444, 84, 150), ("srodek", 0.524, 104, 190), ("droga", 0.635, 124, 230),
-                                         ("przod", 0.705, 150, 280))):
-        wlocznie(st, t, 300 + n * 130 + v * t, p=p, band=band, h=h, n=4, seed=10 + n * 3, up=pr(t, 0.2 + n * 0.3, 0.8))
+    for n, (band, p, h, v) in enumerate((("dal", 0.444, 84, 260), ("dal", 0.448, 90, 300), ("srodek", 0.524, 104, 330),
+                                         ("srodek", 0.528, 110, 360), ("droga", 0.635, 124, 400), ("przod", 0.705, 150, 460))):
+        wlocznie(st, t, 260 + n * 110 + v * t, p=p, band=band, h=h, n=6, seed=10 + n * 3, up=pr(t, 0.2 + n * 0.22, 0.7))
     swiatlo(st, w, t, extra=(1.03, 0.98, 0.94))
 
 
 def s_chu_yan(st, w, t, T):
-    """Chu chwieje się dłużej niż inne i pada; Yan zaraz po niej."""
+    """Chu chwieje się dłużej niż inne i pada; Yan zaraz po niej; za wzgórzami idzie gęsto wojsko Qin."""
     w.chwiej = {"chu": 7 * math.sin(t * 14) * pr(t, 0.05, 0.3) * (1 - pr(t, 0.75, 0.15))}
+    for n, (band, p, h, x0) in enumerate((("dal", 0.444, 84, 900), ("srodek", 0.524, 104, 1000), ("srodek", 0.53, 110, 760))):
+        wlocznie(st, t, x0 + 260 * t, p=p, band=band, h=h, n=5, seed=30 + n * 3)
     _pada(st, w, t, T, 34, ["chu", "yan"], [0.85, 1.45], (930, 1010), (850, 1130))
 
 
 def s_qi(st, w, t, T):
-    """Jeździec staje przed ostatnią chorągwią; zjeżdża zawieszka z rokiem; Qi kładzie się sama."""
+    """Jeździec staje przed ostatnią chorągwią, za nim gęsto włócznie; zjeżdża zawieszka z rokiem; Qi kładzie się sama,
+    a jeździec wyciąga białą flagę, która powiewa (reżyser 15.11)."""
     stop = ease_out(pr(t, 0.0, 1.5))
     w.jezdziec = (990 + 80 * stop, 0.645, 100, 1 - stop)
     w.wlocznie = 880 + 70 * stop
@@ -581,7 +721,18 @@ def s_qi(st, w, t, T):
     k = ease(t / T)
     kam(st, t, 35, lerp(1040, 1050, k), lerp(486, 492, k), lerp(1.6, 1.7, k), 0.62, lens=1.55, truck=0.7)
     st.dof = 1.2
+    for n, (band, p, h, x0) in enumerate((("dal", 0.444, 84, 760), ("srodek", 0.524, 104, 830))):
+        wlocznie(st, t, x0 + 40 * stop, p=p, band=band, h=h, n=4, seed=40 + n * 3)
     swiat(st, t, w)
+    f = ease(pr(t, 3.7, 0.6))  # biała flaga wyciągnięta w górę z ręki jeźdźca
+    if f > 0:
+        jx = 990 + 80 * stop
+        hx, hy = jx + 14, Z.ground("droga", jx) - 46
+        top = hy - 118 * f
+        st.line([(hx, hy + 30), (hx + 4, top)], 0.6455, width=2.2, color=(96, 70, 46), alpha=1.0)
+        fal = math.sin(t * 7.5)
+        st.put(Z.prop("flaga_biala"), hx + 4, top + 2, 0.6457, w=62 * f, anchor=(0.0, 0.05), sx=0.82 + 0.18 * fal,
+               sy=1 + 0.06 * math.sin(t * 7.5 + 1.2), rot=4 * fal + 6, shadow=(2, 3, 4, 0.3))
     swiatlo(st, w, t, extra=(1.03, 0.98, 0.94))
 
 
@@ -596,43 +747,61 @@ def s_mapa2(st, w, t, T):
 
 
 def s_czarne(st, w, t, T):
-    """W miejscach sześciu powalonych chorągwi wstają czarne chorągwie Qin."""
+    """W miejscach sześciu powalonych chorągwi wstają czarne chorągwie Qin, za wzgórzami wyrasta wojsko, a kamera
+    odjeżdża aż za ramę teatru: cały kraj jednego władcy (reżyser 15.11: „większy obszar, pokazując potęgę”)."""
     for n, k in enumerate(PODBITE):
         w.black[k] = pr(t, 0.5 + n * 0.42, 0.6)
-    k = ease(t / T)
-    kam(st, t, 37, lerp(790, 640, k), lerp(450, 360, k), lerp(1.3, 1.0, k), 0.62, truck=0.6)
-    st.dof = 0.6
+    k = ease(pr(t, 0.3, T - 0.8))
+    m = math.exp(lerp(math.log(1.3), math.log(0.74), k))
+    kam(st, t, 37, lerp(790, 640, k), lerp(450, 296, k), m, lerp(0.62, 1.0, k), lens=m ** lerp(0.7, 0.55, k), truck=lerp(0.6, 1.0, k),
+        drift=0.5)
+    st.dof = lerp(0.6, 0.0, k)
     swiat(st, t, w)
+    for n, (band, p, h, x) in enumerate((("dal", 0.444, 80, 1330), ("srodek", 0.524, 96, 1360))):
+        wlocznie(st, t, x, p=p, band=band, h=h, n=5, up=pr(t, 3.0 + n * 0.5, 0.9), seed=50 + n * 3)
+    if m < 1.02:
+        Z.theatre_put(st, 1.0)
     swiatlo(st, w, t)
 
 
 def s_cesarz(st, w, t, T):
-    """Zbliżenie; za plecami zjeżdżają dwie chorągwie ze smokiem, lalka unosi się i prostuje."""
+    """Zbliżenie; nad głową zjeżdża tabliczka „KRÓL”, cesarz ją odrzuca i zjeżdża większa „PIERWSZY CESARZ”
+    (reżyser 15.11); za plecami zjeżdżają chorągwie ze smokiem, lalka unosi się i prostuje."""
     w.smoki = [pr(t, 1.2, 1.1), pr(t, 1.75, 1.1)]
     w.lift = 14 * ease(pr(t, 2.9, 1.2))
-    w.lean = -2.0 * ease(pr(t, 2.9, 1.2)) + 1.5 * settle((t - 4.1) / 1.4, 1.5)
+    w.lean = -2.0 * ease(pr(t, 2.9, 1.2)) + 1.5 * settle((t - 4.1) / 1.4, 1.5) + 7 * math.sin(math.pi * pr(t, 2.7, 0.5))
     k = ease(t / T)
     kam(st, t, 38, lerp(318, 324, k), lerp(452, 418, k), lerp(1.85, 2.2, k), 0.8)
     st.dof = 2.6
     swiat(st, t, w)
+    rzut = pr(t, 2.85, 0.9)
+    if rzut <= 0:
+        Z.hang(st, Z.tag("KRÓL", 60), 330, 278, P.rekwizyty + 0.02, pr(t, 0.8, 0.9), t, 97, drop=480, sway=1.4, h=74, shadow=(4, 6, 6, 0.4))
+    elif rzut < 1:  # odrzucona: nitka pęka, tabliczka leci w lewo i w górę, kręcąc się
+        st.put(Z.tag("KRÓL", 60), 330 - 520 * ease_out(rzut), 278 - 160 * math.sin(math.pi * rzut * 0.8) + 260 * rzut * rzut,
+               P.rekwizyty + 0.02, h=74, anchor=(0.5, 0.0), rot=-260 * rzut, shadow=(4, 6, 6, 0.4))
+    Z.hang(st, Z.tag("Pierwszy Cesarz", 60), 330, 262, P.rekwizyty + 0.021, pr(t, 3.15, 1.0), t, 98, drop=520, sway=1.2, h=92,
+           shadow=(4, 6, 6, 0.4))
     swiatlo(st, w, t, extra=(1.03, 1.0, 0.95))
 
 
 def s_posagi(st, w, t, T):
-    """Trójnóg z brązu wysuwa się zza rampy, wpadają do niego włócznie pokonanych; za nim wyrasta posąg."""
+    """Trójnóg z brązu wysuwa się zza rampy, wpada do niego deszcz włóczni pokonanych; za nim wyrasta posąg."""
     w.urna = pr(t, 0.3, 1.0)
     w.ogien = 0.75 * ease(pr(t, 1.7, 0.8)) * (1 - 0.6 * ease(pr(t, T - 1.5, 1.2)))
-    w.posag = pr(t, 3.1, 1.7)
+    w.posag = pr(t, 3.4, 1.7)
     k = ease(t / T)
     kam(st, t, 39, lerp(1100, 1130, k), lerp(470, 440, k), lerp(1.25, 1.38, k), 0.84, truck=0.7)
     st.dof = 1.2
     swiat(st, t, w)
     fy = URNA[1] - URNA[2] * 0.8
-    for j in range(8):  # włócznie wpadają do trójnogu jedna po drugiej
-        f = pr(t, 1.3 + j * 0.2, 0.55)
+    for j in range(22):  # włócznie wpadają do trójnogu jedna po drugiej (reżyser 15.11: „jeszcze więcej włóczni”)
+        r = random.Random(60 + j)
+        f = pr(t, 1.2 + j * 0.11 + r.uniform(0, 0.08), 0.5)
         if 0 < f < 1:
-            r = random.Random(60 + j)
-            st.put(Z.prop("wlocznia"), URNA[0] + r.uniform(-34, 34), lerp(-120, fy + 150, f * f), P.rekwizyty - 0.006, h=170,
-                   rot=r.uniform(-14, 14), shadow=None)
+            st.put(Z.prop("wlocznia"), URNA[0] + r.uniform(-40, 40), lerp(-140, fy + 150, f * f), P.rekwizyty - 0.006, h=170,
+                   rot=r.uniform(-16, 16), shadow=None)
     hot = min(1.0, w.ogien)
     swiatlo(st, w, t, extra=(1 + 0.05 * hot, 1 - 0.05 * hot, 1 - 0.1 * hot))
+
+
