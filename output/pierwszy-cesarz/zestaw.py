@@ -853,6 +853,9 @@ def prop(key):
                                                                          dict(contrast=1.3)),
                                 (rect(4, 22, 136, 36), (140, 152, 112)),
                                 (glyphs("升", 56, FONT_ZH, ZH_IDX, (70, 92), "mm"), (170, 176, 128), dict(kind="gladki", rough=0.6))]
+    elif key == "x_oko":  # mały X z tuszu na zamkniętym oku (śmierć)
+        w, h, parts = 100, 100, [(poly([(8, 20), (20, 8), (92, 80), (80, 92)]), (34, 26, 24), dict(kind="gladki", rough=0.6)),
+                                (poly([(80, 8), (92, 20), (20, 92), (8, 80)]), (34, 26, 24), dict(kind="gladki", rough=0.6))]
     elif key == "ryba":  # jedna solona ryba (wyskakuje z wozu)
         w, h, parts = 120, 50, [(poly([(6, 25), (30, 10), (74, 14), (96, 6), (114, 4), (104, 25), (114, 46), (96, 42), (74, 36), (30, 40)]),
                                  (164, 176, 182), dict(kind="gladki", edge=2)), (ell(26, 22, 4, 4), (40, 40, 44))]
@@ -1335,3 +1338,55 @@ def mapa36():
         dd.ellipse([cx - 4, cy - 4, cx + 4, cy + 4], fill=(206, 164, 84, 255))  # siedziba komanderii: złota kropka
         czesci.append((Sprite(kaw, f"prowincja-{n}", rim=1, clean=False, pad=0, crop=False), int(x0), int(y0)))
     return Sprite(board, "mapa36", rim=2, clean=False, pad=0, crop=False), czesci
+
+
+@lru_cache(None)
+def cyklop(v=0):
+    """Jednooki olbrzym z wyspy nieśmiertelnych (reżyser 15.11: „narysuj cyklopów”): wycinanka z kawałków papieru,
+    duża głowa z jednym okiem, przepaska, maczuga. v — odmiana (barwa przepaski, maczuga w lewej albo prawej ręce)."""
+    r = random.Random(700 + v)
+    skin = ((176, 132, 96), (160, 120, 92), (186, 142, 104))[v % 3]
+    cloth = ((92, 70, 50), (70, 84, 60), (104, 62, 48))[v % 3]
+    dark = tuple(int(c * 0.7) for c in skin)
+    w, h = 300, 520
+    side = 1 if v % 2 == 0 else -1
+    X = lambda x: 150 + (x - 150) * side
+    P_ = lambda pts: poly([(X(x), y) for x, y in pts])
+    parts = [
+        (P_([(110, 360), (142, 360), (140, 500), (104, 500)]), dark), (P_([(158, 360), (190, 360), (196, 500), (160, 500)]), dark),
+        (P_([(96, 492), (144, 492), (146, 516), (90, 516)]), (70, 52, 40)), (P_([(156, 492), (204, 492), (210, 516), (154, 516)]), (70, 52, 40)),
+        (P_([(84, 190), (216, 190), (232, 300), (68, 300)]), skin, dict(edge=2)),
+        (P_([(70, 280), (230, 280), (242, 380), (58, 380)]), cloth, dict(edge=2)),
+        (P_([(70, 196), (40, 210), (20, 330), (44, 336), (66, 250)]), skin), (P_([(230, 196), (262, 210), (282, 320), (258, 326), (234, 250)]), skin),
+        (P_([(262, 300), (296, 120), (280, 112), (244, 300)]), (96, 70, 46)), (ell(X(288), 116, 22, 26), (110, 80, 52), dict(edge=1)),
+        (ell(150, 110, 78, 84), skin, dict(edge=2)),
+        (ell(150, 98, 34, 28), (240, 236, 222), dict(kind="gladki", edge=1)),
+        (ell(150 + 4 * side, 100, 15, 15), (44, 70, 40), dict(kind="gladki")), (ell(150 + 4 * side, 100, 7, 7), (16, 14, 14), dict(kind="gladki")),
+        (P_([(110, 62), (190, 62), (186, 70), (114, 70)]), (60, 40, 30)),  # jedna gruba brew
+        (P_([(118, 150), (182, 150), (176, 160), (124, 160)]), (90, 40, 34)),
+        (P_([(78, 60), (100, 20), (130, 40), (150, 14), (172, 40), (200, 20), (222, 60), (190, 46), (150, 34), (110, 46)]), (52, 40, 34)),
+    ]
+    return Sprite(stack(w, h, parts, seed=720 + v), f"cyklop-{v}", rim=2, clean=False)
+
+
+# ---------- kurtyna teatru (przejście między aktami) ----------
+
+@lru_cache(None)
+def kurtyna(strona=-1):
+    """Połowa czerwonej kurtyny z fałdami i złotą frędzlą u dołu. strona -1 — lewa (fałdy zbiegają się w prawo), 1 — prawa.
+    Arkusz 760 × 860: zakrywa pół otworu sceny z zapasem na zakładkę i ruch."""
+    w, h = 760, 860
+    m = rough_mask(rect(0, 0, w, h - 24), w, h, 1.2, 81)
+    im = paper(m, (150, 26, 30), "gnieciony", 82, contrast=0.8)
+    a = np.asarray(im, np.float32)
+    xx = np.arange(w, dtype=np.float32)
+    faldy = 0.72 + 0.28 * (0.5 + 0.5 * np.cos(xx / 46.0 * math.pi)) ** 0.8  # pionowe fałdy: jasny grzbiet, ciemna dolina
+    brzeg = np.clip((xx if strona > 0 else (w - 1 - xx)) / 60.0, 0.55, 1.0)  # ciemniej przy brzegu, który się schodzi
+    a[..., :3] *= (faldy * brzeg)[None, :, None]
+    im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
+    fr = piece(w, h, rect(0, h - 40, w, h - 8), GOLD, "gnieciony", seed=83, rough=0.8, contrast=0.9)
+    im = glue(im, fr, shadow=0.5)
+    d = ImageDraw.Draw(im)
+    for x in range(6, w, 14):  # frędzle
+        d.line([(x, h - 10), (x + 2, h - 1)], fill=(176, 132, 60, 255), width=4)
+    return Sprite(im, f"kurtyna-{strona}", rim=2, clean=False, pad=0)

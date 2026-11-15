@@ -38,8 +38,8 @@ import swiat  # noqa: E402
 import ujecia1  # noqa: E402
 import ujecia2  # noqa: E402
 import zestaw as Z  # noqa: E402
-from dane import kwestia, okno_kwestii, ujecia  # noqa: E402
-from papier import FPS, H, W, Stage  # noqa: E402
+from dane import AKTY, kwestia, okno_kwestii, ujecia  # noqa: E402
+from papier import FPS, H, W, Stage, back, ease, noise  # noqa: E402
 
 NAPISY = os.environ.get("NAPISY", "1") != "0"
 SZKIC = os.environ.get("SZKIC", "0") == "1"  # szkic do przeglądu w Studio: 640 × 360, 12 kl./s
@@ -69,6 +69,73 @@ for _akt, _k, _klucz, _kadr, _ruch, _sec, _opis, _snd in UJ:
     SCENES.append((_t, _t + _sec, _ruch, kwestia(_snd), *okno_kwestii(_snd)))
     _t += _sec
 DUR = _t
+
+
+# ---- przejścia między ujęciami (reżyser 15.11: kurtyna między aktami, ściemnienie przy zmianie miejsca) ----
+# Przejścia nachodzą na pauzę po kwestii i na początek następnego ujęcia — film nie robi się od nich dłuższy.
+GRANICE = []  # na ujęcie: akt, tytuł aktu, czy pierwsze/ostatnie w scenie i w akcie (kolejność jak w dane.ujecia())
+for _n, _tyt, _o, _sceny in AKTY:
+    for _si, (_st, _pl, _beaty) in enumerate(_sceny):
+        _shots = [_x for _b, _sh in _beaty for _x in _sh]
+        for _ui in range(len(_shots)):
+            GRANICE.append(dict(akt=_n, tytul=_tyt, pierwsze_sceny=_ui == 0, ostatnie_sceny=_ui == len(_shots) - 1,
+                                pierwsze_aktu=_si == 0 and _ui == 0, ostatnie_aktu=_si == len(_sceny) - 1 and _ui == len(_shots) - 1))
+assert len(GRANICE) == len(UJ)
+KURTYNA = (1.5, 0.8, 0.25, 0.85)  # zamykanie zaczyna się 1,5 s przed końcem aktu i trwa 0,8 s; w nowym akcie po 0,25 s otwiera się 0,85 s
+CIEMNO = 0.35  # ściemnienie: tyle sekund gaśnie na końcu sceny i tyle zapala się na początku następnej
+
+
+def tytul_aktu(n):
+    return f"Akt {n} · " + next(t for a, t, _o, _s in AKTY if a == n)
+
+
+def _ekran(st, p):
+    """Odwzorowanie kadr wzorcowy → ekran na planie p jest liniowe w każdej osi: (x0, kx, y0, ky)."""
+    a0, ax, ay = st.cam.screen(0, 0, p), st.cam.screen(1, 0, p), st.cam.screen(0, 1, p)
+    return a0[0], ax[0] - a0[0], a0[1], ay[1] - a0[1]
+
+
+def kurtyna(st, k, tytul=None, kt=0.0, p=0.975):
+    """Kurtyna przed sceną w układzie ekranu (kamera jej nie powiększa): k = 0 otwarta, 1 zasunięta; tytuł aktu na
+    tabliczce zjeżdża na środek (kt = 0..1)."""
+    if k <= 0.001 and kt <= 0.001:
+        return
+    x0, kx, y0, ky = _ekran(st, p)
+    na_swiat = lambda sx, sy: ((sx - x0) / kx, (sy - y0) / ky)
+    szer = 700  # szerokość połowy na ekranie (zakładka na środku: 2 × 700 > 1280 + zapas)
+    for strona in (-1, 1):
+        if k <= 0.001:
+            break
+        przes = (1 - ease(k)) * (szer + 60)
+        brzeg = 640 + 30 * strona * -1 + strona * przes  # wewnętrzna krawędź połowy na ekranie
+        wx, wy = na_swiat(brzeg, -70)
+        spr = Z.kurtyna(strona)
+        st.put(spr, wx, wy, p, w=szer / kx, anchor=(1.0 if strona < 0 else 0.0, 0.0),
+               rot=0.5 * noise(st.t, 300 + strona, 0.6) * (1 - k * 0.5), sx=0.86 + 0.14 * ease(k), blur=0, shadow=(8 * strona, 0, 14, 0.45))
+    if tytul and kt > 0.001:
+        spr = Z.tag(tytul, 52)
+        wx, wy = na_swiat(640, 330 - (1 - back(kt, 1.2)) * 520)
+        st.put(spr, wx, wy, p + 0.002, h=96 / ky, anchor=(0.5, 0.5), rot=1.2 * noise(st.t, 333, 0.5), blur=0, shadow=(4, 6, 8, 0.45))
+
+
+def przejscie(st, i, lt, T):
+    """Kurtyna na granicy aktów, ściemnienie na granicy scen w akcie; w pozostałych miejscach cięcie."""
+    g = GRANICE[i]
+    zam, dl, czekaj, otw = KURTYNA
+    if g["ostatnie_aktu"] and i < len(UJ) - 1:
+        k = pr_(lt, T - zam, dl)
+        kurtyna(st, k, tytul_aktu(g["akt"] + 1), pr_(lt, T - zam + dl - 0.1, 0.45))
+    elif g["pierwsze_aktu"] and i > 0:
+        kurtyna(st, 1 - pr_(lt, czekaj, otw), tytul_aktu(g["akt"]), 1 - pr_(lt, 0.0, czekaj + 0.15))
+    else:
+        if g["ostatnie_sceny"] and i < len(UJ) - 1:
+            st.dim *= 1 - ease(pr_(lt, T - CIEMNO, CIEMNO))
+        if g["pierwsze_sceny"] and i > 0:
+            st.dim *= ease(pr_(lt, 0.0, CIEMNO))
+
+
+def pr_(t, a, d):
+    return min(1.0, max(0.0, (t - a) / d))
 
 
 def wrap(txt, n=60):
@@ -122,6 +189,7 @@ def uloz(t, void=None):
             w.build = lt
         st.T = T
         FNS[i](st, w, lt, T)
+        przejscie(st, i, lt, T)
     if not void:
         st.dim *= min(1.0, t / 0.5, max(0.0, (DUR - 0.1 - t) / 1.0))  # film wchodzi z czerni i w nią wychodzi
     return st, (txt if NAPISY and txt and vs <= lt < min(T - 0.05, vs + vl + 0.35) else None)

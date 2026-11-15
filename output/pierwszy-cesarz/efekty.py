@@ -139,6 +139,27 @@ def sword(sec=0.4):
     return whoosh(sec, 1500, 8000) * 1.3
 
 
+def kurtyna(sec=0.9):
+    """Szum ciężkiego materiału kurtyny przesuwanej na drążku, z cichym stukiem kółek."""
+    n, t = N(sec), tt(N(sec))
+    x = band(RNG.normal(0, 1, n), 120, 1400) * np.sin(np.linspace(0, math.pi, n)) ** 1.5 * 0.5
+    for k in range(int(sec / 0.09)):
+        i = N(k * 0.09 + RNG.uniform(0, 0.03))
+        s_ = knock(RNG.uniform(500, 700), 0.05) * 0.08
+        x[i:i + len(s_)] += s_[:n - i]
+    return x
+
+
+def klaps():
+    """Drewniane klapki teatru (hyoshigi): dwa suche uderzenia przy tytule aktu."""
+    a = knock(1150, 0.18) + knock(1600, 0.18) * 0.5
+    out = np.zeros(N(0.5))
+    for d in (0.0, 0.22):
+        i = N(d)
+        out[i:i + len(a)] += a[:len(out) - i]
+    return out * 1.1
+
+
 def buzz(sec=0.32):
     """Brzęczyk „źle”: czerwony X nad postacią."""
     n, t = N(sec), tt(N(sec))
@@ -152,17 +173,49 @@ def gulp(sec=0.35):
     return np.sin(2 * math.pi * np.cumsum(f) / SR) * env(n, 0.01, 0.12) * 0.5
 
 
-def cough(sec=0.9):
-    """Kaszel: trzy szorstkie wydechy, coraz słabsze."""
+def _rezonans(x, f, bw):
+    """Rezonator dwubiegunowy (formant głosu): częstotliwość f, szerokość pasma bw [Hz]."""
+    r = math.exp(-math.pi * bw / SR)
+    a1, a2 = 2 * r * math.cos(2 * math.pi * f / SR), -r * r
+    y = np.zeros_like(x)
+    y1 = y2 = 0.0
+    g = (1 - r)
+    for i in range(len(x)):
+        v = g * x[i] + a1 * y1 + a2 * y2
+        y[i] = v
+        y2, y1 = y1, v
+    return y
+
+
+def _kaszlniecie(sec, f0, glos, g):
+    """Jedno kaszlnięcie: twardy start z krtani, chrapliwy szum i krótki dźwięczny ton, przepuszczone przez formanty
+    otwartego „a” w gardle (ok. 650 / 1150 / 2600 Hz) — brzmi jak człowiek, nie jak szum."""
+    n, t = N(sec), tt(N(sec))
+    e = np.minimum(1, t / 0.004) * np.exp(-t / 0.055) + 0.35 * np.exp(-t / 0.16) * np.minimum(1, t / 0.02)
+    szum = RNG.normal(0, 1, n) * e
+    f = f0 * (1 - 0.25 * t / sec)
+    impulsy = (np.diff(np.floor(np.cumsum(f) / SR), prepend=0) > 0).astype(np.float64)  # ciąg impulsów krtani
+    ton = np.convolve(impulsy, np.exp(-np.arange(60) / 8.0))[:n] * np.exp(-t / 0.09) * glos
+    zrodlo = szum * 0.8 + ton * 2.5
+    out = sum(a * _rezonans(zrodlo, fr, bw) for fr, bw, a in ((650, 180, 1.0), (1150, 220, 0.7), (2600, 320, 0.35)))
+    out += band(RNG.normal(0, 1, n), 2500, 7000) * np.exp(-t / 0.02) * 0.15  # trzask na początku
+    return out / (np.abs(out).max() + 1e-9) * g
+
+
+def cough(sec=1.2):
+    """Kaszel chorego: trzy kaszlnięcia coraz słabsze i krótki, świszczący wdech na końcu (reżyser 15.11: „lepszy
+    dźwięk kaszlenia”)."""
     n = N(sec)
     out = np.zeros(n)
-    for k, (d, g) in enumerate(((0.0, 1.0), (0.24, 0.8), (0.5, 0.55))):
-        L = N(0.2)
-        x = band(RNG.normal(0, 1, L), 250, 2600) * env(L, 0.004, 0.07) * g
-        x += np.sin(2 * math.pi * 140 * tt(L)) * env(L, 0.004, 0.05) * 0.4 * g
+    for d, f0, glos, g in ((0.0, 150, 1.0, 0.9), (0.27, 138, 0.8, 0.75), (0.52, 128, 0.6, 0.55)):
+        s_ = _kaszlniecie(0.24, f0 * RNG.uniform(0.95, 1.05), glos, g)
         i = N(d)
-        out[i:i + L] += x[:n - i]
-    return out * 0.55
+        out[i:i + len(s_)] += s_[:n - i]
+    L = N(0.35)  # wdech
+    wd = band(RNG.normal(0, 1, L), 1800, 5000) * np.sin(np.linspace(0, math.pi, L)) ** 2 * 0.12
+    i = N(0.82)
+    out[i:i + L] += wd[:n - i]
+    return out * 0.6
 
 
 def rattle(sec=1.4):
@@ -181,7 +234,7 @@ def shout(sec=0.6):
 
 SFX = {"gong": gong, "whoosh": whoosh, "knock": knock, "drum": drum, "crack": crack, "clash": clash, "coin": coin,
        "thud": thud, "splash": splash, "sword": sword, "gong_s": lambda: gong(2.5, 220) * 0.6,
-       "buzz": buzz, "gulp": gulp, "cough": cough, "rattle": rattle, "shout": shout, "tick": lambda: knock(900, 0.08) * 0.5}
+       "kurtyna": kurtyna, "klaps": klaps, "buzz": buzz, "gulp": gulp, "cough": cough, "rattle": rattle, "shout": shout, "tick": lambda: knock(900, 0.08) * 0.5}
 
 
 # ---------- tło miejsca ----------
@@ -476,6 +529,14 @@ def main():
         i = N(t0)
         fx[i:i + len(amb)] += amb[:n - i]
         evs = list(ZDARZENIA.get(klucz, []))
+        g = R.GRANICE[idx]  # przejścia: kurtyna między aktami, ściemnienie przy zmianie miejsca (render.przejscie)
+        zam, dl, czekaj, otw = R.KURTYNA
+        if g["ostatnie_aktu"] and idx < len(us) - 1:
+            evs += [(sec - zam, "kurtyna", 0.9), (sec - zam + dl - 0.05, "klaps", 0.8)]
+        elif g["pierwsze_aktu"] and idx > 0:
+            evs += [(czekaj, "kurtyna", 0.9)]
+        elif g["ostatnie_sceny"] and idx < len(us) - 1:
+            evs += [(sec - R.CIEMNO, "whoosh", 0.18)]
         if klucz in R.BUDUJ:  # zmiana dekoracji: papier i drewno w rytm wjeżdżających elementów
             evs += [(d, "whoosh", 0.35) for d in (0.0, 0.25, 0.45, 0.65, 0.9)] + [(d, "knock", 0.3) for d in (0.75, 1.05, 1.4, 1.7)]
         for at, kind, g in evs:

@@ -292,27 +292,36 @@ def s_odprawa(st, w, t, T):
 
 
 def s_trucizna(st, w, t, T):
-    """Kanclerz sam na skraju sceny; czarka zjeżdża na nitce, on bierze ją do ust i pije truciznę (reżyser 15.11:
-    „zrób, że pije poison”), czarka spada, lalka chwieje się i powoli opada pod rampę."""
+    """Kanclerz sam na skraju sceny; kielich zjeżdża na nitce do wysokości jego głowy i przechyla się, a z niego
+    leje się zielona trucizna prosto do ust (reżyser 15.11); kielich odjeżdża w górę, kanclerz zgina się i opada pod rampę."""
     w.noc, w.sun_y = 0.35, 260.0 + 90 * ease(t / T)  # zachód: słońce schodzi w czasie ujęcia
     kam(st, t, 14, lerp(1000, 960, ease(t / T)), lerp(520, 560, ease(t / T)), lerp(1.6, 2.0, ease(t / T)), 0.8, lens=1.6)
     st.dof = 2.0
     swiat(st, t, w)
-    pije = ease(pr(t, 2.9, 0.4)) * (1 - ease(pr(t, 3.9, 0.3)))
-    sink = pr(t, 4.6, T - 4.9) * 0.999
-    lean = -5 * ease(pr(t, 1.6, 0.8)) + 9 * pije - 12 * ease(pr(t, 4.1, 0.5)) * (1 - sink)  # odchyla głowę przy piciu, potem się zgina
+    przechyl = ease(pr(t, 2.0, 0.6)) * (1 - ease(pr(t, 3.9, 0.4)))
+    leje = pr(t, 2.4, 0.15) * (1 - pr(t, 3.8, 0.15))
+    sink = pr(t, 4.9, T - 5.2) * 0.999
+    lean = -5 * ease(pr(t, 1.2, 0.8)) + 7 * ease(pr(t, 2.2, 0.4)) * (1 - ease(pr(t, 3.9, 0.3))) - 12 * ease(pr(t, 4.3, 0.5)) * (1 - sink)
     lalka(st, t, "kupiec", 1020, 330, pr(t, 0.2, 0.9), flip=-1, lean=lean, sink=sink)
-    if t < 2.0:  # czarka zjeżdża na nitce przed kanclerza
-        Z.hang(st, Z.prop("czarka"), 930, 640, P.rekwizyty, pr(t, 0.9, 0.9), t, 160, drop=440, sway=0.6, h=52, shadow=(3, 4, 4, 0.4))
-    elif t < 4.0:  # kanclerz bierze czarkę do ust i przechyla ją
-        k = ease(pr(t, 2.0, 0.8))
-        cx, cy = lerp(930, 992, k), lerp(666, 444, k)
-        st.put(Z.prop("czarka"), cx, cy, P.lalki + 0.016, h=52, anchor=(0.5, 0.5), rot=lerp(0, 58, ease(pr(t, 2.7, 0.4))) - 20 * ease(pr(t, 3.8, 0.2)),
-               shadow=(3, 4, 4, 0.4))
-    else:  # czarka wypada mu z ręki i spada na rampę
-        f = pr(t, 4.0, 0.55)
-        st.put(Z.prop("czarka"), lerp(972, 930, f), lerp(452, 676, f * f) - 14 * math.sin(math.pi * pr(t, 4.55, 0.3)), P.rekwizyty,
-               h=52, anchor=(0.5, 1.0) if f >= 1 else (0.5, 0.5), rot=lerp(40, 95, f) if f < 1 else 95, shadow=(3, 4, 4, 0.4))
+    kx, ky = 925, 390  # kielich wisi na wysokości głowy, na lewo od twarzy (marker reżysera)
+    zjazd = pr(t, 0.3, 0.9) if t < 3.95 else 1 - pr(t, 3.95, 0.6)
+    rot = 72 * przechyl
+    Z.hang(st, Z.prop("czarka"), kx, ky, P.lalki + 0.016, zjazd, t, 160, drop=440, sway=0.4 * (1 - przechyl), h=52, rot0=rot,
+           shadow=(3, 4, 4, 0.4))
+    if leje > 0:  # strumień z brzegu kielicha do ust, lekko faluje; krople kapią
+        c, s_ = math.cos(math.radians(rot)), math.sin(math.radians(rot))
+        lx, ly = kx + c * 28 - s_ * 2, ky + s_ * 28 + c * 2
+        mx, my = 986, 446
+        pts = []
+        for j in range(9):
+            q = j / 8 * leje
+            pts.append((lerp(lx, mx, q) + 3 * math.sin(t * 17 + j), lerp(ly, my, q) - 14 * math.sin(math.pi * q) * (1 - q)))
+        st.line(pts, P.lalki + 0.015, width=4.5, color=(84, 168, 58), alpha=0.92)
+        st.line(pts, P.lalki + 0.0151, width=1.6, color=(170, 230, 120), alpha=0.7)
+        for j in range(3):
+            q = (t * 1.7 + j / 3) % 1.0
+            st.put(Z.prop("kulka"), mx - 6 + 4 * j, my + 10 + 60 * q * q, P.lalki + 0.015, h=5, anchor=(0.5, 0.5),
+                   tint=(0.45, 0.95, 0.35), alpha=leje * (1 - q), shadow=None)
     swiatlo(st, w, t)
 
 

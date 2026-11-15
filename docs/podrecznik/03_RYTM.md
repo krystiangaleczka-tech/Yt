@@ -21,6 +21,10 @@ filmu. Zasady poniżej są wspólne.
 6. **Życie w kadrze:** mruganie w nieregularnych odstępach (nigdy wszyscy naraz), oddech, błądzący wzrok; kamera lekko
    pływa; tło żyje (wiatr, migotanie). Cechy postaci mają pierwszeństwo (np. postać, która nie mruga).
 7. **Światło jako dramaturgia** — zgaszenie, ciemność, wyjście w czerń są wydarzeniem w ujęciu. Między zwykłymi
-   ujęciami jest cięcie.
+   ujęciami jest cięcie. Teatr papierowy (reżyser, 15.11.2026): **kurtyna między aktami** — zasuwa się w pauzie na
+   końcu aktu, na niej tytuł następnego aktu, rozsuwa się na początku nowego (dekoracja buduje się za nią);
+   **ściemnienie światła przy zmianie miejsca** w akcie (ok. 0,35 s gaśnie i 0,35 s się zapala). Przejścia nachodzą
+   na pauzę po kwestii, więc film nie robi się od nich dłuższy. Bez przesuwania całego kadru z boku czy z góry —
+   dekoracja i tak wjeżdża, a slajd wygląda jak program do prezentacji. Kod: `render.przejscie` filmu.
 8. **Tłum to osobne postacie** (opóźnienia, tempo, jeden spóźniony).
 9. **Dźwięk:** ciągłe tło pod całością, osobny dźwięk każdego wydarzenia, lektor.

@@ -90,7 +90,12 @@ ETYKIETY = {"PIERWSZY CESARZ": "THE FIRST EMPEROR", "247 p.n.e.": "247 BC", "221
             # tabliczki z uwag reżysera (15.11.2026)
             "ZABIĆ KRÓLA!": "KILL THE KING!", "KRÓL": "KING", "Pierwszy Cesarz": "FIRST EMPEROR",
             "kanał Zhengguo": "Zhengguo Canal", "kanał Lingqu": "Lingqu Canal", "trzy miesiące później": "three months later",
-            "36 komanderii": "36 commanderies"}
+            "36 komanderii": "36 commanderies",
+            # tytuły aktów na kurtynie (przejście między aktami)
+            "Akt 2 · Król chłopiec": "Act II · The Boy King", "Akt 3 · Wojna i zamach": "Act III · War and the Assassin",
+            "Akt 4 · Koniec sześciu królestw": "Act IV · The End of Six Kingdoms", "Akt 5 · Jeden kraj": "Act V · One Country",
+            "Akt 6 · Ogień i strach": "Act VI · Fire and Fear", "Akt 7 · Gliniana armia": "Act VII · The Clay Army",
+            "Akt 8 · Upadek": "Act VIII · The Fall"}
 
 # tekst mówiony: liczby słowami i chińskie imiona zapisane tak, jak ma je przeczytać angielski lektor
 SLOWNIE_EN = {"230 BC": "two hundred and thirty B.C.", "221 BC": "two hundred and twenty-one B.C.",

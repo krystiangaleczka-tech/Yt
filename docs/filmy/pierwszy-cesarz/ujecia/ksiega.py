@@ -176,6 +176,8 @@ SWIAT = {
          "Chatterbox Turbo z emocjami, 3% wolniej i pauzy w kwestiach losowane z zakresów (lektor_studio.py podejscia --teatr). "
          "Reżyser wybrał ten wariant zamiast nagrania od nowa silnikiem Multilingual (bez znaczników emocji).", "at": "2026-11-15",
          "by": "reżyser"},
+        {"id": "D15", "text": "Przejścia: kurtyna z tytułem aktu między aktami, ściemnienie światła przy zmianie miejsca w akcie, poza "
+         "tym cięcie. Przejścia nachodzą na pauzę po kwestii — długość filmu bez zmian.", "at": "2026-11-15", "by": "reżyser"},
     ],
 }
 

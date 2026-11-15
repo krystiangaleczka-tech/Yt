@@ -302,9 +302,10 @@ def s_morze(st, w, t, T):
 
 
 def s_xufu(st, w, t, T):
-    """Trzy dżonki płyną po falach ku wyspie zakosami — w lewo, w prawo, w lewo, w prawo — maleją i chowają się
-    za ostatnią falą (reżyser 15.11)."""
+    """Na stokach wyspy wychodzą zza grani jednoocy olbrzymi; trzy dżonki płyną ku wyspie zakosami — w lewo, w prawo,
+    w lewo, w prawo — maleją i chowają się za ostatnią falą (reżyser 15.11)."""
     w.noc = 0.75
+    w.cyklopi = pr(t, 1.2, 1.8)
     kam(st, t, 56, lerp(600, 760, ease(t / T)), lerp(500, 440, ease(t / T)), lerp(1.2, 1.45, ease(t / T)), 0.5, truck=0.6)
     st.dof = 0.8
     morze(st, t, w)
@@ -327,18 +328,20 @@ def s_puste(st, w, t, T):
 
 
 def s_rtec(st, w, t, T):
-    """Przy cesarzu wysuwa się czarka; srebrne kulki bardzo powoli zjeżdżają do niej na nitkach, cesarz pochyla się."""
+    """Przy cesarzu wysuwa się czarka; srebrne kulki bardzo powoli opadają (bez nitek) i znikają w środku czarki,
+    cesarz pochyla się nad nią (reżyser 15.11)."""
     w.lean = 6 * ease(pr(t, 7.0, 0.9))
     kam(st, t, 58, lerp(410, 420, ease(t / T)), 566, lerp(2.0, 2.25, ease(t / T)), 0.84, lens=1.8)
     st.dof = 2.2
     swiat(st, t, w)
     k = pr(t, 0.3, 0.8)
     st.put(Z.prop("czarka"), 500, 694 + (1 - back(k, 1.3)) * 90, P.rekwizyty, h=58, shadow=(3, 4, 4, 0.4))
-    for j in range(3):  # reżyser 15.11: „niech dużo wolniej zjeżdżają”
+    for j in range(3):  # reżyser 15.11: „niech dużo wolniej zjeżdżają”, „usuń linie spuszczenia”, „kulki wychodzą poza wazę”
         kk = pr(t, 1.0 + j * 1.7, 2.4)
-        if 0 < kk:
-            Z.hang(st, Z.prop("kulka"), 500 + (j - 1) * 13, 640 + 30 * ease(pr(t, 3.6 + j * 1.7, 0.6)), P.rekwizyty - 0.004, kk, t,
-                   120 + j, drop=420, sway=0.3, h=15, shadow=(2, 3, 3, 0.35))
+        wpada = pr(t, 3.6 + j * 1.7, 0.5)
+        if 0 < kk and wpada < 1:
+            Z.hang(st, Z.prop("kulka"), 500 + (j - 1) * 4, 606 + 44 * ease(wpada), P.rekwizyty - 0.004, kk, t, 120 + j, drop=420,
+                   sway=0.2, h=15, string=False, shadow=(2, 3, 3, 0.35))
     swiatlo(st, w, t)
 
 
@@ -356,7 +359,7 @@ def s_przejscia(st, w, t, T):
         x, flip = lerp(110, 1190, ease(u) * 0.5 + u * 0.5), 1.0
     else:
         u = (t - T * tam) / (T * (1 - tam))
-        x, flip = lerp(1190, 520, ease(u) * 0.5 + u * 0.5), -math.cos(math.pi * ease(pr(u, 0.0, 0.12)))
+        x, flip = lerp(1190, 520, ease(u) * 0.5 + u * 0.5), math.cos(math.pi * ease(pr(u, 0.0, 0.12)))  # w lewo: odbity w lewo
     xmax = lerp(110, 1190, min(1.0, t / (T * tam)))
     lampy = [1 - ease(clamp((xmax - lx - 150) / 160)) for lx in (240, 640, 1040)]
     kam(st, t, 59, clamp(x, 430, 880), 430, 1.3, 0.6, truck=0.7)
@@ -478,6 +481,7 @@ def s_koniec(st, w, t, T):
     w.zawieszki = [("210 p.n.e.", 560, 372, pr(t, 0.6, 1.0))]
     kaszel = sum(math.sin(math.pi * pr(t, a + d, 0.22)) for a in (0.9, 2.0) for d in (0.0, 0.3, 0.6))
     w.lean = 7 * kaszel + 3 * math.sin(t * 2.3) * pr(t, 2.6, 0.5) + 14 * ease(pr(t, 3.5, 1.2))
+    w.oczy_x = ease(pr(t, 3.2, 0.3))  # umarł: X na oczach (reżyser 15.11)
     w.lift = -6 * kaszel
     w.sink = pr(t, 4.2, T - 4.6) * 0.999
     k = ease(t / T)
@@ -508,6 +512,7 @@ def s_ryby(st, w, t, T):
     wyskakują z niego i wpadają z powrotem (reżyser 15.11); kamera jedzie z nimi."""
     x = lerp(730, 1060, (t / T) ** 0.95)
     w.powoz, w.zaslona = x, 1.0
+    w.ryby = pr(t, 1.6, 1.4)  # po chwili na płachtę zjeżdżają solone ryby (reżyser 15.11)
     kam(st, t, 69, x - 80, 528, 1.9, 0.645, lens=1.76, truck=0.85)
     st.dof = 1.4
     swiat(st, t, w)

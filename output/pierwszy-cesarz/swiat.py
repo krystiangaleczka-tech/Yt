@@ -81,7 +81,7 @@ def stan(i):
         powoz=730.0 if po("podroz") and not po("ryby") else None, zaslona=f(po("spisek") and not po("ryby")),
         znaleziony=f(po("studnia")), sosna=f(po("grobowiec")),
         zawieszki=[], woz=None, jezdziec=None, wlocznie=None, build=None,
-        galaz=1.0, kopiec_drz=0.0, bez_rzeczy=0.0,
+        galaz=1.0, kopiec_drz=0.0, bez_rzeczy=0.0, cyklopi=f(po("xufu")), oczy_x=0.0,
         waga_belka=-6.6 if po("miara") else None, waga_szale=(0.0, 0.0), odwaznik_szala=f(po("miara")))  # odważnik został w szali
 
 
@@ -150,6 +150,12 @@ def cesarz(st, t, w):
     yy = y + (1 - back(w.emp, 1.2)) * h * 1.08 + ease(w.sink) * h * 1.1 - w.lift
     rot = 0.45 * noise(t, 7, 0.4) + w.lean + settle((w.emp - 0.75) / 0.25 if w.emp < 1 else 0, 1.5, 3) - 9 * ease(w.sink / 0.35)
     st.put(Z.S("emperor"), x, yy, P.lalki, h=h, anchor=(0.42, 1.0), rot=rot, sx=w.flip)
+    if w.get("oczy_x", 0.0) > 0:  # martwy: X na oczach (reżyser 15.11), jadą razem z głową lalki
+        c, s_ = math.cos(math.radians(rot)), math.sin(math.radians(rot))
+        for dx, dy, hh in ((6.6, -312.0, 13), (16.0, -313.0, 10)):
+            dx *= w.flip
+            st.put(Z.prop("x_oko"), x + c * dx - s_ * dy, yy + s_ * dx + c * dy, P.lalki + 0.002, h=hh * w.oczy_x, anchor=(0.5, 0.5),
+                   rot=rot, shadow=None)
 
 
 def smoki(st, t, w):
@@ -218,7 +224,7 @@ def woz(st, t, x, p=0.645, h=74, flip=1.0, sy=1.0, rot=0.0, ladunek=None, kon=Tr
     return y
 
 
-def powoz(st, t, x, zaslona=0.0, h=84, p=0.645, cesarz=None):
+def powoz(st, t, x, zaslona=0.0, h=84, p=0.645, cesarz=None, ryby=0.0):
     """Powóz cesarza: wóz z czarną chorągwią; zasłona opada na niego po śmierci cesarza.
     cesarz — lalka cesarza jadąca na powozie: (kąt przechyłu, przesunięcie w dół) albo None."""
     y = woz(st, t, x, p=p, h=h, ladunek=(Z.banner("qin"), 74, -34, 10))
@@ -226,9 +232,14 @@ def powoz(st, t, x, zaslona=0.0, h=84, p=0.645, cesarz=None):
         rot, dol = cesarz
         st.put(Z.S("emperor"), x + 14, y - h * 0.50 + dol, p - 0.0015, h=h * 0.95, anchor=(0.42, 1.0),
                rot=rot + 0.6 * noise(t, 84, 0.7))
-    if zaslona > 0:  # ciemna płachta z frędzlem (niższa niż skrzynia z czarnego papieru: nie myli się z ładunkiem)
-        st.put(Z.prop("zaslona"), x - 8, y - h * 0.86 - (1 - ease_out(zaslona)) * 300, p + 0.002, w=h * 1.9, anchor=(0.5, 0.0),
-               sy=0.7, shadow=(3, 4, 5, 0.4))
+    if zaslona > 0:  # ciemna płachta z frędzlem; reżyser 15.11: „minimalnie wyżej”
+        top = y - h * 0.98 - (1 - ease_out(zaslona)) * 300
+        st.put(Z.prop("zaslona"), x - 8, top, p + 0.002, w=h * 1.9, anchor=(0.5, 0.0), sy=0.7, shadow=(3, 4, 5, 0.4))
+        if ryby > 0:  # solone ryby zjeżdżają na nitkach i układają się na płachcie (reżyser 15.11)
+            for n, dx in enumerate((-52, -8, 36)):
+                kk = clamp(ryby * 1.5 - n * 0.25)
+                Z.hang(st, Z.prop("ryby"), x - 8 + dx, top - 26, p + 0.0025 + n * 0.0001, kk, t, 170 + n, drop=320, sway=0.4,
+                       h=30, string=kk < 1, strings=(0.3, 0.7), shadow=(2, 3, 3, 0.35))
 
 
 def urna(st, t, w, k):
@@ -509,7 +520,7 @@ def swiat(st, t, w):
     if w.woz is not None:
         woz(st, t, w.woz)
     if w.powoz is not None:
-        powoz(st, t, w.powoz, w.zaslona)
+        powoz(st, t, w.powoz, w.zaslona, ryby=w.get("ryby", 0.0))
     if w.znaleziony > 0:  # żołnierz wykopany przy studni i chłop, który go znalazł
         st.put(Z.prop("chlop"), 820, Z.ground("przod", 820) + 14, 0.70, h=120, rot=-6)
         st.put(Z.soldier(2), 912, Z.ground("przod", 912) + 20, 0.70, h=128)
@@ -603,8 +614,10 @@ def morze(st, t, w, k=1.0, wyspa=1.0, wyspa_w=400):
     st.put(Z.sky(), CX, CY, P.niebo, w=1760, anchor=(0.5, 0.5), shadow=None, tint=(1 - 0.62 * n, 1 - 0.54 * n, 1 - 0.28 * n))
     ksiezyc(st, t, w.moon, 420, 150)
     if wyspa > 0:
-        st.put(Z.S("mountain_gold", 0.6), 900, 410 + (1 - back(wyspa, 1.2)) * wyspa_w * 0.62, 0.22, w=wyspa_w, haze=0.45,
+        wy = WYSPA_Y + (1 - back(wyspa, 1.2)) * wyspa_w * 0.62
+        st.put(Z.S("mountain_gold", 0.6), 900, wy, 0.22, w=wyspa_w, haze=0.45,
                shadow=(4, 5, 8, 0.25), rot=1.5 * settle((wyspa - 0.6) / 0.4 if wyspa < 1 else 0, 1.5, 2))  # wyspa z górą (reżyser 15.11: większa)
+        cyklopi(st, t, w, wy, wyspa_w)
     for i in range(4):
         kk = clamp(k * 2.2 - i * 0.4)
         if kk > 0:
@@ -615,6 +628,25 @@ def morze(st, t, w, k=1.0, wyspa=1.0, wyspa_w=400):
 
 
 FALE = [(0.30, 384), (0.45, 452), (0.60, 528), (0.75, 606)]  # pasma fal: plan, linia grzbietu
+WYSPA_Y = 446  # dół wyspy (reżyser 15.11: „wyspa niżej”)
+
+
+def cyklopi(st, t, w, wy, wyspa_w):
+    """Jednoocy olbrzymi na stokach wyspy (reżyser 15.11: „narysuj cyklopów”). w.cyklopi — 0..1 wychodzą zza grani."""
+    k = w.get("cyklopi", 0.0)
+    if k <= 0:
+        return
+    mg = Z.S("mountain_gold", 0.6)
+    hh = wyspa_w * mg.h / mg.w
+    for n, fx in enumerate((0.36, 0.52, 0.66)):
+        kk = clamp(k * 1.6 - n * 0.3)
+        if kk <= 0:
+            continue
+        x = 900 + (fx - 0.5) * wyspa_w
+        gy = wy - hh + mg.top(fx) * hh + 34
+        h = (100, 114, 92)[n]
+        st.put(Z.cyklop(n), x, gy + (1 - back(kk, 1.3)) * h * 1.1, 0.2205 + n * 0.0003, h=h, haze=0.25, shadow=(3, 4, 6, 0.25),
+               rot=2.5 * math.sin(t * 1.3 + n * 2) + settle((kk - 0.7) / 0.3 if kk < 1 else 0, 1.5, 4))
 
 
 def fala(i, t):
