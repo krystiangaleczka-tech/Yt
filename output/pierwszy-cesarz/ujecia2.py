@@ -4,7 +4,7 @@ import random
 
 import zestaw as Z
 from papier import CX, CY, back, clamp, ease, ease_out, noise, settle
-from swiat import (BAN, EMP, KOPIEC, MALY, PODBITE, TRON, URNA, P, dzonka, kam, lalka, lerp, morze, powoz, pr, sala, swiat, swiatlo,
+from swiat import (podpis, BAN, EMP, KOPIEC, MALY, PODBITE, TRON, URNA, P, dzonka, kam, lalka, lerp, morze, powoz, pr, sala, swiat, swiatlo,
                    wlocznie, woz, wstega)
 from ujecia1 import krol
 
@@ -180,6 +180,7 @@ def s_popiol(st, w, t, T):
 
 def s_uczeni(st, w, t, T):
     """Trzej uczeni po kolei opadają pod rampę; Fusu kłania się cesarzowi, odwraca i odjeżdża ze sceny."""
+    podpis(w, t, "Fusu, najstarszy syn", 510, 336, 5.2, 1.9)  # tabliczka: pierwsze pojawienie się
     w.uczony = 1 - pr(t, 2.3, 0.9)
     w.uczony_lean = 5.5 * (1 - ease(pr(t, 0.0, 1.0)))
     w.lean = 4.5 * ease(pr(t, 1.6, 0.5)) - 4.5 * ease(pr(t, 4.2, 0.8)) + 5 * ease(pr(t, 6.2, 0.5)) - 3 * ease(pr(t, 8.0, 0.8))
@@ -400,6 +401,7 @@ def s_koniec(st, w, t, T):
 
 def s_spisek(st, w, t, T):
     """Przy powozie wysuwają się Li Si i Zhao Gao; pochylają się ku sobie, na powóz opada czarna zasłona."""
+    podpis(w, t, "eunuch Zhao Gao", 880, 324, 1.6)  # tabliczka: pierwsze pojawienie się
     w.zaslona = pr(t, 2.8, 1.1)
     k = ease(t / T)
     kam(st, t, 68, 730, lerp(530, 520, k), lerp(1.42, 1.52, k), 0.8)
@@ -437,6 +439,7 @@ def s_list(st, w, t, T):
 
 def s_huhai(st, w, t, T):
     """Sala: na podwyższeniu mała lalka w koronie, za nią wyrasta wielka szara lalka eunucha i zasłania lampę."""
+    podpis(w, t, "Huhai, młodszy syn", TRON[0], 370, 1.2)  # tabliczka: pierwsze pojawienie się
     big = pr(t, 1.6, 1.8)
     k = ease(t / T)
     kam(st, t, 71, lerp(430, 440, k), lerp(500, 470, k), lerp(1.45, 1.66, k), 0.785)

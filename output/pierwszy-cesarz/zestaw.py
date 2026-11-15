@@ -634,8 +634,15 @@ LALKI = {"zheng": ("emperor", None), "uczony": ("scholar_left", None), "uczony2"
 
 @lru_cache(None)
 def lalka(key):
-    if key in ("zheng_dziecko", "zheng_krol"):
-        return Sprite(dziecko(korona=key == "zheng_krol"), f"lalka-{key}", rim=2)
+    if key == "zheng_dziecko":  # przed koronacją: prosta granatowa szata bez smoków
+        return Sprite(stroj(dziecko(korona=False), "dziecko", **STROJE["zheng_dziecko"][1]), f"lalka-{key}", rim=2)
+    if key == "zheng_krol":
+        return Sprite(dziecko(korona=True), f"lalka-{key}", rim=2)
+    if key in STROJE:  # cała szata w innym materiale i barwie (nie tylko obszycie): postać nie wygląda jak urzędnik dworu
+        name, kw = STROJE[key]
+        im = stroj(raw(name), name, **kw)
+        im = im.resize((round(im.size[0] * 0.7), round(im.size[1] * 0.7)), Image.LANCZOS)
+        return Sprite(im, f"lalka-{key}", rim=2)
     name, color = LALKI[key]
     scale = 1.0 if name == "emperor" else 0.7
     if color is None:
@@ -824,6 +831,85 @@ def prop(key):
     return Sprite(stack(w, h, parts, seed=sum(map(ord, key))), f"rekwizyt-{key}", rim=2, clean=False)
 
 
+
+
+# ---------- stroje: cała szata w innym materiale, a nie tylko obszycie ----------
+# Wszystkie wycinanki postaci mają czarną dworską szatę ze złotym haftem; przebarwione samo obszycie dawało „dwóch
+# cesarzy” (ojciec i kupiec, 15.11.2026). stroj() zmienia barwę całej szaty, obszycia i siłę haftu; głowa (kapelusz,
+# włosy, broda) i zwój w ręku zostają (współrzędne wielokątów w pikselach oryginalnych PNG).
+STROJ_CHRON = {
+    "scholar_back": [[(350, 0), (650, 0), (650, 220), (625, 340), (575, 340), (470, 250), (350, 235)],
+                     [(770, 330), (1024, 330), (1024, 640), (770, 640)]],
+    "scholar_left": [[(430, 0), (670, 0), (670, 200), (612, 365), (535, 365), (470, 262), (430, 245)],
+                     [(700, 300), (1024, 300), (1024, 620), (700, 620)]],
+    "scholar_center": [[(420, 140), (690, 140), (690, 300), (650, 390), (625, 492), (558, 492), (520, 420), (440, 332), (420, 280)],
+                       [(780, 300), (1024, 300), (1024, 620), (780, 620)]],
+    "rider": [[(750, 75), (880, 75), (880, 215), (790, 225), (752, 170)]],
+    "dziecko": [[(338, 78), (512, 78), (512, 298), (440, 304), (338, 272)]],
+}
+STROJ_CIALO = {"rider": [(700, 15), (870, 15), (905, 300), (885, 460), (945, 700), (905, 790), (770, 790), (560, 570),
+                         (395, 455), (400, 345), (560, 250), (690, 150)]}  # sam jeździec, bez konia
+STROJE = {
+    # zakładnik w obcym mieście, zubożały książę: klęczy (inna postawa i twarz niż kupiec), spłowiała szata z niebarwionego
+    # płótna, haft prawie znika
+    "ojciec": ("scholar_center", dict(szata=(122, 106, 84), obszycie=(118, 84, 60), zloto=0.25)),
+    # bogaty kupiec, potem kanclerz Lü Buwei: cała szata z fioletowego jedwabiu, złoty haft (bogactwo), obszycie złotawe
+    "kupiec": ("scholar_back", dict(szata=(84, 38, 92), obszycie=(176, 136, 62), zloto=1.0)),
+    # chłopiec zakładnika w Handanie: prosta granatowa szata, smoki prawie znikają
+    "zheng_dziecko": ("dziecko", dict(szata=(58, 72, 102), obszycie=None, zloto=0.15)),
+}
+
+
+def _hsv(rgb):
+    mx, mn = rgb.max(-1), rgb.min(-1)
+    d = mx - mn
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    h = np.zeros_like(mx)
+    k = d > 1e-6
+    rm = k & (mx == r)
+    gm = k & (mx == g) & ~rm
+    bm = k & ~rm & ~gm
+    h[rm] = ((g - b)[rm] / d[rm]) % 6
+    h[gm] = (b - r)[gm] / d[gm] + 2
+    h[bm] = (r - g)[bm] / d[bm] + 4
+    return h * 60, d / np.maximum(mx, 1e-6), mx
+
+
+def stroj(img, nazwa, szata, obszycie=None, zloto=1.0):
+    """szata — nowa barwa czarnej szaty (faktura i cienie zostają); obszycie — barwa czerwonego obszycia (None: bez
+    zmian); zloto — ile złotego haftu zostaje (1 — cały, 0 — haft znika w barwie szaty)."""
+    a = np.asarray(img.convert("RGBA"), np.float32) / 255
+    rgb, al = a[..., :3].copy(), a[..., 3]
+    H_, W_ = al.shape
+    def wielokat(pts):
+        m = Image.new("L", (W_, H_), 0)
+        ImageDraw.Draw(m).polygon(pts, fill=255)
+        return np.asarray(m) > 127
+    tu = al > 0.02
+    if nazwa in STROJ_CIALO:
+        tu &= wielokat(STROJ_CIALO[nazwa])
+    for pts in STROJ_CHRON.get(nazwa, []):
+        tu &= ~wielokat(pts)
+    h, s, v = _hsv(rgb)
+    czern = tu & (v < 0.34) & (s < 0.62)
+    zl = tu & (h > 30) & (h < 58) & (s > 0.32) & (v > 0.3)
+    czerw = tu & ((h < 16) | (h > 338)) & (s > 0.45) & (v > 0.18)
+    sz = np.asarray(szata, np.float32) / 255
+    rgb = np.where(czern[..., None], sz * np.clip(0.62 + (v - 0.13) * 2.4, 0.35, 1.35)[..., None], rgb)
+    if obszycie is not None:
+        rgb = np.where(czerw[..., None], np.asarray(obszycie, np.float32) / 255 * np.clip(v / 0.55, 0.4, 1.4)[..., None], rgb)
+    if zloto < 1:
+        cel = sz * np.clip(0.95 + (v - 0.5) * 0.8, 0.7, 1.35)[..., None]
+        rgb = np.where(zl[..., None], rgb * zloto + cel * (1 - zloto), rgb)
+    return Image.fromarray((np.dstack([np.clip(rgb, 0, 1), al]) * 255).astype(np.uint8))
+
+
+@lru_cache(None)
+def woznica():
+    """Woźnica przy wozach: wycinanka jeźdźca w szacie z niebarwionego płótna (jeździec-posłaniec Qin zostaje czarny)."""
+    im = stroj(raw("rider"), "rider", szata=(116, 92, 66), obszycie=(110, 80, 58), zloto=0.2)
+    im = im.resize((round(im.size[0] * 0.6), round(im.size[1] * 0.6)), Image.LANCZOS)
+    return Sprite(im, "woznica", rim=2)
 
 # ---------- chłopiec Zheng: wycinanka cesarza przerobiona na dziecko ----------
 

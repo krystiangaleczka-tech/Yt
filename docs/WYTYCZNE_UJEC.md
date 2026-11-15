@@ -45,6 +45,9 @@ zamknięte drzwi sprawdza się klamką, a nie tylko się o nich mówi.
 - Pojazd ma to, co go napędza: wóz i powóz ciągnie koń, a ktoś nim powozi.
 - Postać wygląda na swój wiek i ma tylko te atrybuty, które ma w tej chwili historii: dziecko nie nosi korony, zanim
   zostało królem. Jedna lalka nie gra dziecka i dorosłego.
+- Postacie różnią się sylwetką i strojem, a nie tylko kolorem obszycia: kupiec nie nosi dworskiej szaty ze smokami,
+  a dwie postacie w jednym kadrze nie są tą samą wycinanką odbitą lustrzanie. Strój mówi, kim postać jest (bogaty
+  kupiec, ubogi zakładnik, woźnica, posłaniec).
 - Na scenie stoi tylko to, co jest w tym miejscu i czasie. Dekoracja z innej sceny (gliniana armia z grobowca) nie
   stoi przy murze ani przy powozie. Kogo lektor wymienia, ten jest w kadrze: „zginął pod kolumną” znaczy, że leży pod
   kolumną.
@@ -153,6 +156,7 @@ Zanim ujęcie trafi do Studio do oceny:
 | Pierwszy cesarz EN (14.11, Studio) | cięcie padało 0,6 s po ostatnim słowie lektora, bo zaraz zaczynało się następne ujęcie — reżyser: „obcina zaraz po kwestii ujęcie […] i jest to nienaturalne”; obraz trwa jeszcze po kwestii: 1,1 s w środku beatu, 1,4 s na końcu beatu, 1,8 s na końcu sceny, 2,3 s na końcu aktu (dane.py, PAUZA_PO) | Podręcznik 03 (2) |
 | Pierwszy cesarz EN (15.11, reżyser, Studio) | uwaga na klatce ujęcia 6: „ten powóz musi ciągnąć koń!” — żaden wóz w filmie nie miał konia; reżyser pytał też, czemu w ujęciu 6 są trzy postacie: chłopca grała zmniejszona lalka cesarza w koronie, więc wyglądał jak trzeci dorosły, a ojciec, zamiast wsiąść na wóz, zapadał się pod scenę | 1.6 |
 | Pierwszy cesarz EN (15.11, przegląd obsady) | gliniana armia stała na scenie od budowy grobowca do świtu, także przy spisku, u Fusu pod murem i w powstaniu, i zasłaniała powóz; Jing Ke, o którym lektor mówi „zginął pod kolumną”, w ogóle nie był widoczny | 1.6 |
+| Pierwszy cesarz EN (15.11, reżyser) | „widzę dwóch cesarzy patrzących na siebie, beżowy i fioletowy” — ojciec i kupiec to ta sama czarno-złota dworska wycinanka, różniła je tylko barwa obszycia; woźnica wyglądał jak jeździec-posłaniec Qin, chłopiec w Handanie nosił szatę cesarską; po zmianie strojów: „ojcu musisz zmienić posturę i twarz” — ojciec i kupiec stali tak samo ze zwojem; ojciec klęczy teraz na innej wycinance | 1.6 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

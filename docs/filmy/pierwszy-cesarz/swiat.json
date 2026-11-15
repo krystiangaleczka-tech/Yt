@@ -92,14 +92,14 @@
       "id": "lu",
       "name": "Lü Buwei",
       "role": "kupiec, potem kanclerz i regent",
-      "look": "wycinanka uczonego w purpurowym obszyciu",
+      "look": "wycinanka uczonego, cała szata z fioletowego jedwabiu ze złotym haftem, obszycie złotawe",
       "leaves": "d02_06~truciznę"
     },
     {
       "id": "ojciec",
       "name": "ojciec",
       "role": "książę Qin, zakładnik w Handanie (Yiren)",
-      "look": "wycinanka uczonego w brązowym obszyciu",
+      "look": "klęczy (wycinanka klęczącego uczonego: inna postawa i twarz niż kupiec); spłowiała szata z niebarwionego płótna, haft prawie niewidoczny (ubogi zakładnik)",
       "leaves": "d01_06~wywiózł"
     },
     {
@@ -584,7 +584,13 @@
     },
     {
       "id": "D9",
-      "text": "Każdy wóz i powóz ciągnie koń z woźnicą na grzbiecie (wycinanka jeźdźca zaprzężona w dyszel). Uwaga reżysera na klatce ujęcia d01_06: „ten powóz musi ciągnąć koń!”.",
+      "text": "Każdy wóz i powóz ciągnie koń (uwaga reżysera na klatce ujęcia d01_06: „ten powóz musi ciągnąć koń!”). Na koniu siedzi woźnica — jedyny koń w wycinankach ma jeźdźca; woźnicę zaproponował wykonawca, reżyser go zostawił. Woźnica jest w szacie z niebarwionego płótna, żeby nie wyglądał jak jeździec-posłaniec Qin.",
+      "at": "2026-11-15",
+      "by": "reżyser"
+    },
+    {
+      "id": "D11",
+      "text": "Zamiast obszycia w innej barwie (D3) postacie różnią się całym strojem: kupiec Lü Buwei w fioletowym jedwabiu ze złotym haftem, ojciec (zakładnik) klęczy, w spłowiałym płótnie — inna postawa i twarz niż kupiec, chłopiec w Handanie w prostej granatowej szacie bez smoków, woźnica w niebarwionym płótnie. Powód: reżyser widział w ujęciu 6 „dwóch cesarzy” — ojciec i kupiec byli tą samą czarno-złotą dworską szatą, odbitą lustrzanie.",
       "at": "2026-11-15",
       "by": "reżyser"
     },

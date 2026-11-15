@@ -209,7 +209,7 @@ def woz(st, t, x, p=0.645, h=74, flip=1.0, sy=1.0, rot=0.0, ladunek=None, kon=Tr
         hx = x + 66 * s * flip
         ph2 = hx / 30.0
         hy = Z.ground("droga", clamp(hx, -300, 1500)) + 8 * s - abs(math.sin(ph2)) * 4 * s + ZAPAD[0]
-        st.put(Z.S("rider", 0.6), hx, hy, p + 0.002, h=100 * s, rot=2.5 * math.sin(ph2 * 2 + 0.5) + 0.4 * noise(t, 82, 0.6), sx=flip)
+        st.put(Z.woznica(), hx, hy, p + 0.002, h=100 * s, rot=2.5 * math.sin(ph2 * 2 + 0.5) + 0.4 * noise(t, 82, 0.6), sx=flip)
     return y
 
 
@@ -474,6 +474,12 @@ def ksiezyc(st, t, k, x=648, y=212):
         st.put(Z.glow(), x, y + 54 - (1 - back(k, 1.1)) * 480, P.slonce, w=560, anchor=(0.5, 0.5), mode="add", alpha=0.26 * ease(k),
                shadow=None, tint=(0.75, 0.85, 1.0), z=-1)
         Z.hang(st, Z.moon(), x, y, P.slonce, k, t, 2, drop=480, w=108, shadow=(5, 7, 9, 0.3))
+
+
+def podpis(w, t, txt, x, y, t0, dur=2.8):
+    """Tabliczka z imieniem nad postacią przy jej pierwszym pojawieniu się: zjeżdża na nitce w t0, po dur s odjeżdża w górę.
+    (x, y) — środek górnej krawędzi tabliczki w kadrze wzorcowym, nad głową postaci."""
+    w.zawieszki = list(w.zawieszki) + [(txt, x, y, pr(t, t0, 0.9) * (1 - pr(t, t0 + dur, 0.6)))]
 
 
 def zawieszki(st, t, w):

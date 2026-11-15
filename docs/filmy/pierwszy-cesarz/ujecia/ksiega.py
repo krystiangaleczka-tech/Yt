@@ -50,9 +50,9 @@ SWIAT = {
                     + r("dorosl", "duża") + ", potem dorosły (352)",
          "traits": "nie chodzi — obraca się na patyczku, pochyla, unosi, opada pod rampę",
          "states": [{"from": r("krol13", "247"), "state": "król-chłopiec (mała lalka w koronie)"}, {"from": r("dorosl", "duża"), "state": "dorosły (duża lalka)"}, {"from": r("koniec", "opada"), "state": "nie żyje — lalki nie ma na scenie"}]},
-        {"id": "lu", "name": "Lü Buwei", "role": "kupiec, potem kanclerz i regent", "look": "wycinanka uczonego w purpurowym obszyciu",
+        {"id": "lu", "name": "Lü Buwei", "role": "kupiec, potem kanclerz i regent", "look": "wycinanka uczonego, cała szata z fioletowego jedwabiu ze złotym haftem, obszycie złotawe",
          "leaves": r("trucizna", "truciznę")},
-        {"id": "ojciec", "name": "ojciec", "role": "książę Qin, zakładnik w Handanie (Yiren)", "look": "wycinanka uczonego w brązowym obszyciu",
+        {"id": "ojciec", "name": "ojciec", "role": "książę Qin, zakładnik w Handanie (Yiren)", "look": "klęczy (wycinanka klęczącego uczonego: inna postawa i twarz niż kupiec); spłowiała szata z niebarwionego płótna, haft prawie niewidoczny (ubogi zakładnik)",
          "leaves": r("ucieczka", "wywiózł")},
         {"id": "lisi", "name": "Li Si", "role": "doradca, potem kanclerz", "look": "wycinanka uczonego w zielonym obszyciu"},
         {"id": "jingke", "name": "Jing Ke", "role": "zamachowiec z Yan", "look": "wycinanka uczonego w jasnym obszyciu",
@@ -154,8 +154,13 @@ SWIAT = {
          "do koronacji (247 p.n.e.) bez korony, z dwoma kokami dziecka, potem ta sama lalka w koronie jako król-chłopiec. Dorosły "
          "Zheng to pełna wycinanka cesarza. Powód: mała lalka w koronie i z brodą wyglądała jak trzeci dorosły.", "at": "2026-11-15",
          "by": "reżyser"},
-        {"id": "D9", "text": "Każdy wóz i powóz ciągnie koń z woźnicą na grzbiecie (wycinanka jeźdźca zaprzężona w dyszel). Uwaga "
-         "reżysera na klatce ujęcia d01_06: „ten powóz musi ciągnąć koń!”.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D9", "text": "Każdy wóz i powóz ciągnie koń (uwaga reżysera na klatce ujęcia d01_06: „ten powóz musi ciągnąć koń!”). "
+         "Na koniu siedzi woźnica — jedyny koń w wycinankach ma jeźdźca; woźnicę zaproponował wykonawca, reżyser go zostawił. Woźnica "
+         "jest w szacie z niebarwionego płótna, żeby nie wyglądał jak jeździec-posłaniec Qin.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D11", "text": "Zamiast obszycia w innej barwie (D3) postacie różnią się całym strojem: kupiec Lü Buwei w fioletowym "
+         "jedwabiu ze złotym haftem, ojciec (zakładnik) klęczy, w spłowiałym płótnie — inna postawa i twarz niż kupiec, chłopiec w Handanie w prostej "
+         "granatowej szacie bez smoków, woźnica w niebarwionym płótnie. Powód: reżyser widział w ujęciu 6 „dwóch cesarzy” — ojciec "
+         "i kupiec byli tą samą czarno-złotą dworską szatą, odbitą lustrzanie.", "at": "2026-11-15", "by": "reżyser"},
         {"id": "D10", "text": "Gliniana armia zapada się pod ziemię przy zmianie dekoracji na początku ostatniej podróży (d07_08), więc "
          "nie zasłania powozu, spisku, Fusu ani powstania; o świcie (d08_07) wraca tylko słońce. W finale (d08_10) armia staje jeszcze "
          "raz jako obraz zamykający.", "at": "2026-11-15", "by": "reżyser"},
@@ -164,7 +169,7 @@ SWIAT = {
 
 BIBLIA = {
     "characters": "Zheng (Pierwszy Cesarz) — wycinanka cesarza; chłopiec z Handanu to ta sama wycinanka bez brody i korony, z kokami "
-                  "dziecka, król-chłopiec — w koronie, duża lalka to dorosły król i cesarz. Lü Buwei — kupiec i kanclerz (purpurowe obszycie). Li Si — doradca (zielone). Jing Ke — zamachowiec (jasne). "
+                  "dziecka, król-chłopiec — w koronie, duża lalka to dorosły król i cesarz. Lü Buwei — kupiec i kanclerz (cała szata z fioletowego jedwabiu). Ojciec — zakładnik, klęczy, w spłowiałym płótnie. Chłopiec w Handanie — prosta granatowa szata. Li Si — doradca (zielone). Jing Ke — zamachowiec (jasne). "
                   "Fusu — najstarszy syn (niebieskie). Zhao Gao — eunuch (szare, w sali większy od wszystkich). Huhai — mała lalka cesarza "
                   "w niebieskim obszyciu. Pisarz, uczeni, klęczący urzędnicy, jeździec, gliniani żołnierze.",
     "chronology": "259 p.n.e. narodziny w Handanie · 257 ucieczka ojca · ok. 250 powrót do Qin · 247 król · 238 bunt, 235 śmierć Lü Buweia · "

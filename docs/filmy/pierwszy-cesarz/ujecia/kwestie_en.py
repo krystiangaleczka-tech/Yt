@@ -81,7 +81,12 @@ EN = {
 
 # napisy na wycinkach (szyld teatru, zawieszki)
 ETYKIETY = {"PIERWSZY CESARZ": "THE FIRST EMPEROR", "247 p.n.e.": "247 BC", "221 p.n.e.": "221 BC", "210 p.n.e.": "210 BC",
-            "nagroda": "reward", "kara": "punishment"}
+            "nagroda": "reward", "kara": "punishment",
+            # tabliczki z imionami przy pierwszym pojawieniu się postaci
+            "ojciec Zhenga, książę Qin": "Zheng's father, a Qin prince", "Zheng": "Zheng", "kupiec Lü Buwei": "Lü Buwei, a merchant",
+            "król Zheng": "King Zheng", "kanclerz Lü Buwei": "Chancellor Lü Buwei", "król Zheng, dorosły": "King Zheng, grown up",
+            "Li Si, doradca": "Li Si, adviser", "Jing Ke z Yan": "Jing Ke of Yan", "nadworny lekarz": "the court physician",
+            "Fusu, najstarszy syn": "Fusu, eldest son", "eunuch Zhao Gao": "Zhao Gao, a eunuch", "Huhai, młodszy syn": "Huhai, younger son"}
 
 # tekst mówiony: liczby słowami i chińskie imiona zapisane tak, jak ma je przeczytać angielski lektor
 SLOWNIE_EN = {"230 BC": "two hundred and thirty B.C.", "221 BC": "two hundred and twenty-one B.C.",

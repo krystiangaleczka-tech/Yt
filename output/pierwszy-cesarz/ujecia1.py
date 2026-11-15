@@ -8,7 +8,7 @@ import random
 
 import zestaw as Z
 from papier import CX, CY, back, clamp, ease, ease_out, noise, settle
-from swiat import (BAN, EMP, I, KOLUMNA, MALY, PODBITE, TRON, URNA, ZAPAD, P, jezdziec, kam, lalka, lerp, pr, sala, stol, swiat, swiatlo,
+from swiat import (podpis, BAN, EMP, I, KOLUMNA, MALY, PODBITE, TRON, URNA, ZAPAD, P, jezdziec, kam, lalka, lerp, pr, sala, stol, swiat, swiatlo,
                    urzednik, wlocznie, woz)
 
 
@@ -72,13 +72,18 @@ def s_choragwie(st, w, t, T):
     swiatlo(st, w, t)
 
 
+OJCIEC = 196  # ojciec-zakładnik klęczy: lalka niższa niż stojąca (286)
+
+
 def s_handan(st, w, t, T):
     """Pod bramą Handanu wysuwa się ojciec-zakładnik, a obok mała lalka chłopca."""
+    podpis(w, t, "ojciec Zhenga, książę Qin", 890, 436, 1.6, 1.5)  # tabliczka: pierwsze pojawienie się
+    podpis(w, t, "Zheng", 772, 424, 4.2)  # tabliczka: pierwsze pojawienie się
     k = ease(t / T)
     kam(st, t, 2, lerp(900, 850, k), lerp(470, 500, k), lerp(1.2, 1.45, k), 0.8)
     st.dof = 1.4
     swiat(st, t, w)
-    lalka(st, t, "ojciec", 890, 286, pr(t, 1.3, 1.1), flip=-1)
+    lalka(st, t, "ojciec", 890, OJCIEC, pr(t, 1.3, 1.1), flip=-1)
     lalka(st, t, "zheng_dziecko", 772, MALY, pr(t, 3.0, 1.0), seed=8)
     swiatlo(st, w, t)
 
@@ -91,19 +96,20 @@ def s_oblezenie(st, w, t, T):
     kam(st, t, 3, lerp(790, 820, ease(t / T)), 500, 1.45, 0.8)
     st.dof = 1.4
     swiat(st, t, w)
-    lalka(st, t, "ojciec", 890 + back_, 286, flip=-1, lean=3 * ease(pr(t, 1.0, 1.0)))
+    lalka(st, t, "ojciec", 890 + back_, OJCIEC, flip=-1, lean=3 * ease(pr(t, 1.0, 1.0)))
     lalka(st, t, "zheng_dziecko", 772 + back_ * 1.4, MALY, lean=4 * ease(pr(t, 1.2, 1.0)), seed=8)
     swiatlo(st, w, t, extra=(1.03, 0.98, 0.94))
 
 
 def s_kupiec(st, w, t, T):
     """Obok ojca wysuwa się kupiec, za nim wtacza się wóz ze skrzynią, na rampie rosną stosy monet."""
+    podpis(w, t, "kupiec Lü Buwei", 1050, 334, 1.8)  # tabliczka: pierwsze pojawienie się
     k = ease(t / T)
     kam(st, t, 4, lerp(940, 960, k), 500, lerp(1.4, 1.52, k), 0.8)
     st.dof = 1.4
     swiat(st, t, w)
     woz(st, t, lerp(1420, 1150, ease_out(pr(t, 1.6, 2.2))), flip=-1)
-    lalka(st, t, "ojciec", 916, 286, flip=1, lean=2 * settle((t - 1.6) / 1.5, 1.2))
+    lalka(st, t, "ojciec", 916, OJCIEC, flip=1, lean=2 * settle((t - 1.6) / 1.5, 1.2))
     lalka(st, t, "zheng_dziecko", 808, MALY, seed=8)
     lalka(st, t, "kupiec", 1050, 300, pr(t, 0.6, 1.1), flip=-1, lean=-4 * ease(pr(t, 2.2, 0.7)))
     for n, x in enumerate((968, 1000, 984)):
@@ -127,10 +133,10 @@ def s_ucieczka(st, w, t, T):
     st.dof = 1.2
     swiat(st, t, w)
     na_wozie = [(Z.lalka(k), hh, dx, 6 + 46 * (1 - back(pr(t, t0, 0.6), 1.3)))  # wyrastają zza skrzyni na wozie
-                for k, hh, dx, t0 in (("ojciec", 60, -34, 1.05), ("kupiec", 62, -10, 1.25)) if t > t0]
+                for k, hh, dx, t0 in (("ojciec", 42, -34, 1.05), ("kupiec", 62, -10, 1.25)) if t > t0]
     woz(st, t, lerp(1150, 470, go), flip=-1, ladunek=na_wozie)
     wlocznie(st, t, 1100, n=1, h=104, seed=6)  # straż stoi za wzgórzem i nie rusza się
-    lalka(st, t, "ojciec", 916, 286, sink=pr(t, 0.2, 0.9))
+    lalka(st, t, "ojciec", 916, OJCIEC, sink=pr(t, 0.2, 0.9))
     lalka(st, t, "kupiec", 1050, 300, flip=-1, sink=pr(t, 0.4, 0.9))
     lalka(st, t, "zheng_dziecko", 808, MALY, seed=8, flip=-1 if t > 2.2 else 1, lean=-3 * ease(pr(t, 2.2, 1.0)))
     swiatlo(st, w, t)
@@ -176,6 +182,8 @@ KANCLERZ = 604
 
 def s_regent(st, w, t, T):
     """Sala: mały król na podwyższeniu, obok wyrasta kanclerz; urzędnicy kłaniają się kanclerzowi."""
+    podpis(w, t, "król Zheng", TRON[0], 372, 2.6, 2.4)  # tabliczka: pierwsze pojawienie się
+    podpis(w, t, "kanclerz Lü Buwei", KANCLERZ, 290, 4.6)  # tabliczka: pierwsze pojawienie się
     kam(st, t, 9, 690, 420, lerp(1.0, 1.08, ease(t / T)), 0.8)
     st.dof = 0.8
     sala(st, t, w)
@@ -203,6 +211,7 @@ def s_nauka(st, w, t, T):
 
 def s_dorosl(st, w, t, T):
     """Mała lalka króla opada, na jej miejscu wysuwa się duża; w oknach łuna i włócznie buntu."""
+    podpis(w, t, "król Zheng, dorosły", TRON[0], 222, 3.2, 2.6)  # tabliczka: pierwsze pojawienie się
     red = ease(pr(t, 3.0, 1.2))
     kam(st, t, 11, 560, 430, lerp(1.22, 1.3, ease(t / T)), 0.785)
     st.dof = 1.0
@@ -270,6 +279,7 @@ def s_trucizna(st, w, t, T):
 
 def s_lisi(st, w, t, T):
     """Obok króla wysuwa się Li Si i kłania się; urzędnicy klęczą twarzą do króla."""
+    podpis(w, t, "Li Si, doradca", KANCLERZ, 318, 1.6)  # tabliczka: pierwsze pojawienie się
     k = ease(t / T)
     kam(st, t, 15, lerp(580, 560, k), 450, lerp(1.22, 1.38, k), 0.785)
     st.dof = 1.0
@@ -408,6 +418,7 @@ def _sala_zamach(st, t, w, stolik=1.0, zwoj="zwiniety", szkatula=1.0, lisi=0.0, 
 
 def s_dary(st, w, t, T):
     """Po prawej wysuwa się stół, za nim Jing Ke; na stole stają szkatuła i zwinięta mapa."""
+    podpis(w, t, "Jing Ke z Yan", JINGKE, 336, 2.2)  # tabliczka: pierwsze pojawienie się
     kam(st, t, 24, lerp(700, 720, ease(t / T)), 440, 1.08, 0.8)
     st.dof = 0.8
     _sala_zamach(st, t, w, stolik=pr(t, 0.4, 1.1), szkatula=pr(t, 2.0, 0.5), zwoj="zwiniety" if t > 2.6 else None)
@@ -466,6 +477,7 @@ def s_kolumna(st, w, t, T):
 
 def s_lekarz(st, w, t, T):
     """Klęczący lekarz unosi się i ciska torbą z lekami: torba leci łukiem i trafia zamachowca."""
+    podpis(w, t, "nadworny lekarz", 1168, 404, 0.3, 2.4)  # tabliczka: pierwsze pojawienie się
     f = pr(t, 2.0, 0.75)
     hit = pr(t, 2.75, 0.3)
     kam(st, t, 28, lerp(860, 800, ease(t / T)), 480, 1.2, 0.8)

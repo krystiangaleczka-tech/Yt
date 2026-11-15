@@ -33,7 +33,7 @@ AKTY = [
                  "niebieska chorągiew drży", "L: Qin właśnie oblegało to miasto, więc sąsiedzi mieli powód, żeby nienawidzić chłopca z rodziny wroga."),
             ]),
             ("Kupiec", [
-                ("kupiec", "PŚ", "naj", N, "obok ojca wysuwa się lalka kupca w purpurowym obszyciu, za nim koń wtacza wóz ze skrzynią, a na rampie "
+                ("kupiec", "PŚ", "naj", N, "obok ojca wysuwa się lalka kupca w fioletowej jedwabnej szacie, za nim koń wtacza wóz ze skrzynią, a na rampie "
                  "rośnie stos monet", "L: Ojca wypatrzył jednak bogaty kupiec Lü Buwei, który uznał, że książę na wygnaniu to towar, na którym "
                  "można zarobić królestwo."),
                 ("ucieczka", "PP", "jaz", N, "noc: ojciec i kupiec chowają się pod rampę i wyrastają na wozie, a koń ciągnie wóz na zachód obok włóczni straży; "
