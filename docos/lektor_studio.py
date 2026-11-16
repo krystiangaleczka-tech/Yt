@@ -25,6 +25,7 @@ uruchom w środowisku z resemble-enhance (Mac: pilot/.venv-enhance, PC: .venv-en
   python -I docos/lektor_studio.py podejscia <katalog lektora filmu> [--teatr]
 """
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -42,9 +43,14 @@ import pauzy_lektora  # noqa: E402
 # o 3 %, z pauzami losowanymi): „w ten sposób chcę mieć zawsze robiony lektor dla paper theatre”.
 TEATR = {"exaggeration": 1.0, "cfg_weight": 0.3, "temperature": 0.7}   # Chatterbox Multilingual, w lektor.py filmu
 TEMPO = 0.97   # mowa wolniej o 3 % (ffmpeg atempo — wysokość głosu bez zmian), na wybranym podejściu, przed pauzami
+# film może mieć własne tempo (TEATR_TEMPO, np. 0.81 — „Pierwszy cesarz” EN w tempie czytania autora, 16.11.2026)
+TEMPO = float(os.environ.get("TEATR_TEMPO", TEMPO))
 # sucho: cisza na brzegach precz, bramka na szum między słowami, kompresja, mniej buczenia, więcej czytelności
-FX = ("silenceremove=start_periods=1:start_threshold=-42dB,areverse,"
-      "silenceremove=start_periods=1:start_threshold=-42dB,areverse,"
+# Cisza na brzegach obcinana dopiero poniżej -55 dB z zapasem 0,12 s: przy -42 dB cięcie wypadało w wybrzmieniu
+# ostatniego słowa, a loudnorm podnosił je potem o ok. 20 dB — kwestia urywała się przy -22 dB (reżyser 16.11.2026:
+# „dziwne przycięcia przy końcu słowa”).
+FX = ("silenceremove=start_periods=1:start_threshold=-55dB:start_silence=0.12,areverse,"
+      "silenceremove=start_periods=1:start_threshold=-55dB:start_silence=0.12,areverse,"
       "highpass=f=70,agate=threshold=0.02:ratio=3:release=120,"
       "acompressor=threshold=-20dB:ratio=3:attack=5:release=80:makeup=2,"
       "equalizer=f=220:t=q:w=1:g=-1.5,equalizer=f=4200:t=q:w=1.2:g=2,"
