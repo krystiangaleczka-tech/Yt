@@ -15,6 +15,8 @@ Ujęcia: ujecia1.py (akty 1–4) i ujecia2.py (akty 5–8), funkcja `s_<klucz>(s
   NADPISZ=1 …                               — wszystkie wybrane ujęcia od nowa
   SZKIC=1 …                                 — szkic 640 × 360, 12 kl./s (przegląd w Studio); bez tego pełna jakość
   NAPISY=0 …                                — bez napisów (czyste ujęcia pod lektora i napisy ze Studio)
+  FILM=1 …                                  — klipy do złożenia całego filmu (render końcowy, zloz.py): klatki na
+                                              wspólnej siatce czasu filmu, film trwa tyle co oś w Studio
 Moduł ma SCENES, DUR, FPS i frame(t) — tak jak pozostałe filmy (scripts/kontrola_ujec.py, wgrywanie do Studio).
 """
 import hashlib
@@ -69,6 +71,21 @@ for _akt, _k, _klucz, _kadr, _ruch, _sec, _opis, _snd in UJ:
     SCENES.append((_t, _t + _sec, _ruch, kwestia(_snd), *okno_kwestii(_snd)))
     _t += _sec
 DUR = _t
+
+# Ile klatek ma klip ujęcia. Klipy do Studio: zaokrąglone w górę, żeby klip pokrył całe miejsce ujęcia na osi.
+# Render końcowy (FILM=1, pc\renderuj*.bat → zloz.py): ujęcie kończy się na klatce najbliższej swojemu końcowi
+# w rozpisce, więc klipy złożone jeden po drugim trwają dokładnie tyle co oś w Studio, a każde cięcie mija się z nią
+# najwyżej o pół klatki. Zaokrąglanie w górę przy 24 kl./s i długościach w dziesiątych sekundy wydłużało prawie każde
+# ujęcie o ułamek klatki: złożony film „Pierwszego cesarza” EN był o 1,3 s dłuższy od osi, a muzyka i efekty
+# (liczone w sekundach rozpiski) rozjeżdżały się z obrazem — w połowie filmu o ok. 0,6 s (16.11.2026).
+FILM = os.environ.get("FILM", "0") == "1"
+
+
+def klatki_ujecia(i):
+    a, b = SCENES[i][:2]
+    if FILM:
+        return math.floor(b * FPS + 0.5) - math.floor(a * FPS + 0.5)
+    return math.ceil((b - a) * FPS - 1e-9)
 
 
 # ---- przejścia między ujęciami (reżyser 15.11: kurtyna między aktami, ściemnienie przy zmianie miejsca) ----
@@ -237,11 +254,11 @@ def _pustka(i):
 
 
 def _klip(arg):
-    """Renderuje jedno ujęcie do pliku mp4 (klatki zaokrąglone w górę, żeby klip pokrył ujęcie na osi)."""
+    """Renderuje jedno ujęcie do pliku mp4 (liczba klatek: klatki_ujecia)."""
     import subprocess
     i, out = arg
     a, b = SCENES[i][:2]
-    n = math.ceil((b - a) * FPS - 1e-9)
+    n = klatki_ujecia(i)
     ow, oh = int(round(W * papier.Q)), int(round(H * papier.Q))
     part = out.with_name(out.stem + ".part.mp4")  # plik niedokończony nie wygląda na gotowy po przerwaniu
     proc = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{ow}x{oh}",
@@ -308,7 +325,7 @@ def odcisk(i):
     zr = {}
     _zrodlo(FNS[i], zr)
     dane = [_WSPOLNE, KOL[i], KOL[i] in BUDUJ, sorted((repr(k), v) for k, v in zr.items()), repr(swiat.stan(i)),
-            round(b - a, 6), math.ceil((b - a) * FPS - 1e-9), papier.Q, FPS, NAPISY, CRF, PRESET,
+            round(b - a, 6), klatki_ujecia(i), papier.Q, FPS, NAPISY, CRF, PRESET,
             txt if NAPISY else "", round(vs, 6), round(vl, 6), i == 0, i == len(SCENES) - 1]
     return hashlib.sha256(json.dumps(dane, ensure_ascii=False, default=str).encode()).hexdigest()[:20]
 
@@ -407,8 +424,8 @@ if __name__ == "__main__":
             clip = out / f"{ODN[i]}.mp4"
             if FNS[i] is None or not clip.exists() or (only and i + 1 not in only) or _plik_odcisku(clip).exists():
                 continue
-            n = math.ceil((SCENES[i][1] - SCENES[i][0]) * FPS - 1e-9)
-            got = int(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-show_entries",
+            n = klatki_ujecia(i)
+            got =int(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-show_entries",
                                       "stream=nb_read_packets", "-of", "csv=p=0", str(clip)], capture_output=True, text=True).stdout or 0)
             print(f"{ODN[i]} {KOL[i]}: {'przyjęty' if got == n else f'NIE — {got} klatek, ujęcie ma {n}'}")
             if got == n:

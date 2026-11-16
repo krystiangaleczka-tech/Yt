@@ -79,6 +79,14 @@ Zasady:
   koniec ujęcia może się minąć ze stopklatką o ułamek sekundy; wyrówna to render końcowy.
 - **Render końcowy** liczy tylko ujęcia, które zmieniły się od poprzedniego renderu do tego samego katalogu (odcisk
   klipu: kod ujęcia, stan świata, długość, napis, jakość). Koduje dokładnie (`PRESET=slow`).
+- **Gotowy plik na YouTube** składa `zloz.py` z klipów renderu końcowego: obraz, lektor, muzyka i efekty zmiksowane
+  jak montaż w Studio (głośności ścieżek z osi, suma bez normalizacji, ogranicznik 0,95). Eksport MP4 w Studio tego
+  nie zastępuje — projekt ma rozdzielczość i klipy podglądu. Klipy do złożenia filmu renderuje się z `FILM=1`:
+  ujęcie kończy się na klatce najbliższej końcowi z rozpiski, więc film trwa tyle co oś w Studio. Klipy do Studio
+  (bez `FILM=1`) są zaokrąglone w górę, żeby pokryły miejsce ujęcia na osi; złożone jeden po drugim byłyby dłuższe
+  od osi (16.11.2026, „Pierwszy cesarz” EN: o 1,3 s, muzyka i efekty obok obrazu) — `zloz.py` takich nie składa.
+  Nagrania lektora, muzyka i efekty nie idą na GitHuba: przed renderem na innym komputerze trzeba je tam skopiować,
+  a `zloz.py --sprawdz` sprawdza, czy są z tej samej wersji co rozpiska.
 - 15.11.2026 wykonawca pomylił klipy ujęć z renderem końcowym i zamiast nowych klipów dał do Studio same obrazy
   z klatkami — reżyser: „dla mnie render to jest render, czyli końcowe wygenerowanie filmu do wrzucenia na
   YouTube”. Podgląd z obrazów (`studio_pc.py --podglad`) to tylko awaryjna szybka ilustracja, nie zamiast klipów.
