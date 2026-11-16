@@ -1,0 +1,5 @@
+# W repo zostaje tylko gotowa miniaturka do wgrania (wytyczne 5.3); resztę rysuje miniatura.py + fujifilm.py
+*
+!.gitignore
+!miniatura_en_4k_fuji.png
+!miniatura_en_fuji.jpg

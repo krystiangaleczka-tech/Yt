@@ -165,7 +165,60 @@ Zanim ujęcie trafi do Studio do oceny:
 - Plik ujęcia ma pokryć całą długość ujęcia na osi (zaokrąglaj liczbę klatek renderu w górę).
 - Nie usuwaj uwag ani markerów reżysera — to jego notatki.
 
-## 5. Skąd te zasady (Zombie Psychiatryk — Oddział C, 3.11.2026)
+## 5. Miniaturka na YouTube
+
+Wzorzec: „Pierwszy cesarz” (16.11.2026) — `output/pierwszy-cesarz/miniatura.py` (scena) i `fujifilm.py` (wygląd zdjęcia).
+Dla nowego filmu skopiuj oba skrypty do jego katalogu i podmień wycinki, scenę i napisy.
+
+### 5.1 Układ: zbliżenie, nie plan ogólny
+Miniaturkę składa ten sam silnik i te same wycinki co film (teatr papierowy: `papier.py`, `zestaw.py`) — nie osobna
+grafika. Reżyser wybrał **zbliżenie**; plan ogólny całej sceny przegrał, bo w małym rozmiarze postacie są za drobne.
+- **Po lewej** duża główna postać do pasa przed dekoracją filmu (cesarz przed miastem), z **grubym białym obrysem**
+  (ok. 9 px w 1280 × 720). Wskazuje na wydarzenie po prawej.
+- **Po prawej** najmocniejsza, najzabawniejsza scena filmu (chłopi z narzędziami w górze, gliniany żołnierz do góry
+  nogami w rozkroku jak w pajacyku), postacie z jasnym kartonowym obrysem, żeby odcinały się od wzgórz.
+- **W tle** jedno dramatyczne zdarzenie (meteoryt z ognistym ogonem), na ciemnym niebie, żeby ogień świecił.
+- **Napisy:** szyld z tytułem u góry i krótkie tabliczki z okrzykiem przy postaciach („NO WAY?!”, „OH!”), lekko
+  przekrzywione (ok. 7°). Najwyżej 3–4 napisy, każdy po 1–3 słowa, w języku wersji (1.13). Na YouTube idzie tylko
+  wersja angielska.
+- **Komiczny akcent na twarzy:** grube czarne spirale wprost na oczach — bez białego tła pod spodem; oko pod spiralą
+  zakryte kolorem skóry z policzka, brwi zostają.
+- Postacie rysowane kodem specjalnie do miniaturki są większe i dokładniejsze niż w filmie (oczy, mimika), bo stoją na
+  pierwszym planie; dwie postacie to różne sylwetki i stroje, nie odbicie lustrzane (1.6).
+
+### 5.2 Czytelność w małym rozmiarze
+- Oglądaj miniaturkę zmniejszoną do **320 × 180** (lista filmów na YouTube): tytuł, główna postać, tabliczki
+  i wydarzenie mają się czytać.
+- Prawy dolny róg zasłania czas filmu — nie stawiaj tam niczego ważnego.
+- Obejrzyj zbliżenia każdej grupy: nic się nie styka ani nie nachodzi przypadkiem (narzędzie na meteorycie, grudy
+  ziemi na glinie wyglądają jak dziury, ostrze ucięte krawędzią arkusza wygląda jak grot włóczni, szyld z dłuższym
+  tytułem EN dotyka krawędzi kadru).
+- Test pustki w barwie magenty jak w ujęciach (1.3): kadr nie odsłania końca dekoracji.
+
+### 5.3 Najwyższa jakość pliku
+- YouTube zaleca **3840 × 2160** i przyjmuje do 50 MB przy wgrywaniu z komputera (z telefonu 2 MB). Rysuj wprost
+  w 4K: `ROZMIAR=3840 python3 miniatura.py en` → `miniatura_en_4k.png` i z tego samego rysunku 1280 × 720 JPG.
+- Nic nie jest powiększone z małego obrazu: wycinki rysowane kodem powstają w skali ekranu (`stack_k`), obrazy
+  z plików (postać, brama) powiększa Lanczos przed sceną (`wycinek_hd`). Ostrość ustawiona na planie lalek.
+- **Nie zmieniaj `zestaw.py` dla miniaturki.** Zmiana tego pliku zmienia odcisk wszystkich klipów i `render.py`
+  rysowałby cały film od nowa. Kopię rysunku (np. glinianego żołnierza) trzymaj w `miniatura.py`.
+- Do wgrania: PNG bez strat (`miniatura_en_4k_fuji.png`, ok. 16 MB); z telefonu: `miniatura_en_fuji.jpg`. W repo
+  zostają tylko te dwa pliki (`miniatura/.gitignore`).
+
+### 5.4 Wygląd zdjęcia z aparatu (Fujifilm)
+`python3 fujifilm.py miniatura/miniatura_en_4k.png 1280` — w duchu Fujifilm Classic Negative: lekko wyblakła czerń,
+chłodne cienie, ciepłe światła, przygaszona zieleń, ziarno (dokładane osobno w każdym rozmiarze), poświata wokół ognia,
+winieta. Efekt ma być **delikatny**: zatwierdzona siła `MOC=0.5` (1,8 „za mocny”, 0,8 „może za dużo tego fuji”)
+i rozjaśnienie półtonów `JASNOSC=0.07` (czerń i biel bez zmian). Czysty obraz zostaje obok.
+
+### 5.5 Kolejność pracy
+1. Ułóż scenę w `KADRY` (położenia w pikselach ekranu 1280 × 720) i oglądaj szybki podgląd: `JAKOSC=1` (ok. 8 s).
+2. Sprawdź zbliżenia grup, rozmiar 320 × 180 i test pustki (5.2).
+3. Narysuj 4K i nałóż Fujifilm (5.3, 5.4) — razem ok. 35 s. Reżyserowi oddawaj plik po efekcie.
+4. Poprawki reżysera są zwykle małe („przekrzyw”, „niżej”, „grubsze”, „mniej fuji”): jedna liczba w `KADRY`,
+   `OCZY_CESARZA` albo `MOC`, potem znowu krok 3.
+
+## 6. Skąd te zasady (Zombie Psychiatryk — Oddział C, 3.11.2026)
 
 | Ujęcie | Błąd | Zasada |
 |---|---|---|
@@ -224,6 +277,9 @@ Zanim ujęcie trafi do Studio do oceny:
 | Pierwszy cesarz EN (16.11, reżyser, markery w 58, 71, 77) | reżyser dopisał grę lalkom: olbrzymi „prężą muskuły” (ręce na zawiasach w barku i łokciu, każdy we własnej chwili), ryba „odskoczy do góry i wypadnie na ziemię” (spada z płachty powozu na drogę i trzepocze), nad chłopem „tabliczka o!”, a chłop „otrzep go z ziemi” (odkłada motykę, otrzepuje szmatką żołnierza, grudy odpadają, glina jaśnieje) — ujęcia miały za mało wydarzeń | 1.8, 1.11, 1.12 |
 | Pierwszy cesarz EN (16.11, reżyser, markery w 72) | „niech ten list, spadając, walnie mu w głowę, i na 1 s stun”, „zabierz mu ten papier i pojaw sztylet w jego kierunku, i po chwili wbij go, i dźwięki konania” — druga uwaga o śmierci bez czynności (pierwsza 15.11, 1.11): Fusu tylko opadał za wzgórze; teraz list uderza go w głowę (gwiazdki przez sekundę), odlatuje mu z rąk, sztylet pojawia się ostrzem do niego i wbija się w pierś, Fusu kona (rzężenie, kaszel) i opada | 1.11, 1.12 |
 | Pierwszy cesarz EN (16.11, kontrola przed wgraniem) | nowe zdarzenia dźwiękowe w ujęciach 26, 71, 72, 77 przesunęły wspólne losowanie szumu, więc przeliczenie zmieniało efekty w ujęciach 25–79 — plik nie trafił do Studio; teraz poprawione ujęcia losują nowe dźwięki osobno (`efekty.W_STUDIO`), a porównanie próbek z plikiem w Studio wskazało różnice tylko w 26, 71, 72 i 77, muzyka bit w bit ta sama | 1.12 |
+| Miniaturka Pierwszego cesarza (16.11, reżyser) | z dwóch koncepcji wygrało zbliżenie; plan ogólny miał za drobne postacie; cesarz bez obrysu ginął na tle miasta; tabliczka „NO WAY?!” prosta i za wysoko | 5.1 |
+| Miniaturka (16.11, znalezione w kontroli) | ostrze łopaty ucięte krawędzią arkusza wyglądało jak grot; grudy ziemi na żołnierzu jak dziury; szyld z tytułem EN dotykał krawędzi kadru; meteoryt nachodził na ostrze łopaty | 5.2 |
+| Miniaturka (16.11, reżyser) | Fujifilm o sile 1,8 „za mocny”, 0,8 nadal za dużo → 0,5 i minimalne rozjaśnienie; spirale na oczach z białym tłem → grube czarne wprost na skórze | 5.1, 5.4 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
