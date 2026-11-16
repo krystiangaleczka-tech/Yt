@@ -43,7 +43,8 @@ import pauzy_lektora  # noqa: E402
 # o 3 %, z pauzami losowanymi): „w ten sposób chcę mieć zawsze robiony lektor dla paper theatre”.
 TEATR = {"exaggeration": 1.0, "cfg_weight": 0.3, "temperature": 0.7}   # Chatterbox Multilingual, w lektor.py filmu
 TEMPO = 0.97   # mowa wolniej o 3 % (ffmpeg atempo — wysokość głosu bez zmian), na wybranym podejściu, przed pauzami
-# film może mieć własne tempo (TEATR_TEMPO, np. 0.81 — „Pierwszy cesarz” EN w tempie czytania autora, 16.11.2026)
+# film może mieć własne tempo (TEATR_TEMPO), ale nie wolniej niż 0.97: przy 0.81 („Pierwszy cesarz” EN w tempie autora)
+# rozciągnięta mowa brzmiała jak autotune (reżyser 16.11.2026) — wolniejszy film = dłuższe pauzy (PAUZY_SKALA)
 TEMPO = float(os.environ.get("TEATR_TEMPO", TEMPO))
 # sucho: cisza na brzegach precz, bramka na szum między słowami, kompresja, mniej buczenia, więcej czytelności
 # Cisza na brzegach obcinana dopiero poniżej -55 dB z zapasem 0,12 s: przy -42 dB cięcie wypadało w wybrzmieniu
@@ -124,8 +125,32 @@ def probka(src, dst, sekundy=16.0):
     print(f"próbka bez pogłosu → {dst}")
 
 
+def bez_doklejki(raw, dst):
+    """Chatterbox bywa, że po skończonej kwestii, po ciszy, dokleja na sam koniec pliku krótki niski trzask (bez szumu
+    głoski i bez tonu; „Pierwszy cesarz” EN, krol13 w obu ziarnach, 16.11.2026) — urwany na końcu pliku brzmi jak
+    ucięte słowo. Najwyżej 0,2 s dźwięku po co najmniej 0,1 s ciszy (< -50 dB) na samym końcu: wycięty, cisza przed
+    nim zostaje. → True, gdy wyciął."""
+    y, sr = sf.read(str(raw), dtype="float32")
+    h = int(sr * 0.005)
+    db = np.array([10 * np.log10(np.mean(y[i:i + h] ** 2) + 1e-12) for i in range(0, len(y) - h + 1, h)])
+    glos = np.where(db > -40)[0]
+    if not len(glos) or (len(db) - 1 - glos[-1]) * 0.005 > 0.05:
+        return False
+    i, cich = glos[-1], 0
+    while i > 0 and cich < 20:   # 20 ramek = 0,1 s ciszy przed doklejką
+        i -= 1
+        cich = cich + 1 if db[i] < -50 else 0
+    start = i + cich             # pierwsza ramka po ciszy
+    if i == 0 or (glos[-1] - start) * 0.005 > 0.2:
+        return False
+    sf.write(str(dst), y[:start * h], sr, subtype="PCM_16")
+    return True
+
+
 def obrob(raw, dst):
     tmp = Path(tempfile.mkdtemp())
+    if bez_doklejki(raw, tmp / "raw.wav"):
+        raw = tmp / "raw.wav"
     _ffmpeg(raw, tmp / "fx.wav", FX)
     _enhance(tmp / "fx.wav", tmp / "e.wav", lambd=0.1)   # próbka już czysta: chodzi o pasmo, nie o odszumianie
     _ffmpeg(tmp / "e.wav", dst, POST)

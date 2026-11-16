@@ -58,6 +58,20 @@ Lektor teatru papierowego zawsze według przepisu z zasady 8.
    - Mocna ekspresja częściej się powtarza — dlatego zawsze trzy podejścia; podejście z powtórzeniem odpada.
    - Pauzę mierzy się jako ciszę między słowami, nie odstęp między plikami: plik kwestii bywa z ciszą na końcu.
    - Wersja angielska (Turbo) jeszcze bez tego przepisu: Turbo nie ma tych ustawień, a zakresy pauz są pod polski.
+   - Mowy nie zwalnia się bardziej niż o te 3 %: rozciągnięta mowa (atempo 0,81) brzmi jak autotune, samogłoski
+     falują. Film czytany wolniej dostaje dłuższe pauzy (`PAUZY_SKALA`, np. 1,3) i przecinki frazowania w tekście
+     mówionym przed nagraniem, a nie rozciąganie.
+9. **Kwestia nie może się urywać.** Każde słowo wygasa samo, także ostatnie w kwestii („dziwne przycięcia w środku
+   słowa albo przy końcu słowa”, 16.11.2026). Przed odsłuchem i przed Studio: `docos/uciecia_lektora.py <katalog
+   lektora>` — zero uwag.
+   - Ciszę obcina się tylko na brzegach, dopiero poniżej −55 dB i z zapasem 0,12 s (`lektor_studio.py`). W pauzach
+     zostaje 0,12 s wybrzmienia wygaszanego do zera i 0,06 s nabiegu przed słowem (`pauzy_lektora.py`). Kwestii
+     pociętych z nagrania autora nie przycina się drugi raz po ciszy — tylko łagodne wejście i wygaszenie.
+   - Chatterbox czasem urywa ostatnie słowo (podejście kończy się głosem, nie ciszą), a resemble-enhance rzadko
+     wycina ciche wybrzmienie jak szum. Takiej kwestii nie łata się obróbką: nagrywa się ją innym ziarnem i wybrane
+     podejście wpisuje w `wybor.json`.
+   - Ciszy (oddechów) nie wstawia się w gotowe nagranie klona po fakcie — automat brał za przerwę miejsce w środku
+     słowa.
 
 ## Jak
 
@@ -68,6 +82,10 @@ pilot/.venv-enhance/bin/python -I docos/lektor_studio.py probka nagranie.m4a pil
 pilot/.venv-tts/bin/python -I output/<film>/lektor.py [klucz …]
 # po zmianie wybor.json (teatr papierowy: z --teatr, jak lektor.py)
 pilot/.venv-enhance/bin/python -I docos/lektor_studio.py podejscia output/<film>/lektor --teatr
+# kontrola urwanych słów (zasada 9) — przed odsłuchem i przed Studio
+pilot/.venv-enhance/bin/python -I docos/uciecia_lektora.py output/<film>/lektor
+# kwestie do nagrania od nowa innym ziarnem (na Macu bez Whispera: SPRAWDZ=0, LEKTOR_DEVICE=mps), potem wybor.json
+ZIARNA=7 BEZ_OBROBKI=1 TEATR=1 pilot/.venv-tts/bin/python -I output/<film>/lektor.py klucz1 klucz2
 # próba ciągłego tekstu (kwestie sklejone z pauzami po zdaniach), inne ziarno = inne pauzy
 pilot/.venv-enhance/bin/python -I docos/pauzy_lektora.py output/<film>/lektor proba.wav klucz1 klucz2 … --ziarno 1
 ```
@@ -98,3 +116,5 @@ modelu ma ścieżki uniksowe — `lektor_studio.py` obchodzi oba sam (`_resemble
 | 13.11.2026 | „Musi się śmiać, robić pauzy, emocje — tekst ma być po angielsku” | Multilingual nie czyta znaczników | 7 |
 | 14.11.2026 | Między wersjami „nie wiem, który lepszy”; wybór: mocna ekspresja (C), spowolniona o 3 % | Ustawienia mało zmieniają melodię (trzyma się próbki), słychać tempo i akcent | 8 |
 | 14.11.2026 | Po „całą” za długa przerwa, po „zakładnik” za krótka; przecinek po samogłosce i co drugie zdanie dłużej; pauzy mają być różne jak u człowieka | Ukryta cisza na końcu pliku kwestii; pauza nie zależała od długości zdania | 8 |
+| 16.11.2026 | Wydłużone „Handan” u klona „jak autotune”, u autora naturalnie | Rozciąganie gotowej mowy o 19 % (atempo 0,81) rozmazuje samogłoski | 8 |
+| 16.11.2026 | „Dziwne przycięcia w środku słowa albo przy końcu słowa” (EN, 7:21, 7:40, 7:47, 8:03 odsłuchu) | Wstawiane po fakcie oddechy cięły słowa; pauzy ucinały wybrzmienie (0,03 s i cyfrowe zero); obróbka obcinała ciszę na −42 dB, a loudnorm podnosił cięcie o ok. 20 dB; składanie kwestii autora obcinało ciszę drugi raz (−50 dB); Chatterbox urwał ostatnie słowo w 5 z 67 kwestii, resemble-enhance wyciął wybrzmienie w 1 | 9 |

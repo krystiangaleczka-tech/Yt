@@ -1,0 +1,10 @@
+{
+ "_uwaga": "16.11.2026: wybór z kontroli urwanych słów (docos/uciecia_lektora.py), nie z odsłuchu reżysera — w 42 model urwał ostatnie słowo (trucizna, poselstwo, morze, chu) albo enhance wyciął wybrzmienie (wei); krol13 i sztylet zostają w 42 (trzask na końcu pliku wycina obróbka)",
+ "trucizna": 7,
+ "poselstwo": 7,
+ "morze": 7,
+ "wei": 7,
+ "krol13": 42,
+ "sztylet": 42,
+ "chu": 123
+}
