@@ -10,7 +10,9 @@ uruchom:  python3 efekty.py            → dzwiek/muzyka.wav, dzwiek/efekty.wav 
 """
 import math
 import sys
+import os
 import wave
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -22,6 +24,7 @@ from dane import JEZYK, okno_kwestii, ujecia  # noqa: E402
 
 SR = 44100
 OUT = HERE / ("dzwiek_en" if JEZYK == "en" else "dzwiek")  # JEZYK=en: czasy z lektor_en/, polska wersja zostaje w dzwiek/
+OUT = Path(os.environ.get("DZWIEK_DO", OUT))  # DZWIEK_DO=katalog: próba obok plików wgranych do Studio (porównanie próbek)
 RNG = np.random.default_rng(7)
 
 
@@ -414,6 +417,22 @@ ZDARZENIA.update({
 })
 
 
+# Dźwięk poprawia się punktowo (wytyczne 1.12): wszystkie zdarzenia filmu losują szum z jednego RNG po kolei, więc nowe
+# zdarzenie w jednym ujęciu zmieniłoby efekty całej reszty filmu. Tu stoją zdarzenia ujęcia w takiej postaci, w jakiej
+# były w pliku efektów wgranym do Studio przed pierwszą poprawką tego ujęcia: main() syntezuje je wspólnym RNG (te same
+# losowania co w Studio), zostawia te, które są dalej w ZDARZENIA, a nowe zdarzenia ujęcia losuje z osobnego RNG
+# (ziarno z klucza ujęcia). Wpis dopisuje się raz, przy pierwszej poprawce dźwięku ujęcia, i już się go nie zmienia —
+# to on trzyma losowania reszty filmu; kolejne poprawki tego ujęcia zmieniają tylko ZDARZENIA.
+W_STUDIO = {
+    # markery reżysera 16.11.2026 (ujęcia 26, 71, 72, 77); stan pliku w Studio: efekty.py z bfb55a5
+    "sztylet": [(0.3, "whoosh", 0.35), (0.9, "whoosh", 0.4), (1.85, "knock", 0.5), (2.6, "sword", 0.8)],
+    "ryby": [(0.0, "wagon", 12.0), (3.2, "whoosh", 0.3), (4.05, "splash", 0.5), (7.4, "whoosh", 0.3), (8.25, "splash", 0.5)],
+    "list": [(0.6, "flap", 3.6), (1.9, "whoosh", 0.5), (2.8, "knock", 0.3), (6.6, "thud", 0.3)],
+    "studnia": [(0.54 + 0.9 * k, "thud", 0.5) for k in range(3)] + [(0.22 + 1.1 * k, "thud", 0.4) for k in range(3)]
+               + [(3.2, "thud", 0.6), (3.3, "whoosh", 0.4), (5.0, "whoosh", 0.4), (5.6, "rumble", 1.2)],
+}
+
+
 DLUGIE = ("march", "hooves", "fire", "water", "wagon", "steps", "dig", "roll", "rumble", "flap", "pisanie", "stun")
 
 
@@ -506,6 +525,40 @@ def muzyka(total, voice_mask, acts):
 AKT_NASTROJ = {1: "spokoj", 2: "spokoj", 3: "wojna", 4: "wojna", 5: "spokoj", 6: "noc", 7: "noc", 8: "wojna"}
 
 
+def dzwiek(at, kind, g, sec):
+    if isinstance(g, tuple):  # (długość syntezy, ile z niej słychać): skrócenie dźwięku bez zmiany losowań reszty filmu
+        s = long_sound(kind, min(g[0], sec - at))[:N(g[1])].copy()
+        s[-N(0.05):] *= np.linspace(1, 0, N(0.05))
+        return s
+    return long_sound(kind, min(g, sec - at)) if kind in DLUGIE else SFX[kind]() * g
+
+
+def dzwieki_ujecia(klucz, evs, sec):
+    """Dźwięki zdarzeń ujęcia [(at, kind, g, próbki)]. Ujęcie z W_STUDIO: najpierw jego stare zdarzenia wspólnym RNG
+    (zostają te, które są dalej w evs), potem nowe zdarzenia z osobnego RNG — reszta filmu ma te same losowania."""
+    global RNG
+    evs = [e for e in evs if e[0] < sec]
+    if klucz not in W_STUDIO:
+        return [(*e, dzwiek(*e, sec)) for e in evs]
+    from collections import Counter
+    dodatki = evs[len([e for e in ZDARZENIA.get(klucz, []) if e[0] < sec]):]  # przejścia i zmiana dekoracji
+    zostaje, out = Counter(evs), []
+    for e in [e for e in W_STUDIO[klucz] if e[0] < sec] + dodatki:
+        s = dzwiek(*e, sec)
+        if zostaje[e]:
+            zostaje[e] -= 1
+            out.append((*e, s))
+    wspolny, RNG = RNG, np.random.default_rng([7, zlib.crc32(klucz.encode())])
+    try:
+        for e in evs:
+            if zostaje[e]:
+                zostaje[e] -= 1
+                out.append((*e, dzwiek(*e, sec)))
+    finally:
+        RNG = wspolny
+    return out
+
+
 def zapisz(path, x):
     x = np.tanh(x * 1.2) * 0.9
     with wave.open(str(path), "wb") as w:
@@ -542,15 +595,7 @@ def main():
             evs += [(sec - R.CIEMNO, "whoosh", 0.18)]
         if klucz in R.BUDUJ:  # zmiana dekoracji: papier i drewno w rytm wjeżdżających elementów
             evs += [(d, "whoosh", 0.35) for d in (0.0, 0.25, 0.45, 0.65, 0.9)] + [(d, "knock", 0.3) for d in (0.75, 1.05, 1.4, 1.7)]
-        for at, kind, g in evs:
-            if at >= sec:
-                continue
-            if isinstance(g, tuple):  # (długość syntezy, ile z niej słychać): skrócenie dźwięku bez zmiany losowań reszty filmu
-                s = long_sound(kind, min(g[0], sec - at))[:N(g[1])].copy()
-                s[-N(0.05):] *= np.linspace(1, 0, N(0.05))
-            else:
-                s = long_sound(kind, min(g, sec - at)) if kind in DLUGIE \
-                    else SFX[kind]() * g
+        for at, kind, g, s in dzwieki_ujecia(klucz, evs, sec):
             j = N(t0 + at)
             fx[j:j + len(s)] += s[:n - j]
             events += 1

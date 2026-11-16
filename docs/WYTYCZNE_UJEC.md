@@ -51,6 +51,13 @@ zamknięte drzwi sprawdza się klamką, a nie tylko się o nich mówi.
 - Na scenie stoi tylko to, co jest w tym miejscu i czasie. Dekoracja z innej sceny (gliniana armia z grobowca) nie
   stoi przy murze ani przy powozie. Kogo lektor wymienia, ten jest w kadrze: „zginął pod kolumną” znaczy, że leży pod
   kolumną.
+- Rekwizyt, który zostaje na miejscu, leży w następnych ujęciach tej sceny (rozwinięta mapa ze sztyletem leży na stole
+  przez cały zamach), a w pierwszej klatce ujęcia nie ma niczego, czego ujęcie nie używa.
+- Poprawka dekoracji, rekwizytu albo postaci w jednym ujęciu dotyczy **każdego ujęcia, w którym ta rzecz stoi**
+  (reżyser 16.11: „jeśli są kolejne ujęcia z tym, to to samo”). Liczy się ją w stanie świata albo we wspólnej funkcji
+  sceny, a nie dopisuje w jednym ujęciu; przed oddaniem obejrzyj wszystkie te ujęcia.
+- To, o czym jest ujęcie (pałac, czarka z rtęcią), widać w całości: dekoracja boczna stoi po bokach i go nie zasłania,
+  a rzecz na rampie czy stole jest nad jej krawędzią, nie w połowie za nią.
 
 ### 1.7 Tłum to osobne postacie
 Każdy w grupie ma własne opóźnienie, tempo i własną reakcję (jeden przystaje, drugi się spóźnia, trzeci unosi ręce
@@ -104,8 +111,18 @@ Ruch przedmiotu liczy się z jego fizyki, a nie z osobnych krzywych „na oko”
   `efekty.ZDARZENIA` są te same co w funkcji ujęcia; dźwięk ciągły (toczenie) cichnie, kiedy rzecz jest w powietrzu.
 - **Dźwięk poprawia się punktowo:** po zmianie jednego zdarzenia ścieżka efektów ma się różnić od poprzedniej tylko
   w tym miejscu, a muzyka wcale (porównaj próbki starego i nowego pliku). Skrócenie dźwięku ciągłego zapisuje się
-  jako (długość syntezy, ile słychać), żeby nie zmienić losowań reszty filmu.
+  jako (długość syntezy, ile słychać), żeby nie zmienić losowań reszty filmu. Nowe, usunięte albo inne zdarzenia
+  ujęcia: przy pierwszej poprawce dźwięku ujęcia jego dotychczasowa lista idzie do `efekty.W_STUDIO` (wpis zostaje na
+  zawsze), a nowe zdarzenia losują z osobnego RNG tego ujęcia. Próba: `DZWIEK_DO=<katalog>` zapisuje nowy plik obok,
+  porównanie próbek z plikiem w Studio ma wskazać tylko poprawione ujęcia; potem
+  `studio_pc.py --efekty "<wersja>"` podmienia samą ścieżkę Efekty.
 - **Miejsce spoczynku to stan świata:** rzecz leży w następnych ujęciach dokładnie tam, gdzie upadła (ten sam kod).
+
+### 1.13 Napis w kadrze czyta widz tej wersji filmu
+Każdy napis, który widz ma przeczytać — tabliczka z okrzykiem („AW!…”, „OH!”), zawieszka, napis na kamieniu, mapie
+czy sztandarze, tytuł aktu — jest w języku wersji filmu. W kodzie ujęcia stoi tekst polski, a wersja angielska bierze
+go przez `zestaw` z `kwestie_en.ETYKIETY`; nowy napis od razu dostaje tam tłumaczenie. Znaki chińskie zostają tylko
+jako ozdoba, której nikt nie musi rozumieć (pieczęć, wzór na chorągwi) — nie jako treść, o której mówi lektor.
 
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
@@ -199,6 +216,14 @@ Zanim ujęcie trafi do Studio do oceny:
 | Pierwszy cesarz EN (16.11, reżyser, ujęcie 47) | po poprawce toczenia: „ja bym ją minimalnie podniósł i w tym momencie dodał dźwięk monety, i jak jest podniesiona, to od razu spada na ten stół” — samo przewrócenie nie dawało wyraźnego momentu; moneta podskakuje z brzękiem i spada na płask (drugi brzęk) | 1.12 |
 | Pierwszy cesarz EN (16.11, reżyser, ujęcie 47) | „popraw jeszcze ten zwój” — dalszy koniec zwoju wystawał poza tylną krawędź stołu, więc w detalu blatu zwój wisiał w powietrzu; leży teraz cały na blacie z cieniem tuż pod sobą, a lot do ognia zaczyna się z tego samego miejsca, rozmiaru i obrotu. W detalu sprawdza się, czy rekwizyt mieści się w obrysie powierzchni, na której leży | 1.6, 3.1 |
 | Pierwszy cesarz EN (16.11, reżyser, marker w ujęciu 47) | „popraw kierunek tego zwoju wzdłuż tej krawędzi stołu” (druga uwaga o kierunku zwoju, pierwsza 15.11) — zwój leżał ukosem do wszystkich krawędzi blatu; leży teraz równolegle do tylnej krawędzi, tuż przy niej. Podłużny rekwizyt na stole kładzie się równolegle do krawędzi narysowanego blatu (kąt mierzy się na klatce, bo wycinek ma własne pochylenie), a uwagę reżysera czyta się z markera razem z obrysem, zanim się poprawi „na oko” | 1.6, 3.4 |
+| Pierwszy cesarz EN (16.11, reżyser, markery w 26, 27, 29) | „usuń to z początku” — zwinięty zwój stał na stole w pierwszej klatce ujęcia ze sztyletem, choć ujęcie go nie używało; „daj tu zwój z poprzedniego ujęcia”, „zwój z poprzedniego ujęcia ma tu leżeć” — rozwinięta mapa znikała ze stołu zaraz po ujęciu, w którym zjechała; leży teraz na stole przez cały zamach (27–31, to samo miejsce, rozmiar i obrót) | 1.6, 1.2 |
+| Pierwszy cesarz EN (16.11, reżyser, markery w 63, 64, 74) | „przesuń chorągiew w lewo, aby było widać cały ten budynek, a budynek wyśrodkuj pomiędzy chorągwiami”, „jeśli są kolejne ujęcia z tym, to to samo” — chorągiew ze smokiem zasłaniała pałac; chorągwie stoją teraz symetrycznie po bokach pałacu we wszystkich ujęciach z pałacem (63–75), liczone z kamery ujęcia (`swiat.smoki_przy_palacu`) | 1.6 (poprawka we wszystkich ujęciach z tą dekoracją), 1.5 |
+| Pierwszy cesarz EN (16.11, reżyser, marker w 60) | „podnieś trochę ten kielich” — czarka z rtęcią była do połowy schowana za krawędzią rampy | 1.6, 1.5 |
+| Pierwszy cesarz EN (16.11, reżyser, marker w 62) | „to po angielsku” — napis na meteorycie był po chińsku (始皇帝死而地分), a lektor mówi, co na nim wyryto; teraz „The Emperor will die, the land will split” (PL „Cesarz umrze, a ziemia się podzieli”) | 1.13 (nowa) |
+| Pierwszy cesarz EN (16.11, reżyser, markery w 56) | „postaw go tutaj” — cesarz nie stał na wieku skrzyni drugiego powozu; stoi teraz na wieku i na nim przewraca się na płask; „tabliczka aw!...” — nad leżącym zjeżdża „AW!…” | 1.6, 1.11, 1.13 |
+| Pierwszy cesarz EN (16.11, reżyser, markery w 58, 71, 77) | reżyser dopisał grę lalkom: olbrzymi „prężą muskuły” (ręce na zawiasach w barku i łokciu, każdy we własnej chwili), ryba „odskoczy do góry i wypadnie na ziemię” (spada z płachty powozu na drogę i trzepocze), nad chłopem „tabliczka o!”, a chłop „otrzep go z ziemi” (odkłada motykę, otrzepuje szmatką żołnierza, grudy odpadają, glina jaśnieje) — ujęcia miały za mało wydarzeń | 1.8, 1.11, 1.12 |
+| Pierwszy cesarz EN (16.11, reżyser, markery w 72) | „niech ten list, spadając, walnie mu w głowę, i na 1 s stun”, „zabierz mu ten papier i pojaw sztylet w jego kierunku, i po chwili wbij go, i dźwięki konania” — druga uwaga o śmierci bez czynności (pierwsza 15.11, 1.11): Fusu tylko opadał za wzgórze; teraz list uderza go w głowę (gwiazdki przez sekundę), odlatuje mu z rąk, sztylet pojawia się ostrzem do niego i wbija się w pierś, Fusu kona (rzężenie, kaszel) i opada | 1.11, 1.12 |
+| Pierwszy cesarz EN (16.11, kontrola przed wgraniem) | nowe zdarzenia dźwiękowe w ujęciach 26, 71, 72, 77 przesunęły wspólne losowanie szumu, więc przeliczenie zmieniało efekty w ujęciach 25–79 — plik nie trafił do Studio; teraz poprawione ujęcia losują nowe dźwięki osobno (`efekty.W_STUDIO`), a porównanie próbek z plikiem w Studio wskazało różnice tylko w 26, 71, 72 i 77, muzyka bit w bit ta sama | 1.12 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

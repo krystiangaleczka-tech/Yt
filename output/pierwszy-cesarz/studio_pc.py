@@ -259,6 +259,23 @@ def podmien(api, pid, p, UJ, numery, zmiany, kiedy):
     print(f"gotowe: nowy rysunek w {len(obraz)} ujęciach, oś {koniec:.1f} s, rewizja {p['revision']}", flush=True)
     return pid
 
+def podmien_efekty(api, pid, p, UJ, nazwa):
+    """Nowa ścieżka efektów (dzwiek_en/efekty.wav) na klip ścieżki Efekty (a3). Długości ujęć, obraz, lektor, muzyka
+    i uwagi reżysera zostają. Długość filmu w pliku musi się zgadzać z osią (inaczej: --aktualizuj)."""
+    wav = HERE / "dzwiek_en" / "efekty.wav"
+    t = sum(u[5] for u in UJ)
+    dur = min(round(t * FPS), math.floor(wav_len(wav) * FPS))
+    a3 = [c for c in p["sequence"]["clips"] if c["track_id"] == "a3"]
+    if len(a3) != 1 or a3[0]["duration"] != dur:
+        raise SystemExit(f"oś efektów w projekcie ({[c['duration'] for c in a3]} kl.) ≠ plik ({dur} kl.) — użyj --aktualizuj")
+    aid = api.upload(pid, wav, f"efekty — cały film ({nazwa}).wav")
+    p = api.call(f"/projects/{pid}")
+    p = api.call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": [
+        {"type": "update_clip", "clip_id": a3[0]["id"], "changes": {"asset_id": aid}}]})
+    print(f"gotowe: nowa ścieżka efektów {aid} ({dur} kl.), rewizja {p['revision']}", flush=True)
+    return pid
+
+
 def main():
     from dane import LEKTOR, kwestia, okno_kwestii, ujecia
     aktorskie = json.loads((HERE / "aktorskie_en.json").read_text(encoding="utf-8"))
@@ -275,6 +292,8 @@ def main():
     UJ = ujecia()
     if ARGS.aktualizuj:
         return aktualizuj(api, pid, p, UJ, tmp, okno_kwestii)
+    if ARGS.efekty:
+        return podmien_efekty(api, pid, p, UJ, ARGS.efekty)
     if ARGS.podmien:
         zmiany = json.loads(Path(ARGS.zmiany).read_text(encoding="utf-8"))
         return podmien(api, pid, p, UJ, [int(x) for x in ARGS.podmien.split(",")], zmiany["ujecia"], zmiany["kiedy"])
@@ -376,6 +395,8 @@ if __name__ == "__main__":
                     help="numery ujęć (np. 3,6,31): zmiana rysunku bez renderu — klatki kontrolne jako obraz w Bibliotece i opis zmiany")
     ap.add_argument("--podmien", default="",
                     help="numery ujęć: nowy rysunek — klipy z --klipy (render.py klipy) na miejsce starych, oś i dźwięk bez zmian")
+    ap.add_argument("--efekty", default="",
+                    help="nazwa wersji (np. „markery 16.11”): sama nowa ścieżka efektów z dzwiek_en/ na oś, reszta bez zmian")
     ap.add_argument("--zmiany", default="", help="przy --podglad: plik JSON {kiedy, ujecia: {numer: co się zmieniło}}")
     ap.add_argument("--tytul", default="Pierwszy cesarz · The First Emperor (EN, lektor studyjny)")
     ARGS = ap.parse_args()
