@@ -477,6 +477,7 @@ JINGKE, LEKARZ, LISI_X = 1096, 1, 150
 ZWOJ = (862.5, 601.5)  # środek zwiniętej mapy na stole z podarunkami (z markera reżysera w ujęciu ze sztyletem)
 ZWOJ_A, ZWOJ_B = Z.ZWOJ_A, Z.ZWOJ_B  # wzdłuż wałka (głąb blatu) i kierunek rozwijania (wzdłuż blatu)
 LEZY = 70  # o ile unieść leżącą lalkę Jing Ke, żeby leżała na posadzce nad rampą, a nie pod nią
+MAPA = (ZWOJ[0] + 24, ZWOJ[1] + 6 - 31)  # rozwinięta mapa na stole: środek górnej krawędzi (od ujęcia ze sztyletem)
 
 
 def _sala_zamach(st, t, w, stolik=1.0, zwoj="zwiniety", szkatula=1.0, lisi=0.0, bow=0.0, lift=0.0):
@@ -491,6 +492,9 @@ def _sala_zamach(st, t, w, stolik=1.0, zwoj="zwiniety", szkatula=1.0, lisi=0.0, 
             st.put(Z.prop("szkatula"), bx, by + (1 - back(szkatula, 1.3)) * 0 , P.rekwizyty + 0.006, h=44 * szkatula, shadow=(3, 4, 4, 0.4))
         if zwoj == "zwiniety":  # wzdłuż głębi blatu, jak w ujęciu ze sztyletem
             st.put(Z.S("bamboo", 0.5), *ZWOJ, P.rekwizyty + 0.004, w=58, anchor=(0.5, 0.5), rot=-45, shadow=(3, 5, 5, 0.4))
+        elif zwoj == "mapa":  # rozwinięta mapa leży dalej na stole po zamachu (reżyser 16.11: „zwój z poprzedniego ujęcia
+            # ma tu leżeć”) — to samo miejsce, rozmiar i obrót co na końcu ujęcia ze sztyletem
+            st.put(Z.S("ledger", 0.5), *MAPA, P.rekwizyty + 0.006, w=116, anchor=(0.5, 0.0), rot=6, shadow=(3, 5, 5, 0.4))
         return on
     return None
 
@@ -506,17 +510,15 @@ def s_dary(st, w, t, T):
 
 
 def s_sztylet(st, w, t, T):
-    """Detal stołu: zwinięta mapa odjeżdża w górę, a na jej miejsce zjeżdża na nitkach gotowa, rozwinięta mapa
-    z deszczułek; po chwili z jej środka wyłania się sztylet (reżyser 15.11: „po prostu połóż na nowo rozwinięty zwój”)."""
+    """Detal stołu: na pusty blat zjeżdża na nitkach gotowa, rozwinięta mapa z deszczułek; po chwili z jej środka
+    wyłania się sztylet (reżyser 15.11: „po prostu połóż na nowo rozwinięty zwój”; 16.11: zwinięty zwój usunięty
+    z początku ujęcia)."""
     on = _sala_zamach(st, t, w, zwoj=None)
     mx, my = ZWOJ[0] + 24, ZWOJ[1] + 6  # środek rozwiniętej mapy na blacie
     kam(st, t, 25, mx + 4, my - 10, 3.3, 0.85, lens=2.6, truck=0.8)
     st.dof = 3.0
-    zwin = 1 - pr(t, 0.3, 0.7)  # zwinięta mapa odjeżdża w górę na nitce
-    Z.hang(st, Z.S("bamboo", 0.5), ZWOJ[0], ZWOJ[1] - 14, P.rekwizyty + 0.010, zwin, t, 180, drop=420, sway=0.3, w=58, rot0=-45,
-           string=zwin < 1, anchor=(0.5, 0.5), shadow=(3, 5, 5, 0.4))
     roz = pr(t, 0.9, 1.0)  # rozwinięta mapa zjeżdża na dwóch nitkach i kładzie się na blacie
-    Z.hang(st, Z.S("ledger", 0.5), mx, my - 31, P.rekwizyty + 0.006, roz, t, 181, drop=420, sway=0.15, w=116, rot0=6,
+    Z.hang(st, Z.S("ledger", 0.5), *MAPA, P.rekwizyty + 0.006, roz, t, 181, drop=420, sway=0.15, w=116, rot0=6,
            string=roz < 1, strings=(0.2, 0.8), shadow=(3, 5, 5, 0.4))
     f = ease(pr(t, 2.6, 0.6))  # sztylet wyłania się ze środka mapy
     if f > 0:
@@ -534,7 +536,7 @@ def s_atak(st, w, t, T):
     x = lerp(JINGKE, 610, go)
     kam(st, t, 26, lerp(760, 600, go), 470, 1.3, 0.8, shake=6 * (1 - go) + 2)
     st.dof = 1.0
-    _sala_zamach(st, t, w, zwoj=None, lift=16 * go)
+    _sala_zamach(st, t, w, zwoj="mapa", lift=16 * go)
     krol(st, t, x=TRON[0] - 46 * go, lean=-7 * go)
     lalka(st, t, "jingke", x, 300, flip=-1, lean=-12 * go, p=0.82, y=708)
     sztylet_w_dloni(st, x, -1, 0.82, lean=-12 * go)
@@ -552,7 +554,7 @@ def s_kolumna(st, w, t, T):
     a = 0.75 * math.pi + 2 * math.pi * 1.6 * (t / T) ** 1.05
     kam(st, t, 27, 680, 470, 1.18, 0.8)
     st.dof = 1.0
-    _sala_zamach(st, t, w, zwoj=None, lift=16)
+    _sala_zamach(st, t, w, zwoj="mapa", lift=16)
     kx, kp, kf = _poscig(a)
     jx, jp, jf = _poscig(a - 2.1)
     st.put(Z.prop("miecz"), kx - 20 * kf, 488, kp - 0.002, w=230, anchor=(0.12, 0.5), rot=92 + 10 * kf)  # miecz w pochwie u pasa, ostrzem w dół
@@ -584,7 +586,7 @@ def s_lekarz(st, w, t, T):
     zamr = pr(t, 2.65, 0.3)
     kam(st, t, 28, lerp(780, 700, ease(t / T)), 480, 1.18, 0.8)
     st.dof = 0.9
-    _sala_zamach(st, t, w, zwoj=None, lift=16 + 30 * ease(pr(t, 0.8, 0.7)), bow=-8 * ease(pr(t, 1.5, 0.3)) + 12 * ease(pr(t, 1.85, 0.2)))
+    _sala_zamach(st, t, w, zwoj="mapa", lift=16 + 30 * ease(pr(t, 0.8, 0.7)), bow=-8 * ease(pr(t, 1.5, 0.3)) + 12 * ease(pr(t, 1.85, 0.2)))
     pchn = max(0.0, 1 - abs(jx - cel) / (p80 - cel))
     krol(st, t, x=kx, y=708, flip=-1, lean=-4 - 6 * pchn, p=0.82)
     lean = -9 * (1 - zamr) + zamr * (8 * math.sin(t * 3.1) - 2)  # zamroczony kołysze się
@@ -614,7 +616,7 @@ def s_cios(st, w, t, T):
     fall = ease(pr(t, 0.85, 0.6))
     kam(st, t, 29, 550, 480, 1.85, 0.8, shake=7 * pr(t, 0.75, 0.1) * (1 - pr(t, 0.85, 0.4)))
     st.dof = 1.8
-    _sala_zamach(st, t, w, zwoj=None, lift=46)
+    _sala_zamach(st, t, w, zwoj="mapa", lift=46)
     flip = -math.cos(math.pi * turn)
     krol(st, t, x=476, y=708, flip=flip, lean=4 * cut, p=0.82)
     if abs(flip) > 0.05:
@@ -628,7 +630,7 @@ def s_pretekst(st, w, t, T):
     k = ease(t / T)
     kam(st, t, 30, lerp(600, 660, k), lerp(480, 430, k), lerp(1.5, 1.06, k), 0.8)
     st.dof = 0.9
-    _sala_zamach(st, t, w, zwoj=None, lift=46 - 30 * ease(pr(t, 1.6, 1.0)), lisi=4 * ease(pr(t, 2.4, 0.8)))
+    _sala_zamach(st, t, w, zwoj="mapa", lift=46 - 30 * ease(pr(t, 1.6, 1.0)), lisi=4 * ease(pr(t, 2.4, 0.8)))
     pch = ease(pr(t, 0.4, 0.4))
     krol(st, t, x=476, y=708, p=0.82, lean=6 * pch * (1 - 0.6 * ease(pr(t, 1.4, 0.8))))
     serce = (806, 606)

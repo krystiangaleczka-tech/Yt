@@ -79,7 +79,7 @@ def stan(i):
         # z wodą nie wiem, co tu robi” w aktach 7–8
         kanal=f(po("kanal") and not po("pismo")), kanal2=f(po("kanal2") and not po("pismo")),
         urzednicy=f(po("prowincje") and not po("powstanie")),
-        stela=f(po("stela")), palac=f(po("palac") and not po("upadek")), kopiec=f(po("kopiec")),
+        stela=f(po("stela")), palac=f(po("palac") and not po("upadek")), smoki_palac=f(po("palac")), kopiec=f(po("kopiec")),
         powoz=730.0 if po("podroz") and not po("ryby") else None, zaslona=f(po("spisek") and not po("ryby")),
         znaleziony=f(po("studnia")), sosna=f(po("grobowiec")),
         zawieszki=[], woz=None, jezdziec=None, wlocznie=None, build=None,
@@ -160,8 +160,28 @@ def cesarz(st, t, w):
                    rot=rot, shadow=None)
 
 
+def smoki_przy_palacu(st, w):
+    """Chorągwie ze smokiem po obu stronach pałacu, a pałac pośrodku między nimi i cały widoczny (reżyser 16.11:
+    „przesuń chorągiew w lewo, aby było widać cały ten budynek, a budynek wyśrodkuj pomiędzy chorągwiami” — i w każdym
+    następnym ujęciu z pałacem). Chorągwie wiszą bliżej kamery niż pałac, więc przy każdym ustawieniu kamery liczy się,
+    gdzie mają wisieć, żeby na ekranie stały symetrycznie: odstęp od pałacu to 12% jego szerokości."""
+    ban = Z.S("palace_banner", 0.7)
+    bw = 236 * ban.w / ban.h
+    pp = P.gory + 0.016
+    sx = lambda x, p: st.cam.screen(x, 300, p)[0]
+    lewy, prawy = sx(PALAC[0] - PALAC[1] / 2, pp), sx(PALAC[0] + PALAC[1] / 2, pp)
+    c, pol = (lewy + prawy) / 2, (prawy - lewy) / 2
+    out = []
+    for n, (x0, p) in enumerate(SMOKI):
+        g = sx(x0 + 1, p) - sx(x0, p)  # piksele ekranu na jednostkę kadru wzorcowego na planie chorągwi
+        cel = c + (-1 if n == 0 else 1) * (pol * 1.12 + bw / 2 * g)
+        out.append(x0 + (cel - sx(x0, p)) / g)
+    return out
+
+
 def smoki(st, t, w):
-    for n, ((x, p), k) in enumerate(zip(SMOKI, w.smoki)):
+    xs = smoki_przy_palacu(st, w) if w.get("smoki_palac", 0.0) > 0 else [x for x, _ in SMOKI]
+    for n, ((_, p), x, k) in enumerate(zip(SMOKI, xs, w.smoki)):
         f = clamp(w.smoki_fall * 1.4 - n * 0.4)
         if f >= 1:
             continue
@@ -226,14 +246,19 @@ def woz(st, t, x, p=0.645, h=74, flip=1.0, sy=1.0, rot=0.0, ladunek=None, kon=Tr
     return y
 
 
-def powoz(st, t, x, zaslona=0.0, h=84, p=0.645, cesarz=None, ryby=0.0):
+def powoz(st, t, x, zaslona=0.0, h=84, p=0.645, cesarz=None, ryby=0.0, na_skrzyni=False):
     """Powóz cesarza: wóz z czarną chorągwią; zasłona opada na niego po śmierci cesarza.
-    cesarz — lalka cesarza jadąca na powozie: (kąt przechyłu, przesunięcie w dół) albo None."""
+    cesarz — lalka cesarza jadąca na powozie: (kąt przechyłu, przesunięcie w dół) albo None. na_skrzyni — cesarz stoi
+    na wieku skrzyni, przed chorągiewką, cały widoczny (reżyser 16.11, młot: „postaw go tutaj”); inaczej stoi za skrzynią."""
     y = woz(st, t, x, p=p, h=h, ladunek=(Z.banner("qin"), 74, -34, 10))
-    if cesarz is not None:  # cesarz stoi na powozie za skrzynią; kąt 90 = leży
+    if cesarz is not None:  # kąt -90 = leży (przewraca się w lewo, wzdłuż wieka)
         rot, dol = cesarz
-        st.put(Z.S("emperor"), x + 14, y - h * 0.50 + dol, p - 0.0015, h=h * 0.95, anchor=(0.42, 1.0),
-               rot=rot + 0.6 * noise(t, 84, 0.7))
+        if na_skrzyni:  # stopy na wieku skrzyni (ok. h nad osią kół), przed chorągiewką ładunku
+            st.put(Z.S("emperor"), x - 8, y - h * 1.0 + dol, p - 0.0005, h=h * 0.95, anchor=(0.42, 1.0),
+                   rot=rot + 0.6 * noise(t, 84, 0.7))
+        else:
+            st.put(Z.S("emperor"), x + 14, y - h * 0.50 + dol, p - 0.0015, h=h * 0.95, anchor=(0.42, 1.0),
+                   rot=rot + 0.6 * noise(t, 84, 0.7))
     if zaslona > 0:  # ciemna płachta z frędzlem; reżyser 15.11: „minimalnie wyżej”
         top = y - h * 0.98 - (1 - ease_out(zaslona)) * 300
         st.put(Z.prop("zaslona"), x - 8, top, p + 0.002, w=h * 1.9, anchor=(0.5, 0.0), sy=0.7, shadow=(3, 4, 5, 0.4))
@@ -657,8 +682,32 @@ def cyklopi(st, t, w, wy, wyspa_w):
         x = 900 + (fx - 0.5) * wyspa_w
         gy = wy - hh + mg.top(fx) * hh + 34
         h = (100, 114, 92)[n]
-        st.put(Z.cyklop(n), x, gy + (1 - back(kk, 1.3)) * h * 1.1, 0.2205 + n * 0.0003, h=h, haze=0.25, shadow=(3, 4, 6, 0.25),
-               rot=2.5 * math.sin(t * 1.3 + n * 2) + settle((kk - 0.7) / 0.3 if kk < 1 else 0, 1.5, 4))
+        p = 0.2205 + n * 0.0003
+        y = gy + (1 - back(kk, 1.3)) * h * 1.1
+        rot = 2.5 * math.sin(t * 1.3 + n * 2) + settle((kk - 0.7) / 0.3 if kk < 1 else 0, 1.5, 4)
+        mm = w.get("cyklopi_mm", None)  # reżyser 16.11: „zrób, że oni prężą muskuły” — ręce na zawiasach w barku i łokciu
+        if mm is None:
+            st.put(Z.cyklop(n), x, y, p, h=h, haze=0.25, shadow=(3, 4, 6, 0.25), rot=rot)
+            continue
+        f = mm(n)  # 0 — ręce wiszą, 1 — oba bicepsy napięte (ramię poziomo, przedramię w górę)
+        k = h / 520.0
+        y -= 3 * f * k * 520 / 100  # pręży się: lekko podnosi na palcach
+        side = 1 if n % 2 == 0 else -1
+        st.put(Z.cyklop_maczuga(), x + side * 128 * k, gy + 4, p - 0.0001, h=220 * k, anchor=(40 / 90, 216 / 220), rot=14 * side,
+               haze=0.25, shadow=(3, 4, 6, 0.25))  # maczuga wbita w ziemię obok, ręce ma wolne
+        st.put(Z.cyklop(n, rece=False), x, y, p, h=h, haze=0.25, shadow=(3, 4, 6, 0.25), rot=rot)
+        c, sn = math.cos(math.radians(rot)), math.sin(math.radians(rot))
+        for strona in (-1, 1):  # -1 lewa ręka (na ekranie), 1 prawa
+            bx, by = (150 + 74 * strona - 150) * k, (200 - 520) * k  # bark względem stóp (kotwicy tułowia)
+            sx, sy = x + c * bx - sn * by, y + sn * bx + c * by
+            ra = rot - strona * lerp(14, 92, f)  # ramię: od zwisu lekko na zewnątrz do poziomu
+            pa = rot - strona * lerp(10, 192 + 6 * math.sin(t * 9 + n) * f, f)  # przedramię: od zwisu do pionu w górę, pięść drga
+            r = math.radians(ra)
+            ex, ey = sx - math.sin(r) * 84 * k, sy + math.cos(r) * 84 * k  # łokieć: 84 jednostki arkusza od barku
+            st.put(Z.cyklop_reka(n, "ramie"), sx, sy, p + 0.0001, h=112 * k * (1 + 0.08 * f), anchor=(0.5, 12 / 112), rot=ra,
+                   sx=-strona, haze=0.25, shadow=(2, 3, 5, 0.25))
+            st.put(Z.cyklop_reka(n, "przedramie"), ex, ey, p + 0.00012, h=120 * k, anchor=(0.5, 10 / 120), rot=pa, sx=-strona,
+                   haze=0.25, shadow=(2, 3, 5, 0.25))
 
 
 def fala(i, t):

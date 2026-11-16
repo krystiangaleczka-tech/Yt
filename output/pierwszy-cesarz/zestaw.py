@@ -632,6 +632,20 @@ LALKI = {"zheng": ("emperor", None), "uczony": ("scholar_left", None), "uczony2"
          "huhai": ("emperor", (70, 120, 160))}
 
 
+def bez_deszczulki(im):
+    """Uczony bez deszczułek w dłoniach (Fusu, reżyser 16.11: „zabierz mu ten papier”): w dłoniach trzyma tylko list,
+    który spada mu z nieba. Wielokąt deszczułek w arkuszu scholar_left minus obie dłonie — dłonie zostają złożone."""
+    a = np.asarray(im).copy()
+    m = Image.new("L", im.size, 0)
+    d = ImageDraw.Draw(m)
+    d.polygon([(770, 362), (908, 378), (903, 418), (832, 540), (790, 559), (700, 559), (688, 490)], fill=255)
+    d.polygon([(758, 503), (785, 494), (798, 482), (822, 484), (834, 505), (834, 520), (820, 548), (792, 560), (762, 556), (756, 525)],
+              fill=0)  # prawa dłoń
+    d.polygon([(650, 510), (732, 508), (744, 518), (744, 540), (738, 560), (650, 566)], fill=0)  # lewa dłoń
+    a[np.asarray(m) > 0, 3] = 0
+    return Image.fromarray(a, "RGBA")
+
+
 @lru_cache(None)
 def lalka(key):
     if key == "zheng_dziecko":  # przed koronacją: prosta granatowa szata bez smoków
@@ -647,7 +661,7 @@ def lalka(key):
     scale = 1.0 if name == "emperor" else 0.7
     if color is None:
         return S(name, scale)
-    arr = np.asarray(raw(name), np.float32) / 255.0
+    arr = np.asarray(bez_deszczulki(raw(name)) if key == "fusu" else raw(name), np.float32) / 255.0
     rgb, a = arr[..., :3], arr[..., 3]
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     cloth = np.clip((r - np.maximum(g, b) * 1.45) * 6, 0, 1)
@@ -836,6 +850,9 @@ def prop(key):
     elif key == "lopata":  # łopata: trzonek i szerokie ostrze; uchwyt na lewym końcu
         w, h, parts = 220, 70, [(rect(6, 31, 160, 39), (110, 80, 52)), (poly([(156, 14), (214, 18), (214, 52), (156, 56)]), (82, 80, 84),
                                                                        dict(contrast=1.3))]
+    elif key == "szmatka":  # zmięta szmatka chłopa: otrzepuje nią glinianego żołnierza z ziemi (reżyser 16.11)
+        w, h, parts = 60, 50, [(poly([(6, 14), (30, 4), (54, 12), (50, 40), (26, 46), (8, 36)]), (196, 182, 150), dict(edge=1)),
+                               (poly([(18, 18), (40, 14), (36, 30)]), (160, 146, 116))]
     elif key == "grudka":  # grudka ziemi spod motyki
         w, h, parts = 40, 34, [(poly([(4, 18), (14, 4), (32, 6), (38, 22), (24, 32), (8, 30)]), (112, 86, 58), dict(edge=1))]
     elif key == "x":  # czerwony krzyż malowany pędzlem: wyrok (migocze nad postacią)
@@ -1341,9 +1358,11 @@ def mapa36():
 
 
 @lru_cache(None)
-def cyklop(v=0):
+def cyklop(v=0, rece=True):
     """Jednooki olbrzym z wyspy nieśmiertelnych (reżyser 15.11: „narysuj cyklopów”): wycinanka z kawałków papieru,
-    duża głowa z jednym okiem, przepaska, maczuga. v — odmiana (barwa przepaski, maczuga w lewej albo prawej ręce)."""
+    duża głowa z jednym okiem, przepaska, maczuga. v — odmiana (barwa przepaski, maczuga w lewej albo prawej ręce).
+    rece=False — sam tułów bez rąk i maczugi: ręce to osobne wycinki na zawiasach (cyklop_reka), żeby mógł prężyć
+    muskuły (reżyser 16.11); barki w (76, 200) i (224, 200) arkusza 300 × 520."""
     r = random.Random(700 + v)
     skin = ((176, 132, 96), (160, 120, 92), (186, 142, 104))[v % 3]
     cloth = ((92, 70, 50), (70, 84, 60), (104, 62, 48))[v % 3]
@@ -1357,8 +1376,12 @@ def cyklop(v=0):
         (P_([(96, 492), (144, 492), (146, 516), (90, 516)]), (70, 52, 40)), (P_([(156, 492), (204, 492), (210, 516), (154, 516)]), (70, 52, 40)),
         (P_([(84, 190), (216, 190), (232, 300), (68, 300)]), skin, dict(edge=2)),
         (P_([(70, 280), (230, 280), (242, 380), (58, 380)]), cloth, dict(edge=2)),
+    ] + ([
         (P_([(70, 196), (40, 210), (20, 330), (44, 336), (66, 250)]), skin), (P_([(230, 196), (262, 210), (282, 320), (258, 326), (234, 250)]), skin),
         (P_([(262, 300), (296, 120), (280, 112), (244, 300)]), (96, 70, 46)), (ell(X(288), 116, 22, 26), (110, 80, 52), dict(edge=1)),
+    ] if rece else [
+        (ell(76, 210, 22, 20), skin), (ell(224, 210, 22, 20), skin),  # barki, na które zachodzą ramiona
+    ]) + [
         (ell(150, 110, 78, 84), skin, dict(edge=2)),
         (ell(150, 98, 34, 28), (240, 236, 222), dict(kind="gladki", edge=1)),
         (ell(150 + 4 * side, 100, 15, 15), (44, 70, 40), dict(kind="gladki")), (ell(150 + 4 * side, 100, 7, 7), (16, 14, 14), dict(kind="gladki")),
@@ -1366,7 +1389,33 @@ def cyklop(v=0):
         (P_([(118, 150), (182, 150), (176, 160), (124, 160)]), (90, 40, 34)),
         (P_([(78, 60), (100, 20), (130, 40), (150, 14), (172, 40), (200, 20), (222, 60), (190, 46), (150, 34), (110, 46)]), (52, 40, 34)),
     ]
-    return Sprite(stack(w, h, parts, seed=720 + v), f"cyklop-{v}", rim=2, clean=False)
+    return Sprite(stack(w, h, parts, seed=720 + v), f"cyklop-{v}-{int(rece)}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def cyklop_reka(v=0, czesc="ramie"):
+    """Ręka cyklopa z dwóch wycinków na zawiasach: ramię z bicepsem (zawias w barku: (40, 12) arkusza 80 × 112, łokieć
+    w (40, 96)) i przedramię z pięścią (zawias w łokciu: (36, 10) arkusza 72 × 120). Na rot = 0 wisi pionowo w dół."""
+    skin = ((176, 132, 96), (160, 120, 92), (186, 142, 104))[v % 3]
+    jasna = tuple(min(255, int(c * 1.12)) for c in skin)
+    if czesc == "ramie":
+        w, h = 80, 112
+        parts = [(poly([(20, 6), (60, 6), (58, 100), (24, 104)]), skin, dict(edge=2)),
+                 (ell(50, 54, 22, 30), jasna, dict(edge=1)),  # biceps po wewnętrznej stronie
+                 (ell(40, 98, 17, 14), skin)]
+    else:
+        w, h = 72, 120
+        parts = [(poly([(22, 4), (50, 4), (54, 84), (20, 84)]), skin, dict(edge=2)),
+                 (ell(36, 96, 22, 20), skin, dict(edge=2)),  # pięść
+                 (poly([(20, 90), (52, 90), (50, 96), (22, 96)]), tuple(int(c * 0.78) for c in skin))]
+    return Sprite(stack(w, h, parts, seed=740 + v * 2 + (czesc == "ramie")), f"cyklop-{czesc}-{v}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def cyklop_maczuga():
+    """Maczuga cyklopa wbita w ziemię obok niego (kiedy ma wolne ręce): arkusz 90 × 220, dół trzonka w (40, 216)."""
+    parts = [(poly([(30, 216), (60, 50), (76, 54), (50, 216)]), (96, 70, 46)), (ell(66, 44, 22, 28), (110, 80, 52), dict(edge=1))]
+    return Sprite(stack(90, 220, parts, seed=760), "cyklop-maczuga", rim=2, clean=False)
 
 
 # ---------- kurtyna teatru (przejście między aktami) ----------

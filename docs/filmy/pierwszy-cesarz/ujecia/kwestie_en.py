@@ -91,6 +91,8 @@ ETYKIETY = {"PIERWSZY CESARZ": "THE FIRST EMPEROR", "247 p.n.e.": "247 BC", "221
             "ZABIĆ KRÓLA!": "KILL THE KING!", "KRÓL": "KING", "Pierwszy Cesarz": "FIRST EMPEROR",
             "kanał Zhengguo": "Zhengguo Canal", "kanał Lingqu": "Lingqu Canal", "trzy miesiące później": "three months later",
             "36 komanderii": "36 commanderies",
+            # tabliczki z uwag reżysera (16.11.2026)
+            "AŁA!…": "AW!…", "O!": "OH!", "Cesarz umrze, a ziemia się podzieli": "The Emperor will die, the land will split",
             # tytuły aktów na kurtynie (przejście między aktami)
             "Akt 2 · Król chłopiec": "Act II · The Boy King", "Akt 3 · Wojna i zamach": "Act III · War and the Assassin",
             "Akt 4 · Koniec sześciu królestw": "Act IV · The End of Six Kingdoms", "Akt 5 · Jeden kraj": "Act V · One Country",

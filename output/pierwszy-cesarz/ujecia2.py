@@ -276,10 +276,11 @@ def s_zmierzch(st, w, t, T):
 
 
 def s_mlot(st, w, t, T):
-    """Noc: drogą jadą dwa powozy, na drugim stoi cesarz; żelazny młot miażdży pierwszy, drugi staje w miejscu,
-    a cesarz przewraca się na płask na swoim powozie (reżyser 15.11)."""
+    """Noc: drogą jadą dwa powozy, na skrzyni drugiego stoi cesarz; żelazny młot miażdży pierwszy, drugi staje w miejscu,
+    a cesarz przewraca się na płask na wieku skrzyni i zjeżdża nad nim tabliczka „AŁA!…” (reżyser 15.11 i 16.11)."""
     ti = 2.7
     w.emp = 0.0  # cesarz jedzie drugim powozem, nie stoi na rampie
+    podpis(w, t, "AŁA!…", 520, 432, ti + 0.6, 3.2)  # reżyser 16.11: „tabliczka aw!...” nad leżącym cesarzem
     x1 = lerp(520, 760, min(t, ti) / ti)
     x2 = x1 - 196 + 0  # drugi powóz (cesarski) jedzie za pierwszym i staje po uderzeniu
     hit = pr(t, ti, 0.16)
@@ -289,7 +290,7 @@ def s_mlot(st, w, t, T):
     swiat(st, t, w)
     woz(st, t, x1, h=74, sy=1 - 0.58 * ease(hit), rot=7 * ease(hit))
     powoz(st, t, x2, cesarz=(-86 * ease(upad) + 6 * settle((upad - 0.7) / 0.3 if upad < 1 else (t - ti - 0.7) / 0.8, 1.5) * upad,
-                             28 * ease(upad)))
+                             4 * ease(upad)), na_skrzyni=True)
     f = pr(t, 1.7, ti - 1.7)
     if f > 0:
         hx = lerp(1180, x1 + 10, min(1.0, f)) + 90 * pr(t, ti, 0.5)
@@ -307,10 +308,16 @@ def s_morze(st, w, t, T):
 
 
 def s_xufu(st, w, t, T):
-    """Na stokach wyspy wychodzą zza grani jednoocy olbrzymi; trzy dżonki płyną ku wyspie zakosami — w lewo, w prawo,
-    w lewo, w prawo — maleją i chowają się za ostatnią falą (reżyser 15.11)."""
+    """Na stokach wyspy wychodzą zza grani jednoocy olbrzymi i prężą muskuły (reżyser 16.11); trzy dżonki płyną ku wyspie
+    zakosami — w lewo, w prawo, w lewo, w prawo — maleją i chowają się za ostatnią falą (reżyser 15.11)."""
     w.noc = 0.75
     w.cyklopi = pr(t, 1.2, 1.8)
+
+    def mm(n):  # reżyser 16.11: „zrób, że oni prężą muskuły” — każdy we własnej chwili, napina się trzy razy
+        t0 = 3.1 + (0.0, 0.5, 0.25)[n]
+        f = ease(pr(t, t0, 0.45)) * (1 - ease(pr(t, t0 + 3.6, 0.5)))
+        return f * (0.86 + 0.14 * max(0.0, math.sin((t - t0) * 2 * math.pi / 1.2)) ** 2) if f > 0 else 0.0
+    w.cyklopi_mm = mm
     kam(st, t, 56, lerp(600, 760, ease(t / T)), lerp(500, 440, ease(t / T)), lerp(1.2, 1.45, ease(t / T)), 0.5, truck=0.6)
     st.dof = 0.8
     morze(st, t, w)
@@ -340,12 +347,13 @@ def s_rtec(st, w, t, T):
     st.dof = 2.2
     swiat(st, t, w)
     k = pr(t, 0.3, 0.8)
-    st.put(Z.prop("czarka"), 500, 694 + (1 - back(k, 1.3)) * 90, P.rekwizyty, h=58, shadow=(3, 4, 4, 0.4))
+    up = 24  # reżyser 16.11: „podnieś trochę ten kielich” — cała czarka nad krawędzią rampy
+    st.put(Z.prop("czarka"), 500, 694 - up + (1 - back(k, 1.3)) * 90, P.rekwizyty, h=58, shadow=(3, 4, 4, 0.4))
     for j in range(3):  # reżyser 15.11: „niech dużo wolniej zjeżdżają”, „usuń linie spuszczenia”, „kulki wychodzą poza wazę”
         kk = pr(t, 1.0 + j * 1.7, 2.4)
         wpada = pr(t, 3.6 + j * 1.7, 0.5)
         if 0 < kk and wpada < 1:
-            Z.hang(st, Z.prop("kulka"), 500 + (j - 1) * 4, 606 + 44 * ease(wpada), P.rekwizyty - 0.004, kk, t, 120 + j, drop=420,
+            Z.hang(st, Z.prop("kulka"), 500 + (j - 1) * 4, 606 - up + 44 * ease(wpada), P.rekwizyty - 0.004, kk, t, 120 + j, drop=420,
                    sway=0.2, h=15, string=False, shadow=(2, 3, 3, 0.35))
     swiatlo(st, w, t)
 
@@ -378,7 +386,7 @@ def s_meteor(st, w, t, T):
     """Noc: kamień z wielkim ognistym ogonem spada na wzgórze, kamera mocno się trzęsie; zjeżdża zawieszka ze znakami."""
     f = pr(t, 0.7, 0.9)
     hit = pr(t, 1.6, 0.2)
-    w.zawieszki = [("始皇帝死而地分", 1010, 300, pr(t, 3.0, 1.0))]
+    w.zawieszki = [("Cesarz umrze, a ziemia się podzieli", 1010, 300, pr(t, 3.0, 1.0))]  # reżyser 16.11: „to po angielsku”
     kam(st, t, 60, lerp(860, 880, ease(t / T)), 430, lerp(1.25, 1.35, ease(t / T)), 0.53, truck=0.5,
         shake=26 * hit * (1 - pr(t, 1.7, 1.1)))
     st.dof = 0.8
@@ -403,6 +411,7 @@ def s_meteor(st, w, t, T):
 
 def s_palac(st, w, t, T):
     """Za wzgórzami rośnie piętro po piętrze olbrzymi pałac, wyższy od góry."""
+    w.smoki_palac = 1.0  # chorągwie ze smokiem rozstępują się po bokach pałacu (reżyser 16.11)
     w.palac = 0.36 * back(pr(t, 0.5, 0.9), 1.2) + 0.32 * back(pr(t, 2.2, 0.9), 1.2) + 0.32 * back(pr(t, 3.9, 0.9), 1.2)
     w.galaz = 0.0  # reżyser 15.11: „usuń to drzewo” — gałąź kulisy zasłaniała chorągwie ze smokiem
     k = ease(t / T)
@@ -513,8 +522,9 @@ def s_spisek(st, w, t, T):
 
 
 def s_ryby(st, w, t, T):
-    """Li Si i Zhao Gao chowają się pod rampę; powóz jedzie dalej, a tuż za nim wóz z górą solonych ryb — dwie ryby
-    wyskakują z niego i wpadają z powrotem (reżyser 15.11); kamera jedzie z nimi."""
+    """Li Si i Zhao Gao chowają się pod rampę; powóz jedzie dalej, a tuż za nim wóz z górą solonych ryb. Z ryb na płachcie
+    powozu jedna odskakuje w górę i spada na drogę, gdzie zostaje i trzepocze (reżyser 16.11); później ryba wyskakuje
+    z wozu i wpada z powrotem (reżyser 15.11); kamera jedzie z powozem."""
     x = lerp(730, 1060, (t / T) ** 0.95)
     w.powoz, w.zaslona = x, 1.0
     w.ryby = pr(t, 1.6, 1.4)  # po chwili na płachtę zjeżdżają solone ryby (reżyser 15.11)
@@ -523,39 +533,87 @@ def s_ryby(st, w, t, T):
     swiat(st, t, w)
     xr = x - 200
     yr = woz(st, t, xr, h=80, p=0.6465, ladunek=[(Z.prop("ryby"), 46, -8, 16), (Z.prop("ryby"), 40, 14, 10)])
-    for n, t0 in enumerate((3.2, 7.4)):  # ryba wyskakuje łukiem z wozu i wpada z powrotem
-        f = pr(t, t0, 0.9)
-        if 0 < f < 1:
-            fx = xr - 10 + 40 * f * (1 if n == 0 else -1)
-            fy = yr - 80 * 0.62 - 70 * math.sin(math.pi * f)
-            st.put(Z.prop("ryba"), fx, fy, 0.6468, h=18, anchor=(0.5, 0.5), rot=(-60 + 120 * f) * (1 if n == 0 else -1),
-                   sx=1 if n == 0 else -1, sy=1 + 0.15 * math.sin(t * 30), shadow=(2, 3, 3, 0.3))
+    f = pr(t, 7.4, 0.9)  # ryba wyskakuje łukiem z wozu i wpada z powrotem
+    if 0 < f < 1:
+        st.put(Z.prop("ryba"), xr - 10 - 40 * f, yr - 80 * 0.62 - 70 * math.sin(math.pi * f), 0.6468, h=18, anchor=(0.5, 0.5),
+               rot=-(-60 + 120 * f), sx=-1, sy=1 + 0.15 * math.sin(t * 30), shadow=(2, 3, 3, 0.3))
+    t0, lot = 4.9, 0.75  # ryba z płachty powozu: odskok w górę i upadek na drogę (reżyser 16.11)
+    if t >= t0:
+        xs = lerp(730, 1060, (t0 / T) ** 0.95)  # powóz w chwili odskoku: ryba zostaje tam, gdzie spadła
+        sx0 = xs - 8 + 36
+        sy0 = Z.ground("droga", xs) + 10 - 84 * 0.98 - 22  # wierzch ryb na płachcie
+        lx = sx0 - 60
+        gy = Z.ground("droga", lx) - 10  # leży na drodze przed kopytami (bliżej kamery niż konie), cała widoczna
+        f = pr(t, t0, lot)
+        fx, fy = lerp(sx0, lx, f), lerp(sy0, gy, f) - 110 * math.sin(math.pi * f)
+        if f < 1:
+            rot = -40 + 400 * f  # przekręca się w locie i ląduje na boku, płasko
+        else:  # trzepocze na ziemi, coraz słabiej
+            d = t - t0 - lot
+            gas = math.exp(-1.3 * d)
+            rot = 22 * math.sin(d * 15) * gas
+            fy -= 7 * abs(math.sin(d * 7.5)) * gas
+        st.put(Z.prop("ryba"), fx, fy, 0.6468 if f < 0.6 else 0.652, h=20, anchor=(0.5, 0.5), rot=rot, sx=-1, shadow=(2, 3, 3, 0.3))
     lalka(st, t, "lisi", 590, 310, lean=5, sink=pr(t, 0.2, 0.9))  # spiskowcy chowają się pod rampę, powóz jedzie dalej
     lalka(st, t, "zhaogao", 880, 310, flip=-1, lean=-5, sink=pr(t, 0.4, 0.9))
     swiatlo(st, w, t)
 
 
 def s_list(st, w, t, T):
-    """Pod murem: nad Fusu przelatuje ptak i zrzuca mu list (reżyser 15.11); Fusu łapie go, czyta, pochyla się
-    i opada za wzgórze."""
+    """Pod murem: nad Fusu przelatuje ptak i zrzuca list, który spada mu na głowę — Fusu na sekundę zamroczony, gwiazdki
+    krążą mu nad głową; list ląduje mu w dłoniach, Fusu czyta. Potem list odlatuje mu z rąk, przed nim pojawia się sztylet
+    skierowany w niego, po chwili wbija się w pierś; Fusu kona i opada za wzgórze (reżyser 15.11 i 16.11)."""
     x = 646
     gy = Z.ground("dal", x) + 14
+    p = 0.448
     kam(st, t, 70, 650, 478, 2.3, 0.45, lens=2.1, truck=0.3)
     st.dof = 0.8
     swiat(st, t, w)
     bx = lerp(380, 980, pr(t, 0.6, 3.6))  # ptak leci z lewa na prawo nad Fusu
     if 0.6 < t < 4.2:
         st.put(Z.bird(int(t * 7) % 2), bx, 372 + 6 * math.sin(t * 5), 0.447, w=40, anchor=(0.5, 0.5), shadow=(2, 3, 3, 0.25))
-    zrzut = pr(t, 1.9, 0.9)  # list spada z ptaka do rąk Fusu
-    if t < 1.9 and t > 0.6:
+    glowa = (x - 7, gy - 112)  # czubek głowy Fusu
+    dlonie = (x - 22, gy - 80)
+    T_ZRZUT, T_GLOWA, T_DLON = 1.9, 2.6, 3.05
+    stun = pr(t, T_GLOWA, 1.0)  # sekunda zamroczenia
+    czyta = ease(pr(t, 3.6, 0.7))
+    pchn = ease(pr(t, 6.6, 0.16))  # sztylet wbija się w pierś
+    sink = pr(t, 7.6, T - 8.2)
+    lean = -9 * czyta * (1 - pr(t, 5.2, 0.4)) + (7 * math.sin(t * 9) * (1 - stun) if 0 < stun < 1 else 0) + 6 * pchn \
+        - 4 * settle((t - 6.75) / 0.8, 1.5)
+    lx0 = lerp(380, 980, pr(T_ZRZUT, 0.6, 3.6)) + 2
+    if 0.6 < t < T_ZRZUT:  # ptak niesie list
         st.put(Z.prop("list"), bx + 2, 382 + 6 * math.sin(t * 5), 0.4468, w=22, anchor=(0.5, 0.5), rot=-10, shadow=None)
-    elif zrzut > 0:
-        lx = lerp(lerp(380, 980, pr(1.9, 0.6, 3.6)) + 2, x - 18, zrzut)
-        ly = lerp(382, gy - 66, zrzut ** 1.6)
-        lean_l = -9 * ease(pr(t, 3.2, 0.7))
-        st.put(Z.prop("list"), lx, ly + (6 * ease(pr(t, 3.2, 0.7)) if zrzut >= 1 else 0), 0.4485, w=22, anchor=(0.5, 0.5),
-               rot=lerp(-10, 380, zrzut) if zrzut < 1 else 10 + lean_l, shadow=(2, 3, 3, 0.3), alpha=1 - pr(t, 6.6, 0.4))
-    lalka(st, t, "fusu", x, 112, pr(t, 0.2, 0.8), y=gy, p=0.448, flip=-1, lean=-9 * ease(pr(t, 3.2, 0.7)), sink=pr(t, 6.6, T - 7.4))
+    elif t < T_GLOWA:  # list spada coraz szybciej prosto na głowę
+        f = pr(t, T_ZRZUT, T_GLOWA - T_ZRZUT)
+        st.put(Z.prop("list"), lerp(lx0, glowa[0], f), lerp(382, glowa[1] - 4, f * f), 0.4485, w=22, anchor=(0.5, 0.5),
+               rot=lerp(-10, 200, f), shadow=(2, 3, 3, 0.3))
+    elif t < T_DLON:  # odbija się od głowy i spada mu w dłonie
+        f = pr(t, T_GLOWA, T_DLON - T_GLOWA)
+        st.put(Z.prop("list"), lerp(glowa[0], dlonie[0], f), lerp(glowa[1] - 4, dlonie[1], f) - 34 * math.sin(math.pi * f), 0.4485,
+               w=22, anchor=(0.5, 0.5), rot=lerp(200, 370, f), shadow=(2, 3, 3, 0.3))
+    else:  # w dłoniach; od 5,2 s list ktoś mu zabiera — odlatuje w górę, poza kadr
+        f = ease(pr(t, 5.2, 0.6))
+        if f < 1:
+            st.put(Z.prop("list"), dlonie[0] + 60 * f, dlonie[1] + 6 * czyta * (1 - f) - 260 * f, 0.4485, w=22, anchor=(0.5, 0.5),
+                   rot=10 - 9 * czyta + 300 * f, shadow=(2, 3, 3, 0.3))
+    if 0 < stun < 1:  # gwiazdki krążą nad głową
+        for n in range(3):
+            a = t * 2 * math.pi * 1.1 + n * 2 * math.pi / 3
+            st.put(Z.prop("gwiazdka"), glowa[0] + 20 * math.cos(a), glowa[1] - 6 + 5 * math.sin(a), p + (0.0004 if math.sin(a) > 0 else -0.0004),
+                   h=9 * (1 - ease(pr(stun, 0.8, 0.2))), anchor=(0.5, 0.5), rot=t * 200 + n * 40, shadow=(1, 2, 2, 0.3))
+    pojaw = ease(pr(t, 5.6, 0.5))  # sztylet pojawia się przed nim, ostrzem w jego stronę
+    if pojaw > 0 and sink < 1:
+        r = math.radians(lean)  # pierś jedzie z lalką: obrót wokół stóp i opadanie za wzgórze
+        fy = gy + ease(sink) * 112 * 1.12
+        cel = (x + math.cos(r) * -12 - math.sin(r) * -84, fy + math.sin(r) * -12 + math.cos(r) * -84)  # tu wchodzi czubek ostrza
+        dx = lerp(70, 0, pchn) + 3 * math.sin(t * 13) * (1 - pchn) * pojaw
+        st.put(Z.prop("sztylet"), cel[0] - dx, cel[1], p + 0.0012, w=48, anchor=(196 / 210, 0.5), rot=4 + lean * pchn,
+               alpha=min(1.0, pojaw * 2), shadow=(2, 3, 3, 0.35))  # rękojeść od strony widza, czubek w niego
+        if pchn <= 0:
+            st.put(Z.glow(), cel[0] - dx - 20, cel[1], p + 0.0013, w=70, anchor=(0.5, 0.5), mode="add",
+                   alpha=0.35 * math.sin(math.pi * pr(t, 5.6, 0.9)), shadow=None, tint=(1.0, 0.95, 0.85))
+    lalka(st, t, "fusu", x, 112, pr(t, 0.2, 0.8), y=gy, p=p, flip=-1, lean=lean, sink=sink)
     swiatlo(st, w, t)
 
 
@@ -645,7 +703,9 @@ def s_cisza(st, w, t, T):
 
 def s_studnia(st, w, t, T):
     """Dzień: dwaj chłopi kopią — jeden motyką, drugi łopatą, spod ziemi pryskają grudy; spod ziemi wysuwa się gliniana
-    głowa, chłopi odskakują, potem wychodzi cały żołnierz; zjeżdża zawieszka (reżyser 15.11: „pokaż, jak kopią”)."""
+    głowa, chłopi odskakują, nad pierwszym zjeżdża tabliczka „O!”; potem wychodzi cały żołnierz, oblepiony ziemią, a
+    pierwszy chłop odkłada motykę, podchodzi i otrzepuje go szmatką — grudy odpadają, glina jaśnieje; zjeżdża zawieszka
+    (reżyser 15.11: „pokaż, jak kopią”; 16.11: „tabliczka o! nad farmerem”, „otrzep go z ziemi”)."""
     w.zawieszki = [("1974", 1010, 380, pr(t, 5.0, 1.0))]
     kopia = 1 - pr(t, 3.2, 0.3)
     up = 0.40 * ease(pr(t, 3.2, 0.7)) + 0.60 * ease(pr(t, 5.6, 1.1))
@@ -654,16 +714,27 @@ def s_studnia(st, w, t, T):
     kam(st, t, 75, lerp(860, 880, k), lerp(570, 556, k), lerp(1.7, 1.9, k), 0.7, truck=0.8)
     st.dof = 1.4
     w.znaleziony = 0.0
+    podpis(w, t, "O!", 825, 500, 3.35, 2.2)  # nad głową chłopa z motyką, kiedy odskakuje
+    idzie = ease(pr(t, 6.6, 0.6))  # chłop z motyką podchodzi do żołnierza
+    trze = pr(t, 7.2, 1.8)  # otrzepywanie: sześć pociągnięć szmatką
     swiat(st, t, w)
     for n, (cx, narz, okres, faza) in enumerate(((812, "motyka", 0.9, 0.0), (1000, "lopata", 1.1, 0.4))):
-        x = cx - (30 if n == 0 else -30) * odskok
+        x = cx - (30 if n == 0 else -30) * odskok + (lerp(0, 72, idzie) if n == 0 else 0)
+        otrz = n == 0 and t >= 6.6  # odłożył motykę, ma w dłoni szmatkę
         gy = Z.ground("przod", x) + 14
         flip = 1 if n == 0 else -1
-        st.put(Z.prop("chlop_cialo"), x, gy, 0.70, h=120, anchor=(0.5, 1.0), sx=flip, rot=(-4 + 6 * math.sin(2 * math.pi * (t / okres + faza))) * kopia * flip)
+        rot = (-4 + 6 * math.sin(2 * math.pi * (t / okres + faza))) * kopia * flip
+        if otrz:  # krok przy podchodzeniu, potem pochyla się w rytm pociągnięć
+            rot = 3 * math.sin(idzie * math.pi * 4) * (1 - idzie) + (5 + 3 * math.sin(trze * 6 * 2 * math.pi)) * ease(pr(t, 7.1, 0.2))
+        st.put(Z.prop("chlop_cialo"), x, gy, 0.70, h=120, anchor=(0.5, 1.0), sx=flip, rot=rot)
         u = (t / okres + faza) % 1.0  # faza zamachu: 0 — w górze, 0,6 — uderzenie w ziemię
         kat = (lerp(-115, 32, ease(u / 0.6)) if u < 0.6 else lerp(32, -115, ease((u - 0.6) / 0.4))) if kopia > 0 else lerp(32, -60, odskok)
         hx, hy = x + 4 * flip, gy - 80
-        st.put(Z.prop(narz), hx, hy, 0.7005, w=96, anchor=(0.04, 0.5), sx=flip, rot=kat * flip, shadow=(2, 3, 3, 0.35))
+        if otrz:  # motyka leży na ziemi tam, gdzie ją odłożył
+            mx = 812 - 30 + 4
+            st.put(Z.prop(narz), mx - 10, Z.ground("przod", mx) + 10, 0.7005, w=96, anchor=(0.04, 0.5), rot=-4, shadow=(2, 3, 3, 0.35))
+        else:
+            st.put(Z.prop(narz), hx, hy, 0.7005, w=96, anchor=(0.04, 0.5), sx=flip, rot=kat * flip, shadow=(2, 3, 3, 0.35))
         for g in range(4):  # grudy ziemi pryskają po każdym uderzeniu
             uu = ((t / okres + faza) - 0.6) % 1.0
             if kopia > 0 and uu < 0.35:
@@ -672,7 +743,22 @@ def s_studnia(st, w, t, T):
                 gy2 = gy - 4 - 140 * uu * r.uniform(0.6, 1.0) + 420 * uu * uu
                 st.put(Z.prop("grudka"), gx, gy2, 0.7008, h=9, anchor=(0.5, 0.5), rot=r.uniform(0, 360) + 400 * uu, shadow=(1, 2, 2, 0.3))
     hh = 128
-    st.put(Z.soldier(2), 912, Z.ground("przod", 912) + 20 + (1 - up) * hh * 1.05, 0.6995, h=hh, rot=settle((t - 6.7) / 1.2, 1.5, 3))
+    sy0 = Z.ground("przod", 912) + 20
+    brud = 1 - ease(trze)
+    c = (lerp(1.0, 0.62, brud), lerp(1.0, 0.50, brud), lerp(1.0, 0.38, brud))  # glina oblepiona ziemią jaśnieje
+    st.put(Z.soldier(2), 912, sy0 + (1 - up) * hh * 1.05, 0.6995, h=hh, rot=settle((t - 6.7) / 1.2, 1.5, 3), tint=c)
+    for g in range(8):  # grudy przyklejone do żołnierza; każda odpada przy swoim pociągnięciu szmatki
+        r = random.Random(990 + g)
+        gx, gyy = 912 + r.uniform(-24, 18), sy0 - r.uniform(20, 112)
+        odp = pr(t, 7.25 + g * 0.21, 0.5)
+        if odp < 1 and gyy + (1 - up) * hh * 1.05 < sy0 - 6:
+            st.put(Z.prop("grudka"), gx - 20 * odp, gyy + (1 - up) * hh * 1.05 + 160 * odp * odp, 0.6997, h=10 + r.uniform(0, 4),
+                   anchor=(0.5, 0.5), rot=r.uniform(0, 360) + 300 * odp, shadow=(1, 2, 2, 0.3))
+    if 0 < trze < 1 or (t >= 6.6 and trze <= 0):  # szmatka w dłoni chłopa, potem kółka po glinie
+        ruch = trze * 6 * 2 * math.pi
+        rx = lerp(812 - 30 + 30, 896 + 6 * math.cos(ruch), ease(pr(t, 6.6, 0.8)))
+        ry = Z.ground("przod", 912) + 14 - 84 + 26 * math.sin(trze * math.pi) * (1 if trze > 0 else 0) + 6 * math.sin(ruch)
+        st.put(Z.prop("szmatka"), rx, ry, 0.7009, h=14, anchor=(0.5, 0.5), rot=20 * math.sin(ruch), shadow=(1, 2, 2, 0.3))
     swiatlo(st, w, t)
 
 
