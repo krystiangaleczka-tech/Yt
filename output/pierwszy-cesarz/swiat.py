@@ -29,7 +29,8 @@ BAN = {  # chorągiew: (x, plan, wysokość)
 EMP = (300, 708, 352)  # cesarz: x, linia stóp (za rampą), wysokość
 SMOKI = ((166, 0.765), (432, 0.775))  # dwie chorągwie ze smokiem za cesarzem: x, plan
 STOL = (640, 738, 350)  # stół pisarzy: x, dół, szerokość
-ZWOJ_BLAT = (0.65, 0.29)  # zwój bambusowy na blacie (ułamki szerokości i wysokości rysunku stołu)
+ZWOJ_BLAT = (0.67, 0.255)  # zwój bambusowy na blacie (ułamki szerokości i wysokości rysunku stołu)
+ZWOJ_ROT = 3.5  # zwój leży równolegle do tylnej krawędzi stołu (marker reżysera 16.11, ujęcie 47)
 URNA = (1092, 704, 150)  # trójnóg z brązu: x, dół, wysokość
 POSAG = (1238, 268)  # posąg z brązu: x, wysokość (reżyser 15.11: „troszkę większy”)
 KOPIEC = (1316, 602, 580)  # kopiec grobowca: x, dół, szerokość
@@ -322,7 +323,8 @@ def dwor(st, t, w):
         if w.zwoj > 0 and w.zwoj_lot <= 0 and rzeczy > 0:  # zwój leży wzdłuż blatu (reżyser 15.11: „w tym kierunku”)
             # cały zwój leży NA blacie: wcześniej jego dalszy koniec wystawał poza tylną krawędź stołu i zwój wisiał
             # w powietrzu (reżyser 16.11, ujęcie 47); cień tuż pod nim, bo leży, a nie unosi się
-            st.put(Z.S("bamboo", 0.5), *on(*ZWOJ_BLAT), P.rekwizyty + 0.004, w=104, anchor=(0.5, 0.5), rot=20, shadow=(2, 4, 4, 0.5))
+            st.put(Z.S("bamboo", 0.5), *on(*ZWOJ_BLAT), P.rekwizyty + 0.004, w=104, anchor=(0.5, 0.5), rot=ZWOJ_ROT,
+                   shadow=(2, 4, 4, 0.5))
         if w.ksiega > 0 and rzeczy > 0:
             lx, ly = on(0.20, 0.42)
             st.put(Z.S("ledger", 0.5), lx + (1 - ease_out(w.ksiega)) * 240, ly, P.rekwizyty + 0.006, w=150, anchor=(0.5, 0.5),
@@ -367,7 +369,7 @@ def dwor(st, t, w):
             c = 1 - 0.8 * burn
             if burn < 1:
                 st.put(Z.S("bamboo", 0.5), bx, by + 70 * burn, P.rekwizyty - 0.004, w=104, anchor=(0.5, 0.5),
-                       rot=20 + 234 * ease(min(f, 1.0)) + 6 * burn, tint=(c, c * 0.92, c * 0.85), shadow=(3, 5, 5, 0.4))
+                       rot=ZWOJ_ROT + (254 - ZWOJ_ROT) * ease(min(f, 1.0)) + 6 * burn, tint=(c, c * 0.92, c * 0.85), shadow=(3, 5, 5, 0.4))
 
 
 def armia(st, t, w):
