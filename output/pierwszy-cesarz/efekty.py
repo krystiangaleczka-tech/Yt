@@ -308,7 +308,7 @@ ZDARZENIA = {
     "stela": [(0.0, "wagon", 2.6), (3.2, "thud", 0.6)],
     "kanal2": [(0.4, "water", 6.0)],
     "pismo": [(0.4, "knock", 0.6), (2.2, "whoosh", 0.4)],
-    "moneta": [(0.3, "roll", 1.9), (2.2, "coin", 0.9)],
+    "moneta": [(0.3, "roll", (1.9, 1.5)), (1.8, "coin", 0.7), (2.2, "coin", 0.9)],
     "miara": [(0.3, "whoosh", 0.4), (1.3, "whoosh", 0.4), (2.25, "coin", 0.7), (2.3, "knock", 0.4)],
     "mur": [(0.5 + n * 0.25, "knock", 0.35) for n in range(20)],
     "robotnicy": [(0.0, "steps", 7.0)],
@@ -377,7 +377,7 @@ ZDARZENIA.update({
     "stela": [(0.0, "wagon", 2.6), (4.7, "rumble", 1.6), (4.8, "thud", 0.7)],
     "kanal2": [(0.4, "water", 8.0), (1.2, "whoosh", 0.4)],
     "pismo": [(0.1, "roll", 1.0), (0.4, "knock", 0.6), (2.2, "whoosh", 0.4), (3.5, "pisanie", 4.8)],
-    "moneta": [(0.3, "roll", 1.9), (2.2, "coin", 0.9), (0.0, "pisanie", 4.4)],
+    "moneta": [(0.3, "roll", (1.9, 1.5)), (1.8, "coin", 0.7), (2.2, "coin", 0.9), (0.0, "pisanie", 4.4)],
     "miara": [(0.2, "whoosh", 0.3), (0.3, "whoosh", 0.4), (1.3, "knock", 0.5), (1.7, "whoosh", 0.4), (2.6, "coin", 0.8), (2.65, "knock", 0.4),
               (3.4, "tick", 0.5), (4.2, "tick", 0.4)],
     "mur": [(0.2, "whoosh", 0.3)] + [(0.5 + n * 0.28, "knock", 0.35) for n in range(30)],
@@ -542,8 +542,12 @@ def main():
         for at, kind, g in evs:
             if at >= sec:
                 continue
-            s = long_sound(kind, min(g, sec - at)) if kind in DLUGIE \
-                else SFX[kind]() * g
+            if isinstance(g, tuple):  # (długość syntezy, ile z niej słychać): skrócenie dźwięku bez zmiany losowań reszty filmu
+                s = long_sound(kind, min(g[0], sec - at))[:N(g[1])].copy()
+                s[-N(0.05):] *= np.linspace(1, 0, N(0.05))
+            else:
+                s = long_sound(kind, min(g, sec - at)) if kind in DLUGIE \
+                    else SFX[kind]() * g
             j = N(t0 + at)
             fx[j:j + len(s)] += s[:n - j]
             events += 1

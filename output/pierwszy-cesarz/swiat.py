@@ -29,6 +29,7 @@ BAN = {  # chorągiew: (x, plan, wysokość)
 EMP = (300, 708, 352)  # cesarz: x, linia stóp (za rampą), wysokość
 SMOKI = ((166, 0.765), (432, 0.775))  # dwie chorągwie ze smokiem za cesarzem: x, plan
 STOL = (640, 738, 350)  # stół pisarzy: x, dół, szerokość
+ZWOJ_BLAT = (0.65, 0.29)  # zwój bambusowy na blacie (ułamki szerokości i wysokości rysunku stołu)
 URNA = (1092, 704, 150)  # trójnóg z brązu: x, dół, wysokość
 POSAG = (1238, 268)  # posąg z brązu: x, wysokość (reżyser 15.11: „troszkę większy”)
 KOPIEC = (1316, 602, 580)  # kopiec grobowca: x, dół, szerokość
@@ -67,7 +68,7 @@ def stan(i):
         smoki=[f(po("cesarz") and not po("upadek"))] * 2, smoki_fall=0.0,
         urna=f(po("posagi") and not po("zmierzch")),
         dwor=f(dwor), ksiega=f(dwor), pisze=f(I["pismo"] < i <= I["miara"]),
-        moneta=f(po("moneta") and not po("zmierzch")), moneta_x=1.0,
+        moneta=f(po("moneta") and not po("zmierzch")), moneta_x=1.0, moneta_lez=1.0, moneta_chw=0.0, moneta_skok=0.0,
         waga=f(po("miara") and not po("zmierzch")), odwaznik=f(po("miara") and not po("zmierzch")), waga_rot=0.0,
         zwoj=f(po("pismo") and not po("ksiegi")), zwoj_lot=0.0,
         uczony=f(po("ksiegi") and not po("uczeni")), uczony_lean=0.0, ogien=0.0,
@@ -319,7 +320,9 @@ def dwor(st, t, w):
         st.put(Z.S("scribe", 0.7), STOL[0] - 168 + pis * 3 * math.sin(t * 3.1), 676 + down * 1.25, P.rekwizyty + 0.014, h=200,
                anchor=(0.45, 1.0), rot=rot)
         if w.zwoj > 0 and w.zwoj_lot <= 0 and rzeczy > 0:  # zwój leży wzdłuż blatu (reżyser 15.11: „w tym kierunku”)
-            st.put(Z.S("bamboo", 0.5), *on(0.60, 0.22), P.rekwizyty + 0.004, w=104, anchor=(0.5, 0.5), rot=20, shadow=(3, 5, 5, 0.4))
+            # cały zwój leży NA blacie: wcześniej jego dalszy koniec wystawał poza tylną krawędź stołu i zwój wisiał
+            # w powietrzu (reżyser 16.11, ujęcie 47); cień tuż pod nim, bo leży, a nie unosi się
+            st.put(Z.S("bamboo", 0.5), *on(*ZWOJ_BLAT), P.rekwizyty + 0.004, w=104, anchor=(0.5, 0.5), rot=20, shadow=(2, 4, 4, 0.5))
         if w.ksiega > 0 and rzeczy > 0:
             lx, ly = on(0.20, 0.42)
             st.put(Z.S("ledger", 0.5), lx + (1 - ease_out(w.ksiega)) * 240, ly, P.rekwizyty + 0.006, w=150, anchor=(0.5, 0.5),
@@ -327,12 +330,19 @@ def dwor(st, t, w):
         if rzeczy > 0:
             st.put(Z.S("ink", 0.4), *on(0.42, 0.50), P.rekwizyty + 0.008, w=36, anchor=(0.5, 0.5), shadow=(2, 3, 4, 0.4))
             st.put(Z.S("coin_stack", 0.5), *on(0.47, 0.62), P.rekwizyty + 0.010, h=40, anchor=(0.5, 0.85), shadow=(3, 4, 4, 0.4))
-        if w.moneta > 0 and rzeczy > 0:  # moneta toczy się po blacie i kładzie przy stosie
-            roll = w.moneta_x
-            mx, my = on(0.585 - 0.37 * (1 - roll), 0.57 - 0.13 * (1 - roll))
-            flat = ease((roll - 0.80) / 0.20)
-            st.put(Z.coin(), mx, my - 18 * (1 - flat), P.rekwizyty + 0.012, h=40, anchor=(0.5, 0.5), rot=-620 * (1 - roll) ** 1.5,
-                   sy=1 - 0.5 * flat, shadow=(3, 4 + 3 * (1 - flat), 4, 0.42))
+        if w.moneta > 0 and rzeczy > 0:  # moneta wytacza się zza pisarza, toczy za kałamarzem i stosem, przewraca się
+            # (reżyser 16.11: „nie może ten coin tak dziwnie animować”) — droga punktu styku z blatem; obrót wynika
+            # z przebytej drogi (toczenie bez poślizgu), moneta stoi na blacie i jest ZA kałamarzem i stosem, bo toczy
+            # się dalej od kamery niż one; w.moneta_lez — przewrócenie (0 stoi, 1 leży), w.moneta_chw — dygot po upadku
+            roll, lez, chw = w.moneta_x, w.get("moneta_lez", 1.0), w.get("moneta_chw", 0.0)
+            skok = w.get("moneta_skok", 0.0)  # podskok nad blat tuż przed położeniem się (reżyser 16.11), w pikselach
+            (x0, y0), (x1, y1) = on(0.10, 0.25), on(0.60, 0.46)
+            mx, my = lerp(x0, x1, roll), lerp(y0, y1, roll)
+            r = 20.0  # promień monety w kadrze wzorcowym
+            droga = math.hypot(x1 - x0, y1 - y0) * (1 - roll)
+            st.put(Z.coin(), mx, my - r * (1 - lez) + 0.5 * r * lez - skok, P.rekwizyty + 0.007, h=2 * r, anchor=(0.5, 0.5),
+                   rot=-math.degrees(droga / r) + 5 * chw, sy=1 - 0.5 * lez + 0.10 * abs(chw),
+                   shadow=(3 + 0.3 * skok, 4 + 3 * (1 - lez) + skok, 4 + 0.3 * skok, 0.42))
         if rzeczy < 1:  # miarka i miara objętości zamiast zwojów i monet
             mk = 1 - rzeczy
             st.put(Z.prop("miarka"), *on(0.56, 0.66), P.rekwizyty + 0.012, w=150 * mk, anchor=(0.5, 0.5), rot=14,
@@ -350,14 +360,14 @@ def dwor(st, t, w):
         fy = urna(st, t, w, w.urna)
         if w.zwoj_lot > 0 and on:  # zwój leci łukiem ze stołu do ognia, potem czernieje i zapada się
             f = w.zwoj_lot
-            ax, ay = on(0.56, 0.19)
+            ax, ay = on(*ZWOJ_BLAT)  # startuje stąd, gdzie leżał, w tym samym rozmiarze i obrocie
             bx = ax + (URNA[0] - ax) * ease(min(f, 1.0))
             by = ay + (fy - 36 - ay) * min(f, 1.0) - 170 * math.sin(math.pi * min(f, 1.0))
             burn = ease((f - 1.0) / 0.9)
             c = 1 - 0.8 * burn
             if burn < 1:
-                st.put(Z.S("bamboo", 0.5), bx, by + 70 * burn, P.rekwizyty - 0.004, w=100, anchor=(0.5, 0.5),
-                       rot=-8 + 262 * ease(min(f, 1.0)) + 6 * burn, tint=(c, c * 0.92, c * 0.85), shadow=(3, 5, 5, 0.4))
+                st.put(Z.S("bamboo", 0.5), bx, by + 70 * burn, P.rekwizyty - 0.004, w=104, anchor=(0.5, 0.5),
+                       rot=20 + 234 * ease(min(f, 1.0)) + 6 * burn, tint=(c, c * 0.92, c * 0.85), shadow=(3, 5, 5, 0.4))
 
 
 def armia(st, t, w):

@@ -126,9 +126,14 @@ def s_pismo(st, w, t, T):
 
 
 def s_moneta(st, w, t, T):
-    """Detal blatu — moneta toczy się i kładzie przy stosie monet."""
+    """Detal blatu — moneta wytacza się zza pisarza i zwalnia; przy stosie podskakuje lekko nad blat (brzęk), w locie
+    kładzie się na płask i od razu spada na stół (drugi brzęk), po czym krótko dygocze (reżyser 16.11)."""
     w.moneta = 1.0
-    w.moneta_x = ease_out(pr(t, 0.3, 1.9))
+    w.moneta_x = 1 - (1 - pr(t, 0.3, 1.9)) ** 2  # toczenie: równomierne wytracanie prędkości, dojeżdża w locie
+    lot = pr(t, 1.8, 0.4)  # podskok 1,8–2,2 s; brzęki w efekty.ZDARZENIA["moneta"] w tych samych chwilach
+    w.moneta_skok = 9.0 * 4 * lot * (1 - lot)
+    w.moneta_lez = ease(lot)
+    w.moneta_chw = settle((t - 2.2) / 0.6, 2.5, 0.6)
     kam(st, t, 46, lerp(652, 660, t / T), 598, 3.4, 0.85, lens=2.7, truck=0.8)
     st.dof = 3.0
     swiat(st, t, w)

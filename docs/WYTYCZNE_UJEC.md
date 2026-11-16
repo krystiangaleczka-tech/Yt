@@ -88,6 +88,25 @@ porusza lub odwraca (ten sam punkt dłoni w każdym ujęciu tej sceny). O czym m
 kaszle; „zginął” — widać śmierć, a nie tylko zniknięcie. Postać ma stałą skalę: grozę pokazuje się gestem, cieniem
 i światłem, nie powiększeniem lalki.
 
+### 1.12 Rzecz, która się toczy, spada albo przewraca, rusza się jak prawdziwa
+Ruch przedmiotu liczy się z jego fizyki, a nie z osobnych krzywych „na oko” (ujęcie 47 „Pierwszego cesarza”, moneta).
+- **Toczenie bez poślizgu:** kąt obrotu wynika z przebytej drogi (droga ÷ promień), nigdy z osobnej krzywej czasu.
+  Rzecz zwalnia równomiernie i nie pełznie przez ostatnią sekundę.
+- **Stoi na powierzchni:** punkt styku leży na blacie albo ziemi przez cały ruch; środek jest o promień wyżej.
+- **Kolejność rysowania z punktu styku:** rzecz, która toczy się dalej od kamery niż stos, kałamarz czy inny rekwizyt,
+  jest rysowana ZA nim przez całą drogę — inaczej wygląda, jakby przez niego przejeżdżała. Droga omija to, co leży
+  na powierzchni (księgę, po której ktoś pisze), i kończy się na wolnym miejscu, nie na krawędzi ani narożniku.
+- **Skąd się bierze:** wytacza się zza przeszkody (postaci, krawędzi kadru), a w pierwszej klatce ujęcia jest schowana.
+- **Upadek przyspiesza:** przewracanie i spadanie idą coraz szybciej (ok. 0,3–0,45 s), nie jednostajnie i nie w
+  zwolnionym tempie; po uderzeniu krótki, gasnący dygot. Mały podskok tuż przed położeniem się (kilka pikseli kadru
+  wzorcowego) daje wyraźny moment zdarzenia — rzecz kładzie się w locie i spada tam, gdzie ma leżeć.
+- **Każde zdarzenie ma dźwięk w tej samej chwili:** podniesienie, uderzenie o blat, toczenie. Czasy w
+  `efekty.ZDARZENIA` są te same co w funkcji ujęcia; dźwięk ciągły (toczenie) cichnie, kiedy rzecz jest w powietrzu.
+- **Dźwięk poprawia się punktowo:** po zmianie jednego zdarzenia ścieżka efektów ma się różnić od poprzedniej tylko
+  w tym miejscu, a muzyka wcale (porównaj próbki starego i nowego pliku). Skrócenie dźwięku ciągłego zapisuje się
+  jako (długość syntezy, ile słychać), żeby nie zmienić losowań reszty filmu.
+- **Miejsce spoczynku to stan świata:** rzecz leży w następnych ujęciach dokładnie tam, gdzie upadła (ten sam kod).
+
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
 - Osobne warstwy: tło bez postaci, postać (PNG RGBA, przezroczyste tło), **pierwszy plan zasłaniający** (drzwi z
@@ -176,6 +195,9 @@ Zanim ujęcie trafi do Studio do oceny:
 | Pierwszy cesarz EN (15.11, reżyser) | eunuch Zhao Gao jako olbrzymia lalka bez podpisu („kto to jest i czemu on jest taki ogromny?”) | 1.11 |
 | Pierwszy cesarz EN (15.11, reżyser) | stela wyrastała, zanim kamera do niej dojechała, i była za mała; łodzie nie chowały się za ostatnią falą, tylko stały przed nią; gałąź kulisy zasłaniała chorągwie | 1.3, 1.5, 1.8 |
 | Pierwszy cesarz EN (15.11, reżyser) | 15 ujęć za krótkich na swoją akcję („wydłuż”, „wydłuż 3×”) — dane.WYDLUZ | 1.8 |
+| Pierwszy cesarz EN (16.11, reżyser, ujęcie 47) | „nie może ten coin tak dziwnie animować” — moneta przejeżdżała przez stos monet i kałamarz (narysowana przed nimi, choć toczyła się za nimi), obracała się niezależnie od przebytej drogi (ślizg) i kładła się ponad sekundę w zwolnionym tempie; teraz obrót wynika z drogi, moneta wytacza się zza pisarza, jest za bliższymi rzeczami, przewraca się coraz szybciej i dygocze po upadku | 1.12, 1.5, 1.6 |
+| Pierwszy cesarz EN (16.11, reżyser, ujęcie 47) | po poprawce toczenia: „ja bym ją minimalnie podniósł i w tym momencie dodał dźwięk monety, i jak jest podniesiona, to od razu spada na ten stół” — samo przewrócenie nie dawało wyraźnego momentu; moneta podskakuje z brzękiem i spada na płask (drugi brzęk) | 1.12 |
+| Pierwszy cesarz EN (16.11, reżyser, ujęcie 47) | „popraw jeszcze ten zwój” — dalszy koniec zwoju wystawał poza tylną krawędź stołu, więc w detalu blatu zwój wisiał w powietrzu; leży teraz cały na blacie z cieniem tuż pod sobą, a lot do ognia zaczyna się z tego samego miejsca, rozmiaru i obrotu. W detalu sprawdza się, czy rekwizyt mieści się w obrysie powierzchni, na której leży | 1.6, 3.1 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
