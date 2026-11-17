@@ -172,6 +172,21 @@ SWIAT = {
          "i dzikimi wiśniami, na kulisach kwitnąca wiśnia, kępa bambusa i gałąź wiśni u góry kadru; Takachiho to zielony stożek, "
          "góry dookoła Yamato — błękitne pagórki. Wszystko wycięte kodem (zestaw_jp: fuji, wzgorza_jp, wisnia, bambus, galaz_wisni).",
          "at": "2026-11-13", "by": "reżyser"},
+        {"id": "D8", "text": "Film idzie po angielsku na kanał Paper Theatre jako następny po „Pierwszym cesarzu” (tytuł według wzoru "
+         "„<temat>, Told in Paper Theatre”); robi się go na własnej gałęzi git „powstanie-japonii”. Kwestie EN w kwestie_en.py "
+         "(polska rozpiska zostaje źródłem ujęć), napisy na wycinkach przez ETYKIETY. Film EN ma 8–12 min: kwestie skrócone tak, "
+         "żeby zmieściły się z pauzami i wydłużeniami (ok. 11:45 przy tempie lektora EN 2,84 słowa/s).", "at": "2026-11-17",
+         "by": "reżyser"},
+        {"id": "D9", "text": "Lektor EN tak jak w „Pierwszym cesarzu”: Chatterbox Multilingual po angielsku z ustawieniami TEATR "
+         "(Podręcznik → Lektor, zasada 8), próbka z angielskiego nagrania autora, 3 podejścia, kontrola Whisperem, potem "
+         "lektor_studio.py podejscia --teatr (3% wolniej, pauzy z zakresów) i kontrola urwanych słów (zasada 9). Polska próba "
+         "wersji wielojęzycznej (14.11) odpada.", "at": "2026-11-17", "by": "reżyser"},
+        {"id": "D10", "text": "Ujęcia przerabia się według Wytycznych ujęć z 17.11 (przepis na ujęcie, zasady 1.15–1.24): podpis przy "
+         "pierwszym pojawieniu się każdej postaci, śmierć widać (X na oczach, konanie, opadanie), zabójstwo ma fazy ciosu, "
+         "potęga liczbą (flota, wojsko w Naniwie i w bitwie, haniwa), gagi ze słownika znaków (tabliczki „HA HA!”, „AW!…”, "
+         "gwiazdki przy zamroczeniu), syn przy śmierci cesarza, kurtyna z tytułem między aktami i ściemnienie przy zmianie "
+         "miejsca, podziękowanie na końcu, głos człowieka (śmiech, jęk, kaszel) z nagrania, a nie z szumu.", "at": "2026-11-17",
+         "by": "reżyser"},
     ],
 }
 

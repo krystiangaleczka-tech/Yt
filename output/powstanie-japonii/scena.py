@@ -91,11 +91,17 @@ def _off(du, dv, rot):
     return c * du - s * dv, s * du + c * dv
 
 
+OCZY = ((137, 124), (171, 122))  # środki oczu na arkuszu korpusu (zestaw_jp._korpus_img)
+CZUBEK_GLOWY = (152, 70)
+
+
 def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink=0.0, lift=0.0, rece=(0.0, 0.0), tint=None,
-          trzyma=None, seed=None, hop=0.0, alpha=1.0, shadow=True, blur=None):
+          trzyma=None, seed=None, hop=0.0, alpha=1.0, shadow=True, blur=None, oczy_x=0.0, gwiazdki=0.0):
     """Lalka na patyczku: wysuwa się zza rampy (k), opada pod nią (sink), obraca się (flip: 1 w prawo, -1 w lewo),
     pochyla (lean, stopnie). hop — podskok przy jeździe na listwie (liczony z położenia x, nie z zegara).
-    trzyma = (sprite, wysokość, kotwica, obrót, za_ręką): rekwizyt w przedniej dłoni. Zwraca położenie dłoni."""
+    trzyma = (sprite, wysokość, kotwica, obrót, za_ręką): rekwizyt w przedniej dłoni. Zwraca położenie dłoni.
+    oczy_x — śmierć: X na oczach (0..1, rośnie), jedzie z głową; gwiazdki — zamroczenie: gwiazdki krążą nad głową
+    (słownik znaków, wytyczne 1.20)."""
     if k <= 0 or sink >= 1:
         return None
     f = J.figura(key)
@@ -120,6 +126,20 @@ def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink
             hx, hy = _off(0, f.dlon * sc, arot)
             out = (sx_ + hx, sy_ + hy, arot)
     st.put(f.body, x, yy, p, h=f.ch * sc, anchor=(ax, ay), rot=rot, sx=flip, **kw)
+    kk = f.s["szer"]
+    na_ark = lambda u, v: _off((f.cw / 2 + (u - 150) * kk - af[0]) * sc * flip, (v - af[1]) * sc, rot)
+    if oczy_x > 0:
+        for u, v in OCZY:
+            ex, ey = na_ark(u, v)
+            st.put(Z0.prop("x_oko"), x + ex, yy + ey, p, h=24 * sc * back(min(1.0, oczy_x), 1.6), anchor=(0.5, 0.5), rot=rot,
+                   shadow=None, z=0.07, alpha=alpha)
+    if gwiazdki > 0:
+        cx_, cy_ = na_ark(*CZUBEK_GLOWY)
+        for n in range(4):
+            a = t * 6.0 + n * math.pi / 2
+            st.put(Z0.prop("gwiazdka"), x + cx_ + math.cos(a) * 70 * sc, yy + cy_ - 18 * sc + math.sin(a) * 16 * sc, p,
+                   h=30 * sc * gwiazdki, anchor=(0.5, 0.5), rot=t * 200 + n * 40, shadow=(2, 3, 3, 0.35),
+                   z=0.09 if math.sin(a) > 0 else -0.09)
     if trzyma and out:
         spr, ph, anc, orot, follow = trzyma
         st.put(spr, out[0], out[1], p, h=ph, anchor=anc, rot=(out[2] if follow else rot) + orot * flip, sx=flip, z=0.08, **kw)
@@ -127,6 +147,24 @@ def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink
 
 
 # ---------- scenografie ----------
+
+def podpis(w, t, txt, x, y, t0, dur=2.8):
+    """Tabliczka z imieniem i rolą nad postacią przy jej pierwszym pojawieniu się (wytyczne 1.15) albo okrzyk ze słownika
+    znaków („HA HA!”, „AŁA!…”; 1.20): zjeżdża na nitce w t0, po dur s odjeżdża w górę. (x, y) — środek górnej krawędzi
+    tabliczki w kadrze wzorcowym. Napis w języku wersji (kwestie_en.ETYKIETY)."""
+    w.zawieszki = list(w.zawieszki) + [(txt, x, y, pr(t, t0, 0.9) * (1 - pr(t, t0 + dur, 0.6)))]
+
+
+def iks(st, x, y, t, t0, h=200, p=None, mig=2):
+    """Czerwony krzyż nad postacią: miga mig razy od chwili t0 (0,3 s widać, 0,18 s nie) — wyrok, cios śmiertelny
+    (słownik znaków, wytyczne 1.20; wzór: „Pierwszy cesarz” ujecia1.iks)."""
+    p = P.rekwizyty + 0.03 if p is None else p
+    for n in range(mig):
+        a = t0 + n * 0.48
+        if a <= t < a + 0.3:
+            k = pr(t, a, 0.08)
+            st.put(Z0.prop("x"), x, y, p, h=h * (0.8 + 0.2 * back(k, 1.6)), anchor=(0.5, 0.5), rot=-4 + 8 * n, shadow=(4, 6, 6, 0.45))
+
 
 def zawieszki(st, t, w):
     for txt, x, y, k in w.zawieszki:

@@ -799,3 +799,27 @@ def s_koniec(st, w, t, T):
     st.put(J.black(), CX, CY, 0.992, w=1300, anchor=(0.5, 0.5), alpha=off, shadow=None, blur=0)
     J.theatre_put(st, 0.9 - 0.4 * off)
     swiatlo(st, w, t)
+
+
+DZIEKI = (0.5, 1.5)  # tabliczki „DZIĘKUJĘ / za obejrzenie” zjeżdżają od a, „Wesprzyj mnie…” wysuwa się od dołu od b
+
+
+def s_dzieki(st, w, t, T):
+    """Ciemna scena pod szyldem, kadr jak na końcu ujęcia „koniec”. W otwór sceny zjeżdżają na nitkach duże papierowe
+    tabliczki z podziękowaniem dla widzów, oświetlone z góry jak w teatrze; film schodzi w czerń (render). Wzór:
+    „Pierwszy cesarz” s_dzieki (reżyser 16.11: „Duże — THANK YOU for watching, Support me and I'll do my best.”)."""
+    kam(st, t, 78, 640, 322, 0.6, 1.0, lens=0.6 ** 0.55, truck=1.0, drift=0.4)
+    st.dof = 0.0
+    st.put(J.black(), CX, CY, 0.992, w=1300, anchor=(0.5, 0.5), shadow=None, blur=0)
+    a, b = DZIEKI
+    p = 0.995  # przed ciemnością sceny, za ramą teatru
+    st.put(J.glow(), CX, 340, p - 0.002, w=1500, anchor=(0.5, 0.5), mode="add", alpha=0.22 * ease(pr(t, a - 0.1, 0.8)),
+           shadow=None, tint=(1.0, 0.85, 0.6))
+    J.hang(st, J.tag("DZIĘKUJĘ", 120), CX, 96, p + 0.001, pr(t, a, 1.0), t, 311, drop=620, sway=0.9, h=222,
+           strings=(0.25, 0.75), shadow=(5, 8, 10, 0.5))
+    J.hang(st, J.tag("za obejrzenie", 60), CX, 336, p + 0.0005, pr(t, a + 0.3, 1.0), t, 312, drop=620, sway=1.1, h=112,
+           strings=(0.2, 0.8), shadow=(4, 6, 8, 0.45))
+    J.rise(st, J.tag("Wesprzyj mnie, a dam z siebie wszystko.", 60), CX, 612, p, pr(t, b, 1.0), t, 313, lift=270, wob=0.4,
+           h=118, shadow=(4, 6, 8, 0.45))
+    J.theatre_put(st, 0.5)
+    swiatlo(st, w, t)

@@ -11,7 +11,10 @@ ujęcie: (klucz, kadr, ruch, sekundy, opis wydarzenia, dźwięk)
 Bohater nazywa się Iwarebiko aż do intronizacji; imię Jimmu pada dopiero w ujęciu `imie` (księga świata, D3).
 """
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # kwestie_en.py obok
 
 N = None
 AKTY = [
@@ -328,6 +331,10 @@ AKTY = [
                 ("koniec", "PO", "odj", N, "kamera wycofuje się z teatru: nad wyspami świeci czerwone słońce, światło w skrzyni gaśnie i zostaje "
                  "szyld z tytułem", "L: Nikt nie wie, czy Jimmu naprawdę żył, ale kraj, który zaczął się od kropli z włóczni, do dziś nazywa "
                  "siebie źródłem słońca."),
+                # podziękowanie jak w „Pierwszym cesarzu” (reżyser 16.11.2026); tekst jest w kadrze, więc bez paska napisu
+                ("dzieki", "TYT", "stat", N, "ciemna scena pod szyldem: na nitkach zjeżdżają duże papierowe tabliczki z "
+                 "podziękowaniem dla widzów, potem film schodzi w czerń", "L: Dziękuję za obejrzenie. Wesprzyj mnie, a dam z siebie "
+                 "wszystko."),
             ]),
         ]),
     ]),
@@ -340,12 +347,33 @@ SLOWNIE = {"w 660 roku": "w sześćset sześćdziesiątym roku", "Datę 660 roku
            "w 1873 roku": "w tysiąc osiemset siedemdziesiątym trzecim roku", "W 2019 roku": "W dwa tysiące dziewiętnastym roku"}
 
 
-def kwestia(dzwiek):
-    return dzwiek[2:].strip() if dzwiek.startswith("L:") else ""
+# JEZYK=en: angielska wersja filmu na kanał Paper Theatre (reżyser 17.11.2026, księga D8): kwestie z kwestie_en.py,
+# lektor w lektor_en/. Polska rozpiska zostaje źródłem ujęć i ich kolejności.
+JEZYK = __import__("os").environ.get("JEZYK", "pl")
 
+
+def kwestia(dzwiek):
+    txt = dzwiek[2:].strip() if dzwiek.startswith("L:") else ""
+    return _PL2EN[txt] if txt and JEZYK == "en" else txt
+
+
+def _pl2en():
+    from kwestie_en import EN
+    out = {}
+    for _, _, _, sceny in AKTY:
+        for _, _, beaty in sceny:
+            for _, shots in beaty:
+                for klucz, *_r, dzwiek in shots:
+                    if dzwiek.startswith("L:"):
+                        out[dzwiek[2:].strip()] = EN[klucz]
+    return out
+
+
+_PL2EN = _pl2en() if JEZYK == "en" else {}
 
 TEMPO = 2.1  # słowa na sekundę: tempo klonu głosu autora zmierzone przy „Pierwszym cesarzu” (10.11.2026)
-LEKTOR = Path(__file__).resolve().parents[4] / "output/powstanie-japonii/lektor"
+TEMPO_EN = 2.84  # angielski klon (TEATR, 3% wolniej, pauzy): „Pierwszy cesarz” EN, 1233 słowa w 434 s nagrań (17.11.2026)
+LEKTOR = Path(__file__).resolve().parents[4] / ("output/powstanie-japonii/lektor" + ("_en" if JEZYK == "en" else ""))
 
 
 def nagranie(dzwiek):
@@ -359,6 +387,11 @@ def nagranie(dzwiek):
 
 
 def slownie(txt):
+    if JEZYK == "en":
+        from kwestie_en import SLOWNIE_EN
+        for k, v in SLOWNIE_EN.items():
+            txt = txt.replace(k, v)
+        return txt
     for k, v in SLOWNIE.items():
         txt = txt.replace(k, v)
     return txt
@@ -372,13 +405,19 @@ def okno_kwestii(dzwiek):
     real = nagranie(dzwiek)
     if real:
         return (0.6, real)
-    return (0.6, len(slownie(txt).split()) / TEMPO)
+    return (0.6, len(slownie(txt).split()) / (TEMPO_EN if JEZYK == "en" else TEMPO))
 
 
 # Pauza po kwestii, zanim padnie cięcie (podręcznik, „Rytm” 2 i 3). Reżyser 14.11.2026 (przy „Pierwszym cesarzu”): przy
 # 0,6 s „obcina zaraz po kwestii ujęcie, bo następuje następne, i jest to nienaturalne” — obraz trwa jeszcze chwilę po
 # ostatnim słowie, a im większa granica (beat → scena → akt), tym dłużej, bo koniec sceny to długie trzymanie.
 PAUZA_PO = {"ujecie": 1.1, "beat": 1.4, "scena": 1.8, "akt": 2.3}
+
+# Ujęcia z kwestią wydłużone o tyle sekund po kwestii, bo wydarzenie ma się skończyć na oczach widza i chwilę postać
+# (wytyczne 1.8, 1.17, 1.18: we wzorcu reżyser wydłużał budowę, wojsko, tłum i podróż o 2–5 s). Przegląd 17.11.2026.
+WYDLUZ = {"wyspy": 2.0, "orochi": 2.0, "miecz": 1.5, "flota": 2.5, "naniwa": 2.0, "nagasune": 1.5, "itsuse": 1.5,
+          "niedzwiedz": 1.5, "przebudzenie": 1.5, "wrona": 1.5, "bitwa": 2.5, "zdrada": 1.5, "palac": 2.5, "smierc": 1.5,
+          "linia": 2.0, "haniwa": 2.5, "koronacja": 1.5, "uzume": 1.0, "rana": 1.0, "pulapka": 1.0, "dzieki": 0.7}
 
 
 def ujecia(akt=None):
@@ -399,6 +438,7 @@ def ujecia(akt=None):
                         sec = round(start + mowa + PAUZA_PO[granica], 1)
                         if mowa > 6.5:  # długie zdanie: dłuższy oddech po nim
                             sec = round(sec + 0.3, 1)
+                        sec = round(sec + WYDLUZ.get(klucz, 0.0), 1)
                     if prev is not None and abs(sec - prev) < 0.25:
                         sec = round(sec + 0.3, 1)
                     prev = sec

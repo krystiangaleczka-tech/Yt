@@ -27,6 +27,20 @@ from zestaw import (FONT_PL, FONT_ZH, PL_IDX, ZH_IDX, S, black, ell, flame, glow
                     texture, waves, _sheet)
 
 P = Z0.P
+JEZYK = Z0.JEZYK
+
+
+def tr(txt):
+    """Napis na wycinku w języku filmu (JEZYK=en: kwestie_en.ETYKIETY tego filmu). Podmienia zestaw.tr, więc zawieszki
+    i tabliczki z zestaw.tag też idą przez tłumaczenie Japonii, a nie „Pierwszego cesarza” (wytyczne 1.13)."""
+    if JEZYK != "en":
+        return txt
+    sys.path.insert(0, str(HERE.parents[1] / "docs/filmy/powstanie-japonii/ujecia"))
+    from kwestie_en import ETYKIETY
+    return ETYKIETY.get(txt, txt)
+
+
+Z0.tr = tr
 GOLD = (210, 168, 82)
 SHU = (196, 64, 40)  # cynober bram torii
 INK = (40, 28, 24)
@@ -362,9 +376,9 @@ def theatre():
     im = glue(im, piece(w, h, R(330, -176, 950, -48), kuro, "gladki", seed=41, contrast=1.4), shadow=0.8, off=(6, 8), soft=8)
     for shape in (R(330, -176, 950, -168), R(330, -56, 950, -48), R(330, -176, 338, -48), R(942, -176, 950, -48)):
         im = glue(im, piece(w, h, shape, GOLD, "gnieciony", seed=43, contrast=0.9), shadow=0.4)
-    title = glyphs("SYN SŁOŃCA", 58, FONT_PL, PL_IDX, (640 + ox, -124 + oy), "mm")
+    title = glyphs(tr("SYN SŁOŃCA"), 58, FONT_PL, PL_IDX, (640 + ox, -124 + oy), "mm")
     im = glue(im, piece(w, h, title, (230, 190, 104), "gladki", rough=0.6, contrast=1.2), shadow=0.7, off=(2, 3), soft=1.5)
-    sub = glyphs("POWSTANIE JAPONII", 22, FONT_PL, PL_IDX, (640 + ox, -78 + oy), "mm", spacing=4)
+    sub = glyphs(tr("POWSTANIE JAPONII"), 22, FONT_PL, PL_IDX, (640 + ox, -78 + oy), "mm", spacing=4)
     im = glue(im, piece(w, h, sub, (210, 170, 96), "gladki", rough=0.5, contrast=1.2), shadow=0.6, off=(1, 2), soft=1)
     # czerwone słońca-pieczęcie po bokach tabliczki
     for i, x in enumerate((262, 1018)):
@@ -1283,7 +1297,7 @@ def kalendarz():
     w, h = 220, 260
     parts = [(rect(10, 10, 210, 250), (246, 242, 232), dict(kind="gladki", edge=2)), (rect(10, 10, 210, 60), (196, 46, 36)),
              (glyphs("11", 110, FONT_PL, PL_IDX, (110, 150), "mm"), (40, 30, 26), dict(kind="gladki", rough=0.5)),
-             (glyphs("LUTEGO", 30, FONT_PL, PL_IDX, (110, 222), "mm"), (40, 30, 26), dict(kind="gladki", rough=0.5))]
+             (glyphs(tr("LUTEGO"), 30, FONT_PL, PL_IDX, (110, 222), "mm"), (40, 30, 26), dict(kind="gladki", rough=0.5))]
     return Sprite(stack(w, h, parts, seed=510), "kalendarz", rim=2, clean=False)
 
 
