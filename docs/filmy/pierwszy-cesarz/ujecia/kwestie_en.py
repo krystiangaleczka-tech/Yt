@@ -77,6 +77,9 @@ EN = {
     "studnia": "The clay army was found only in 1974, by farmers digging a well.",
     "grobowiec": "To this day, no one has opened the tomb itself.",
     "qin": "What he left behind is the name we still use for this country, because China most likely comes from the old Qin.",
+    # reżyser 16.11.2026: ognie — „opisz w narracji, co oznacza ten ogień sygnałowy”; na końcu podziękowanie dla widzów
+    "ognie": "A signal fire meant raiders were coming, and tower after tower passed the warning on.",
+    "dzieki": "Thank you for watching! Support me, and I'll do my best.",
 }
 
 # napisy na wycinkach (szyld teatru, zawieszki)
@@ -94,6 +97,9 @@ ETYKIETY = {"PIERWSZY CESARZ": "THE FIRST EMPEROR", "247 p.n.e.": "247 BC", "221
             # tabliczki z uwag reżysera (16.11.2026)
             "AŁA!…": "AW!…", "O!": "OH!", "Cesarz umrze, a ziemia się podzieli": "The Emperor will die, the land will split",
             "NIEMOŻLIWE?!": "NO WAY?!",  # tabliczka cesarza na miniaturce (miniatura.py)
+            # nazwa kraju i podziękowanie na końcu filmu (markery reżysera w ujęciu 79, 16.11.2026)
+            "Qin": "Qin", "Chiny": "China", "DZIĘKUJĘ": "THANK YOU", "za obejrzenie": "for watching",
+            "Wesprzyj mnie, a dam z siebie wszystko.": "Support me and I'll do my best.",
             # tytuły aktów na kurtynie (przejście między aktami)
             "Akt 2 · Król chłopiec": "Act II · The Boy King", "Akt 3 · Wojna i zamach": "Act III · War and the Assassin",
             "Akt 4 · Koniec sześciu królestw": "Act IV · The End of Six Kingdoms", "Akt 5 · Jeden kraj": "Act V · One Country",
@@ -171,4 +177,6 @@ FRAZY_EN = {
     "upadek": "The dynasty that was meant to last ten thousand generations, fell, after fifteen years.",
     "studnia": "The clay army was found only in 1974, by farmers, digging a well.",
     "grobowiec": "To this day, no one has opened, the tomb itself.",
+    "ognie": "A signal fire meant, raiders were coming, and tower after tower, passed the warning on.",
+    "dzieki": "Thank you for watching! Support me, and I'll do my best.",
 }

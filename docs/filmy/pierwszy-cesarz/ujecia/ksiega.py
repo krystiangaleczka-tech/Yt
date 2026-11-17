@@ -68,11 +68,13 @@ SWIAT = {
     "props": [
         {"id": "trojnog", "name": "Trójnóg z brązu", "place": "rampa", "seeded": r("posagi", "trójnogu"),
          "uses": [r("ksiegi", "trójnogu"), r("popiol", "trójnogu")], "note": "W akcie 4 przetapia broń, w akcie 6 płoną w nim księgi; chowa się o zmierzchu."},
-        {"id": "zwoj", "name": "Zwój bambusowy", "place": "rampa", "seeded": r("pismo", "zwojem"), "uses": [r("ksiegi", "zwój")],
-         "note": "Leży na stole pisarzy; w akcie 6 leci do ognia."},
+        {"id": "zwoj", "name": "Zwój bambusowy", "owner": "uczony", "place": "rampa", "seeded": r("ksiegi", "zwojem"),
+         "uses": [r("ksiegi", "trójnogu")], "note": "Księgi uczonego: wysuwa się z nim zza rampy w jego dłoniach i leci do ognia "
+         "(reżyser 16.11: na stole pisarzy zwoju już nie ma, D16)."},
         {"id": "mapa", "name": "Mapa siedmiu królestw", "place": "sala", "seeded": r("mapa", "mapa"), "uses": [r("mapa2", "mapa")],
          "note": "Siedem kawałków barwnego papieru; czarny papier Qin przykrywa pozostałe."},
-        {"id": "mapa_yan", "name": "Zwinięta mapa ze sztyletem", "place": "sala", "seeded": r("dary", "mapa"), "uses": [r("sztylet", "sztylet")]},
+        {"id": "mapa_yan", "name": "Zwinięta mapa ze sztyletem", "place": "sala", "seeded": r("sztylet", "mapie"),
+         "uses": [r("sztylet", "sztylet")], "note": "W ujęciu z darami tylko w kwestii; na stół zjeżdża w ujęciu ze sztyletem (D16)."},
         {"id": "miecz", "name": "Długi miecz króla", "owner": "Zheng", "seeded": r("kolumna", "miecz"), "uses": [r("cios", "miecz")]},
         {"id": "powoz", "name": "Powóz cesarza z czarną chorągwią", "place": "droga", "seeded": r("stela", "powóz"),
          "uses": [r("mlot", "powoz"), r("podroz", "powóz"), r("spisek", "powoz"), r("ryby", "powóz")]},
@@ -99,7 +101,7 @@ SWIAT = {
         {"at": r("odprawa", "król"), "note": "dorosły król odprawia kanclerza", "needsOff": ["krol_maly"]},
         {"at": r("moneta", "stołu"), "note": "moneta toczy się po stole pisarzy", "needs": ["dwor"]},
         {"at": r("miara", "stół"), "note": "waga zjeżdża na stół pisarzy", "needs": ["dwor"]},
-        {"at": r("ksiegi", "stołu"), "note": "zwój leci ze stołu do ognia", "needs": ["dwor"]},
+        {"at": r("ksiegi", "uczonego"), "note": "zwój leci z rąk uczonego do ognia przy stole pisarzy", "needs": ["dwor"]},
         {"at": r("drogi", "wóz"), "note": "wóz jedzie drogą przez środek sceny", "needsOff": ["dwor"]},
         {"at": r("mlot", "noc"), "note": "zamach młotem na nocnej drodze", "needs": ["noc"], "needsOff": ["dwor"]},
         {"at": r("armia", "żołnierze"), "note": "gliniana armia wstaje nocą", "needs": ["noc", "cesarz_zyje"]},
@@ -178,6 +180,12 @@ SWIAT = {
          "by": "reżyser"},
         {"id": "D15", "text": "Przejścia: kurtyna z tytułem aktu między aktami, ściemnienie światła przy zmianie miejsca w akcie, poza "
          "tym cięcie. Przejścia nachodzą na pauzę po kwestii — długość filmu bez zmian.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D16", "text": "Uwagi reżysera z 16.11 wieczorem: chłopiec wyskakuje za kadr pod bramą i spada z góry do wozu; trucizna "
+         "leje się z brzegu kielicha do ust; bez zwiniętej mapy na stole w ujęciu z darami i bez zwoju na stole pisarzy (księgi do "
+         "ognia przynosi uczony); ogień sygnałowy dostaje kwestię lektora (8–9 s); na pustym morzu bez żagla i środkowego cyklopa, "
+         "dwaj pozostali podskakują i skaczą do wody; tabliczki Qin → China w ostatnim ujęciu i nowe ujęcie 80 z podziękowaniem dla widzów; kaszel "
+         "z nagrania zamiast syntezy; kurtyna między aktami z dźwiękiem zasuwania i rozsuwania; brakujące efekty "
+         "(lalki zza rampy, płachta na powozie, świt, cyklopi).", "at": "2026-11-16", "by": "reżyser"},
     ],
 }
 

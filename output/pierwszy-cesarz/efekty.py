@@ -153,6 +153,79 @@ def kurtyna(sec=0.9):
     return x
 
 
+def _dzwon_kolka(r, g):
+    """Jedno kółko kurtyny stuka o drążek: krótki, nieharmoniczny brzęk metalu (ok. 2–6 kHz, 15–35 ms)."""
+    L = N(0.06)
+    t = tt(L)
+    f0 = r.uniform(1900, 2600)
+    x = sum(a * np.sin(2 * math.pi * f0 * m * t + r.uniform(0, 6)) * np.exp(-t / d)
+            for m, a, d in ((1.0, 1.0, 0.03), (1.62, 0.6, 0.02), (2.27, 0.4, 0.014), (3.1, 0.2, 0.01)))
+    return x * np.minimum(1, t / 0.0008) * g
+
+
+def _rozowy(r, n, lo, hi):
+    """Szum z naturalnym spadkiem wysokich tonów (ok. −3 dB na oktawę) w paśmie lo–hi — jak szelest materiału."""
+    X = np.fft.rfft(r.normal(0, 1, n))
+    f = np.fft.rfftfreq(n, 1 / SR)
+    X *= 1 / np.sqrt(np.maximum(f, lo)) * np.clip((f - lo * 0.6) / (lo * 0.4), 0, 1) * np.clip((hi * 1.4 - f) / (hi * 0.4), 0, 1)
+    x = np.fft.irfft(X, n)
+    return x / (np.abs(x).max() + 1e-9)
+
+
+def kurtyna_nowa(zasuwa, sec=1.25):
+    """Kurtyna teatru (reżyser 16.11: „dodaj wszędzie, gdzie jest kurtyna, dźwięk zaciągania i rozciągania kurtyny”):
+    ciężki aksamit sunie po scenie (szelest materiału rośnie i opada z prędkością kurtyny, nieregularnie faluje na
+    fałdach), kółka stukają o drążek tym gęściej, im szybciej kurtyna jedzie, a drążek turkocze. Zasuwanie
+    (zasuwa=True) kończy się miękkim „fump” spotykających się połów i ostatnim brzękiem kółek; rozsuwanie zaczyna się
+    szarpnięciem kółek. Czas ruchu jak w render.KURTYNA (0,8 s zasuwa, 0,85 s rozsuwa). Własne losowanie."""
+    r = np.random.default_rng(311 if zasuwa else 312)
+    n = N(sec)
+    t = tt(n)
+    ruch = 0.8 if zasuwa else 0.85
+    v = np.sin(math.pi * np.clip(t / ruch, 0, 1)) ** 1.3  # prędkość kurtyny 0 → 1 → 0
+    wezly = r.uniform(0.55, 1.0, int(sec * 18) + 2)  # fałdy aksamitu: nieregularne falowanie szelestu
+    fald = np.interp(t, np.linspace(0, sec, len(wezly)), wezly)
+    material = _rozowy(r, n, 120, 5500) * v ** 0.8 * fald * 0.75
+    material += band(r.normal(0, 1, n), 3000, 8000) * v ** 2.2 * fald * 0.05  # szelest brzegu materiału
+    turkot = band(r.normal(0, 1, n), 1400, 4200) * (np.sin(2 * math.pi * 34 * t) > 0.2) * v ** 1.2 * 0.10  # kółka toczą się
+    out = material + turkot
+    k = 0.02 if not zasuwa else 0.05
+    while k < ruch:  # kółka: do ok. 30 stuknięć na sekundę przy pełnej prędkości
+        vk = math.sin(math.pi * min(1.0, k / ruch)) ** 1.3
+        if vk > 0.08:
+            s_ = _dzwon_kolka(r, (0.10 + 0.16 * vk) * r.uniform(0.5, 1.0))
+            i = N(k)
+            out[i:i + len(s_)] += s_[:n - i]
+        k += 1 / (8 + 30 * vk) * r.uniform(0.6, 1.4)
+    if zasuwa:  # połowy spotykają się na środku: miękkie uderzenie ciężkiego materiału i ostatnie kółka
+        i = N(ruch - 0.03)
+        L = n - i
+        tl = tt(L)
+        fump = (np.sin(2 * math.pi * 80 * tl) * np.exp(-tl / 0.10) * 0.55
+                + _rozowy(r, L, 70, 900) * np.exp(-tl / 0.08) * 0.5)
+        out[i:] += fump
+        for d in (0.0, 0.03, 0.065):
+            s_ = _dzwon_kolka(r, 0.18)
+            j = N(ruch - 0.06 + d)
+            out[j:j + len(s_)] += s_[:n - j]
+    else:  # szarpnięcie na starcie: kółka ruszają naraz
+        for d in (0.0, 0.022, 0.045, 0.075):
+            s_ = _dzwon_kolka(r, 0.2)
+            j = N(d)
+            out[j:j + len(s_)] += s_[:n - j]
+    return out / (np.abs(out).max() + 1e-9) * 0.68
+
+
+def kurtyna_zasuwa():
+    kurtyna()  # dawna synteza tylko dla losowań wspólnego RNG (wytyczne 1.12)
+    return kurtyna_nowa(True)
+
+
+def kurtyna_rozsuwa():
+    kurtyna()
+    return kurtyna_nowa(False)
+
+
 def klaps():
     """Drewniane klapki teatru (hyoshigi): dwa suche uderzenia przy tytule aktu."""
     a = knock(1150, 0.18) + knock(1600, 0.18) * 0.5
@@ -205,9 +278,41 @@ def _kaszlniecie(sec, f0, glos, g):
     return out / (np.abs(out).max() + 1e-9) * g
 
 
+# Kaszel z nagrania zamiast syntezy (reżyser 16.11: „tam, gdzie cesarz kona, jest dźwięk tłuczenia, a nie kaszlenia”):
+# próbki prawdziwego kaszlu z Chatterbox Turbo (znacznik [cough], kaszel.py → dzwiek_probki/kaszel_*.wav), kolejne
+# kaszlnięcia w filmie biorą kolejne próbki. Synteza niżej liczy się dalej i jest wyrzucana, żeby wspólne losowania
+# (RNG) zostały te same co w pliku w Studio — inaczej zmieniłyby się efekty całej reszty filmu (wytyczne 1.12).
+PROBKI = HERE / "dzwiek_probki"
+_KASZEL = []
+
+
+def _probki_kaszlu():
+    if not _KASZEL:
+        for f in sorted(PROBKI.glob("kaszel_*.wav")):
+            with wave.open(str(f)) as w:
+                if (w.getframerate(), w.getnchannels(), w.getsampwidth()) != (SR, 1, 2):
+                    raise SystemExit(f"{f}: potrzebny 44,1 kHz mono 16 bit (kaszel.py)")
+                x = np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(np.float64) / 32768
+            _KASZEL.append(x / (np.abs(x).max() + 1e-9))
+        if not _KASZEL:
+            raise SystemExit(f"brak próbek kaszlu w {PROBKI} — uruchom kaszel.py")
+    return _KASZEL
+
+
+_ILE_KASZLU = [0]
+
+
 def cough(sec=1.2):
-    """Kaszel chorego: trzy kaszlnięcia coraz słabsze i krótki, świszczący wdech na końcu (reżyser 15.11: „lepszy
-    dźwięk kaszlenia”)."""
+    """Kaszel chorego z nagrania (próbki kaszel.py); synteza tylko po to, żeby zużyć te same losowania co dawniej."""
+    _cough_synteza(sec)
+    probki = _probki_kaszlu()
+    x = probki[_ILE_KASZLU[0] % len(probki)]
+    _ILE_KASZLU[0] += 1
+    return x * 0.55
+
+
+def _cough_synteza(sec=1.2):
+    """Dawny kaszel z syntezy (trzy kaszlnięcia przez formanty) — brzmiał jak tłuczenie; zostaje dla losowań RNG."""
     n = N(sec)
     out = np.zeros(n)
     for d, f0, glos, g in ((0.0, 150, 1.0, 0.9), (0.27, 138, 0.8, 0.75), (0.52, 128, 0.6, 0.55)):
@@ -237,7 +342,7 @@ def shout(sec=0.6):
 
 SFX = {"gong": gong, "whoosh": whoosh, "knock": knock, "drum": drum, "crack": crack, "clash": clash, "coin": coin,
        "thud": thud, "splash": splash, "sword": sword, "gong_s": lambda: gong(2.5, 220) * 0.6,
-       "kurtyna": kurtyna, "klaps": klaps, "buzz": buzz, "gulp": gulp, "cough": cough, "rattle": rattle, "shout": shout, "tick": lambda: knock(900, 0.08) * 0.5}
+       "kurtyna": kurtyna, "kurtyna_z": kurtyna_zasuwa, "kurtyna_r": kurtyna_rozsuwa, "klaps": klaps, "buzz": buzz, "gulp": gulp, "cough": cough, "rattle": rattle, "shout": shout, "tick": lambda: knock(900, 0.08) * 0.5}
 
 
 # ---------- tło miejsca ----------
@@ -416,6 +521,32 @@ ZDARZENIA.update({
     "grobowiec": [(0.8, "whoosh", 0.3)] + [(0.4 + j * 0.16, "knock", 0.3) for j in range(14)] + [(3.0, "rumble", 4.0)],
 })
 
+# Markery i uwagi reżysera 16.11.2026 wieczorem; czasy jak w ujecia1.py / ujecia2.py (SKOK_SAM, SPADA_POWROT, OGNIE,
+# SKOKI_PUSTE, QIN_TAB, DZIEKI).
+ZDARZENIA.update({
+    "sam": [(0.0, "march", 2.4), (1.25, "whoosh", 0.8)],  # chłopiec wyskakuje w górę za kadr
+    "powrot": [(0.0, "wagon", 6.0), (0.12, "whoosh", 0.5), (0.62, "thud", 0.8), (0.62, "knock", 0.6)],  # spada do wozu
+    "dary": [(2.0, "knock", 0.6)],  # bez zwoju na stole: tylko szkatuła
+    "ognie": [(1.0, "fire", 5.0), (3.3, "fire", 4.0), (4.6, "fire", 3.0), (1.0, "whoosh", 0.3), (3.3, "whoosh", 0.25),
+              (4.6, "whoosh", 0.2)],
+    # cyklopi podskakują, odbijają się (stuk) i skaczą do wody (świst), plusk w chwili, gdy znikają za falą
+    # (swiat._pod_woda dla ujecia2.NUREK_PUSTE: 1,00 s i 1,44 s)
+    "puste": [(0.5, "thud", 0.25), (0.5, "whoosh", 0.35), (0.95, "thud", 0.25), (0.95, "whoosh", 0.35), (1.0, "splash", 0.7),
+              (1.44, "splash", 0.75)],
+    "qin": [(0.2, "march", 2.0), (3.1, "whoosh", 0.35), (3.35, "whoosh", 0.3), (6.0, "gong", 0.9), (6.2, "whoosh", 0.6),
+            (6.4, "whoosh", 0.3)],
+    "dzieki": [(0.35, "whoosh", 0.4), (0.65, "whoosh", 0.3), (1.25, "klaps", 0.35), (1.9, "whoosh", 0.4), (2.8, "klaps", 0.3)],
+    # przegląd efektów (reżyser 16.11: „sprawdź, czy nie trzeba dodać kilku dźwięków efektów”): lalki wysuwające się zza
+    # rampy i tabliczki z imionami szeleszczą papierem, wielki kanclerz wyrasta z niskim uderzeniem, płachta opada na
+    # powóz z miękkim stukiem, o świcie dzwoni mały gong, cyklopi prężą muskuły z głuchym „bum”
+    "handan": [(1.3, "whoosh", 0.25), (1.6, "whoosh", 0.15), (3.0, "whoosh", 0.2), (4.2, "whoosh", 0.15)],
+    "regent": [(1.9, "whoosh", 0.2), (2.6, "whoosh", 0.35), (2.95, "drum", 0.35), (4.2, "whoosh", 0.15), (4.6, "whoosh", 0.15),
+               (4.7, "whoosh", 0.15)],
+    "spisek": [(0.4, "whoosh", 0.2), (0.9, "whoosh", 0.2), (1.6, "whoosh", 0.15), (2.8, "whoosh", 0.5), (3.85, "thud", 0.3)],
+    "cisza": [(0.3, "whoosh", 0.3), (1.3, "whoosh", 0.3), (2.6, "gong_s", 0.35)],
+    "xufu": [(0.0, "water", 10.8), (3.1, "drum", 0.25), (3.35, "drum", 0.22), (3.6, "drum", 0.25)],
+})
+
 
 # Dźwięk poprawia się punktowo (wytyczne 1.12): wszystkie zdarzenia filmu losują szum z jednego RNG po kolei, więc nowe
 # zdarzenie w jednym ujęciu zmieniłoby efekty całej reszty filmu. Tu stoją zdarzenia ujęcia w takiej postaci, w jakiej
@@ -424,6 +555,16 @@ ZDARZENIA.update({
 # (ziarno z klucza ujęcia). Wpis dopisuje się raz, przy pierwszej poprawce dźwięku ujęcia, i już się go nie zmienia —
 # to on trzyma losowania reszty filmu; kolejne poprawki tego ujęcia zmieniają tylko ZDARZENIA.
 W_STUDIO = {
+    # markery i uwagi reżysera 16.11.2026 wieczorem (ujęcia 7, 8, 25, 51, 59, 79); stan pliku w Studio: efekty.py z c76c921
+    "sam": [(0.0, "march", 2.4)],
+    "powrot": [(0.0, "wagon", 6.0)],
+    "dary": [(2.0, "knock", 0.6), (2.6, "knock", 0.5)],
+    "ognie": [(0.5, "fire", 4.0), (1.6, "fire", 3.0), (2.8, "fire", 1.8)],
+    "puste": [],
+    "qin": [(0.2, "march", 2.0), (6.0, "gong", 0.9)],
+    "handan": [], "regent": [], "spisek": [(2.8, "whoosh", 0.5)], "cisza": [(0.3, "whoosh", 0.3), (1.3, "whoosh", 0.3)],
+    "xufu": [(0.0, "water", 10.8)],  # przegląd efektów 16.11 wieczorem (reżyser: „czy nie trzeba dodać kilku dźwięków”)
+    "dzieki": [],  # nowe ujęcie 80: jego dźwięki z osobnego RNG, żeby bęben w muzyce (wspólny RNG po efektach) się nie zmienił
     # markery reżysera 16.11.2026 (ujęcia 26, 71, 72, 77); stan pliku w Studio: efekty.py z bfb55a5
     "sztylet": [(0.3, "whoosh", 0.35), (0.9, "whoosh", 0.4), (1.85, "knock", 0.5), (2.6, "sword", 0.8)],
     "ryby": [(0.0, "wagon", 12.0), (3.2, "whoosh", 0.3), (4.05, "splash", 0.5), (7.4, "whoosh", 0.3), (8.25, "splash", 0.5)],
@@ -431,6 +572,13 @@ W_STUDIO = {
     "studnia": [(0.54 + 0.9 * k, "thud", 0.5) for k in range(3)] + [(0.22 + 1.1 * k, "thud", 0.4) for k in range(3)]
                + [(3.2, "thud", 0.6), (3.3, "whoosh", 0.4), (5.0, "whoosh", 0.4), (5.6, "rumble", 1.2)],
 }
+
+
+# Długość ujęcia w pliku w Studio, kiedy ujęcie trafiło do W_STUDIO, a potem zmieniło długość: długie dźwięki (ogień,
+# marsz…) przycina koniec ujęcia, a liczba losowań zależy od długości dźwięku (np. int(2,9999 × 25) ≠ int(3,0 × 25)),
+# więc stare zdarzenia trzeba policzyć ze starą długością, żeby reszta filmu miała te same losowania (16.11 wieczorem:
+# ognie 4,6 → 9,0 s zmieniały szum w trzech następnych ujęciach).
+W_STUDIO_SEC = {"ognie": 4.6, "qin": 12.2}
 
 
 DLUGIE = ("march", "hooves", "fire", "water", "wagon", "steps", "dig", "roll", "rumble", "flap", "pisanie", "stun")
@@ -543,9 +691,13 @@ def dzwieki_ujecia(klucz, evs, sec):
     from collections import Counter
     dodatki = evs[len([e for e in ZDARZENIA.get(klucz, []) if e[0] < sec]):]  # przejścia i zmiana dekoracji
     zostaje, out = Counter(evs), []
-    for e in [e for e in W_STUDIO[klucz] if e[0] < sec] + dodatki:
-        s = dzwiek(*e, sec)
-        if zostaje[e]:
+    stary = W_STUDIO_SEC.get(klucz, sec)  # długość ujęcia, z jaką stare zdarzenia są w pliku w Studio
+    for e in [e for e in W_STUDIO[klucz] if e[0] < stary] + dodatki:
+        s = dzwiek(*e, stary if e not in dodatki else sec)
+        if zostaje[e] and stary == sec:
+            zostaje[e] -= 1
+            out.append((*e, s))
+        elif zostaje[e] and e in dodatki:
             zostaje[e] -= 1
             out.append((*e, s))
     wspolny, RNG = RNG, np.random.default_rng([7, zlib.crc32(klucz.encode())])
@@ -588,9 +740,9 @@ def main():
         g = R.GRANICE[idx]  # przejścia: kurtyna między aktami, ściemnienie przy zmianie miejsca (render.przejscie)
         zam, dl, czekaj, otw = R.KURTYNA
         if g["ostatnie_aktu"] and idx < len(us) - 1:
-            evs += [(sec - zam, "kurtyna", 0.9), (sec - zam + dl - 0.05, "klaps", 0.8)]
+            evs += [(sec - zam, "kurtyna_z", 1.0), (sec - zam + dl - 0.05, "klaps", 0.8)]
         elif g["pierwsze_aktu"] and idx > 0:
-            evs += [(czekaj, "kurtyna", 0.9)]
+            evs += [(czekaj, "kurtyna_r", 1.0)]
         elif g["ostatnie_sceny"] and idx < len(us) - 1:
             evs += [(sec - R.CIEMNO, "whoosh", 0.18)]
         if klucz in R.BUDUJ:  # zmiana dekoracji: papier i drewno w rytm wjeżdżających elementów

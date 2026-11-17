@@ -3,6 +3,7 @@ import math
 import random
 
 import zestaw as Z
+from dane import ujecia as _ujecia
 from papier import CX, CY, back, clamp, ease, ease_out, noise, settle
 from swiat import (podpis, BAN, EMP, KOPIEC, MALY, PODBITE, STOL, TRON, URNA, P, dzonka, kam, lalka, lerp, morze, powoz, pr, sala, swiat,
                    swiatlo, wlocznie, woz, wstega)
@@ -110,12 +111,11 @@ def s_kanal2(st, w, t, T):
 
 def s_pismo(st, w, t, T):
     """Kanały zwijają się przy zmianie dekoracji; stół i pisarz wysuwają się zza rampy; cesarz kiwa głową; księga
-    wsuwa się pod pędzel i pisarz, klęcząc przed stołem, pisze."""
+    wsuwa się pod pędzel i pisarz, klęcząc przed stołem, pisze. Na stole nie ma zwoju (reżyser 16.11, ujęcie 47)."""
     w.kanal = w.kanal2 = 1 - pr(t, 0.1, 1.0)
     w.dwor = pr(t, 0.4, 1.3)
     w.ksiega = pr(t, 2.2, 1.1)
     w.pisze = ease(pr(t, 3.5, 0.5))
-    w.zwoj = 1.0
     kiw = math.sin(math.pi * pr(t, 2.2, 0.5)) + math.sin(math.pi * pr(t, 2.9, 0.5))  # dwa skinienia głową (reżyser 15.11)
     w.lean = 3.0 * settle((t - 1.9) / 1.5, 1.2) + 5 * kiw
     w.lift = -9 * kiw
@@ -189,14 +189,18 @@ def s_robotnicy(st, w, t, T):
     swiatlo(st, w, t)
 
 
+OGNIE = ((568, 1.0), (398, 3.3), (228, 4.6))  # wieże muru (co 170 px, co piąty odcinek) i chwila zapalenia ognia
+
+
 def s_ognie(st, w, t, T):
-    """Na wieży strażniczej zapala się ogień sygnałowy; po chwili odpowiada mu ogień na następnej wieży i na kolejnej."""
+    """Na wieży strażniczej zapala się ogień sygnałowy; po chwili odpowiada mu ogień na następnej wieży i na kolejnej,
+    a kamera idzie za ostrzeżeniem wzdłuż muru (reżyser 16.11: ujęcie 8–9 s, lektor mówi, co znaczy ten ogień)."""
     w.emp = 0.0
-    kam(st, t, 78, lerp(470, 330, ease(t / T)), 388, lerp(2.3, 2.5, ease(t / T)), 0.43, lens=2.2, truck=0.5)
+    kam(st, t, 78, lerp(540, 300, ease(pr(t, 0.6, T - 2.4))), 388, lerp(2.3, 2.45, ease(t / T)), 0.43, lens=2.2, truck=0.5)
     st.dof = 0.8
     swiat(st, t, w)
     ft = math.floor(t * 12) / 12
-    for n, (x, a) in enumerate(((568, 0.5), (398, 1.6), (228, 2.8))):  # wieże muru stoją co 170 px (co piąty odcinek)
+    for n, (x, a) in enumerate(OGNIE):
         k = ease(pr(t, a, 0.5))
         if k <= 0:
             continue
@@ -212,8 +216,10 @@ def s_ognie(st, w, t, T):
 # ---------- akt 6 · Ogień i strach ----------
 
 def s_ksiegi(st, w, t, T):
-    """Uczony wysuwa się z deszczułką; cesarz pochyla się z wyciągniętą ręką; zwój leci do ognia."""
+    """Uczony wysuwa się z deszczułką i zwojem w dłoniach; cesarz pochyla się z wyciągniętą ręką; zwój leci z rąk uczonego
+    do ognia (na stole pisarzy zwoju już nie ma — reżyser 16.11)."""
     w.pisze = 0.0
+    w.zwoj_rece = 1.0
     w.emp = pr(t, 0.0, 0.9)  # cesarz wraca zza rampy (zszedł przy budowie muru)
     w.uczony = pr(t, 0.2, 1.0)
     w.lean = 4.5 * ease(pr(t, 1.3, 0.5)) - 2.5 * ease(pr(t, 3.6, 1.0))
@@ -330,13 +336,20 @@ def s_xufu(st, w, t, T):
         dzonka(st, t, x, f, seed=j, flip=kier)
 
 
+NUREK_PUSTE = {0: (0.0, 0.5, -130), 2: (0.25, 0.95, 140)}  # cyklop: podskok od, skok do wody od, przesunięcie w bok
+
+
 def s_puste(st, w, t, T):
-    """Puste morze pod księżycem; ostatni żagiel chowa się za ostatnią falą."""
+    """Puste morze pod księżycem, bez żagla (statki zniknęły za falą w poprzednim ujęciu). Na wyspie zostają dwaj
+    cyklopi: od pierwszej klatki podskakują, a potem jeden po drugim skaczą łukiem do morza i znikają za falą
+    z pluskiem; zostaje puste morze (reżyser 16.11: „usuń ten statek i tego jednego cyklopa na środku, a tamci niech
+    skaczą od początku sceny”, „zrób, że te cyklopy wskakują do wody”)."""
     w.noc = 0.82
+    w.cyklopi_bez = (1,)
+    w.cyklopi_nurek = NUREK_PUSTE
     kam(st, t, 57, 720, 440, lerp(1.32, 1.36, t / T), 0.5, truck=0.6)
     st.dof = 0.8
     morze(st, t, w)
-    dzonka(st, t, 882, lerp(0.88, 1.0, pr(t, 0.2, 1.6)), seed=2)
 
 
 def s_rtec(st, w, t, T):
@@ -782,8 +795,13 @@ def s_grobowiec(st, w, t, T):
     swiatlo(st, w, t)
 
 
+QIN_TAB = (3.1, 6.2, 6.4)  # tabliczki: zjazd „Qin” i „China”, „Qin” wylatuje, „China” jedzie na środek (efekty.ZDARZENIA)
+
+
 def s_qin(st, w, t, T):
-    """Kamera wycofuje się z teatru; gliniana armia staje jeszcze raz, światło gaśnie, zostaje szyld z tytułem."""
+    """Kamera wycofuje się z teatru; gliniana armia staje jeszcze raz. Nad górami zjeżdżają tabliczki „Qin” i „China”;
+    po chwili „Qin” wylatuje w górę, a „China” przesuwa się na środek (reżyser 16.11, marker w ujęciu 79). Potem światło
+    gaśnie i zostaje szyld z tytułem; dalej ujęcie z podziękowaniem."""
     w.armia_t = max(0.0, t - 0.2) * 1.7
     w.znaleziony = 0.0
     k = ease(pr(t, 0.4, T - 2.6))
@@ -791,7 +809,46 @@ def s_qin(st, w, t, T):
     kam(st, t, 77, 640, lerp(360, 322, k), m, 1.0, lens=m ** 0.55, truck=1.0, drift=0.4)
     st.dof = 0.0
     swiat(st, t, w)
-    off = ease(pr(t, T - 3.6, 0.9))  # scena gaśnie, a szyld z tytułem świeci jeszcze, zanim film zejdzie w czerń
+    zjazd, wylot, srodek = QIN_TAB
+    pq = P.rekwizyty + 0.02
+    kq = pr(t, zjazd, 0.9)
+    if kq > 0:
+        f = pr(t, wylot, 0.75)  # „Qin” zrywa się z nitek i wylatuje w górę, wirując
+        if f < 1:
+            Z.hang(st, Z.tag("Qin", 64), 520 - 260 * f * f, 250 - 520 * f * f, pq, kq, t, 301, drop=460, sway=1.2, h=86,
+                   string=f <= 0, rot0=-200 * f * f, shadow=(4, 6, 6, 0.4))
+        g = ease(pr(t, srodek, 0.8))  # „China” jedzie na nitkach na środek
+        Z.hang(st, Z.tag("Chiny", 64), lerp(800, 640, g), 250, pq + 0.001, pr(t, zjazd + 0.25, 0.9), t, 302, drop=460, sway=1.2,
+               h=86, shadow=(4, 6, 6, 0.4))
+    off = ease(pr(t, T - 2.6, 0.9))  # scena gaśnie, a szyld z tytułem świeci jeszcze; ciemność trwa w ujęciu z podziękowaniem
     st.put(Z.black(), CX, CY, 0.992, w=1300, anchor=(0.5, 0.5), alpha=off, shadow=None, blur=0)
     Z.theatre_put(st, 0.9 - 0.2 * off)
+    swiatlo(st, w, t)
+
+
+DZIEKI = (0.35, 1.9)  # zjazd tabliczek: „THANK YOU / for watching” i „Support me…” (efekty.ZDARZENIA["dzieki"])
+_T_QIN = next(u[5] for u in _ujecia() if u[2] == "qin")  # długość poprzedniego ujęcia: kadr ciągnie się bez skoku
+
+
+def s_dzieki(st, w, t, T):
+    """Ciemna scena pod szyldem, kadr jak na końcu poprzedniego ujęcia. W otwór sceny zjeżdżają na nitkach duże
+    papierowe tabliczki z podziękowaniem dla widzów (reżyser 16.11, marker w ujęciu 79: „Duże — THANK YOU for watching,
+    Support me and I'll do my best.”), oświetlone z góry jak w teatrze; film schodzi w czerń (render)."""
+    st.T = _T_QIN  # kamera dalej tak, jak skończyła w ujęciu „qin” (to samo pływanie, bez skoku na cięciu)
+    kam(st, _T_QIN + t, 77, 640, 322, 0.6, 1.0, lens=0.6 ** 0.55, truck=1.0, drift=0.4)
+    st.T = T
+    st.dof = 0.0
+    st.put(Z.black(), CX, CY, 0.992, w=1300, anchor=(0.5, 0.5), shadow=None, blur=0)
+    a, b = DZIEKI
+    p = 0.995  # przed ciemnością sceny, za ramą teatru; dalsze tabliczki za bliższymi, więc ich nitki chowają się za nimi
+    st.put(Z.glow(), CX, 340, p - 0.002, w=1500, anchor=(0.5, 0.5), mode="add", alpha=0.22 * ease(pr(t, a - 0.1, 0.8)),
+           shadow=None, tint=(1.0, 0.85, 0.6))
+    Z.hang(st, Z.tag("DZIĘKUJĘ", 120), CX, 96, p + 0.001, pr(t, a, 1.0), t, 311, drop=620, sway=0.9, h=222,
+           strings=(0.25, 0.75), shadow=(5, 8, 10, 0.5))
+    Z.hang(st, Z.tag("za obejrzenie", 60), CX, 336, p + 0.0005, pr(t, a + 0.3, 1.0), t, 312, drop=620, sway=1.1, h=112,
+           strings=(0.2, 0.8), shadow=(4, 6, 8, 0.45))
+    # „Support me…” wysuwa się od dołu zza ramy sceny — zjeżdżając z góry, przechodziłaby za dwiema pierwszymi tabliczkami
+    Z.rise(st, Z.tag("Wesprzyj mnie, a dam z siebie wszystko.", 60), CX, 612, p, pr(t, b, 1.0), t, 313, lift=270, wob=0.4,
+           h=118, shadow=(4, 6, 8, 0.45))
+    Z.theatre_put(st, 0.7)
     swiatlo(st, w, t)

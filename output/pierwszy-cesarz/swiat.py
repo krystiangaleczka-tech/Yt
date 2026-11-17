@@ -31,6 +31,11 @@ SMOKI = ((166, 0.765), (432, 0.775))  # dwie chorągwie ze smokiem za cesarzem: 
 STOL = (640, 738, 350)  # stół pisarzy: x, dół, szerokość
 ZWOJ_BLAT = (0.67, 0.255)  # zwój bambusowy na blacie (ułamki szerokości i wysokości rysunku stołu)
 ZWOJ_ROT = 3.5  # zwój leży równolegle do tylnej krawędzi stołu (marker reżysera 16.11, ujęcie 47)
+# Reżyser 16.11 wieczorem (marker w ujęciu 47): „usuń ten zwój i w następnych też” — na stole pisarzy nie leży już zwój
+# bambusowy. Księgi, które cesarz każe spalić, przynosi uczony: zwój jest w jego dłoniach i stamtąd leci do ognia.
+ZWOJ_RECE = (893.0, 497.0)  # zwój w dłoniach uczonego (lalka x = 946, wys. 292) w ujęciu „ksiegi”, plan zwoju w locie
+ZWOJ_RECE_ROT = -18.0
+ZWOJ_LOT_W = 64  # szerokość zwoju z rąk uczonego (w locie i w ogniu, ujęcia „ksiegi” i „popiol”)
 URNA = (1092, 704, 150)  # trójnóg z brązu: x, dół, wysokość
 POSAG = (1238, 268)  # posąg z brązu: x, wysokość (reżyser 15.11: „troszkę większy”)
 KOPIEC = (1316, 602, 580)  # kopiec grobowca: x, dół, szerokość
@@ -71,7 +76,7 @@ def stan(i):
         dwor=f(dwor), ksiega=f(dwor), pisze=f(I["pismo"] < i <= I["miara"]),
         moneta=f(po("moneta") and not po("zmierzch")), moneta_x=1.0, moneta_lez=1.0, moneta_chw=0.0, moneta_skok=0.0,
         waga=f(po("miara") and not po("zmierzch")), odwaznik=f(po("miara") and not po("zmierzch")), waga_rot=0.0,
-        zwoj=f(po("pismo") and not po("ksiegi")), zwoj_lot=0.0,
+        zwoj=0.0, zwoj_lot=0.0, zwoj_rece=0.0,  # zwoju na stole pisarzy już nie ma (reżyser 16.11, ujęcie 47 i następne)
         uczony=f(po("ksiegi") and not po("uczeni")), uczony_lean=0.0, ogien=0.0,
         mur=f(po("mur")), armia=f(po("armia") and not po("podroz")), armia_t=None,  # armia zapada się na początku podróży
         posag=f(po("posagi") and not po("upadek")), posag_fall=0.0,
@@ -383,18 +388,23 @@ def dwor(st, t, w):
             Z.hang(st, Z.weight(), bx, by - 40, P.rekwizyty + 0.016, w.odwaznik, t, 71, drop=470, sway=0.2, h=40, shadow=(3, 5, 4, 0.42))
     if w.uczony > 0:  # uczony stoi między stołem a trójnogiem, twarzą do cesarza
         lalka(st, t, "uczony", 946, 292, w.uczony, flip=-1, lean=w.uczony_lean, seed=23)
+        if w.get("zwoj_rece", 0.0) > 0 and w.zwoj_lot <= 0:  # zwój w dłoniach uczonego, wysuwa się razem z nim zza rampy
+            wys = (1 - back(w.uczony, 1.2)) * 292 * 1.1
+            st.put(Z.S("bamboo", 0.5), ZWOJ_RECE[0], ZWOJ_RECE[1] + wys, P.rekwizyty - 0.004, w=ZWOJ_LOT_W, anchor=(0.5, 0.5),
+                   rot=ZWOJ_RECE_ROT + 0.5 * noise(t, 23, 0.45), shadow=(3, 5, 5, 0.4))
     if w.urna > 0:
         fy = urna(st, t, w, w.urna)
-        if w.zwoj_lot > 0 and on:  # zwój leci łukiem ze stołu do ognia, potem czernieje i zapada się
+        if w.zwoj_lot > 0:  # zwój leci łukiem z rąk uczonego do ognia, potem czernieje i zapada się
             f = w.zwoj_lot
-            ax, ay = on(*ZWOJ_BLAT)  # startuje stąd, gdzie leżał, w tym samym rozmiarze i obrocie
+            ax, ay = ZWOJ_RECE  # startuje z dłoni uczonego, w tym samym rozmiarze i obrocie
             bx = ax + (URNA[0] - ax) * ease(min(f, 1.0))
             by = ay + (fy - 36 - ay) * min(f, 1.0) - 170 * math.sin(math.pi * min(f, 1.0))
             burn = ease((f - 1.0) / 0.9)
             c = 1 - 0.8 * burn
             if burn < 1:
-                st.put(Z.S("bamboo", 0.5), bx, by + 70 * burn, P.rekwizyty - 0.004, w=104, anchor=(0.5, 0.5),
-                       rot=ZWOJ_ROT + (254 - ZWOJ_ROT) * ease(min(f, 1.0)) + 6 * burn, tint=(c, c * 0.92, c * 0.85), shadow=(3, 5, 5, 0.4))
+                st.put(Z.S("bamboo", 0.5), bx, by + 70 * burn, P.rekwizyty - 0.004, w=ZWOJ_LOT_W, anchor=(0.5, 0.5),
+                       rot=ZWOJ_RECE_ROT + (254 - ZWOJ_RECE_ROT) * ease(min(f, 1.0)) + 6 * burn, tint=(c, c * 0.92, c * 0.85),
+                       shadow=(3, 5, 5, 0.4))
 
 
 def armia(st, t, w):
@@ -677,7 +687,7 @@ def cyklopi(st, t, w, wy, wyspa_w):
     hh = wyspa_w * mg.h / mg.w
     for n, fx in enumerate((0.36, 0.52, 0.66)):
         kk = clamp(k * 1.6 - n * 0.3)
-        if kk <= 0:
+        if kk <= 0 or n in w.get("cyklopi_bez", ()):  # reżyser 16.11 (puste morze): bez środkowego cyklopa
             continue
         x = 900 + (fx - 0.5) * wyspa_w
         gy = wy - hh + mg.top(fx) * hh + 34
@@ -685,6 +695,15 @@ def cyklopi(st, t, w, wy, wyspa_w):
         p = 0.2205 + n * 0.0003
         y = gy + (1 - back(kk, 1.3)) * h * 1.1
         rot = 2.5 * math.sin(t * 1.3 + n * 2) + settle((kk - 0.7) / 0.3 if kk < 1 else 0, 1.5, 4)
+        nurek = (w.get("cyklopi_nurek") or {}).get(n)  # reżyser 16.11 (puste morze): skaczą od początku i wskakują do wody
+        if nurek is not None:
+            dx, up, drot = _nurek(t, *nurek)
+            if up < -700:  # dawno pod wodą
+                continue
+            ts = _pod_woda(st, t, nurek, x, gy, p)
+            if ts is not None and t >= ts:
+                _plusk(st, t, ts, x + _nurek(ts, *nurek)[0], p, n)
+            x, y, rot = x + dx, y - up, rot + drot
         mm = w.get("cyklopi_mm", None)  # reżyser 16.11: „zrób, że oni prężą muskuły” — ręce na zawiasach w barku i łokciu
         if mm is None:
             st.put(Z.cyklop(n), x, y, p, h=h, haze=0.25, shadow=(3, 4, 6, 0.25), rot=rot)
@@ -708,6 +727,58 @@ def cyklopi(st, t, w, wy, wyspa_w):
                    sx=-strona, haze=0.25, shadow=(2, 3, 5, 0.25))
             st.put(Z.cyklop_reka(n, "przedramie"), ex, ey, p + 0.00012, h=120 * k, anchor=(0.5, 10 / 120), rot=pa, sx=-strona,
                    haze=0.25, shadow=(2, 3, 5, 0.25))
+
+
+NUREK_D = 0.8  # skok cyklopa do wody: tyle trwa przesunięcie w bok (lot trwa, aż schowa się za falą)
+
+
+def _nurek(t, t_hop, t_skok, dx):
+    """(przesunięcie x, uniesienie, obrót) cyklopa, który podskakuje w miejscu, a potem skacze łukiem do wody:
+    lot z grawitacji (szczyt ok. 70 nad wyspą po 0,22 s), w locie obraca się głową w stronę skoku."""
+    if t < t_skok:
+        if t < t_hop:
+            return 0.0, 0.0, 0.0
+        f = (t - t_hop) / (t_skok - t_hop)  # podskok na rozgrzewkę
+        return 0.0, 34 * 4 * f * (1 - f), 0.0
+    tau = t - t_skok
+    v0 = 2 * 70.0 / 0.22
+    up = v0 * tau - 0.5 * (v0 / 0.22) * tau * tau
+    return dx * min(1.0, tau / NUREK_D), up, math.copysign(80, dx) * ease(min(1.0, tau / 0.6))
+
+
+def _pod_woda(st, t, nurek, x, gy, p):
+    """Chwila, w której stopy cyklopa schodzą na ekranie pod grzbiet pierwszej fali (plusk), albo None."""
+    t_skok = nurek[1]
+    for k in range(1, 120):
+        tt = t_skok + k * 0.01
+        dx, up, _ = _nurek(tt, *nurek)
+        stopy = st.cam.screen(x + dx, gy - up, p)[1]
+        grzbiet = st.cam.screen(x + dx, fala(0, tt), FALE[0][0])[1]
+        if up < 0 and stopy > grzbiet + 4:
+            return tt
+    return None
+
+
+def _plusk(st, t, ts, xw, p, seed):
+    """Plusk w miejscu, gdzie cyklop wpadł do wody: korona piany i krople lecące łukiem (0,8 s)."""
+    s = (t - ts) / 0.8
+    if s >= 1:
+        return
+    pf = FALE[0][0] + 0.001
+    sx = st.cam.screen(xw, 0, p)[0]  # to samo miejsce na ekranie, ale na planie fali
+    a0, a1 = st.cam.screen(0, 0, pf)[0], st.cam.screen(1, 0, pf)[0]
+    xs = (sx - a0) / (a1 - a0)
+    ys = fala(0, ts) + 6
+    r = random.Random(500 + seed)
+    for j in range(22):  # krople lecą łukiem w górę i spadają z powrotem za grzbiet fali
+        ang = math.radians(r.uniform(-50, 50))
+        v = r.uniform(110, 220)
+        xx = xs + math.sin(ang) * v * s * 0.9 + r.uniform(-8, 8)
+        yy = ys - 10 - math.cos(ang) * v * s + 360 * s * s
+        if yy > ys + 4:
+            continue
+        st.put(Z.prop("kulka"), xx, yy, pf, h=r.uniform(6, 11), anchor=(0.5, 0.5), tint=(0.85, 0.95, 1.1),
+               alpha=min(1.0, 1.6 * (1 - s)), shadow=None)
 
 
 def fala(i, t):

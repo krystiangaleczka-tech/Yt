@@ -143,37 +143,72 @@ def aktualizuj(api, pid, p, UJ, tmp, okno_kwestii):
         p = api.call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": ops[k:k + 200]})
     p = api.call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": nowe}}, "PATCH")
     if ARGS.lektor:
-        p = nowy_lektor(api, pid, UJ, okno_kwestii)
+        p = nowy_lektor(api, pid, UJ, okno_kwestii, set(ARGS.kwestie.split(",")) if ARGS.kwestie else None)
     koniec = max(c["start"] + c["duration"] for c in p["sequence"]["clips"]) / FPS
     print(f"gotowe: przesunięto {len(zmiana)} ujęć, nowy obraz {len(obraz)}, oś {koniec:.1f} s, rewizja {p['revision']}", flush=True)
     return pid
 
 
-def nowy_lektor(api, pid, UJ, okno_kwestii):
+def opis_ujecia(klucz, kadr, ruch, opis, dzwiek, aktorskie):
+    """Opis ujęcia w Studio: kadr i ruch, wydarzenie, kwestia ze znacznikami albo dźwięk ujęcia bez słów."""
+    from dane import LEKTOR, kwestia
+    txt = kwestia(dzwiek) or ""
+    description = f"({KADR.get(kadr, kadr)} · {RUCH.get(ruch, ruch)}) {opis}"
+    if txt and klucz in aktorskie:
+        description += f"\nLektor (Chatterbox Turbo, znaczniki emocji): {aktorskie[klucz]}"
+        wm = LEKTOR / f"{klucz}.json"
+        m = json.loads(wm.read_text(encoding="utf-8")) if wm.exists() else {}
+        if "podejscie" in m:
+            description += (f"\nPodejście s{m['podejscie']} ({m['wybral']}); pozostałe do odsłuchu: output/pierwszy-cesarz/"
+                            f"lektor_en/podejscia/{klucz}_s*.wav, inny wybór: lektor_en/podejscia/wybor.json")
+    elif dzwiek and not txt:
+        description += f"\nDźwięk: {dzwiek}"
+    return description[:3000]
+
+
+def nowy_lektor(api, pid, UJ, okno_kwestii, tylko=None):
     """Nowe nagrania lektora (lektor_en/*.wav, np. po przepisie teatru papierowego: 3% wolniej i pauzy z zakresów):
-    każda kwestia wgrana od nowa, klip na ścieżce Lektor dostaje nowy plik, start (ujęcie + oddech) i długość."""
-    from dane import LEKTOR
+    każda kwestia wgrana od nowa, klip na ścieżce Lektor dostaje nowy plik, start (ujęcie + oddech) i długość.
+    tylko — klucze ujęć (np. {"ognie", "dzieki"}): wgrywa się tylko te kwestie; ujęcie, które dotąd nie miało kwestii,
+    dostaje nowy klip na ścieżce Lektor, a w opisie i narracji ujęcia nowy tekst (reżyser 16.11: „dograj narrację”)."""
+    from dane import LEKTOR, kwestia
+    aktorskie = json.loads((HERE / "aktorskie_en.json").read_text(encoding="utf-8"))
     p = api.call(f"/projects/{pid}")
     sceny = {s["id"]: s for s in p["scenes"]}
-    glos = {}
+    glos, opisy = {}, {}
     for akt, k, klucz, kadr, ruch, sec, opis, dzwiek in UJ:
         sid = f"scene_d{akt:02d}_{k:02d}"
         wav = LEKTOR / f"{klucz}.wav"
+        if tylko and klucz not in tylko:
+            continue
         if okno_kwestii(dzwiek)[1] and wav.exists() and sid in sceny:
-            glos[sid] = (api.upload(pid, wav, f"lektor {klucz} (teatr).wav"), wav_len(wav), okno_kwestii(dzwiek)[0])
+            glos[sid] = (api.upload(pid, wav, f"lektor {klucz} (teatr).wav"), wav_len(wav), okno_kwestii(dzwiek)[0], kwestia(dzwiek))
+            if tylko:
+                opisy[sid] = opis_ujecia(klucz, kadr, ruch, opis, dzwiek, aktorskie)
     p = api.call(f"/projects/{pid}")
     sceny = {s["id"]: s for s in p["scenes"]}
-    ops = []
+    ops, sa = [], set()
     for c in p["sequence"]["clips"]:
         if c["track_id"] == "a1" and c.get("scene_id") in glos:
-            aid, dl, oddech = glos[c["scene_id"]]
+            aid, dl, oddech, txt = glos[c["scene_id"]]
+            sa.add(c["scene_id"])
             ops.append({"type": "update_clip", "clip_id": c["id"], "changes": {
                 "asset_id": aid, "start": sceny[c["scene_id"]]["start"] + round(oddech * FPS), "duration": max(1, math.ceil(dl * FPS))}})
+    for sid, (aid, dl, oddech, txt) in glos.items():
+        if sid not in sa:  # ujęcie dotąd bez kwestii: nowy klip na ścieżce Lektor
+            ops.append({"type": "add_clip", "clip": {"track_id": "a1", "asset_id": aid, "scene_id": sid, "title": f"Lektor · {txt[:80]}",
+                                                     "start": sceny[sid]["start"] + round(oddech * FPS), "duration": max(1, math.ceil(dl * FPS))}})
     for k in range(0, len(ops), 200):
         p = api.call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": ops[k:k + 200]})
-    nowe = [{**s, "voice_asset_id": glos[s["id"]][0]} if s["id"] in glos else s for s in p["scenes"]]
+    nowe = []
+    for s in p["scenes"]:
+        if s["id"] in glos:
+            s = {**s, "voice_asset_id": glos[s["id"]][0], "narration": glos[s["id"]][3]}
+            if s["id"] in opisy:
+                s["description"] = opisy[s["id"]]
+        nowe.append(s)
     p = api.call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": nowe}}, "PATCH")
-    print(f"lektor: {len(ops)} kwestii z nowym nagraniem", flush=True)
+    print(f"lektor: {len(ops)} kwestii z nowym nagraniem ({len(glos) - len(sa)} nowych klipów)", flush=True)
     return p
 
 
@@ -320,16 +355,7 @@ def main():
         sid = f"scene_d{akt:02d}_{k:02d}"
         txt = kwestia(dzwiek) or ""
         aid = api.upload(pid, out, f"d{akt:02d}_{k:02d} {klucz}.mp4")
-        description = f"({KADR.get(kadr, kadr)} · {RUCH.get(ruch, ruch)}) {opis}"
-        if txt and klucz in aktorskie:
-            description += f"\nLektor (Chatterbox Turbo, znaczniki emocji): {aktorskie[klucz]}"
-            wm = LEKTOR / f"{klucz}.json"
-            m = json.loads(wm.read_text(encoding="utf-8")) if wm.exists() else {}
-            if "podejscie" in m:
-                description += (f"\nPodejście s{m['podejscie']} ({m['wybral']}); pozostałe do odsłuchu: output/pierwszy-cesarz/"
-                                f"lektor_en/podejscia/{klucz}_s*.wav, inny wybór: lektor_en/podejscia/wybor.json")
-        elif dzwiek and not txt:
-            description += f"\nDźwięk: {dzwiek}"
+        description = opis_ujecia(klucz, kadr, ruch, opis, dzwiek, aktorskie)
         sc = {"id": sid, "title": ("Karta · " if kadr == "TYT" else "") + title_of(opis), "narration": txt,
               "description": description[:3000], "start": f0, "duration": fd, "timing": "measured", "mode": "upload",
               "animation": "static", "asset_id": aid, "role": "reconstruction",
@@ -349,6 +375,8 @@ def main():
         wav = HERE / "dzwiek_en" / f"{name}.wav"
         if not meta:
             break
+        if any(c["track_id"] == track for c in p["sequence"]["clips"]):  # dokładane ujęcie: muzyka i efekty już są na osi
+            continue
         if not wav.exists():
             print(f"brak {wav} — bez ścieżki {name} (JEZYK=en python efekty.py)", flush=True)
             continue
@@ -361,6 +389,9 @@ def main():
     for k in range(0, len(ops), 200):
         p = api.call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": ops[k:k + 200]})
     print(f"gotowe: ujęć {len(p['scenes'])}, klipów na osi {len(p['sequence']['clips'])}, rewizja {p['revision']}", flush=True)
+    if have:  # dołożone ujęcie w istniejącym projekcie — wpis do dziennika robi wykonawca (co i dlaczego), nie skrypt
+        print(pid)
+        return pid
     try:
         api.call(f"/projects/{pid}/flow/log", {"entry": {
             "who": "studio_pc.py", "kind": "wgranie",
@@ -391,6 +422,8 @@ if __name__ == "__main__":
                     help="istniejący projekt: nowe długości ujęć, obraz z --klipy, kwestie i muzyka/efekty na nowe miejsca")
     ap.add_argument("--lektor", action="store_true",
                     help="przy --aktualizuj: nowe nagrania lektora (lektor_en/*.wav) na ścieżkę Lektor, z nowymi długościami")
+    ap.add_argument("--kwestie", default="",
+                    help="przy --lektor: tylko te kwestie (klucze ujęć, np. ognie,dzieki); nowa kwestia dostaje klip na ścieżce Lektor")
     ap.add_argument("--podglad", default="",
                     help="numery ujęć (np. 3,6,31): zmiana rysunku bez renderu — klatki kontrolne jako obraz w Bibliotece i opis zmiany")
     ap.add_argument("--podmien", default="",

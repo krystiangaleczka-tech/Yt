@@ -39,13 +39,15 @@ AKTY = [
                 ("ucieczka", "PP", "jaz", N, "noc: ojciec i kupiec chowają się pod rampę i wyrastają na wozie, a koń ciągnie wóz na zachód obok włóczni straży; "
                  "mały chłopiec zostaje pod bramą sam",
                  "L: Kupiec przekupił straże i wywiózł księcia do Qin, a chłopiec został w Handanie wśród wrogów."),
-                ("sam", "Z", "stat", 2.4, "zbliżenie małej lalki pod wielką bramą: za nią przechodzą włócznie straży, lalka cofa się pod mur",
+                ("sam", "Z", "stat", 2.4, "zbliżenie małej lalki pod wielką bramą: za nią przechodzą włócznie straży, lalka cofa się pod mur, "
+                 "przysiada i wyskakuje w górę za kadr",
                  "kroki straży, wiatr"),
             ]),
         ]),
         ("Powrót", "droga na zachód i przód sceny", [
             ("Do Qin", [
-                ("powrot", "PP", "jaz", N, "dzień: wóz z małą lalką jedzie przez wzgórza na zachód, kamera idzie z nim aż do czarnej chorągwi Qin",
+                ("powrot", "PP", "jaz", N, "dzień: mała lalka spada z góry kadru prosto do wozu i podskakuje na skrzyni; wóz jedzie przez wzgórza "
+                 "na zachód, kamera idzie z nim aż do czarnej chorągwi Qin",
                  "L: Miał dziewięć lat, kiedy pozwolono mu wreszcie wyjechać do kraju, którego nigdy nie widział."),
                 ("krol13", "PŚ", "naj", N, "przód sceny: mała lalka Zhenga wysuwa się zza rampy, a z góry zjeżdża na nitce zawieszka „247 p.n.e.”; "
                  "lalka unosi się i prostuje", "L: Trzy lata później jego ojciec już nie żył i trzynastoletni Zheng został królem Qin."),
@@ -110,8 +112,8 @@ AKTY = [
         ]),
         ("Zamach", "sala tronowa", [
             ("Podarunki", [
-                ("dary", "PŚ", "stat", N, "sala: po prawej wysuwa się niski stół, a za nim lalka Jing Ke w jasnym obszyciu; na stole stają "
-                 "szkatuła i zwinięta mapa, król stoi po lewej", "L: Jing Ke przyniósł dwa podarunki: głowę zbiegłego generała i mapę ziem, które Yan "
+                ("dary", "PŚ", "stat", N, "sala: po prawej wysuwa się niski stół, a za nim lalka Jing Ke w jasnym obszyciu; na stole staje "
+                 "szkatuła, król stoi po lewej (mapa zjeżdża na stół dopiero w następnym ujęciu)", "L: Jing Ke przyniósł dwa podarunki: głowę zbiegłego generała i mapę ziem, które Yan "
                  "rzekomo oddawało."),
                 ("sztylet", "D", "stat", N, "detal: zwój rozwija się po blacie i na samym końcu odsłania sztylet",
                  "L: W zwiniętej mapie był ukryty sztylet."),
@@ -183,7 +185,7 @@ AKTY = [
         ]),
         ("Jedna miara wszystkiego", "przód sceny: stół pisarzy", [
             ("Pismo", [
-                ("pismo", "PŚ", "stat", N, "zza rampy wysuwa się stół ze zwojem bambusowym, potem klęczący pisarz; księga z deszczułek wsuwa się "
+                ("pismo", "PŚ", "stat", N, "zza rampy wysuwa się stół pisarzy, potem klęczący pisarz; księga z deszczułek wsuwa się "
                  "pod jego pędzel i pisarz zaczyna pisać", "L: Kazał też wszystkim pisać tymi samymi znakami, żeby jego rozkaz rozumiano "
                  "w każdej prowincji."),
             ]),
@@ -200,8 +202,9 @@ AKTY = [
                  "L: Na północy kazał połączyć stare mury w jeden, żeby zatrzymać jeźdźców ze stepu."),
                 ("robotnicy", "PP", "pan", N, "po grani pod murem suną sylwetki ludzi z koszami na nosidłach; jeden po drugim przystają i znikają za granią",
                  "L: Budowały go setki tysięcy żołnierzy, skazańców i chłopów, a wielu zostało pod murem na zawsze."),
-                ("ognie", "Z", "stat", 4.6, "na wieży strażniczej zapala się ogień sygnałowy, a po chwili odpowiada mu ogień na następnej wieży",
-                 "trzask ognia, wiatr"),
+                ("ognie", "Z", "pan", N, "na wieży strażniczej zapala się ogień sygnałowy, a po chwili odpowiada mu ogień na następnej wieży "
+                 "i na kolejnej; kamera idzie za ostrzeżeniem wzdłuż muru",
+                 "L: Ogień sygnałowy znaczył, że nadciągają najeźdźcy, a wieża po wieży przekazywała ostrzeżenie dalej."),
             ]),
         ]),
     ]),
@@ -209,8 +212,8 @@ AKTY = [
         "śle statki po eliksir i łyka rtęć.", [
         ("Ogień", "przód sceny: stół pisarzy i trójnóg", [
             ("Księgi", [
-                ("ksiegi", "PŚ", "stat", N, "uczony z deszczułką wysuwa się obok stołu; cesarz pochyla się z wyciągniętą ręką, zwój bambusowy leci ze stołu "
-                 "do trójnogu, płomienie z bibuły skaczą w górę, a scena czerwienieje", "L: Kiedy uczeni zaczęli chwalić dawne czasy, kazał spalić "
+                ("ksiegi", "PŚ", "stat", N, "uczony z deszczułką i zwojem w dłoniach wysuwa się obok stołu; cesarz pochyla się z wyciągniętą ręką, zwój "
+                 "bambusowy leci z rąk uczonego do trójnogu, płomienie z bibuły skaczą w górę, a scena czerwienieje", "L: Kiedy uczeni zaczęli chwalić dawne czasy, kazał spalić "
                  "ich księgi."),
                 ("popiol", "D", "stat", 3.6, "detal trójnogu: zwój czernieje i zapada się, płomienie przygasają", "trzask ognia, cisza"),
                 ("uczeni", "PŚ", "stat", N, "obok uczonego wysuwają się dwaj następni, po czym wszyscy trzej po kolei opadają pod rampę; czwarta lalka, "
@@ -233,7 +236,8 @@ AKTY = [
                  "wyrasta wyspa z górą", "L: Słał więc statki na Wschodnie Morze, bo słyszał, że na tamtejszych wyspach mieszkają nieśmiertelni."),
                 ("xufu", "PP", "jaz", N, "trzy papierowe dżonki płyną po falach ku wyspie, maleją i znikają za horyzontem",
                  "L: Mag Xu Fu popłynął tam z tysiącami chłopców i dziewcząt i nigdy nie wrócił."),
-                ("puste", "PO", "stat", 2.6, "puste morze pod księżycem; ostatni żagiel znika za falą", "fale, cisza"),
+                ("puste", "PO", "stat", 3.4, "morze pod księżycem: dwaj cyklopi podskakują na wyspie i jeden po drugim skaczą "
+                 "łukiem do wody, plusk za falą; zostaje puste morze", "fale, podskoki, plusk"),
                 ("rtec", "D", "stat", N, "przy cesarzu wysuwa się czarka z brązu; na nitkach zjeżdżają do niej jedna po drugiej srebrne kulki, "
                  "a lalka cesarza pochyla się nad czarką", "L: Podobno łykał też pigułki z rtęcią, które miały przedłużać życie, a najpewniej "
                  "je skracały."),
@@ -312,8 +316,13 @@ AKTY = [
                  "L: Samego grobowca nikt do dziś nie otworzył."),
             ]),
             ("Qin", [
-                ("qin", "PO", "odj", N, "kamera wycofuje się z teatru: mur na górach i gliniana armia, potem światło w skrzyni gaśnie "
-                 "i zostaje sam szyld z tytułem", "L: Zostało po nim słowo, którym do dziś nazywamy ten kraj, bo Chiny to najpewniej dawne Qin."),
+                ("qin", "PO", "odj", N, "kamera wycofuje się z teatru: mur na górach i gliniana armia; nad górami zjeżdżają tabliczki „Qin” "
+                 "i „Chiny”, „Qin” wylatuje, a „Chiny” przesuwa się na środek; potem światło w skrzyni gaśnie i zostaje sam szyld z tytułem",
+                 "L: Zostało po nim słowo, którym do dziś nazywamy ten kraj, bo Chiny to najpewniej dawne Qin."),
+            ]),
+            ("Podziękowanie", [
+                ("dzieki", "TYT", "stat", N, "ciemna scena pod szyldem: na nitkach zjeżdżają duże papierowe tabliczki z podziękowaniem "
+                 "dla widzów, potem film schodzi w czerń", "L: Dziękuję za obejrzenie. Wesprzyj mnie, a dam z siebie wszystko."),
             ]),
         ]),
     ]),
@@ -384,7 +393,9 @@ PAUZA_PO = {"ujecie": 1.1, "beat": 1.4, "scena": 1.8, "akt": 2.3}
 # („wydłuż”, „wydłuż o 4 s”, „wydłuż 3×”) i nowe wydarzenia z jego markerów (mapa 36 prowincji, sztylet, waga…).
 WYDLUZ = {"prowincje": 5.0, "rody": 4.0, "mur": 3.0, "robotnicy": 3.0, "zmierzch": 2.5, "mlot": 3.0, "xufu": 4.0,
           "przejscia": 4.0, "armia": 3.0, "list": 3.0, "powstanie": 3.0, "upadek": 3.0, "lekarz": 2.0, "trucizna": 1.5,
-          "miara": 2.0, "podroz": 1.5, "koniec": 2.0, "studnia": 2.0, "grobowiec": 2.5, "sztylet": 1.5, "czarne": 1.5}
+          "miara": 2.0, "podroz": 1.5, "koniec": 2.0, "studnia": 2.0, "grobowiec": 2.5, "sztylet": 1.5, "czarne": 1.5,
+          # uwagi reżysera 16.11 wieczorem: tabliczki Qin → China, zanim zgaśnie światło; podziękowanie trzyma się chwilę
+          "qin": 0.8, "dzieki": 0.7, "ognie": -0.3}  # ognie: reżyser „do 8/9 s” — 9,0 s zamiast 9,3 s (pauza na końcu aktu 2,0 s)
 
 
 def ujecia(akt=None):

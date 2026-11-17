@@ -62,6 +62,8 @@ KOL = swiat.KOL
 FNS = [getattr(ujecia1, "s_" + k, None) or getattr(ujecia2, "s_" + k, None) for k in KOL]  # None = ujęcie do narysowania
 ODN = [f"d{a:02d}_{k:02d}" for a, k, *_ in UJ]
 # ujęcia, w których dekoracja staje od nowa (pierwsze ujęcie sceny albo zmiana miejsca): elementy wjeżdżają po kolei
+# ujęcia, w których kwestia nie ma paska z napisem, bo ten sam tekst jest dużymi tabliczkami w kadrze (podziękowanie)
+BEZ_NAPISU = {"dzieki"}
 BUDUJ = {"handan", "regent", "machina", "wymarsz", "dary", "ksiaze", "czarne", "drogi", "mur", "armia", "podroz", "spisek", "huhai",
          "powstanie", "studnia", "trucizna"}
 
@@ -209,7 +211,7 @@ def uloz(t, void=None):
         przejscie(st, i, lt, T)
     if not void:
         st.dim *= min(1.0, t / 0.5, max(0.0, (DUR - 0.1 - t) / 1.0))  # film wchodzi z czerni i w nią wychodzi
-    return st, (txt if NAPISY and txt and vs <= lt < min(T - 0.05, vs + vl + 0.35) else None)
+    return st, (txt if NAPISY and txt and KOL[i] not in BEZ_NAPISU and vs <= lt < min(T - 0.05, vs + vl + 0.35) else None)
 
 
 def frame(t, void=None):

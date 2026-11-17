@@ -164,24 +164,45 @@ def s_ucieczka(st, w, t, T):
     swiatlo(st, w, t)
 
 
+SKOK_SAM = 1.25  # chwila odbicia chłopca w ujęciu „sam” (dźwięk: efekty.ZDARZENIA["sam"])
+
+
 def s_sam(st, w, t, T):
-    """Zbliżenie małej lalki pod bramą: za nią przechodzą włócznie straży, lalka cofa się."""
+    """Zbliżenie małej lalki pod bramą: za nią przechodzą włócznie straży, lalka cofa się, przysiada i wyskakuje w górę
+    za kadr (reżyser 16.11: „zrób, że wyskakuje do góry za kadr”; w następnym ujęciu spada z góry do wozu)."""
     _noc(w)
     w.wlocznie = lerp(1320, 760, t / T)
     kam(st, t, 6, 830, 590, 2.2, 0.8, lens=1.9)
     st.dof = 2.4
     swiat(st, t, w)
-    lalka(st, t, "zheng_dziecko", 808 + 30 * ease(pr(t, 0.6, 1.0)), MALY, seed=8, flip=-1, lean=5 * ease(pr(t, 0.6, 0.8)))
+    przysiad = 0.07 * ease(pr(t, 0.85, 0.3)) * (1 - pr(t, SKOK_SAM, 0.06))  # ugina kolana przed skokiem
+    tau = max(0.0, t - SKOK_SAM)
+    lift = 760 * tau + 300 * tau * tau  # wybicie: szybko w górę, za górną krawędź kadru w ok. 0,4 s
+    lalka(st, t, "zheng_dziecko", 808 + 30 * ease(pr(t, 0.4, 0.6)), MALY, seed=8, flip=-1,
+          lean=5 * ease(pr(t, 0.4, 0.5)) * (1 - ease(pr(t, 0.85, 0.3))) - 4 * ease(pr(t, SKOK_SAM, 0.2)), sink=przysiad, lift=lift)
     swiatlo(st, w, t)
 
 
+SPADA_POWROT = (0.12, 0.5)  # chłopiec spada z góry kadru do wozu: początek i czas spadania (dźwięk: efekty.ZDARZENIA)
+
+
 def s_powrot(st, w, t, T):
-    """Dzień: wóz z małą lalką jedzie przez wzgórza na zachód, aż do czarnej chorągwi Qin."""
+    """Dzień: chłopiec, który w poprzednim ujęciu wyskoczył za kadr, spada z góry prosto do wozu (reżyser 16.11: „zrób,
+    że on z góry kadru wpada do tego powozu”), podskakuje na skrzyni i wóz jedzie przez wzgórza na zachód, aż do czarnej
+    chorągwi Qin."""
     x = lerp(820, 270, (t / T) ** 0.95)
     kam(st, t, 7, x + 30, 525, 1.8, 0.645, lens=1.68, truck=0.85)
     st.dof = 1.5
     swiat(st, t, w)
-    woz(st, t, x, flip=-1, ladunek=(Z.lalka("zheng_dziecko"), 70, 6, 8))
+    a, d = SPADA_POWROT
+    f = pr(t, a, d)
+    spad = 330 * (1 - f * f) if t >= a else 330  # swobodny spadek: coraz szybciej, z wysokości ponad górną krawędzią kadru
+    odbicie = 9 * abs(settle((t - a - d) / 0.6, 1.5))  # po uderzeniu w skrzynię dwa małe podskoki
+    if t >= a:
+        woz(st, t, x, flip=-1, ladunek=(Z.lalka("zheng_dziecko"), 70, 6, 8 - spad - odbicie),
+            sy=1 - 0.05 * abs(settle((t - a - d) / 0.35, 1.0)))
+    else:
+        woz(st, t, x, flip=-1)
     swiatlo(st, w, t)
 
 
@@ -309,9 +330,11 @@ def s_trucizna(st, w, t, T):
     Z.hang(st, Z.prop("czarka"), kx, ky, P.lalki + 0.016, zjazd, t, 160, drop=440, sway=0.4 * (1 - przechyl), h=52, rot0=rot,
            shadow=(3, 4, 4, 0.4))
     if leje > 0:  # strumień z brzegu kielicha do ust, lekko faluje; krople kapią
+        # reżyser 16.11 (markery w ujęciu 15): „stąd ma się wylewać” — z górnego brzegu przechylonego kielicha, nie z jego
+        # dolnego rogu; „trochę wyżej do jego ust” — strumień kończy się na ustach, nie na brodzie
         c, s_ = math.cos(math.radians(rot)), math.sin(math.radians(rot))
-        lx, ly = kx + c * 28 - s_ * 2, ky + s_ * 28 + c * 2
-        mx, my = 986, 446
+        lx, ly = kx + c * 12 - s_ * 2, ky + s_ * 12 + c * 2
+        mx, my = 997, 428
         pts = []
         for j in range(9):
             q = j / 8 * leje
@@ -500,11 +523,13 @@ def _sala_zamach(st, t, w, stolik=1.0, zwoj="zwiniety", szkatula=1.0, lisi=0.0, 
 
 
 def s_dary(st, w, t, T):
-    """Po prawej wysuwa się stół, za nim Jing Ke; na stole stają szkatuła i zwinięta mapa."""
+    """Po prawej wysuwa się stół, za nim Jing Ke; na stole staje szkatuła (mapa dopiero w następnym ujęciu)."""
     podpis(w, t, "Jing Ke z Yan", JINGKE, 336, 2.2)  # tabliczka: pierwsze pojawienie się
     kam(st, t, 24, lerp(700, 720, ease(t / T)), 440, 1.08, 0.8)
     st.dof = 0.8
-    _sala_zamach(st, t, w, stolik=pr(t, 0.4, 1.1), szkatula=pr(t, 2.0, 0.5), zwoj="zwiniety" if t > 2.6 else None)
+    # bez zwiniętej mapy na stole (reżyser 16.11: „usuń ten zwój ze stołu, bo on będzie w następnym dopiero”) — rozwinięta
+    # mapa zjeżdża na pusty blat w ujęciu ze sztyletem
+    _sala_zamach(st, t, w, stolik=pr(t, 0.4, 1.1), szkatula=pr(t, 2.0, 0.5), zwoj=None)
     krol(st, t, lean=2 * settle((t - 3.0) / 1.6, 1.2))
     lalka(st, t, "jingke", JINGKE, 300, pr(t, 1.2, 1.1), flip=-1, lean=-7 * ease(pr(t, 3.4, 0.7)) + 5 * ease(pr(t, 4.8, 0.7)), p=0.812)
 
