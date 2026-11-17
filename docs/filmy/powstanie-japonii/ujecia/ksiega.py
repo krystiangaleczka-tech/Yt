@@ -180,7 +180,9 @@ SWIAT = {
         {"id": "D9", "text": "Lektor EN tak jak w „Pierwszym cesarzu”: Chatterbox Multilingual po angielsku z ustawieniami TEATR "
          "(Podręcznik → Lektor, zasada 8), próbka z angielskiego nagrania autora, 3 podejścia, kontrola Whisperem, potem "
          "lektor_studio.py podejscia --teatr (3% wolniej, pauzy z zakresów) i kontrola urwanych słów (zasada 9). Polska próba "
-         "wersji wielojęzycznej (14.11) odpada.", "at": "2026-11-17", "by": "reżyser"},
+         "wersji wielojęzycznej (14.11) odpada. Klon to wersja robocza do rytmu w Studio — reżyser nagra lektora do całego filmu "
+         "sam, później (18.11: „1 wersję szybko, ja i tak będę nagrywał sam”), więc jedno podejście na kwestię (ZIARNA=42).",
+         "at": "2026-11-17", "by": "reżyser"},
         {"id": "D10", "text": "Ujęcia przerabia się według Wytycznych ujęć z 17.11 (przepis na ujęcie, zasady 1.15–1.24): podpis przy "
          "pierwszym pojawieniu się każdej postaci, śmierć widać (X na oczach, konanie, opadanie), zabójstwo ma fazy ciosu, "
          "potęga liczbą (flota, wojsko w Naniwie i w bitwie, haniwa), gagi ze słownika znaków (tabliczki „HA HA!”, „AW!…”, "
