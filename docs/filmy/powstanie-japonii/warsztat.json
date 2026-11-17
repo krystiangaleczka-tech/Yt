@@ -1,0 +1,54 @@
+{
+  "pipeline": "## Technika\n\nUjęcia są **rysowane kodem** w Pythonie (PIL + numpy) jako teatr papierowy — ten sam silnik co „Pierwszy cesarz”.\n\n- **Silnik** (`output/pierwszy-cesarz/papier.py`, wspólny): plany głębi, kamera wieloplanowa (paralaksa), cienie między planami, głębia ostrości, światło, winieta, ziarno co 3 klatki.\n- **Papiery i wycinki wspólne** (`output/pierwszy-cesarz/zestaw.py`): faktury, darte krawędzie, chmury, góry, sosny, słońce, fale, zawieszki, nitki (`hang`), wysuwanie od dołu (`rise`).\n- **Zestaw filmu** (`zestaw_jp.py`): lalki w stylu kofun z ręką na zawiasie (`postac`), front teatru w kształcie torii, wyspy, most niebios, lustro, magatama, miecze, łuk, wiśnia, sakaki, wąż o ośmiu głowach, kadzie, łodzie, niedźwiedź, wrona, złoty ptak, pałac Kashihara, chaty, haniwa, kurhan, mapa wysp, pieczęć.\n- **Świat** (`scena.py`): stan sceny z kamieni milowych rozpiski, scenografie (`morze`, `niebo`, `kraj`, `mapa`), lalki.\n- **Ujęcia** (`ujecia_a.py` — akty 1–4, `ujecia_b.py` — akty 5–9): funkcja `s_<klucz>(st, w, t, T)`.\n- **Format**: 1280 × 720, 24 kl./s; szkic 640 × 360, 12 kl./s (`SZKIC=1`). Napis = pasek papieru w czasie kwestii.",
+  "method": "## Kolejność pracy nad aktem\n\n1. Scenariusz i rozpiska: `docs/filmy/powstanie-japonii/ujecia/dane.py`.\n2. Księga świata: `ujecia/ksiega.py`.\n3. `python3 output/powstanie-japonii/studio_film.py plan` — plan, księga i warsztat do Studio + kontrola ciągłości.\n4. Rysunek: funkcja ujęcia; `python3 output/powstanie-japonii/render.py arkusz 12,13` — arkusz klatek.\n5. `python3 output/powstanie-japonii/render.py kontrola` — test „końca świata”.\n6. `python3 output/powstanie-japonii/studio_film.py klipy [pelne] [tylko=…]` — klipy do zakładki Ujęcia i na oś.\n7. `python3 output/powstanie-japonii/efekty.py` i `studio_film.py dzwiek` — muzyka i efekty.\n8. Recenzja aktu i wpis w dzienniku. Lektor (`lektor.py`) dopiero za zgodą reżysera.",
+  "files": [
+    {
+      "path": "docs/filmy/powstanie-japonii/ujecia/dane.py",
+      "role": "rozpiska: akty, sceny, beaty, ujęcia i kwestie lektora"
+    },
+    {
+      "path": "docs/filmy/powstanie-japonii/ujecia/ksiega.py",
+      "role": "księga świata, Story Bible i warsztat (źródło dla Studio)"
+    },
+    {
+      "path": "output/pierwszy-cesarz/papier.py",
+      "role": "silnik wspólny z „Pierwszym cesarzem”"
+    },
+    {
+      "path": "output/pierwszy-cesarz/zestaw.py",
+      "role": "papiery i wycinki wspólne"
+    },
+    {
+      "path": "output/powstanie-japonii/zestaw_jp.py",
+      "role": "lalki kofun i wycinanki tego filmu"
+    },
+    {
+      "path": "output/powstanie-japonii/scena.py",
+      "role": "stan świata i scenografie"
+    },
+    {
+      "path": "output/powstanie-japonii/ujecia_a.py",
+      "role": "ujęcia aktów 1–4"
+    },
+    {
+      "path": "output/powstanie-japonii/ujecia_b.py",
+      "role": "ujęcia aktów 5–9"
+    },
+    {
+      "path": "output/powstanie-japonii/render.py",
+      "role": "klatka, arkusz, kontrola, klipy"
+    },
+    {
+      "path": "output/powstanie-japonii/studio_film.py",
+      "role": "plan, księga, klipy i dźwięk do Studio"
+    },
+    {
+      "path": "output/powstanie-japonii/efekty.py",
+      "role": "muzyka i efekty (synteza)"
+    },
+    {
+      "path": "output/powstanie-japonii/lektor.py",
+      "role": "lektor — klon głosu, tylko za zgodą reżysera"
+    }
+  ]
+}

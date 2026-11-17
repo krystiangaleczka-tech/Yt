@@ -1,0 +1,857 @@
+"""Ujęcia aktów 1–4: Kropla z włóczni, Słońce w jaskini, Miecz w ogonie węża, Na wschód.
+
+Każda funkcja `s_<klucz>(st, w, t, T)` rysuje jedno ujęcie rozpiski: zmienia stan świata w czasie (wydarzenie ujęcia),
+ustawia kamerę i woła scenografię. Czasy liczone od początku ujęcia.
+"""
+import math
+import random
+
+import zestaw_jp as J
+from papier import CX, CY, back, clamp, ease, ease_out, noise, settle
+from scena import (FALE, P, SAKAKI, SKALA, STOPY, Z0, choragiewki, czubek_luku, gora_wyspy, grzebien_we_wlosach, kam, kraj, kulisy,  # noqa: F401
+                   lalka, lerp, lodz, morze, niebo, niebo_papier, pochodnia, pr, punkt, rampa, slonce, strzala_w_ramieniu, swiatlo, yomi,
+                   ziemia, zawieszki, zjazd)
+
+LUK = lambda h: (J.luk(), h * 1.12, J.LUK_UCHWYT, 0.0, False)  # łuk w przedniej dłoni (pionowo)
+WLOCZNIA = lambda h, rot=0.0: (J.wlocznia_bogow(), h * 1.7, (0.5, 0.6), rot, False)
+MIECZ = lambda h, blask=False: (J.miecz_jp(blask), h * 0.62, (0.5, 0.93), 180.0, True)  # ostrze idzie przedłużeniem ręki
+
+
+# ---------- akt 1 · Kropla z włóczni ----------
+
+def s_teatr(st, w, t, T):
+    """Front teatru; lampa w skrzyni, słońce na nitce, kraj wysuwa się od dołu; wjazd do środka."""
+    w.build = t - 1.5
+    w.sun = pr(t, 1.2, 1.3)
+    k = ease(pr(t, 1.6, T - 1.9))
+    m = math.exp(lerp(math.log(0.6), math.log(1.0), k))
+    kam(st, t, 0, 640, lerp(322, 360, k), m, 1.0, lens=m ** 0.55, truck=1.0, drift=0.4)
+    st.dof = 0.0
+    kraj(st, t, w, pola=1.0)
+    on = pr(t, 0.7, 0.5) * (0.75 + 0.25 * (math.sin(t * 43) > -0.6 or t > 1.25))
+    st.put(J.black(), CX, CY, 0.992, w=1300, anchor=(0.5, 0.5), alpha=1 - on, shadow=None, blur=0)
+    J.theatre_put(st, 0.55 + 0.45 * pr(t, 0.2, 0.8))
+    swiatlo(st, w, t)
+
+
+def s_luty(st, w, t, T):
+    """Na wzgórzach wyskakują chorągiewki ze słońcem, zjeżdża zawieszka „11 lutego”."""
+    w.zawieszki = [("11 lutego", 640, 300, pr(t, 1.0, 1.0))]
+    kam(st, t, 1, 640, 380, lerp(1.0, 1.08, ease(t / T)), 0.62, truck=0.5)
+    st.dof = 0.5
+    kraj(st, t, w, pola=1.0)
+    choragiewki(st, t, [pr(t, 1.8 + 0.45 * n, 0.5) for n in range(9)])
+    zawieszki(st, t, w)
+    swiatlo(st, w, t)
+
+
+def s_cien(st, w, t, T):
+    """Parawan podświetlony od tyłu; rośnie na nim cień władcy z łukiem, przelatuje cień ptaka."""
+    k = ease(t / T)
+    kam(st, t, 2, 640, lerp(468, 458, k), lerp(1.5, 1.66, k), 0.84, lens=1.42)
+    st.dof = 1.6
+    kraj(st, t, w, pola=1.0, kul=False)
+    kp = pr(t, 0.3, 1.0)
+    pw = 600
+    ph = pw * 480 / 760
+    y0 = 704 + (1 - back(kp, 1.2)) * ph * 1.1
+    p0 = 0.83
+    st.put(J.glow(), 640, y0 - ph * 0.5, p0 - 0.004, w=900, anchor=(0.5, 0.5), mode="add", alpha=0.35 * kp, shadow=None, tint=(1.0, 0.8, 0.55))
+    st.put(J.parawan(), 640, y0, p0, w=pw, anchor=(0.5, 1.0), shadow=(6, 8, 10, 0.45))
+    g = ease(pr(t, 1.4, 2.6))
+    if g > 0:  # lampa za parawanem podjeżdża: cień rośnie i ostrzeje
+        hh = lerp(150, 290, g)
+        lalka(st, t, "iwarebiko", 600, hh, 1.0, y=y0 - 26, p=p0 + 0.001, rece=(25, 0), tint=(0.10, 0.07, 0.06), alpha=0.82 * min(1, g * 2),
+              shadow=None, blur=lerp(6, 1.6, g), trzyma=(J.luk(), hh * 1.08, J.LUK_UCHWYT, 0.0, False))
+    b = pr(t, 3.9, 2.6)
+    if 0 < b < 1:
+        st.put(J.zloty_ptak(int(t * 6) % 2), lerp(400, 880, b), lerp(470, 420, b) - 40 * math.sin(b * math.pi), p0 + 0.0015, w=110,
+               anchor=(0.5, 0.5), tint=(0.1, 0.07, 0.06), alpha=0.8, shadow=None, blur=2.5)
+    st.put(J.parawan_rama(), 640, y0, p0 + 0.003, w=pw, anchor=(0.5, 1.0), shadow=(2, 3, 4, 0.4))
+    swiatlo(st, w, t, dim=0.92)
+    st.spot = (640, y0 - ph * 0.5, p0, 560, 0.5)
+
+
+def s_meduza(st, w, t, T):
+    """Zmiana dekoracji: same fale pod chmurami; między nimi dryfuje papierowa meduza."""
+    k = ease(t / T)
+    kam(st, t, 3, 640, lerp(420, 400, k), lerp(1.0, 1.12, k), 0.6, truck=0.5)
+    st.dof = 0.6
+    morze(st, t, w, tint=(0.9, 0.94, 0.98))
+    km = pr(t, 1.8, 1.4)
+    if km > 0:
+        x, y = lerp(430, 760, t / T), 498 + 14 * math.sin(t * 1.4)
+        st.put(J.meduza(), x, y + (1 - ease(km)) * 70, 0.52, h=150, anchor=(0.5, 0.35), sy=1 + 0.07 * math.sin(t * 3.2), rot=4 * math.sin(t * 0.9),
+               alpha=ease(km), shadow=(3, 4, 6, 0.2))
+    swiatlo(st, w, t, extra=(0.95, 0.98, 1.02))
+
+
+MOST = (640, 262, 900, 0.5)  # most niebios: x, góra arkusza, szerokość, plan
+
+
+def most(st, t, k):
+    x, y, wd, p = MOST
+    J.hang(st, J.most_niebios(), x, y, p, k, t, 120, drop=560, sway=0.25, w=wd, strings=(0.14, 0.86))
+
+
+def poklad(x):
+    x0, y0, wd, _ = MOST
+    return J.most_y(x, x0, y0 + 360 * wd / 1200, wd)
+
+
+def s_most(st, w, t, T):
+    """Z chmur zjeżdża tęczowy most; na nitkach schodzą na niego Izanagi z włócznią i Izanami."""
+    k = ease(t / T)
+    kam(st, t, 4, 640, lerp(380, 370, k), lerp(1.2, 1.32, k), 0.5, truck=0.5)
+    st.dof = 0.7
+    morze(st, t, w, tint=(0.92, 0.95, 0.98))
+    most(st, t, pr(t, 0.4, 1.6))
+    for key, x0, x1, d, fl, rc, tr in (("izanami", 610, 560, 2.4, 1.0, (10, 0), None),
+                                       ("izanagi", 700, 670, 3.2, -1.0, (55, 0), WLOCZNIA(150))):
+        kk = pr(t, d, 1.6)
+        x = lerp(x0, x1, ease(pr(t, d + 1.8, 2.0)))
+        zjazd(st, t, key, x, poklad(x) + 6, 150, kk, p=MOST[3] + 0.005, flip=fl, rece=rc, trzyma=tr)
+    swiatlo(st, w, t, extra=(0.95, 0.98, 1.02))
+
+
+def _kregi(st, t, x, y, p, t0, n=3):
+    """Kręgi na wodzie wokół drzewca: rozchodzące się elipsy."""
+    for j in range(n):
+        f = ((t - t0) * 0.6 + j / n) % 1.0 if t > t0 else 0.0
+        if f <= 0:
+            continue
+        rx, ry = 20 + 110 * f, 5 + 24 * f
+        pts = [(x + rx * math.cos(a), y + ry * math.sin(a)) for a in [i * math.pi / 18 for i in range(37)]]
+        st.line(pts, p, width=2.2, color=(236, 242, 240), alpha=0.7 * (1 - f), z=0.2)
+
+
+def s_wlocznia(st, w, t, T):
+    """Izanagi pochyla się z mostu i miesza włócznią w falach; wokół drzewca rozchodzą się kręgi."""
+    kam(st, t, 5, lerp(660, 690, ease(t / T)), 372, 1.45, 0.5, lens=1.35)
+    st.dof = 1.0
+    morze(st, t, w, tint=(0.92, 0.95, 0.98))
+    most(st, t, 1.0)
+    lean = 16 * ease(pr(t, 0.4, 1.0))
+    stir = 9 * math.sin(t * 2.4) * pr(t, 1.6, 0.8)
+    lalka(st, t, "izanami", 560, 150, y=poklad(560) + 6, p=MOST[3] + 0.005, rece=(30 * ease(pr(t, 2.0, 1.0)), 0), lean=4 * ease(pr(t, 2.0, 1.0)))
+    lalka(st, t, "izanagi", 670, 150, y=poklad(670) + 6, p=MOST[3] + 0.006, flip=1.0, lean=lean, rece=(60 + 8 * math.sin(t * 2.4), 0),
+          trzyma=(J.wlocznia_bogow(), 300, (0.5, 0.86), 180 - 22 + stir, False))
+    _kregi(st, t, 760, 520, 0.47, 1.4)
+    swiatlo(st, w, t, extra=(0.95, 0.98, 1.02))
+
+
+def s_kropla(st, w, t, T):
+    """Grot włóczni unosi się nad falę, skapuje z niego kropla; tam, gdzie spadła, wyrasta mała wysepka."""
+    kam(st, t, 6, 690, 470, 2.4, 0.56, lens=2.1)
+    st.dof = 1.8
+    morze(st, t, w, tint=(0.92, 0.95, 0.98), kul=False)
+    up = ease(pr(t, 0.2, 1.4))
+    tip = (700, lerp(560, 420, up) + 3 * math.sin(t * 1.7))
+    st.put(J.wlocznia_bogow(), tip[0], tip[1], 0.53, h=420, anchor=(0.5, 0.0), rot=180 + 6 * math.sin(t * 0.8), shadow=(4, 6, 8, 0.3))
+    d = pr(t, 1.8, 0.75)
+    if 0 < d < 1:  # kropla odrywa się od grotu i spada
+        st.put(J.kropla(), tip[0], tip[1] + 8 + 120 * d * d, 0.531, h=lerp(10, 22, min(1.0, d * 3)), anchor=(0.5, 0.2), shadow=(2, 3, 3, 0.3))
+    sp = pr(t, 2.55, 0.6)
+    if 0 < sp < 1:  # rozprysk
+        for j in range(6):
+            a = math.pi * (0.15 + 0.7 * j / 5)
+            st.put(J.kropla(), 700 + math.cos(a) * 60 * sp, 532 - math.sin(a) * 50 * sp + 60 * sp * sp, 0.531, h=10, alpha=1 - sp)
+    _kregi(st, t, 700, 534, 0.47, 2.55, n=2)
+    Z0.rise(st, J.wyspa(2), 700, FALE[2][1] + 26, FALE[2][0] - 0.012, pr(t, 2.8, 1.6), t, 72, w=230, wob=0.0, lift=140)
+    swiatlo(st, w, t, extra=(0.95, 0.98, 1.02))
+
+
+WYSPY_JP = [(640, 2, 330, 9), (210, 1, 300, 0), (420, 2, 380, 1), (880, 1, 280, 2), (1080, 2, 420, 3), (1220, 1, 300, 4), (330, 3, 560, 5),
+            (980, 3, 600, 6), (1300, 3, 380, 7)]  # x, pasmo za wyspą, szerokość, odmiana (9 = Onogoro bez sosen)
+
+
+def wyspy_lista(ks):
+    return [(x, b, wd, v if v < 9 else 1, k) for (x, b, wd, v), k in zip(WYSPY_JP, ks)]
+
+
+def s_wyspy(st, w, t, T):
+    """Spomiędzy fal wysuwają się po kolei wyspy z sosnami; bogowie stoją na pierwszej."""
+    k = ease(t / T)
+    m = lerp(1.16, 1.0, k)
+    kam(st, t, 7, 660, lerp(410, 380, k), m, 0.6, truck=0.6)
+    st.dof = 0.6
+    ks = [1.0] + [pr(t, 0.7 + 0.55 * n, 0.9) for n in range(len(WYSPY_JP) - 1)]
+    morze(st, t, w, wyspy=[], tint=(0.95, 0.97, 1.0))
+    for (x, b, wd, v), kk in zip(WYSPY_JP, ks):
+        spr = J.wyspa_gola(0) if v == 9 else J.wyspa(v)
+        Z0.rise(st, spr, x, FALE[b][1] + 26, FALE[b][0] - 0.012, kk, t, 70 + v, w=wd, wob=0.0, lift=wd * 0.5, haze=0.35 * (3 - b) / 3,
+                shadow=(5, 6, 8, 0.28))
+    on = J.wyspa_gola(0)
+    for key, x, fl in (("izanami", 615, 1.0), ("izanagi", 665, -1.0)):
+        y = gora_wyspy(on, x, 640, FALE[2][1] + 26, 330) + 4
+        lalka(st, t, key, x, 70, 1.0, y=y, p=FALE[2][0] - 0.008, flip=fl, rece=(20, 0))
+    swiatlo(st, w, t)
+
+
+# ---------- akt 2 · Słońce w jaskini ----------
+
+ONO = (640, FALE[3][1] + 200, 1100, FALE[3][0] - 0.012)  # Onogoro z bliska: x, dół, szerokość, plan
+
+
+def onogoro(st, t, w):
+    x, yb, wd, p = ONO
+    st.put(J.wyspa_gola(0), x, yb, p, w=wd)
+
+
+def na_onogoro(x):
+    x0, yb, wd, _ = ONO
+    return gora_wyspy(J.wyspa_gola(0), x, x0, yb, wd) + 6
+
+
+def s_ogien(st, w, t, T):
+    """Przy Izanami wybuchają płomienie z bibuły; bogini przechyla się i opada, Izanagi wyciąga rękę."""
+    kam(st, t, 8, 640, 440, lerp(1.4, 1.5, ease(t / T)), 0.74, lens=1.35)
+    st.dof = 1.4
+    morze(st, t, w, tint=(0.95, 0.96, 0.98), slonce_k=0.0)
+    onogoro(st, t, w)
+    p = ONO[3] + 0.004
+    fire = pr(t, 0.9, 0.9) * (1 - 0.6 * pr(t, T - 2.5, 2.0))
+    if fire > 0:
+        ft = math.floor(t * 12) / 12
+        for n in range(8):
+            r = random.Random(500 + n)
+            hh = 150 * fire * (0.6 + 0.4 * noise(ft, 600 + n, 9)) * r.uniform(0.6, 1.0)
+            x = 520 + r.uniform(-70, 70)
+            st.put(J.flame(n), x, na_onogoro(x) + 6, p + 0.002 + n * 0.0003, h=hh, rot=9 * noise(ft, 700 + n, 7), shadow=None,
+                   tint=(1.15, 1.1, 1.0))
+        st.put(J.glow(), 520, na_onogoro(520) - 60, p + 0.004, w=520, anchor=(0.5, 0.5), mode="add", alpha=0.32 * fire, shadow=None,
+               tint=(1.0, 0.55, 0.25))
+    lalka(st, t, "izanami", 520, 240, y=na_onogoro(520), p=p, lean=-14 * ease(pr(t, 1.6, 1.2)), sink=pr(t, 2.9, 2.6))
+    reach = ease(pr(t, 2.2, 1.0))
+    lalka(st, t, "izanagi", 760, 240, y=na_onogoro(760), p=p + 0.001, flip=-1, lean=-9 * reach, rece=(95 * reach, 10))
+    swiatlo(st, w, t, extra=(1.04, 0.97, 0.92))
+
+
+def s_yomi(st, w, t, T):
+    """Ciemność: Izanagi z pochodnią schodzi w głąb, z mroku wyłania się sina Izanami, Izanagi ucieka, głaz zamyka przejście."""
+    w.noc = 1.0
+    back_ = ease(pr(t, 5.6, 2.2))
+    x = lerp(240, 560, ease(pr(t, 0.6, 3.6))) - 260 * back_
+    fl = 1.0 if t < 5.5 else math.cos(math.pi * ease(pr(t, 5.4, 0.4)))
+    kam(st, t, 9, lerp(480, 560, ease(t / T)), 470, 1.25, 0.8)
+    st.dof = 0.9
+    yomi(st, t, w, glaz_k=pr(t, T - 3.2, 1.6), swiatlo_x=x + 40)
+    z = ease(pr(t, 3.4, 1.8)) * (1 - ease(pr(t, T - 2.2, 1.2)))
+    if z > 0:
+        lalka(st, t, "izanami", 880, 270, y=STOPY, alpha=z, tint=(0.55, 0.66, 0.58), flip=-1, rece=(70 * z, 0), lean=-4)
+    hand = lalka(st, t, "izanagi", x, 270, y=STOPY, flip=fl, rece=(55, 0), lean=-8 * back_ * fl, hop=7 if back_ > 0 else 3)
+    if hand:
+        pochodnia(st, t, hand[0], hand[1] + 34, P.lalki + 0.016, h=120, seed=1)
+    swiatlo(st, w, t, extra=(1.0, 0.9, 0.85), dim=0.9)
+
+
+def s_rzeka(st, w, t, T):
+    """Izanagi pochyla się nad rzeką; z wody wynurzają się słońce, księżyc i chmura, a za nimi troje bogów."""
+    k = ease(t / T)
+    kam(st, t, 10, lerp(660, 700, k), 470, lerp(1.2, 1.32, k), 0.72, truck=0.6)
+    st.dof = 1.0
+    kraj(st, t, w, rzeka=1.0, slonce_k=pr(t, 4.2, 1.6))
+    lalka(st, t, "izanagi", 300, 290, lean=14 * ease(pr(t, 0.3, 1.0)), rece=(40, 0))
+    for n, (kind, x, d, god) in enumerate((("slonce", 610, 1.6, "amaterasu"), ("ksiezyc", 830, 5.2, "tsukuyomi"), ("chmura", 1050, 8.4, "susanoo"))):
+        kd = pr(t, d, 1.1)
+        if kd > 0:
+            y0 = ziemia("blisko", x) + 40
+            yy = y0 - 120 * back(kd, 1.4) - 60 * ease(pr(t, d + 1.4, 2.0)) + 6 * math.sin(t * 1.3 + n)
+            st.put(J.krazek(kind), x, yy, P.droga + 0.008, h=96, anchor=(0.5, 0.5), rot=4 * noise(t, 40 + n, 0.4))
+            if kind == "slonce":
+                st.put(J.glow(), x, yy, P.droga + 0.009, w=320, anchor=(0.5, 0.5), mode="add", alpha=0.28 * kd, shadow=None)
+        lalka(st, t, god, x + 20, 280, pr(t, d + 1.0, 1.1), flip=-1 if n < 2 else 1, rece=(20, 0))
+    swiatlo(st, w, t)
+
+
+def s_susanoo(st, w, t, T):
+    """Niebiańska równina: Susanoo przelatuje w wirze wiatru, poletka fruwają, dach tkalni pęka i spada."""
+    f = pr(t, 0.9, T - 1.8)
+    sx = lerp(-160, 1460, f)
+    kam(st, t, 11, lerp(520, 760, f), 430, 1.08, 0.7, shake=4.0 * (0.2 < f < 0.95))
+    st.dof = 0.7
+    poles = [1.0 if sx < 120 + n * 120 else 0.0 for n in range(5)]
+    roof_t = 0.9 + (300 + 160) / 1620 * (T - 1.8)  # chwila, w której wir mija tkalnię
+    niebo(st, t, w, pola=poles, dach=1.0 if t < roof_t else 0.0)
+    for n in range(5):  # oderwane poletka koziołkują w górę
+        x0 = 120 + n * 120
+        tn = 0.9 + (x0 + 160) / 1620 * (T - 1.8)
+        if t > tn:
+            d = t - tn
+            st.put(J.poletko(0), x0 + 260 * d, 600 - 240 * d + 60 * d * d, P.gory + 0.04, w=140, rot=200 * d * (1 if n % 2 else -1),
+                   alpha=clamp(2.2 - d), shadow=(3, 4, 4, 0.3))
+    if t > roof_t:  # dach pęka na dwie połowy i spada za chmury
+        d = t - roof_t
+        for side in (-1, 1):
+            st.put(J.dach(420), 300 + side * (30 + 70 * d), 520 - 120 * d + 260 * d * d, P.most + 0.014, w=270 * 0.55,
+                   anchor=(0.5 + 0.5 * side, 1.0), rot=side * (25 * d + 40 * d * d), alpha=clamp(2.4 - d))
+    y = 400 + 50 * math.sin(f * 7)
+    st.put(J.wir(), sx, y - 120, P.lalki + 0.02, w=380, anchor=(0.5, 0.5), rot=-t * 420, shadow=None, alpha=0.8)
+    lalka(st, t, "susanoo", sx, 280, y=y + 150, p=P.lalki + 0.021, lean=20 * math.sin(t * 3), flip=1, rece=(130, 40), hop=0)
+    swiatlo(st, w, t, extra=(0.96, 0.96, 1.0))
+
+
+def s_jaskinia(st, w, t, T):
+    """Amaterasu wchodzi do jaskini, głaz zasuwa wejście, słońce odjeżdża w górę i scena gaśnie."""
+    w.sun = 1 - pr(t, 4.6, 1.6)
+    dark = ease(pr(t, 4.8, 1.8))
+    w.noc = dark
+    kam(st, t, 12, lerp(760, 820, ease(t / T)), 420, 1.08, 0.68, truck=0.5)
+    st.dof = 0.6
+    niebo(st, t, w, drzwi=pr(t, 3.4, 1.3), dach=0.0, pola=(0.0,) * 5)
+    xa = lerp(720, 975, ease(pr(t, 0.4, 2.8)))
+    lalka(st, t, "amaterasu", xa, 150, y=SKALA[1] - 20, p=P.wzgorza + 0.002, alpha=1 - pr(t, 2.9, 0.6), hop=3)
+    swiatlo(st, w, t, dim=lerp(1.0, 0.42, dark))
+
+
+def _bogowie(st, t, rozbaw=0.0, dim=1.0, t0=0.0):
+    """Rząd bogów przy rampie; rozbawieni kołyszą się ze śmiechu, każdy w swoim rytmie."""
+    for n, (key, x, fl) in enumerate((("bog1", 170, 1), ("bog2", 290, 1), ("bog3", 1000, -1), ("bog4", 1110, -1), ("silacz", 1230, -1))):
+        r = random.Random(60 + n)
+        late = r.uniform(0, 1.2)
+        laugh = rozbaw * ease(pr(t, t0 + late, 0.6))
+        lean = laugh * (8 + 4 * r.random()) * math.sin(t * (5.5 + 2.5 * r.random()) + n)
+        lalka(st, t, key, x, 250 + 20 * r.random(), flip=fl, lean=lean - laugh * 5 * fl, rece=(30 + 60 * laugh * abs(math.sin(t * 3 + n)), 0),
+              tint=(dim, dim * 0.95, dim * 0.9), seed=70 + n)
+
+
+def s_ciemno(st, w, t, T):
+    """Ciemność: zapalają się po kolei pochodnie, w ich świetle widać zarysy bogów."""
+    w.sun, w.noc = 0.0, 1.0
+    kam(st, t, 13, 700, 430, 1.04, 0.7)
+    st.dof = 0.6
+    niebo(st, t, w, drzwi=1.0, dach=0.0, pola=(0.0,) * 5)
+    _bogowie(st, t, dim=0.55)
+    for n, x in enumerate((230, 520, 830, 1140)):
+        pochodnia(st, t, x, 720, P.rekwizyty + 0.002 * n, k=pr(t, 0.3 + 0.5 * n, 0.5), seed=n)
+    swiatlo(st, w, t, dim=0.42)
+
+
+def _sakaki(st, t, k=1.0, lustro=1.0, klejnoty=1.0, blysk=0.0):
+    x, yb, hh = SAKAKI
+    Z0.rise(st, J.sakaki(), x, yb, P.wzgorza + 0.02, k, t, 505, h=hh, wob=0.4)
+    if k >= 1:
+        J.hang(st, J.lustro(), x + 52, 420, P.wzgorza + 0.024, lustro, t, 506, drop=420, sway=1.2, w=74)
+        J.hang(st, J.magatama_sznur(), x - 40, 450, P.wzgorza + 0.023, klejnoty, t, 507, drop=420, sway=1.0, w=120, strings=(0.1, 0.9))
+        if blysk > 0:
+            st.put(J.glow(), x + 52, 458, P.wzgorza + 0.025, w=420 * (0.6 + blysk), anchor=(0.5, 0.5), mode="add", alpha=0.55 * blysk,
+                   shadow=None, tint=(1.0, 0.9, 0.6))
+
+
+def _koguty(st, t, k=1.0, pieje=()):
+    st.line([(470, 660), (470, 590)], 0.74, width=5, color=(90, 64, 44), alpha=1.0)
+    st.line([(640, 660), (640, 590)], 0.74, width=5, color=(90, 64, 44), alpha=1.0)
+    st.line([(450, 590), (660, 590)], 0.74, width=6, color=(110, 78, 52), alpha=1.0)
+    for n, x in enumerate((510, 600)):
+        kk = pr(k, n * 0.3, 0.7) if k < 1 else 1.0
+        crow = max([0.0] + [settle((t - a) / 0.9, 1.5, 1.0) for a in pieje])
+        if kk > 0:
+            st.put(J.kogut(n), x, 592 + (1 - back(kk, 1.3)) * 60, 0.741, h=88, rot=-14 * crow * (1 if n else 0.8) + 1.0 * noise(t, 530 + n, 0.6),
+                   sx=-1 if n else 1)
+
+
+def s_koguty(st, w, t, T):
+    """Przed jaskinią wyrasta sakaki; zjeżdżają na nie lustro i klejnoty, na grzędzie stają koguty i pieją."""
+    w.sun, w.noc = 0.0, 1.0
+    k = ease(t / T)
+    kam(st, t, 14, lerp(640, 680, k), 480, lerp(1.35, 1.5, k), 0.72, lens=1.3)
+    st.dof = 1.0
+    niebo(st, t, w, drzwi=1.0, dach=0.0, pola=(0.0,) * 5)
+    _sakaki(st, t, pr(t, 0.4, 1.0), lustro=pr(t, 2.0, 1.1), klejnoty=pr(t, 3.0, 1.1))
+    _koguty(st, t, pr(t, 4.2, 1.0), pieje=(5.6, 7.2))
+    for n, x in enumerate((230, 1140)):
+        pochodnia(st, t, x, 720, P.rekwizyty, seed=n)
+    swiatlo(st, w, t, dim=0.5)
+
+
+def s_uzume(st, w, t, T):
+    """Uzume tańczy na odwróconej kadzi; bogowie kołyszą się ze śmiechu, każdy w swoim rytmie."""
+    w.sun, w.noc = 0.0, 1.0
+    kam(st, t, 15, 660, 470, lerp(1.08, 1.16, ease(t / T)), 0.8)
+    st.dof = 0.9
+    niebo(st, t, w, drzwi=1.0, dach=0.0, pola=(0.0,) * 5)
+    _sakaki(st, t)
+    _koguty(st, t)
+    st.put(J.kadz(1), 640, 716, 0.83, h=130, sy=-1, anchor=(0.5, 0.0))
+    dance = pr(t, 0.6, 0.6)
+    beat = math.floor(t / 0.55)
+    up = abs(math.sin(t * math.pi / 0.55)) * 16 * dance
+    lalka(st, t, "uzume", 640, 240, y=596, p=0.835, lift=up, flip=1 if beat % 2 else -1, lean=6 * math.sin(t * 5.7) * dance,
+          rece=(150 if beat % 2 else 40, 40 if beat % 2 else 150), trzyma=(J.galazka(), 70, (0.1, 0.85), 180, True))
+    _bogowie(st, t, rozbaw=1.0, dim=0.8, t0=2.0)
+    for n, x in enumerate((90, 1250)):
+        pochodnia(st, t, x, 720, P.rekwizyty, seed=n + 3)
+    swiatlo(st, w, t, dim=0.62)
+
+
+def s_lustro(st, w, t, T):
+    """Głaz się uchyla, Amaterasu wygląda, lustro rozbłyskuje, siłacz odsuwa głaz."""
+    w.sun, w.noc = 0.0, 1.0
+    kam(st, t, 16, lerp(880, 900, ease(t / T)), 520, 2.0, 0.68, lens=1.8)
+    st.dof = 1.6
+    drzwi = 1.0 - 0.18 * ease(pr(t, 0.6, 1.0)) - 0.82 * ease(pr(t, T - 4.0, 2.2))
+    crack = 1 - drzwi
+    niebo(st, t, w, drzwi=drzwi, dach=0.0, pola=(0.0,) * 5)
+    x0 = SKALA[0] - 0.07 * SKALA[2]
+    st.put(J.glow(), x0 + 40, 560, P.wzgorza + 0.003, w=320 + 600 * crack, anchor=(0.5, 0.5), mode="add", alpha=0.25 + 0.5 * crack, shadow=None,
+           tint=(1.0, 0.85, 0.5))
+    peek = ease(pr(t, 1.4, 1.2))
+    lalka(st, t, "amaterasu", lerp(1000, 958, peek) - 90 * ease(pr(t, T - 2.0, 1.4)), 150, y=SKALA[1] - 20, p=P.wzgorza + 0.002, lean=-8 * peek)
+    _sakaki(st, t, blysk=ease(pr(t, 2.4, 0.5)) * (1 - 0.5 * pr(t, 4.0, 1.0)))
+    push = ease(pr(t, T - 4.4, 1.0))
+    lalka(st, t, "silacz", lerp(1330, 1150, push), 300, flip=-1, rece=(100 * push, 80 * push), lean=-10 * push)
+    swiatlo(st, w, t, dim=0.55 + 0.3 * crack)
+
+
+def s_swit(st, w, t, T):
+    """Słońce wraca na nitce, scena jaśnieje; przed jaskinią zjeżdża gruby sznur z białymi paskami papieru."""
+    w.sun = pr(t, 0.2, 1.4)
+    w.noc = 1 - ease(pr(t, 0.3, 1.6))
+    k = ease(t / T)
+    kam(st, t, 17, 800, lerp(440, 410, k), lerp(1.25, 1.06, k), 0.68)
+    st.dof = 0.7
+    niebo(st, t, w, drzwi=0.0, dach=0.0, pola=(0.0,) * 5)
+    _sakaki(st, t)
+    x0 = SKALA[0] - 0.07 * SKALA[2]
+    lalka(st, t, "amaterasu", x0 - 120, 160, y=SKALA[1] - 20, p=P.wzgorza + 0.003, rece=(60, 0))
+    st.put(J.glow(), x0 - 120, SKALA[1] - 120, P.wzgorza + 0.004, w=360, anchor=(0.5, 0.5), mode="add", alpha=0.4 * w.sun, shadow=None)
+    J.hang(st, J.shimenawa(), x0 + 10, 470, P.wzgorza + 0.006, pr(t, 1.1, 1.2), t, 540, drop=420, sway=0.6, w=330, strings=(0.05, 0.95))
+    _koguty(st, t, pieje=(0.4, 1.6))
+    swiatlo(st, w, t, dim=lerp(0.5, 1.0, ease(pr(t, 0.3, 1.6))))
+
+
+# ---------- akt 3 · Miecz w ogonie węża ----------
+
+SUS_X = 230  # Susanoo w Izumo
+
+
+def rzeka_y(x):
+    return ziemia("blisko", 300) + 18 + (x - 120) * math.tan(math.radians(-1.0))
+
+
+def s_wygnanie(st, w, t, T):
+    """Susanoo zjeżdża na nitce z chmur nad rzekę; rzeką spływają dwie pałeczki."""
+    land = pr(t, 0.7, 2.6)
+    kam(st, t, 18, lerp(380, 520, ease(t / T)), lerp(380, 500, ease(land)), lerp(1.2, 1.4, ease(t / T)), 0.75)
+    st.dof = 1.0
+    kraj(st, t, w, rzeka=1.0)
+    x = lerp(1180, 520, t / T)
+    st.put(J.paleczki(), x, rzeka_y(x) - 4 + 2 * math.sin(t * 2.2), P.droga + 0.006, w=70, rot=4 * math.sin(t * 1.3), shadow=(2, 2, 3, 0.3))
+    zjazd(st, t, "susanoo", 420, STOPY, 290, land, flip=1, rece=(30, 10), lean=4 * settle((t - 3.3) / 1.4, 1.5))
+    swiatlo(st, w, t)
+
+
+def waz_cien(st, t, x0, p, n=18, tint=(0.12, 0.12, 0.14)):
+    """Grzbiet węża sunący za wzgórzem: widać tylko garby łusek nad grzbietem pasma."""
+    for j in range(n):
+        x = x0 + j * 54
+        y = ziemia("srodek", clamp(x, -200, 1500)) + 34 + 20 * math.sin(j * 0.9 + t * 2.4)
+        st.put(J.waz_luska(j % 3), x, y, p + 0.0002 * j, h=86, anchor=(0.5, 0.5), tint=tint, shadow=None)
+
+
+def s_starcy(st, w, t, T):
+    """W górze rzeki płaczą starcy z córką; za wzgórzem przesuwa się cień ogromnego węża."""
+    kam(st, t, 19, lerp(700, 740, ease(t / T)), 470, 1.3, 0.8)
+    st.dof = 1.0
+    kraj(st, t, w, rzeka=1.0)
+    waz_cien(st, t, lerp(1400, -900, pr(t, 1.6, T - 2.0)), P.miasto + 0.02)
+    for n, (key, x) in enumerate((("starzec", 760), ("starucha", 880))):
+        lalka(st, t, key, x, 270, flip=-1, lean=-8 + 5 * math.sin(t * (2.0 + 0.4 * n) + n), rece=(60 + 20 * math.sin(t * 2.6 + n), 0))
+    flinch = ease(pr(t, 4.0, 0.6)) * (1 - ease(pr(t, 6.0, 1.0)))
+    lalka(st, t, "kushinada", 1010, 250, flip=-1, lean=8 * flinch, rece=(40 + 60 * flinch, 0))
+    lalka(st, t, "susanoo", 430, 290, flip=1, rece=(20, 0), lean=3 * ease(pr(t, 2.0, 1.0)))
+    grzebien_we_wlosach(st, "susanoo", 430, 290, k=0.0)
+    swiatlo(st, w, t)
+
+
+KADZIE = [330 + n * 120 for n in range(8)]
+
+
+def kadzie(st, t, ks):
+    for n, x in enumerate(KADZIE):
+        k = ks[n] if isinstance(ks, (list, tuple)) else ks
+        if k > 0:
+            st.put(J.kadz(n), x, 694 + (1 - back(k, 1.3)) * 150, P.rekwizyty, h=100)
+
+
+def s_kadzie(st, w, t, T):
+    """Dziewczyna kurczy się w grzebień, który wskakuje Susanoo we włosy; wysuwa się rząd ośmiu kadzi."""
+    kam(st, t, 20, lerp(640, 700, ease(t / T)), 480, 1.18, 0.8)
+    st.dof = 0.9
+    kraj(st, t, w, rzeka=1.0)
+    for n, (key, x) in enumerate((("starzec", 760), ("starucha", 880))):
+        lalka(st, t, key, x, 270, flip=-1, lean=-6, sink=pr(t, 2.6 + 0.3 * n, 1.2))
+    shrink = ease(pr(t, 0.8, 1.2))
+    kh = 250 * (1 - shrink)
+    if kh > 8:
+        lalka(st, t, "kushinada", 1010, kh, flip=-1, alpha=1 - 0.6 * shrink)
+    fly = pr(t, 2.0, 1.2)
+    tx, ty = punkt("susanoo", SUS_X, 290, 130, 66)
+    if 0 < fly < 1:  # grzebień leci łukiem
+        gx, gy = lerp(1010, tx, ease(fly)), lerp(560, ty, ease(fly)) - 180 * math.sin(math.pi * fly)
+        st.put(J.grzebien(), gx, gy, P.lalki + 0.02, w=46, anchor=(0.5, 0.5), rot=540 * fly)
+    elif shrink > 0.5 and fly <= 0:
+        st.put(J.grzebien(), 1010, 600, P.lalki + 0.02, w=46 * (shrink - 0.5) * 2, anchor=(0.5, 0.5))
+    lalka(st, t, "susanoo", SUS_X, 290, flip=1, rece=(90 * ease(pr(t, 4.0, 0.8)), 0), lean=2 * settle((t - 3.2) / 1.2, 1.5))
+    grzebien_we_wlosach(st, "susanoo", SUS_X, 290, k=1.0 if fly >= 1 else 0.0)
+    kadzie(st, t, [pr(t, 3.6 + 0.35 * n, 0.6) for n in range(8)])
+    swiatlo(st, w, t)
+
+
+GLOWY = [(300, 300), (420, 250), (540, 330), (650, 230), (760, 300), (880, 240), (1000, 320), (1120, 260)]  # nasada szyi x, wysokość głowy y
+
+
+def szyja(st, t, base, head, k, v, p, seed, tint=None, lezy=0.0, p_blisko=None):
+    """Szyja węża z krążków łusek po łuku od nasady (za wzgórzem) do głowy; k = 0..1 wysuwanie."""
+    if k <= 0:
+        return
+    bx, by = base
+    hx, hy = head
+    hy = by + (hy - by) * back(k, 1.2)
+    cx, cy = (bx + hx) / 2 + 80 * math.sin(seed), min(by, hy) - 170
+    n = 16
+    pts = []
+    for j in range(n + 1):
+        u = j / n
+        x = (1 - u) ** 2 * bx + 2 * (1 - u) * u * cx + u * u * hx
+        y = (1 - u) ** 2 * by + 2 * (1 - u) * u * cy + u * u * hy
+        pts.append((x + 6 * math.sin(t * 1.8 + seed + u * 3) * u, y))
+    for j, (x, y) in enumerate(pts[:-1]):  # p_blisko: druga połowa szyi przechodzi nad przednim pasmem wzgórz
+        pj = p_blisko if (p_blisko and j > n * 0.45) else p
+        st.put(J.waz_luska(v), x, y, pj + 0.0003 * j, h=lerp(78, 50, j / n), anchor=(0.5, 0.5), tint=tint, shadow=(3, 4, 5, 0.3))
+    if p_blisko:
+        p = p_blisko
+    (ax, ay), (zx, zy) = pts[-2], pts[-1]
+    ang = math.degrees(math.atan2(zy - ay, zx - ax))
+    face = 1 if zx >= ax else -1
+    rot = ang if face > 0 else ang - 180
+    rot = rot * (1 - lezy)
+    st.put(J.waz_glowa(v), zx, zy, p + 0.006, h=74, anchor=(0.18, 0.5), rot=rot, sx=face, tint=tint, shadow=(3, 4, 5, 0.35))
+
+
+def s_orochi(st, w, t, T):
+    """Zza gór wychylają się po kolei osiem głów na długich szyjach, z czerwonymi oczami."""
+    k = ease(t / T)
+    kam(st, t, 21, 700, lerp(420, 400, k), lerp(1.0, 1.1, k), 0.6, truck=0.5)
+    st.dof = 0.6
+    w.noc = 0.25
+    kraj(st, t, w, rzeka=1.0)
+    for n, (x, hy) in enumerate(GLOWY):
+        base = (x, ziemia("srodek", x) + 70)
+        szyja(st, t, base, (x + (40 if n % 2 else -40), hy), pr(t, 0.6 + 0.6 * n, 1.0), n % 3, P.miasto + 0.012 + 0.0015 * n, n)
+    kadzie(st, t, 1.0)
+    lalka(st, t, "susanoo", SUS_X, 290, flip=1, rece=(20, 0), lean=-3 * ease(pr(t, 3.0, 1.0)))
+    grzebien_we_wlosach(st, "susanoo", SUS_X, 290)
+    swiatlo(st, w, t)
+
+
+def s_pije(st, w, t, T):
+    """Głowy zanurzają się w kadziach, piją, kiwają się i jedna po drugiej opadają na wzgórza."""
+    kam(st, t, 22, 720, 460, 1.12, 0.7)
+    st.dof = 0.7
+    w.noc = 0.25
+    kraj(st, t, w, rzeka=1.0)
+    for n, (x, hy) in enumerate(GLOWY):
+        base = (x, ziemia("srodek", x) + 70)
+        dip = ease(pr(t, 0.1 * n, 0.8))
+        drop = ease(pr(t, 1.8 + 0.18 * n, 0.9))
+        vx = KADZIE[n]
+        up = (x + (40 if n % 2 else -40), hy)
+        drink = (vx, 578 + 6 * math.sin(t * 9 + n) * (1 - drop))
+        sleep = (x + 60 * (1 if n % 2 else -1), ziemia("przod", x) + 14)
+        hx = lerp(lerp(up[0], drink[0], dip), sleep[0], drop)
+        hy_ = lerp(lerp(up[1], drink[1], dip), sleep[1], drop)
+        szyja(st, t, base, (hx, hy_), 1.0, n % 3, P.miasto + 0.012 + 0.0015 * n, n, lezy=drop, p_blisko=P.wzgorza + 0.062 + 0.001 * n)
+    kadzie(st, t, 1.0)
+    lalka(st, t, "susanoo", SUS_X, 290, flip=1, rece=(10, 0))
+    grzebien_we_wlosach(st, "susanoo", SUS_X, 290)
+    swiatlo(st, w, t)
+
+
+def s_miecz(st, w, t, T):
+    """Susanoo tnie mieczem: szyje opadają, z ogona wysuwa się błyszczący miecz i wznosi się nad scenę."""
+    slash = pr(t, 0.8, 0.35)
+    kam(st, t, 23, lerp(560, 620, ease(t / T)), 470, 1.32, 0.8, shake=7.0 * (0 < slash < 1 or 0.8 < t < 1.6))
+    st.dof = 1.0
+    w.noc = 0.25 * (1 - pr(t, 3.0, 2.0))
+    kraj(st, t, w, rzeka=1.0)
+    for n, (x, hy) in enumerate(GLOWY):
+        base = (x, ziemia("srodek", x) + 70)
+        fall = ease(pr(t, 1.0 + 0.12 * n, 0.8))
+        sleep = (x + 60 * (1 if n % 2 else -1), ziemia("przod", x) + 14 + 140 * fall)
+        szyja(st, t, base, sleep, 1.0, n % 3, P.miasto + 0.012 + 0.0015 * n, n, lezy=1.0, p_blisko=P.wzgorza + 0.062 + 0.001 * n)
+    kadzie(st, t, 1.0)
+    arm = 160 - 150 * ease(slash) if t > 0.3 else 160 * ease(pr(t, 0.0, 0.3))
+    lalka(st, t, "susanoo", SUS_X + 160, 290, flip=1, rece=(arm, 20), lean=10 * ease(slash) - 4, trzyma=MIECZ(290))
+    grzebien_we_wlosach(st, "susanoo", SUS_X + 160, 290, rot=10 * ease(slash) - 4)
+    rs = pr(t, 2.6, 2.4)
+    if rs > 0:
+        y = ziemia("srodek", 1000) + 140 - 300 * ease(rs) + 6 * math.sin(t * 1.5)
+        st.put(J.glow(), 1000, y - 120, P.miasto + 0.025, w=420, anchor=(0.5, 0.5), mode="add", alpha=0.45 * rs, shadow=None, tint=(1.0, 0.95, 0.75))
+        st.put(J.miecz_jp(True), 1000, y, P.miasto + 0.026, h=240, rot=8 * math.sin(t * 0.9))
+    swiatlo(st, w, t)
+
+
+def skarby_w_niebie(st, t, k=(1.0, 1.0, 1.0), x0=560, y=330, p=P.lalki + 0.03):
+    J.hang(st, J.lustro(), x0, y, p, k[0], t, 550, drop=520, sway=1.0, w=90)
+    J.hang(st, J.magatama_sznur(), x0 + 140, y + 10, p, k[1], t, 551, drop=520, sway=1.0, w=130, strings=(0.1, 0.9))
+    if k[2] > 0:
+        J.hang(st, J.miecz_jp(True), x0 + 280, y - 20, p, k[2], t, 552, drop=520, sway=0.8, h=200)
+        st.put(J.glow(), x0 + 280, y + 70, p + 0.001, w=240, anchor=(0.5, 0.5), mode="add", alpha=0.25 * k[2], shadow=None)
+
+
+def s_skarby(st, w, t, T):
+    """Na chmurach Amaterasu i wnuk Ninigi; zjeżdżają lustro, klejnoty i miecz, Ninigi unosi ręce."""
+    k = ease(t / T)
+    kam(st, t, 24, lerp(600, 640, k), 480, lerp(1.25, 1.38, k), 0.8)
+    st.dof = 1.0
+    niebo(st, t, w, drzwi=0.0, dach=0.0, pola=(1.0,) * 5, lina=1.0)
+    lalka(st, t, "amaterasu", 360, 300, pr(t, 1.0, 1.0), flip=1, rece=(70 * ease(pr(t, 2.4, 0.8)), 0))
+    lalka(st, t, "ninigi", 880, 280, pr(t, 1.4, 1.0), flip=-1, rece=(120 * ease(pr(t, 6.6, 1.0)), 120 * ease(pr(t, 6.8, 1.0))))
+    skarby_w_niebie(st, t, (pr(t, 2.6, 1.2), pr(t, 3.8, 1.2), pr(t, 5.0, 1.2)))
+    swiatlo(st, w, t, extra=(1.03, 1.0, 0.94))
+
+
+def s_zejscie(st, w, t, T):
+    """Ninigi zjeżdża na chmurze przez kolejne warstwy chmur aż na szczyt góry."""
+    f = t / T
+    kam(st, t, 25, 640, 420, 1.15, 0.8, drift=0.6)
+    st.dof = 1.1
+    tint = (lerp(1.04, 1.0, f), lerp(0.98, 1.0, f), lerp(0.86, 1.0, f))
+    niebo_papier(st, w, tint)
+    slonce(st, t, w)
+    r = random.Random(25)
+    for j in range(14):  # warstwy chmur przelatują w górę: bliższe szybciej (paralaksa)
+        p = 0.3 + 0.62 * r.random()
+        name = ("cloud_left", "cloud_center", "cloud_right")[j % 3]
+        y = 900 + r.uniform(0, 500) - (t + r.uniform(0, 3)) * 420 * p % 1500
+        x = r.uniform(-100, 1380)
+        st.put(J.S(name, 0.5), x, y, p, w=lerp(400, 900, p), anchor=(0.5, 0.5), haze=0.2 * (1 - p), shadow=(6, 8, 10, 0.2),
+               alpha=0.95, blur=None)
+    peak = ease(pr(t, T - 3.4, 2.6))
+    st.put(J.fuji(1), 660, 1200 - 520 * peak, 0.62, w=900, haze=0.1)  # zielony stożek Takachiho
+    ry = 470 + 8 * math.sin(t * 1.6) + 70 * peak
+    st.put(J.S("cloud_center", 0.5), 640, ry + 40, 0.8, w=420, anchor=(0.5, 0.5), shadow=(6, 8, 10, 0.3))
+    lalka(st, t, "ninigi", 640, 250, y=ry + 30, p=0.801, rece=(40, 20), lean=3 * math.sin(t * 1.3))
+    rampa(st)
+    swiatlo(st, w, t, extra=tint)
+
+
+def s_siostry(st, w, t, T):
+    """Pod wiśnią księżniczka kwiatów, przy głazie księżniczka skał; Ninigi wybiera wiśnię, szara lalka opada."""
+    kam(st, t, 26, 660, 470, lerp(1.18, 1.26, ease(t / T)), 0.8)
+    st.dof = 1.0
+    kraj(st, t, w, sosny=(0.0, 1.0))
+    st.put(J.wisnia(), 300, 712, P.drzewa, h=420, anchor=J.wisnia().pien)
+    st.put(J.glaz(2), 1040, 716, 0.76, w=300)
+    lalka(st, t, "kwiat", 390, 270, flip=1, lean=2 * math.sin(t * 0.8), rece=(30, 0))
+    lalka(st, t, "skala", 950, 270, flip=-1, sink=pr(t, T - 4.4, 2.6), lean=-4 * ease(pr(t, T - 5.0, 1.0)))
+    turn = math.cos(math.pi * ease(pr(t, 3.6, 0.6)))
+    lalka(st, t, "ninigi", 670, 280, flip=turn, rece=(70 * ease(pr(t, 4.4, 0.8)), 0))
+    for j in range(8):
+        r = random.Random(800 + j)
+        f = ((t * 0.12 + r.random()) % 1.0)
+        st.put(J.platek(j), 260 + r.uniform(-80, 160) + 60 * math.sin(t * 1.4 + j), 360 + f * 360, P.drzewa + 0.02, w=11,
+               rot=t * 160 + j * 40, shadow=None)
+    swiatlo(st, w, t)
+
+
+def s_platki(st, w, t, T):
+    """Detal: z wiśni sypią się płatki na rampę, kwiaty na gałęziach gasną."""
+    fade = ease(pr(t, 1.0, T - 1.4))
+    kam(st, t, 27, 330, 470, 2.4, 0.74, lens=2.1)
+    st.dof = 2.0
+    kraj(st, t, w, sosny=(0.0, 1.0), kul=False)
+    c = lerp(1.0, 0.72, fade)
+    st.put(J.wisnia(), 300, 712, P.drzewa, h=420, anchor=J.wisnia().pien, tint=(c, c * lerp(1.0, 0.86, fade), c * lerp(1.0, 0.8, fade)))
+    for j in range(22):
+        r = random.Random(820 + j)
+        t0 = r.uniform(0, T - 1.5)
+        f = pr(t, t0, r.uniform(2.6, 3.6))
+        if f <= 0:
+            continue
+        x = 240 + r.uniform(-40, 220) + 40 * math.sin(t * 1.8 + j) * (1 - f)
+        y = lerp(380 + r.uniform(0, 80), 690, f)
+        st.put(J.platek(j), x, y, P.drzewa + 0.03 + 0.001 * (j % 5), w=14, rot=t * 200 * (1 if j % 2 else -1) * (1 - f), shadow=(2, 2, 3, 0.3))
+    rampa(st)
+    swiatlo(st, w, t)
+
+
+# ---------- akt 4 · Na wschód ----------
+
+IW = 300  # Iwarebiko stoi z lewej, twarzą na wschód
+
+
+def s_prawnuk(st, w, t, T):
+    """Ninigi opada pod rampę, na jego miejscu wysuwa się Iwarebiko z łukiem; zjeżdża zawieszka „Hyūga”."""
+    w.zawieszki = [("Hyūga", 580, 330, pr(t, 4.4, 1.0))]
+    k = ease(t / T)
+    kam(st, t, 28, lerp(470, 500, k), 500, lerp(1.48, 1.62, k), 0.8)
+    st.dof = 1.3
+    kraj(st, t, w, morze_k=1.0)
+    lalka(st, t, "ninigi", 420, 280, pr(t, 1.2, 0.8), flip=1, sink=pr(t, 2.2, 1.4), lean=-4 * ease(pr(t, 2.0, 0.8)))  # wchodzi razem z rampą
+    lalka(st, t, "iwarebiko", 420, 290, pr(t, 3.2, 1.2), flip=1, rece=(15, 0), trzyma=LUK(290))
+    zawieszki(st, t, w)
+    swiatlo(st, w, t)
+
+
+def s_wschod(st, w, t, T):
+    """Iwarebiko wskazuje wschód: po prawej wysuwają się błękitne góry, nad nimi wschodzi słońce."""
+    k = ease(t / T)
+    kam(st, t, 29, lerp(620, 700, k), 430, lerp(1.0, 1.08, k), 0.62, truck=0.6)
+    st.dof = 0.6
+    kraj(st, t, w, morze_k=1.0, slonce_k=0.0, tint=(1.04, 0.97, 0.9))
+    sr = pr(t, 2.6, 2.2)
+    if sr > 0:
+        st.put(J.glow(), 1090, 320 - 160 * ease(sr), P.slonce, w=700, anchor=(0.5, 0.5), mode="add", alpha=0.35 * sr, shadow=None, tint=(1.0, 0.7, 0.45))
+        st.put(J.S("sun", 0.5), 1090, 470 - 220 * ease(sr), P.slonce + 0.002, w=170, anchor=(0.5, 0.5))
+    for n, (x, wd) in enumerate(((1000, 520), (1190, 600))):
+        Z0.rise(st, J.gora_niebieska(n % 2), x, 470, P.gory_dal + 0.03 + 0.004 * n, pr(t, 1.4 + 0.4 * n, 0.9), t, 640 + n, w=wd, wob=0.0, haze=0.2)
+    point = ease(pr(t, 0.8, 0.8))
+    lalka(st, t, "iwarebiko", IW, 300, flip=1, rece=(85 * point, 0), lean=-2 * point, trzyma=LUK(300))
+    swiatlo(st, w, t, extra=(1.03, 0.98, 0.93))
+
+
+def bracia(st, t, ks=(1.0, 1.0, 1.0), turns=(1.0, 1.0, 1.0), x0=470):
+    for n, key in enumerate(("itsuse", "brat2", "brat3")):
+        lalka(st, t, key, x0 + n * 125, 285 - 8 * n, ks[n], flip=turns[n], rece=(10, 0), seed=150 + n)
+
+
+def s_bracia(st, w, t, T):
+    """Obok Iwarebiko wysuwają się trzej bracia; wszyscy obracają się na wschód."""
+    kam(st, t, 30, lerp(560, 600, ease(t / T)), 490, 1.36, 0.8)
+    st.dof = 1.0
+    kraj(st, t, w, morze_k=1.0, tint=(1.03, 0.98, 0.93))
+    lalka(st, t, "iwarebiko", IW, 300, flip=1, rece=(30, 0), trzyma=LUK(300))
+    turns = [-math.cos(math.pi * ease(pr(t, 3.4 + 0.5 * n, 0.5))) for n in range(3)]
+    bracia(st, t, [pr(t, 0.6 + 0.6 * n, 1.0) for n in range(3)], turns)
+    swiatlo(st, w, t)
+
+
+def s_flota(st, w, t, T):
+    """Łodzie z wiosłami i żaglami płyną na wschód między wyspami; kamera płynie z nimi."""
+    x = lerp(380, 900, t / T)
+    kam(st, t, 31, x + 120, 430, 1.28, 0.6, truck=0.85)
+    st.dof = 0.7
+    isl = [(-200, 1, 380, 0, 1.0), (260, 2, 420, 3, 1.0), (720, 1, 300, 4, 1.0), (1150, 2, 460, 6, 1.0), (1560, 1, 360, 2, 1.0),
+           (1900, 2, 420, 5, 1.0), (40, 3, 520, 7, 1.0), (1320, 3, 560, 1, 1.0)]
+    morze(st, t, w, wyspy=isl)
+    for j in range(3):
+        if pr(t, 0.9 + 0.2 * j, 0.1) <= 0:  # łodzie wypływają dopiero na postawione fale
+            continue
+        lodz(st, t, x - j * 240, 2 if j != 1 else 1, h=150 - 26 * (j == 1), seed=j, sink=1 - ease(pr(t, 0.9 + 0.2 * j, 0.8)),
+             ladunek=[("iwarebiko", -40, 120, (20, 0)), ("itsuse", 50, 116, (10, 0))] if j == 0 else [("wojownik", 0, 110, (0, 0))])
+    swiatlo(st, w, t)
+
+
+def s_postoje(st, w, t, T):
+    """Przy brzegu stoją łodzie; ryż wyrasta, żółknie i zostaje ścięty, a na brzegu rośnie szkielet nowej łodzi."""
+    f = t / T
+    w.sun_xy = (lerp(150, 1150, (f * 2) % 1.0), 110 + 30 * math.sin(math.pi * ((f * 2) % 1.0)) * -1)
+    w.pola_v = 0 if f < 0.36 else (1 if f < 0.68 else 2)
+    kam(st, t, 32, lerp(600, 660, ease(f)), 480, 1.18, 0.66)
+    st.dof = 0.8
+    kraj(st, t, w, morze_k=1.0, pola=1.0)
+    for j in range(2):
+        st.put(J.lodz(1), 120 + j * 170, 600 + 4 * math.sin(t * 1.6 + j) + j * 16, Z0.P.rownina + 0.012 + 0.01 * j, h=110,
+               rot=2 * math.sin(t * 1.2 + j))
+    g = ease(pr(t, 1.0, T - 2.0))
+    st.put(J.szkielet_lodzi(), 900, ziemia("blisko", 900) + 40, P.droga + 0.03, w=300, anchor=(0.0, 1.0), sx=max(0.04, g))
+    lalka(st, t, "wojownik", 840, 220, flip=1, rece=(60 + 40 * abs(math.sin(t * 4)), 0), seed=160)
+    swiatlo(st, w, t)
+
+
+def s_naniwa(st, w, t, T):
+    """Łodzie przybijają w zatoce Naniwa; wojsko z białymi proporcami wysuwa się na brzeg, przed nim góry."""
+    k = ease(t / T)
+    kam(st, t, 33, lerp(560, 640, k), 450, lerp(1.08, 1.18, k), 0.66)
+    st.dof = 0.7
+    kraj(st, t, w, morze_k=1.0, gora_x=900)
+    for j in range(3):
+        x = lerp(-260 - j * 160, 90 + j * 150, ease(pr(t, 0.6 + 0.3 * j, 3.0)))
+        st.put(J.lodz(0), x, 600 + 4 * math.sin(t * 1.6 + j) + j * 14, Z0.P.rownina + 0.012 + 0.008 * j, h=120, rot=2 * math.sin(t * 1.2 + j))
+    up = pr(t, 3.2, 1.2)
+    Z0_spears = Z0.spears(11, flag=(238, 234, 222))
+    if up > 0:
+        st.put(Z0_spears, 820, ziemia("blisko", 700) + 80 + (1 - back(up, 1.3)) * 140, P.droga + 0.012, h=130, anchor=(1.0, 1.0),
+               rot=0.8 * math.sin(t))
+    lalka(st, t, "iwarebiko", 420, 290, pr(t, 4.4, 1.0), flip=1, trzyma=LUK(290), rece=(20, 0))
+    lalka(st, t, "itsuse", 560, 280, pr(t, 4.8, 1.0), flip=1, rece=(10, 0))
+    swiatlo(st, w, t)
+
+
+NAGA = (930, 520)  # Nagasunehiko: x, wysokość lalki
+
+
+def s_nagasune(st, w, t, T):
+    """Zza grani wyrasta wielki wódz na długich nogach, za nim las ciemnych włóczni; słońce zza jego pleców."""
+    w.sun_xy = (1080, 250)
+    kam(st, t, 34, lerp(800, 840, ease(t / T)), 430, 1.28, 0.72)
+    st.dof = 1.0
+    kraj(st, t, w, gora_x=900, tint=(1.04, 0.97, 0.9))
+    up = pr(t, 1.6, 1.2)
+    if up > 0:
+        # wojsko za wodzem, ale przed bliższym pasmem wzgórz — lektor mówi „ze swoim wojskiem”, więc ma być widać ludzi z włóczniami
+        for n, (xr, seed) in enumerate(((1360, 21), (720, 23))):
+            st.put(Z0.spears(seed, flag=(56, 40, 34)), xr, ziemia("przod", xr - 250) + 40 + (1 - back(up, 1.3)) * 200,
+                   P.wzgorza + 0.035 - 0.002 * n, h=230, anchor=(1.0, 1.0), rot=0.8 * math.sin(t + n))
+    x, h = NAGA
+    lalka(st, t, "nagasune", x, h, pr(t, 0.5, 1.6), y=ziemia("przod", x) + 120, p=P.wzgorza + 0.04, flip=-1, rece=(30, 0),
+          lean=2 * settle((t - 2.2) / 1.6, 1.5))
+    swiatlo(st, w, t, extra=(1.03, 0.97, 0.92))
+
+
+def s_strzaly(st, w, t, T):
+    """Spod wschodzącego słońca nadlatuje chmara strzał i wbija się w brzeg."""
+    w.sun_xy = (1080, 250)
+    kam(st, t, 35, 620, 430, 1.12, 0.7, shake=4.0)
+    st.dof = 0.7
+    kraj(st, t, w, gora_x=900, tint=(1.04, 0.97, 0.9))
+    for j in range(16):
+        r = random.Random(900 + j)
+        t0 = r.uniform(0.0, 0.6)
+        f = pr(t, t0, 0.9)
+        if f <= 0:
+            continue
+        x0, y0 = 1240 + r.uniform(-60, 120), 160 + r.uniform(-60, 80)
+        x1 = r.uniform(240, 760)
+        y1 = ziemia("przod", x1) + r.uniform(10, 40)
+        x = lerp(x0, x1, f)
+        y = lerp(y0, y1, f) - 160 * math.sin(math.pi * f)
+        dxdt, dydt = x1 - x0, (y1 - y0) - 160 * math.pi * math.cos(math.pi * f)
+        st.put(Z0.prop("strzala"), x, y, P.wzgorza + 0.06, w=110, anchor=(0.95, 0.5), rot=math.degrees(math.atan2(dydt, dxdt)),
+               shadow=(3, 4, 4, 0.35))
+    swiatlo(st, w, t, extra=(1.03, 0.97, 0.92))
+
+
+def s_rana(st, w, t, T):
+    """Strzała trafia Itsuse w ramię; lalka zatacza się i przyciska rękę."""
+    w.sun_xy = (1080, 250)
+    kam(st, t, 36, 600, 480, 2.1, 0.8, lens=1.85, shake=5.0 * (0.9 < t < 1.3))
+    st.dof = 2.0
+    kraj(st, t, w, gora_x=900, kul=False)
+    hit = pr(t, 0.4, 0.5)
+    stag = ease(pr(t, 0.9, 0.5))
+    lean = -12 * stag + 3 * settle((t - 1.4) / 1.4, 1.5)
+    lalka(st, t, "itsuse", 600, 280, flip=1, lean=lean, rece=(28 * stag, -10 * stag))  # dłoń przy brzuchu, ramię przyciśnięte
+    if hit < 1:
+        ax, ay = punkt("itsuse", 600, 280, 196, 236, rot=lean)
+        st.put(Z0.prop("strzala"), lerp(ax + 600, ax, hit), lerp(ay - 200, ay, hit), P.lalki + 0.013, w=118, anchor=(0.95, 0.5), rot=160,
+               shadow=(2, 3, 3, 0.4))
+    else:
+        strzala_w_ramieniu(st, "itsuse", 600, 280, rot=lean)
+    swiatlo(st, w, t, extra=(1.03, 0.97, 0.92))
+
+
+def s_pod_slonce(st, w, t, T):
+    """Ranny Itsuse wskazuje słońce nad górami; Iwarebiko odwraca się ku słońcu i opuszcza łuk."""
+    w.sun_xy = (1080, 250)
+    kam(st, t, 37, lerp(600, 660, ease(t / T)), 450, 1.4, 0.8)
+    st.dof = 1.2
+    kraj(st, t, w, gora_x=900, tint=(1.04, 0.97, 0.9))
+    point = ease(pr(t, 0.8, 1.0))
+    lalka(st, t, "itsuse", 560, 280, flip=1, lean=-6 + 3 * point, rece=(130 * point, 60))
+    strzala_w_ramieniu(st, "itsuse", 560, 280, rot=-6 + 3 * point)
+    low = ease(pr(t, 4.6, 1.4))
+    lalka(st, t, "iwarebiko", 380, 290, flip=1, rece=(70 * (1 - low) + 8, 0), trzyma=LUK(290), lean=2 * low)
+    swiatlo(st, w, t, extra=(1.04, 0.96, 0.9))

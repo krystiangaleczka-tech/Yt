@@ -1,0 +1,671 @@
+{
+  "version": 1,
+  "unitLabel": "Akt",
+  "tempo": {
+    "minSeconds": 45,
+    "maxSeconds": 100,
+    "maxVoiceShare": 0.92
+  },
+  "places": [
+    {
+      "id": "teatr",
+      "name": "Front teatru",
+      "note": "Skrzynia sceny w kształcie bramy torii: cynobrowe słupy, czarna belka kasagi z wygiętymi końcami, tabliczka z tytułem „SYN SŁOŃCA”; pierwsze i ostatnie ujęcie.",
+      "connects": [
+        "kraj",
+        "morze"
+      ]
+    },
+    {
+      "id": "morze",
+      "name": "Morze pod chmurami",
+      "note": "Cztery pasma papierowych fal, chmury na nitkach, tęczowy most niebios; z fal wysuwają się wyspy z sosnami. Ta sama dekoracja służy Morzu Wewnętrznemu i morzu przy Kii (inne wyspy, łodzie).",
+      "connects": [
+        "kraj"
+      ]
+    },
+    {
+      "id": "yomi",
+      "name": "Kraina zmarłych",
+      "note": "Ciemność, jedna pochodnia, głaz na wejście z prawej.",
+      "connects": [
+        "morze"
+      ]
+    },
+    {
+      "id": "niebo",
+      "name": "Niebiańska równina",
+      "note": "Ziemią są chmury wysuwane od dołu; poletka ryżu bogów, tkalnia, skała z jaskinią po prawej, drzewo sakaki przed nią.",
+      "connects": [
+        "kraj"
+      ]
+    },
+    {
+      "id": "kraj",
+      "name": "Kraj na scenie",
+      "note": "Diorama: papier nieba, słońce na nitce, góry, pasma wzgórz, sosny, rzeka albo pola ryżu, rampa. Odmiany: Izumo (rzeka), Hyūga i Takachiho (Kiusiu), Kumano (las cedrów), Yamato (krąg niebieskich gór, góra Unebi, pałac Kashihara).",
+      "connects": [
+        "morze",
+        "rampa"
+      ]
+    },
+    {
+      "id": "rampa",
+      "name": "Przód sceny (rampa)",
+      "note": "Deska, zza której wysuwają się lalki, parawan, stół pisarza, skrzynki ze skarbami.",
+      "connects": [
+        "kraj"
+      ]
+    },
+    {
+      "id": "mapa",
+      "name": "Mapa wysp",
+      "note": "Papierowa mapa Japonii na dwóch nitkach przed niebem; potem plansza z kurhanem.",
+      "connects": [
+        "kraj"
+      ]
+    }
+  ],
+  "characters": [
+    {
+      "id": "iwarebiko",
+      "name": "Iwarebiko",
+      "aliases": [
+        "Jimmu"
+      ],
+      "role": "prawnuk Ninigiego, książę z Hyūga, od d07_02~tron pierwszy cesarz",
+      "look": "wycinanka w stylu kofun: biała tunika z czerwonym pasem, szerokie spodnie wiązane pod kolanem, fryzura mizura, naszyjnik magatama, długi łuk",
+      "costume": "od d07_02~ganek złota opaska na czole",
+      "traits": "nie chodzi — jedzie na listwie z podskokiem, obraca się, pochyla, unosi łuk; ręka na zawiasie w barku",
+      "states": [
+        {
+          "from": "d07_02~tron",
+          "state": "cesarz (złota opaska)"
+        },
+        {
+          "from": "d07_06~opada",
+          "state": "nie żyje"
+        }
+      ]
+    },
+    {
+      "id": "izanagi",
+      "name": "Izanagi",
+      "role": "bóg, który włócznią wyłowił wyspy",
+      "look": "biała szata, siwa mizura, włócznia"
+    },
+    {
+      "id": "izanami",
+      "name": "Izanami",
+      "role": "bogini, matka wysp",
+      "look": "czerwona szata, długie czarne włosy",
+      "leaves": "d02_01~opada"
+    },
+    {
+      "id": "amaterasu",
+      "name": "Amaterasu",
+      "role": "bogini słońca",
+      "look": "złocista szata, długie włosy, złoty krąg słońca za głową"
+    },
+    {
+      "id": "susanoo",
+      "name": "Susanoo",
+      "role": "bóg burzy, brat Amaterasu",
+      "look": "granatowa szata, rozwiane włosy, broda, miecz"
+    },
+    {
+      "id": "uzume",
+      "name": "Uzume",
+      "role": "bogini tańca",
+      "look": "pomarańczowa szata, gałązki w rękach"
+    },
+    {
+      "id": "ninigi",
+      "name": "Ninigi",
+      "role": "wnuk Amaterasu",
+      "look": "biało-złota szata, mizura",
+      "leaves": "d04_01~opada"
+    },
+    {
+      "id": "kwiat",
+      "name": "księżniczka kwiatów",
+      "role": "żona Ninigiego (Konohanasakuya)",
+      "look": "różowa szata, wiśnia"
+    },
+    {
+      "id": "skala",
+      "name": "księżniczka skał",
+      "role": "siostra odesłana do ojca (Iwanaga)",
+      "look": "szara szata, głaz",
+      "leaves": "d03_09~opada"
+    },
+    {
+      "id": "itsuse",
+      "name": "Itsuse",
+      "role": "najstarszy brat Iwarebiko",
+      "look": "niebieska szata, mizura",
+      "joins": "d04_03~Itsuse",
+      "leaves": "d05_01~zmarł"
+    },
+    {
+      "id": "bracia2",
+      "name": "dwaj młodsi bracia",
+      "role": "giną w burzy przy Kii (Inahi i Mikenu)",
+      "look": "zielona i brązowa szata",
+      "joins": "d04_03~bracia",
+      "leaves": "d05_02~braci"
+    },
+    {
+      "id": "nagasune",
+      "name": "Nagasunehiko",
+      "role": "wódz z Yamato, „książę o długich goleniach”",
+      "look": "ciemnobrązowa szata, wyższy od wszystkich, długie nogi",
+      "leaves": "d06_08~opada"
+    },
+    {
+      "id": "nigihayahi",
+      "name": "Nigihayahi",
+      "role": "inny potomek bogów, pan Nagasunehiko",
+      "look": "purpurowa szata, mizura"
+    },
+    {
+      "id": "takakuraji",
+      "name": "Takakuraji",
+      "role": "człowiek z Kumano, który przynosi miecz",
+      "look": "szara tunika, przepaska"
+    },
+    {
+      "id": "himiko",
+      "name": "Himiko",
+      "role": "królowa Wa w III wieku (chińskie zapiski)",
+      "look": "biała szata, wysoka fryzura, lustra"
+    },
+    {
+      "id": "yatagarasu",
+      "name": "Yatagarasu",
+      "role": "wielka wrona przewodniczka",
+      "look": "czarny papier, trzy nogi"
+    },
+    {
+      "id": "orochi",
+      "name": "ośmiogłowy wąż",
+      "role": "potwór z Izumo",
+      "look": "osiem głów z czerwonymi oczami na szyjach z łusek",
+      "leaves": "d03_06~węża"
+    }
+  ],
+  "props": [
+    {
+      "id": "wlocznia",
+      "name": "Włócznia z klejnotami",
+      "owner": "Izanagi",
+      "seeded": "d01_05~włócznią",
+      "uses": [
+        "d01_06~włócznię",
+        "d01_07~grot"
+      ]
+    },
+    {
+      "id": "lustro",
+      "name": "Lustro",
+      "place": "niebo",
+      "seeded": "d02_07~lustro",
+      "uses": [
+        "d02_09~lustrze",
+        "d03_07~lustro",
+        "d07_02~lustro",
+        "d07_06~lustro"
+      ],
+      "note": "Jedno z trzech skarbów; w 2019 roku zostaje w świątyni, dlatego przy koronacji są tylko dwie skrzynki."
+    },
+    {
+      "id": "klejnoty",
+      "name": "Sznur klejnotów magatama",
+      "place": "niebo",
+      "seeded": "d02_07~klejnotów",
+      "uses": [
+        "d03_07~klejnoty",
+        "d07_02~klejnoty",
+        "d07_06~klejnoty",
+        "d09_06~klejnoty"
+      ]
+    },
+    {
+      "id": "kusanagi",
+      "name": "Miecz z ogona węża",
+      "seeded": "d03_06~ogonie",
+      "uses": [
+        "d03_07~miecz",
+        "d07_02~miecz",
+        "d07_06~miecz",
+        "d09_06~miecz"
+      ]
+    },
+    {
+      "id": "luk",
+      "name": "Długi łuk Iwarebiko",
+      "owner": "Iwarebiko",
+      "seeded": "d04_01~łukiem",
+      "uses": [
+        "d04_10~łuk",
+        "d06_04~łuku"
+      ]
+    },
+    {
+      "id": "kadzie",
+      "name": "Osiem kadzi sake",
+      "place": "kraj",
+      "seeded": "d03_03~kadzi",
+      "uses": [
+        "d03_05~kadziach"
+      ]
+    },
+    {
+      "id": "grzebien",
+      "name": "Grzebień we włosach Susanoo",
+      "owner": "Susanoo",
+      "seeded": "d03_03~grzebień"
+    },
+    {
+      "id": "futsu",
+      "name": "Miecz zrzucony z nieba",
+      "seeded": "d05_06~miecz",
+      "uses": [
+        "d05_07~miecz"
+      ]
+    },
+    {
+      "id": "strzaly_nieba",
+      "name": "Strzały z niebiańskim upierzeniem",
+      "seeded": "d06_07~strzale"
+    },
+    {
+      "id": "pieczec",
+      "name": "Złota pieczęć króla Na",
+      "seeded": "d08_05~pieczęć",
+      "uses": [
+        "d08_07~pieczęć"
+      ]
+    },
+    {
+      "id": "choragiewki",
+      "name": "Chorągiewki z czerwonym słońcem",
+      "place": "kraj",
+      "seeded": "d01_02~chorągiewki",
+      "uses": [
+        "d09_05~chorągiewki"
+      ]
+    }
+  ],
+  "resources": [],
+  "rules": [
+    {
+      "id": "izanami",
+      "name": "Izanami żyje",
+      "from": "d01_05~Izanami",
+      "to": "d02_01~opada"
+    },
+    {
+      "id": "ciemnosc",
+      "name": "słońce w jaskini: ciemność na niebie i ziemi",
+      "from": "d02_05~gaśnie",
+      "to": "d02_10~słońce",
+      "note": "Tylko pochodnie; lustro błyska dopiero w świetle ze szczeliny."
+    },
+    {
+      "id": "itsuse",
+      "name": "Itsuse żyje",
+      "from": "d04_03~Itsuse",
+      "to": "d05_01~zmarł"
+    },
+    {
+      "id": "bracia",
+      "name": "dwaj młodsi bracia żyją",
+      "from": "d04_03~bracia",
+      "to": "d05_03~Iwarebiko",
+      "note": "Giną w burzy (ujęcie „burza”); od następnego ujęcia ich nie ma."
+    },
+    {
+      "id": "nagasune",
+      "name": "Nagasunehiko żyje",
+      "from": "d04_07~Nagasunehiko",
+      "to": "d06_08~opada"
+    },
+    {
+      "id": "cesarz",
+      "name": "Iwarebiko jest cesarzem",
+      "from": "d07_02~tron",
+      "to": "d07_06~opada"
+    }
+  ],
+  "events": [
+    {
+      "at": "d01_06~Izanagi",
+      "note": "Izanagi i Izanami mieszają morze włócznią",
+      "needs": [
+        "izanami"
+      ]
+    },
+    {
+      "at": "d01_08~Izanami",
+      "note": "bogowie stoją na pierwszej wyspie",
+      "needs": [
+        "izanami"
+      ]
+    },
+    {
+      "at": "d02_06~pochodnie",
+      "note": "ciemność, tylko pochodnie",
+      "needs": [
+        "ciemnosc"
+      ]
+    },
+    {
+      "at": "d02_07~koguty",
+      "note": "koguty pieją w ciemności",
+      "needs": [
+        "ciemnosc"
+      ]
+    },
+    {
+      "at": "d02_08~Uzume",
+      "note": "taniec przed jaskinią",
+      "needs": [
+        "ciemnosc"
+      ]
+    },
+    {
+      "at": "d04_09~Itsuse",
+      "note": "strzała trafia Itsuse",
+      "needs": [
+        "itsuse"
+      ]
+    },
+    {
+      "at": "d04_10~Itsuse",
+      "note": "ranny Itsuse wskazuje słońce",
+      "needs": [
+        "itsuse"
+      ]
+    },
+    {
+      "at": "d05_02~braci",
+      "note": "dwaj bracia giną w burzy",
+      "needs": [
+        "bracia"
+      ],
+      "needsOff": [
+        "itsuse"
+      ]
+    },
+    {
+      "at": "d05_03~Iwarebiko",
+      "note": "z braci został tylko Iwarebiko",
+      "needsOff": [
+        "itsuse",
+        "bracia"
+      ]
+    },
+    {
+      "at": "d06_03~Nagasunehiko",
+      "note": "druga bitwa z Nagasunehiko",
+      "needs": [
+        "nagasune"
+      ]
+    },
+    {
+      "at": "d06_07~Nagasunehiko",
+      "note": "Nagasunehiko pokazuje niebiańską strzałę",
+      "needs": [
+        "nagasune"
+      ]
+    },
+    {
+      "at": "d07_01~pałac",
+      "note": "pałac powstaje po zwycięstwie",
+      "needsOff": [
+        "nagasune"
+      ]
+    },
+    {
+      "at": "d07_03~cesarzem",
+      "note": "zawieszka z imieniem przed cesarzem",
+      "needs": [
+        "cesarz"
+      ]
+    },
+    {
+      "at": "d07_04~cesarza",
+      "note": "cesarz bierze żonę",
+      "needs": [
+        "cesarz"
+      ]
+    },
+    {
+      "at": "d07_08~cesarzy",
+      "note": "linia następców po śmierci",
+      "needsOff": [
+        "cesarz"
+      ]
+    }
+  ],
+  "threads": [
+    {
+      "id": "swieto",
+      "title": "11 lutego: urodziny państwa",
+      "setup": [
+        "d01_02~lutego"
+      ],
+      "clues": [
+        "d07_02~nowego roku"
+      ],
+      "payoff": [
+        "d09_05~lutego"
+      ]
+    },
+    {
+      "id": "czy_zyl",
+      "title": "Czy pierwszy cesarz żył?",
+      "setup": [
+        "d01_03~żył"
+      ],
+      "clues": [
+        "d07_03~później",
+        "d08_01~712",
+        "d08_02~wróżby",
+        "d08_03~myśliwi",
+        "d09_02~naprawdę"
+      ],
+      "payoff": [
+        "d09_07~żył"
+      ]
+    },
+    {
+      "id": "kropla",
+      "title": "Kraj z kropli z włóczni",
+      "setup": [
+        "d01_07~kropli"
+      ],
+      "clues": [
+        "d01_08~wysp"
+      ],
+      "payoff": [
+        "d09_07~kropli"
+      ]
+    },
+    {
+      "id": "skarby",
+      "title": "Lustro, klejnoty i miecz",
+      "setup": [
+        "d02_07~lustro",
+        "d03_06~miecz"
+      ],
+      "clues": [
+        "d03_07~skarby",
+        "d07_02~lustro",
+        "d07_06~przeszły"
+      ],
+      "payoff": [
+        "d09_06~miecz"
+      ]
+    },
+    {
+      "id": "slonce",
+      "title": "Potomek słońca walczy pod słońce",
+      "setup": [
+        "d02_03~słońca"
+      ],
+      "clues": [
+        "d02_05~słońce",
+        "d04_02~słońce",
+        "d04_07~słońce"
+      ],
+      "payoff": [
+        "d04_10~słońcem"
+      ]
+    },
+    {
+      "id": "kwiat",
+      "title": "Życie krótkie jak kwiat",
+      "setup": [
+        "d03_09~kwiatów"
+      ],
+      "payoff": [
+        "d03_10~kwiatów"
+      ]
+    },
+    {
+      "id": "bracia",
+      "title": "Czterech braci wyrusza, wraca jeden",
+      "setup": [
+        "d04_03~braćmi"
+      ],
+      "clues": [
+        "d04_09~Itsuse",
+        "d05_01~zmarł",
+        "d05_02~braci"
+      ],
+      "payoff": [
+        "d05_03~Iwarebiko"
+      ]
+    },
+    {
+      "id": "nagasune",
+      "title": "Książę o długich goleniach",
+      "setup": [
+        "d04_07~Nagasunehiko"
+      ],
+      "clues": [
+        "d04_09~strzał",
+        "d06_03~Nagasunehiko",
+        "d06_07~Nagasunehiko"
+      ],
+      "payoff": [
+        "d06_08~zabił"
+      ]
+    },
+    {
+      "id": "wrona",
+      "title": "Wrona przewodniczka",
+      "setup": [
+        "d05_08~Yatagarasu"
+      ],
+      "payoff": [
+        "d05_09~trzema"
+      ]
+    },
+    {
+      "id": "ptak",
+      "title": "Złoty ptak na łuku",
+      "setup": [
+        "d01_03~ptaka"
+      ],
+      "clues": [
+        "d06_04~złoty"
+      ],
+      "payoff": [
+        "d06_06~ptaka"
+      ]
+    },
+    {
+      "id": "nihon",
+      "title": "Kraj od słońca",
+      "setup": [
+        "d01_01~słońce"
+      ],
+      "clues": [
+        "d02_03~Amaterasu"
+      ],
+      "payoff": [
+        "d09_04~słońca",
+        "d09_07~słońca"
+      ]
+    },
+    {
+      "id": "teatr",
+      "title": "To wszystko było w papierowym teatrze",
+      "setup": [
+        "d01_01~teatru"
+      ],
+      "payoff": [
+        "d09_07~teatru"
+      ]
+    }
+  ],
+  "spoilers": [
+    {
+      "pattern": "\\bJimmu\\b",
+      "notBefore": "d07_03~Jimmu",
+      "why": "imię Jimmu nadano w VIII wieku — do intronizacji bohater to Iwarebiko"
+    },
+    {
+      "pattern": "Nihon\\b",
+      "notBefore": "d09_04~Nihon",
+      "why": "nazwa Nihon pojawia się dopiero pod koniec VII wieku"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "text": "Film „Syn słońca — powstanie Japonii” na wzór „Pierwszego cesarza”: mit z Kojiki i Nihon shoki (wyspy z kropli, Amaterasu, wąż, trzy skarby, wyprawa Iwarebiko na wschód, intronizacja w 660 p.n.e.), potem to, co mówi historia (kroniki spisane w 712 i 720, chińskie zapiski, Himiko, kurhany, nazwa Nihon, 1873, 2019). 9 aktów, 74 ujęcia, ok. 11 min.",
+      "at": "2026-11-13",
+      "by": "wykonawca (do zatwierdzenia)"
+    },
+    {
+      "id": "D2",
+      "text": "Postacie wycinane kodem w stylu epoki kofun (tunika, spodnie wiązane pod kolanem, fryzura mizura albo długie włosy, naszyjnik magatama), bo wycinanki PNG to chińscy uczeni. Ręka na zawiasie w barku; lalki jadą na listwie z podskokiem, obracają się, pochylają i opadają pod rampę. Z PNG zostają chmury, słońce i pisarz w akcie 8 (dwór z 712 roku nosił szaty w stylu chińskim); krajobraz jest japoński (D7).",
+      "at": "2026-11-13",
+      "by": "wykonawca (do zatwierdzenia)"
+    },
+    {
+      "id": "D3",
+      "text": "Bohater nazywa się Iwarebiko aż do intronizacji; imię Jimmu pada dopiero w ujęciu „imie” (nadał je uczony Ōmi no Mifune w VIII wieku).",
+      "at": "2026-11-13",
+      "by": "wykonawca (do zatwierdzenia)"
+    },
+    {
+      "id": "D4",
+      "text": "Liczby i wersje za Nihon shoki (45 lat, 660 p.n.e., 76 lat panowania, 127 lat życia, burza zabiera dwóch braci, złoty ptak); Kojiki podaje 137 lat. Zastrzeżenia w kwestiach: „według kronik”, „jak mówi kronika”, „podobno”, „najpewniej” (data z cyklu 1260 lat — hipoteza Naki Michiyo).",
+      "at": "2026-11-13",
+      "by": "wykonawca (do zatwierdzenia)"
+    },
+    {
+      "id": "D5",
+      "text": "Teatr ma się „stawiać”: na początku scen dekoracja wjeżdża od nowa (niebo na nitkach, ziemia od dołu), kamera w każdym ujęciu jedzie bokiem (paralaksa), przedplan z kulis, życie w tle (ptaki, wędrowcy) — zasada z „Pierwszego cesarza” (D7).",
+      "at": "2026-11-10",
+      "by": "reżyser"
+    },
+    {
+      "id": "D6",
+      "text": "Film ma 8–12 minut; render pełnej jakości na końcu i robi go reżyser. Lektora nie nagrywa się bez zgody — długości ujęć z tempa klonu głosu (2,1 słowa/s), tak jak w „Pierwszym cesarzu”.",
+      "at": "2026-11-10",
+      "by": "reżyser"
+    },
+    {
+      "id": "D7",
+      "text": "Sceneria japońska, nie z „Pierwszego cesarza”: w tle Fuji nad okrągłymi, zalesionymi pagórkami z polanami i dzikimi wiśniami, na kulisach kwitnąca wiśnia, kępa bambusa i gałąź wiśni u góry kadru; Takachiho to zielony stożek, góry dookoła Yamato — błękitne pagórki. Wszystko wycięte kodem (zestaw_jp: fuji, wzgorza_jp, wisnia, bambus, galaz_wisni).",
+      "at": "2026-11-13",
+      "by": "reżyser"
+    }
+  ]
+}

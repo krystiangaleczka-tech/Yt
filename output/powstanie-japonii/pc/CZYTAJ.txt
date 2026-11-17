@@ -1,0 +1,18 @@
+SYN SŁOŃCA — POWSTANIE JAPONII: lektor i render na PC (z repozytorium GitHub)
+==============================================================================
+
+To samo co przy „Pierwszym cesarzu” (output\pierwszy-cesarz\pc\CZYTAJ.txt) — ten sam silnik i te same środowiska.
+
+Przygotowanie (raz): Git, Python 3.10+ i 3.11, ffmpeg; sklonuj repo na gałęzi z tym filmem. Próbkę głosu ref_studio.wav
+skopiuj osobno do Yt\pilot\assets\ref_studio.wav (nie ma jej na GitHubie).
+
+Krok 1 — lektor (TYLKO za zgodą reżysera): Yt\output\powstanie-japonii\pc\nagraj_lektora.bat
+- 68 kwestii po 3 podejścia; japońskie imiona czytane po polsku (Dżimmu, Jamato, Takaczi-ho, Kaszihara…), lista WYMOWA
+  w output\powstanie-japonii\lektor.py. Przerwane nagrywanie: uruchom jeszcze raz.
+
+Krok 2 — render: Yt\output\powstanie-japonii\pc\renderuj.bat (sprawdza, czy lektor jest kompletny)
+- Domyślnie 4 procesy (set PROCESY=8 przy 16 GB RAM). Wynik: Yt\klipy (78 plików d01_01.mp4 … d09_07.mp4).
+- Na końcu przelicza muzykę i efekty pod prawdziwe długości kwestii.
+
+Na Maca przenieś: Yt\klipy, Yt\output\powstanie-japonii\lektor i Yt\output\powstanie-japonii\dzwiek; Claude wgra je
+do Studio (studio_film.py plan, klipy katalog=…, dzwiek lektor).

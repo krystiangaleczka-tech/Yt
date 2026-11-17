@@ -1,0 +1,8 @@
+# lokalne: rendery, arkusze, logi, stan wgrywania do Studio, próby głosu
+build/
+plansza.png
+arkusz*.png
+klatka*.png
+*.log
+studio.json
+lektor/proba/
