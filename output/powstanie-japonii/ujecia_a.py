@@ -8,9 +8,14 @@ import random
 
 import zestaw_jp as J
 from papier import CX, CY, back, clamp, ease, ease_out, noise, settle
-from scena import (FALE, P, SAKAKI, SKALA, STOPY, Z0, choragiewki, czubek_luku, gora_wyspy, grzebien_we_wlosach, kam, kraj, kulisy,  # noqa: F401
-                   lalka, lerp, lodz, morze, niebo, niebo_papier, pochodnia, pr, punkt, rampa, slonce, strzala_w_ramieniu, swiatlo, yomi,
-                   ziemia, zawieszki, zjazd)
+from scena import (FALE, P, SAKAKI, SKALA, STOPY, Z0, choragiewki, czubek_luku, gora_wyspy, grzebien_we_wlosach, iks, kam, kraj,  # noqa: F401
+                   kulisy, lalka, lerp, lodz, morze, niebo, niebo_papier, pochodnia, podpis, pr, punkt, rampa, slonce, strzala_w_ramieniu,
+                   swiatlo, yomi, ziemia, zawieszki, zjazd)
+
+
+def nad(h, y=STOPY):
+    """Górna krawędź tabliczki z imieniem nad głową lalki o wysokości h stojącej stopami w y."""
+    return y - h - 74
 
 LUK = lambda h: (J.luk(), h * 1.12, J.LUK_UCHWYT, 0.0, False)  # łuk w przedniej dłoni (pionowo)
 WLOCZNIA = lambda h, rot=0.0: (J.wlocznia_bogow(), h * 1.7, (0.5, 0.6), rot, False)
@@ -100,7 +105,8 @@ def poklad(x):
 
 
 def s_most(st, w, t, T):
-    """Z chmur zjeżdża tęczowy most; na nitkach schodzą na niego Izanagi z włócznią i Izanami."""
+    """Z chmur zjeżdża tęczowy most; na nitkach schodzą na niego Izanagi z włócznią i Izanami — nad każdym, kiedy stanie,
+    zjeżdża tabliczka z imieniem (wytyczne 1.15, przegląd 17.11)."""
     k = ease(t / T)
     kam(st, t, 4, 640, lerp(380, 370, k), lerp(1.2, 1.32, k), 0.5, truck=0.5)
     st.dof = 0.7
@@ -111,6 +117,10 @@ def s_most(st, w, t, T):
         kk = pr(t, d, 1.6)
         x = lerp(x0, x1, ease(pr(t, d + 1.8, 2.0)))
         zjazd(st, t, key, x, poklad(x) + 6, 150, kk, p=MOST[3] + 0.005, flip=fl, rece=rc, trzyma=tr)
+    # bogowie stoją na szczycie łuku, blisko górnej krawędzi kadru: tabliczki wiszą obok nich, na wysokości głów
+    podpis(w, t, "Izanami", 455, poklad(560) - 130, 4.1, 2.6)
+    podpis(w, t, "Izanagi", 815, poklad(690) - 130, 4.9, 2.6)
+    zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(0.95, 0.98, 1.02))
 
 
@@ -203,8 +213,12 @@ def na_onogoro(x):
     return gora_wyspy(J.wyspa_gola(0), x, x0, yb, wd) + 6
 
 
+OGIEN_SMIERC = 2.6  # chwila śmierci Izanami: X na oczach; ten sam czas w efekty.ZDARZENIA (jęk z nagrania)
+
+
 def s_ogien(st, w, t, T):
-    """Przy Izanami wybuchają płomienie z bibuły; bogini przechyla się i opada, Izanagi wyciąga rękę."""
+    """Przy Izanami wybuchają płomienie z bibuły; bogini drży w ogniu, przechyla się, dostaje X na oczach (śmierć widać,
+    wytyczne 1.11 i 1.20, przegląd 17.11) i opada pod rampę; Izanagi wyciąga do niej rękę."""
     kam(st, t, 8, 640, 440, lerp(1.4, 1.5, ease(t / T)), 0.74, lens=1.35)
     st.dof = 1.4
     morze(st, t, w, tint=(0.95, 0.96, 0.98), slonce_k=0.0)
@@ -221,7 +235,8 @@ def s_ogien(st, w, t, T):
                    tint=(1.15, 1.1, 1.0))
         st.put(J.glow(), 520, na_onogoro(520) - 60, p + 0.004, w=520, anchor=(0.5, 0.5), mode="add", alpha=0.32 * fire, shadow=None,
                tint=(1.0, 0.55, 0.25))
-    lalka(st, t, "izanami", 520, 240, y=na_onogoro(520), p=p, lean=-14 * ease(pr(t, 1.6, 1.2)), sink=pr(t, 2.9, 2.6))
+    lalka(st, t, "izanami", 520, 240, y=na_onogoro(520), p=p, lean=-14 * ease(pr(t, 1.6, 1.2)) - 3 * math.sin(t * 9) * pr(t, 1.6, 0.4) *
+          (1 - pr(t, 2.6, 0.3)), sink=pr(t, OGIEN_SMIERC + 0.6, 2.6), oczy_x=pr(t, OGIEN_SMIERC, 0.35))
     reach = ease(pr(t, 2.2, 1.0))
     lalka(st, t, "izanagi", 760, 240, y=na_onogoro(760), p=p + 0.001, flip=-1, lean=-9 * reach, rece=(95 * reach, 10))
     swiatlo(st, w, t, extra=(1.04, 0.97, 0.92))
@@ -246,7 +261,8 @@ def s_yomi(st, w, t, T):
 
 
 def s_rzeka(st, w, t, T):
-    """Izanagi pochyla się nad rzeką; z wody wynurzają się słońce, księżyc i chmura, a za nimi troje bogów."""
+    """Izanagi pochyla się nad rzeką; z wody wynurzają się słońce, księżyc i chmura, a za nimi troje bogów — każde
+    z tabliczką z imieniem i rolą (wytyczne 1.15)."""
     k = ease(t / T)
     kam(st, t, 10, lerp(660, 700, k), 470, lerp(1.2, 1.32, k), 0.72, truck=0.6)
     st.dof = 1.0
@@ -261,6 +277,9 @@ def s_rzeka(st, w, t, T):
             if kind == "slonce":
                 st.put(J.glow(), x, yy, P.droga + 0.009, w=320, anchor=(0.5, 0.5), mode="add", alpha=0.28 * kd, shadow=None)
         lalka(st, t, god, x + 20, 280, pr(t, d + 1.0, 1.1), flip=-1 if n < 2 else 1, rece=(20, 0))
+        podpis(w, t, ("Amaterasu, bogini słońca", "bóg księżyca", "Susanoo, bóg burzy")[n], x + 20 - 90 * (n == 2), nad(280) - 6,
+               d + 1.4, 2.4)
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
@@ -364,10 +383,15 @@ def s_koguty(st, w, t, T):
     swiatlo(st, w, t, dim=0.5)
 
 
+UZUME_SMIECH = 2.0  # bogowie wybuchają śmiechem; ten sam czas w efekty.ZDARZENIA (śmiech z nagrania, nie z szumu — 1.14)
+
+
 def s_uzume(st, w, t, T):
-    """Uzume tańczy na odwróconej kadzi; bogowie kołyszą się ze śmiechu, każdy w swoim rytmie."""
+    """Uzume tańczy na odwróconej kadzi; bogowie kołyszą się ze śmiechu, każdy w swoim rytmie, a nad nimi zjeżdżają
+    tabliczki „HA HA!” (słownik znaków 1.20). Scena jaśniejsza niż reszta nocy, żeby taniec było widać (1.19;
+    przegląd 17.11: ciemno i drobno)."""
     w.sun, w.noc = 0.0, 1.0
-    kam(st, t, 15, 660, 470, lerp(1.08, 1.16, ease(t / T)), 0.8)
+    kam(st, t, 15, 660, 480, lerp(1.14, 1.24, ease(t / T)), 0.8)
     st.dof = 0.9
     niebo(st, t, w, drzwi=1.0, dach=0.0, pola=(0.0,) * 5)
     _sakaki(st, t)
@@ -378,10 +402,15 @@ def s_uzume(st, w, t, T):
     up = abs(math.sin(t * math.pi / 0.55)) * 16 * dance
     lalka(st, t, "uzume", 640, 240, y=596, p=0.835, lift=up, flip=1 if beat % 2 else -1, lean=6 * math.sin(t * 5.7) * dance,
           rece=(150 if beat % 2 else 40, 40 if beat % 2 else 150), trzyma=(J.galazka(), 70, (0.1, 0.85), 180, True))
-    _bogowie(st, t, rozbaw=1.0, dim=0.8, t0=2.0)
+    _bogowie(st, t, rozbaw=1.0, dim=0.9, t0=UZUME_SMIECH)
     for n, x in enumerate((90, 1250)):
         pochodnia(st, t, x, 720, P.rekwizyty, seed=n + 3)
-    swiatlo(st, w, t, dim=0.62)
+    podpis(w, t, "Uzume", 640, nad(240, 596) - 24, 0.8, 2.2)
+    for n, (txt, x, d) in enumerate((("HA HA!", 270, 0.0), ("HA HA HA!", 1020, 0.5), ("HA HA!", 400, 1.4), ("HA HA HA!", 900, 2.0))):
+        podpis(w, t, txt, x, 330 + 40 * (n % 2), UZUME_SMIECH + 0.3 + d, 1.6)
+    zawieszki(st, t, w)
+    st.spot = (640, 560, 0.83, 620, 0.55)  # pochodnie oświetlają tańczącą
+    swiatlo(st, w, t, dim=0.8)
 
 
 def s_lustro(st, w, t, T):
@@ -400,6 +429,8 @@ def s_lustro(st, w, t, T):
     _sakaki(st, t, blysk=ease(pr(t, 2.4, 0.5)) * (1 - 0.5 * pr(t, 4.0, 1.0)))
     push = ease(pr(t, T - 4.4, 1.0))
     lalka(st, t, "silacz", lerp(1330, 1150, push), 300, flip=-1, rece=(100 * push, 80 * push), lean=-10 * push)
+    podpis(w, t, "najsilniejszy z bogów", 1030, 372, T - 4.0, 2.4)  # zbliżenie: górna krawędź kadru ok. 340
+    zawieszki(st, t, w)
     swiatlo(st, w, t, dim=0.55 + 0.3 * crack)
 
 
@@ -461,6 +492,9 @@ def s_starcy(st, w, t, T):
     lalka(st, t, "kushinada", 1010, 250, flip=-1, lean=8 * flinch, rece=(40 + 60 * flinch, 0))
     lalka(st, t, "susanoo", 430, 290, flip=1, rece=(20, 0), lean=3 * ease(pr(t, 2.0, 1.0)))
     grzebien_we_wlosach(st, "susanoo", 430, 290, k=0.0)
+    podpis(w, t, "starcy z Izumo", 820, nad(270) - 4, 0.9, 2.6)
+    podpis(w, t, "ostatnia córka", 1010, nad(250) - 4, T - 4.2, 2.4)
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
@@ -609,6 +643,8 @@ def s_skarby(st, w, t, T):
     lalka(st, t, "amaterasu", 360, 300, pr(t, 1.0, 1.0), flip=1, rece=(70 * ease(pr(t, 2.4, 0.8)), 0))
     lalka(st, t, "ninigi", 880, 280, pr(t, 1.4, 1.0), flip=-1, rece=(120 * ease(pr(t, 6.6, 1.0)), 120 * ease(pr(t, 6.8, 1.0))))
     skarby_w_niebie(st, t, (pr(t, 2.6, 1.2), pr(t, 3.8, 1.2), pr(t, 5.0, 1.2)))
+    podpis(w, t, "Ninigi, wnuk Amaterasu", 880, nad(280) - 4, 1.8, 2.6)
+    zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(1.03, 1.0, 0.94))
 
 
@@ -653,6 +689,9 @@ def s_siostry(st, w, t, T):
         f = ((t * 0.12 + r.random()) % 1.0)
         st.put(J.platek(j), 260 + r.uniform(-80, 160) + 60 * math.sin(t * 1.4 + j), 360 + f * 360, P.drzewa + 0.02, w=11,
                rot=t * 160 + j * 40, shadow=None)
+    podpis(w, t, "księżniczka kwiatów", 390, nad(270) - 4, 1.0, 2.6)
+    podpis(w, t, "księżniczka skał", 950, nad(270) - 4, 1.6, min(2.6, T - 4.4 - 1.6))
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
