@@ -64,6 +64,12 @@ LALKI = {
     "jimmu_stary": dict(tunika=(238, 232, 214), pas=(176, 42, 34), wzor="trojkaty", wzor_kolor=(176, 42, 34), miecz=True, opaska=GOLD,
                         broda=True, wlosy=(196, 192, 186)),
     "itsuse": dict(tunika=(70, 104, 156), pas=(220, 200, 150), spodnie=(212, 204, 186), miecz=True, wasy=True),
+    # syn Jimmu (Suizei) — młody, bez opaski władcy, dopóki nie przejmie skarbów; cesarze w linii — każdy w innym stroju,
+    # z opaską; cesarz z 2019 roku w brązowo-pomarańczowej szacie koronacyjnej i czarnym nakryciu głowy (wytyczne 1.6)
+    "syn_cesarza": dict(tunika=(214, 196, 150), pas=(176, 42, 34), wzor="pasy", wzor_kolor=(176, 42, 34), miecz=True),
+    "cesarz2": dict(tunika=(196, 170, 120), pas=(120, 40, 34), opaska=GOLD, wasy=True),
+    "cesarz3": dict(tunika=(150, 120, 160), pas=(210, 168, 82), opaska=GOLD, broda=True),
+    "cesarz126": dict(tunika=(150, 92, 44), pas=(120, 70, 30), spodnie=(236, 228, 210), opaska=(30, 26, 24)),
     "brat2": dict(tunika=(84, 128, 86), pas=(226, 206, 150), spodnie=(214, 206, 188), miecz=True),
     "brat3": dict(tunika=(146, 100, 62), pas=(60, 46, 40), spodnie=(214, 206, 188), miecz=True),
     "izanagi": dict(tunika=(240, 236, 224), pas=(120, 120, 150), wlosy=(200, 196, 190), broda=True, wasy=True, wzor="pasy",

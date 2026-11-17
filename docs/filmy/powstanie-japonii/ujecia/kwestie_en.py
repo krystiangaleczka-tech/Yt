@@ -164,7 +164,8 @@ ETYKIETY = {
     "Ninigi, wnuk Amaterasu": "Ninigi, her grandson", "księżniczka kwiatów": "Princess of Blossoms",
     "księżniczka skał": "Princess of Rocks", "książę Iwarebiko": "Prince Iwarebiko", "Itsuse, najstarszy brat": "Itsuse, eldest brother",
     "wódz Nagasunehiko": "Chief Nagasunehiko", "Takakuraji": "Takakuraji", "Yatagarasu": "Yatagarasu",
-    "Nigihayahi": "Nigihayahi", "cesarz Jimmu": "Emperor Jimmu", "żona cesarza": "the empress", "syn cesarza": "his son",
+    "Nigihayahi": "Nigihayahi", "córka miejscowego boga": "daughter of a local god", "syn cesarza": "his son",
+    "cesarz nr 126": "Emperor No. 126",
     "pisarz dworu": "court scribe", "chłop": "a farmer", "królowa Himiko": "Queen Himiko",
     # tabliczki ze słownika znaków (wytyczne 1.20)
     "HA HA!": "HA HA!", "HA HA HA!": "HA HA HA!", "AŁA!…": "AW!…", "O!": "OH!", "PUŁAPKA!": "A TRAP!",

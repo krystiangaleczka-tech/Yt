@@ -492,7 +492,7 @@ def s_tron(st, w, t, T):
 
 
 def s_imie(st, w, t, T):
-    """Zbliżenie: przed cesarzem zjeżdża zawieszka ze znakami 神武."""
+    """Zbliżenie: przed cesarzem zjeżdża zawieszka ze znakami 神武, a pod nią podpis „Jimmu — boska waleczność”."""
     floor = palac_baza() - (690 - 400) * PAL[1] / J.PALAC_WH[0]
     kam(st, t, 57, 700, floor - 100, lerp(2.8, 3.0, ease(t / T)), 0.66, lens=2.4)
     st.dof = 1.8
@@ -501,6 +501,9 @@ def s_imie(st, w, t, T):
     _ganek_z(st, lambda: na_ganku(st, t, "jimmu", 700, 170, flip=1, rece=(20, 0)))
     skarby_nad(st, t, 700, floor - 250, P.droga + 0.031)
     J.hang(st, J.tag_zh("神武", 46), 640, floor - 170, 0.72, pr(t, 0.6, 1.2), t, 630, drop=500, sway=1.4, h=60, shadow=(4, 6, 6, 0.4))
+    # lektor mówi, co znaczą znaki — widz wersji EN czyta to pod nimi (wytyczne 1.13)
+    J.hang(st, J.tag("Jimmu — boska waleczność"), 640, floor - 104, 0.721, pr(t, 1.6, 1.0), t, 631, drop=500, sway=1.2, h=32,
+           shadow=(3, 5, 5, 0.4))
     swiatlo(st, w, t)
 
 
@@ -515,6 +518,8 @@ def s_zona(st, w, t, T):
     _ganek_z(st, lambda: (na_ganku(st, t, "jimmu", 680, 170, flip=1, lean=12 * bow_, rece=(20, 0)),
                           na_ganku(st, t, "zona", 790, 160, pr(t, 0.8, 1.2), flip=-1, lean=-12 * bow_, rece=(30, 0))))
     skarby_nad(st, t, 700, floor - 250, P.droga + 0.031)
+    podpis(w, t, "córka miejscowego boga", 830, floor - 214, 1.8, 2.6)
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
@@ -533,29 +538,40 @@ def s_pola(st, w, t, T):
     swiatlo(st, w, t)
 
 
+SMIERC_CESARZA = 2.6  # stary cesarz umiera: X na oczach; ten sam czas w efekty.ZDARZENIA
+
+
 def s_smierc(st, w, t, T):
-    """Zawieszka „127 lat”; cesarz przechyla się i opada, a lustro, klejnoty i miecz zostają nad pustym miejscem."""
+    """Zawieszka „127 lat”; stary cesarz chwieje się, ma X na oczach (śmierć widać, 1.11, 1.20) i opada pod ganek;
+    lustro, klejnoty i miecz wiszą dalej, a pod nimi wysuwa się jego syn z tabliczką — lektor mówi, że skarby przeszły
+    na syna, więc syn jest w kadrze (1.6; przegląd 17.11)."""
     w.zawieszki = [("127 lat", 520, 300, pr(t, 0.6, 1.0))]
     floor = palac_baza() - (690 - 400) * PAL[1] / J.PALAC_WH[0]
     kam(st, t, 60, 690, floor - 90, lerp(1.75, 1.85, ease(t / T)), 0.66, lens=1.55)
     st.dof = 1.2
     kraj(st, t, w, niebieskie=1.0, unebi=1.0, gory=0.0, tint=(1.04, 0.96, 0.88))
     palac(st, t)
-    s = pr(t, 3.0, 2.6)
-    _ganek_z(st, lambda: na_ganku(st, t, "jimmu_stary", 700, 165, flip=1, lean=-10 * ease(pr(t, 2.2, 0.9)), sink=s * 0.7, alpha=1 - pr(t, 4.2, 1.2),
-                                  rece=(10, 0)))
+    c = SMIERC_CESARZA
+    s = pr(t, c + 0.5, 2.4)
+    _ganek_z(st, lambda: na_ganku(st, t, "jimmu_stary", 700, 165, flip=1, lean=-10 * ease(pr(t, 2.0, 0.9)), sink=s * 0.7,
+                                  alpha=1 - pr(t, c + 1.8, 1.0), rece=(10, 0), oczy_x=pr(t, c, 0.35)))
+    syn = pr(t, c + 2.4, 1.2)
+    _ganek_z(st, lambda: na_ganku(st, t, "syn_cesarza", 700, 160, syn, flip=1, rece=(70 * ease(pr(t, c + 3.8, 0.8)), 0)))
     skarby_nad(st, t, 700, floor - 250, P.droga + 0.031)
+    podpis(w, t, "syn cesarza", 840, floor - 190, c + 3.2, 2.6)
     zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(1.04, 0.96, 0.9))
 
 
 def s_pusto(st, w, t, T):
-    """Detal: pusty ganek; lustro kołysze się na nitce i łapie ostatni promień słońca."""
+    """Detal: lustro nad gankiem kołysze się na nitce i łapie ostatni promień słońca; pod skarbami stoi już syn (ciągłość
+    z ujęciem „smierc”, wytyczne 1.6)."""
     floor = palac_baza() - (690 - 400) * PAL[1] / J.PALAC_WH[0]
     kam(st, t, 61, 650, floor - 190, 2.6, 0.66, lens=2.2)
     st.dof = 1.6
     kraj(st, t, w, niebieskie=1.0, unebi=1.0, gory=0.0, tint=(1.06, 0.94, 0.84), kul=False)
     palac(st, t)
+    _ganek_z(st, lambda: na_ganku(st, t, "syn_cesarza", 700, 160, flip=1, rece=(70, 0)))
     skarby_nad(st, t, 700, floor - 250, P.droga + 0.031)
     st.put(J.glow(), 630, floor - 220, P.droga + 0.032, w=260, anchor=(0.5, 0.5), mode="add", alpha=0.45 * max(0.0, math.sin(t * 2.4)) ** 3,
            shadow=None, tint=(1.0, 0.85, 0.55))
@@ -563,25 +579,28 @@ def s_pusto(st, w, t, T):
 
 
 def s_linia(st, w, t, T):
-    """Wzdłuż wzgórz wysuwa się długi szereg małych lalek cesarzy, coraz mniejszych w głębi."""
+    """Wzdłuż wzgórz wysuwa się długi szereg lalek cesarzy w trzech rzędach, coraz mniejszych w głębi, każdy w innym
+    stroju — linia sięga aż po horyzont (potęga liczbą, 1.17)."""
     k = ease(t / T)
     kam(st, t, 62, 640, lerp(440, 400, k), lerp(1.15, 1.0, k), 0.62, truck=0.6)
     st.dof = 0.6
     kraj(st, t, w, niebieskie=1.0, unebi=1.0, gory=0.0, pola=1.0)
     palac(st, t)
     n = 0
-    for band, p, h, xs in (("przod", P.wzgorza + 0.045, 120, range(1180, 60, -110)), ("blisko", P.droga + 0.012, 74, range(80, 1240, 80))):
+    stroje = ("jimmu", "syn_cesarza", "cesarz2", "cesarz3")  # każdy cesarz w linii ma inną lalkę (1.6), a nie kopię Jimmu
+    for band, p, h, xs, dt in (("przod", P.wzgorza + 0.045, 120, range(1180, 60, -110), 0.22), ("blisko", P.droga + 0.012, 74, range(80, 1240, 80), 0.16),
+                               ("srodek", P.miasto + 0.034, 50, range(1230, 20, -55), 0.07)):
         for x in xs:
-            kk = pr(t, 0.6 + 0.22 * n, 0.6)
-            lalka(st, t, "jimmu" if n % 3 else "jimmu_stary", x, h, kk, y=ziemia(band, x) + h * 0.22, p=p + 0.0002 * n, flip=-1 if band == "przod" else 1,
-                  seed=700 + n)
+            kk = pr(t, 0.6 + dt * n if band != "srodek" else 4.6 + dt * (n - 26), 0.6)
+            lalka(st, t, stroje[n % 4] if n else "jimmu", x, h, kk, y=ziemia(band, x) + h * 0.22, p=p + 0.0002 * n,
+                  flip=-1 if band == "przod" else 1, seed=700 + n)
             n += 1
     swiatlo(st, w, t)
 
 
 # ---------- akt 8 · Kronika i ziemia ----------
 
-STOL = (660, 742, 420)  # stół pisarza: x, dół, szerokość
+STOL = (740, 742, 420)  # stół pisarza: x, dół, szerokość (pisarz stoi z lewej, przy końcu stołu — cały widoczny, 1.11)
 
 
 def stol(st, t, k=1.0):
@@ -602,12 +621,15 @@ def s_kronika(st, w, t, T):
     palac(st, t)
     kd = pr(t, 0.3, 1.2)
     on = stol(st, t, kd)
-    st.put(J.S("scribe", 0.7), 520, 664 + (1 - back(pr(t, 0.8, 1.2), 1.2)) * 300, P.lalki + 0.02, h=230, anchor=(0.45, 1.0),
-           rot=0.5 * noise(t, 21, 0.5) + (1.5 * math.sin(t * 5.2) + 1.0) * pr(t, 2.4, 0.5))
+    # pisarz przed stołem (bliżej kamery), pochyla się nad zwojem i kiwa głową w rytmie pisania (1.22; we wzorcu reżyser
+    # zgłosił pisarza schowanego za stołem)
+    st.put(J.S("scribe", 0.7), 470, 700 + (1 - back(pr(t, 0.8, 1.2), 1.2)) * 300, P.rekwizyty + 0.01, h=250, anchor=(0.45, 1.0),
+           rot=0.5 * noise(t, 21, 0.5) + 4 + (1.5 * math.sin(t * 5.2) + 1.0) * pr(t, 2.4, 0.5))
     if kd >= 1:
         x, y = on(0.36, 0.30)
         st.put(J.zwoj_jp(), x, y, P.rekwizyty + 0.006, w=230, anchor=(0.0, 0.5), sx=max(0.04, ease(pr(t, 1.6, T - 3.0))), rot=-3,
                shadow=(3, 5, 5, 0.4))
+    podpis(w, t, "pisarz dworu", 330, 380, 1.4, 2.4)
     zawieszki(st, t, w)
     swiatlo(st, w, t)
 
@@ -697,10 +719,20 @@ def s_chlop(st, w, t, T):
     kraj(st, t, w, morze_k=1.0, pola=1.0)
     dig = math.sin(t * 4.2)
     st.put(Z0.prop("chlop"), 560, 712, P.lalki + 0.01, h=230, rot=-8 + 9 * dig * (1 - pr(t, 3.0, 0.4)) + 0.5 * noise(t, 731, 0.5), anchor=(0.5, 1.0))
+    for u in range(6):  # motyka uderza w ziemię (dół wahnięcia) — lecą grudy (wytyczne 1.11)
+        a = (2 * u + 1.5) * math.pi / 4.2  # chwile, w których sin(4,2 t) = −1
+        g = pr(t, a, 0.6)
+        if 0 < g < 1 and a < 3.0:
+            for j in range(5):
+                r = random.Random(740 + u * 10 + j)
+                vx, vy = r.uniform(-90, 110), r.uniform(120, 200)
+                st.put(J.grad(), 640 + vx * g, 700 - vy * g + 260 * g * g, P.rekwizyty + 0.002, w=r.uniform(8, 14), anchor=(0.5, 0.5),
+                       tint=(0.52, 0.38, 0.24), shadow=None, alpha=1 - g * 0.5)
     k = pr(t, 3.0, 1.4)
     if k > 0:
         st.put(J.pieczec(), 700, 704 + (1 - back(k, 1.3)) * 120, P.rekwizyty, w=90)
         st.put(J.glow(), 700, 640, P.rekwizyty + 0.001, w=240, anchor=(0.5, 0.5), mode="add", alpha=0.25 * k, shadow=None, tint=(1.0, 0.85, 0.4))
+    podpis(w, t, "O!", 480, 420, 3.6, 1.6)
     zawieszki(st, t, w)
     swiatlo(st, w, t)
 
@@ -714,6 +746,8 @@ def s_himiko(st, w, t, T):
     st.put(J.parawan(), 640, 704 + (1 - back(pr(t, 0.2, 1.0), 1.2)) * 380, 0.78, w=720, shadow=(6, 8, 10, 0.45))
     st.put(J.parawan_rama(), 640, 704 + (1 - back(pr(t, 0.2, 1.0), 1.2)) * 380, 0.7805, w=720)
     lalka(st, t, "himiko", 640, 320, pr(t, 1.0, 1.2), p=0.815, flip=1, rece=(60 * ease(pr(t, 2.4, 0.8)), 0))
+    podpis(w, t, "królowa Himiko", 460, 400, 1.8, 2.6)
+    zawieszki(st, t, w)
     n = 0
     for row, y in enumerate((150, 230, 310)):
         for j in range(6):
@@ -759,6 +793,14 @@ def s_haniwa(st, w, t, T):
     st.dof = 1.0
     _kofun_tlo(st, t, w, 1.0, y=40, wd=760, p=0.5)
     Z0.rise(st, J.pasmo("przod"), CX + 20, 836, P.wzgorza + 0.05, 1.0, t, 613, w=2000, wob=0.0)
+    for n in range(22):  # trzeci, najdalszy rząd: drobne figurki aż po krawędź kurhanu (potęga liczbą, 1.17)
+        r = random.Random(1700 + n)
+        x = -100 + n * 72 + r.uniform(-8, 8)
+        kk = pr(t, 0.2 + r.uniform(0, 2.4), 0.5)
+        if kk > 0:
+            kind = HANIWA[(n + 5) % len(HANIWA)]
+            Z0.rise(st, J.haniwa(kind), x, ziemia("przod", clamp(x, -200, 1500)) + 8, P.wzgorza + 0.04, kk, t, 1750 + n,
+                    h=(48 if kind in ("kon", "dom") else 62) * r.uniform(0.9, 1.05), wob=0.3, haze=0.12)
     for n in range(14):  # drugi rząd na grzbiecie pasma
         r = random.Random(1400 + n)
         x = -60 + n * 110 + r.uniform(-10, 10)
@@ -807,7 +849,10 @@ def s_nihon(st, w, t, T):
     if off < 1:
         J.hang(st, J.tag_zh("倭", 60), 640, 250 - 700 * off, 0.86, pr(t, 0.4, 1.0), t, 690, drop=480, sway=1.2, h=96,
                sx=spin if abs(spin) > 0.05 else 0.05, shadow=(4, 6, 6, 0.4))
+        J.hang(st, J.tag("Wa"), 640, 362 - 700 * off, 0.861, pr(t, 0.9, 0.8), t, 692, drop=480, sway=1.0, h=36, shadow=(3, 5, 5, 0.4))
     J.hang(st, J.tag_zh("日本", 60), 640, 250, 0.86, pr(t, 4.2, 1.2), t, 691, drop=600, sway=1.2, h=96, shadow=(4, 6, 6, 0.4))
+    # lektor mówi, co znaczy nowa nazwa — podpis pod znakami w języku wersji (1.13)
+    J.hang(st, J.tag("Nihon — źródło słońca"), 640, 362, 0.861, pr(t, 4.9, 1.0), t, 693, drop=600, sway=1.0, h=36, shadow=(3, 5, 5, 0.4))
     swiatlo(st, w, t)
 
 
@@ -824,7 +869,8 @@ def s_luty2(st, w, t, T):
 
 
 def s_koronacja(st, w, t, T):
-    """Na stojakach stają dwie skrzynki owinięte płótnem, za nimi wyrasta tron pod baldachimem; zawieszka „126”."""
+    """Wyrasta tron pod baldachimem i staje w nim cesarz w szacie koronacyjnej; przed nim na stojakach stają dwie
+    skrzynki owinięte płótnem (miecz i klejnoty); zawieszka „126”."""
     w.zawieszki = [("126", 1010, 280, pr(t, 5.0, 1.0))]
     k = ease(t / T)
     kam(st, t, 76, 640, lerp(440, 420, k), lerp(1.2, 1.3, k), 0.8)
@@ -835,6 +881,7 @@ def s_koronacja(st, w, t, T):
     for n, x in enumerate((-40, 1320)):  # złote parawany po bokach
         st.put(J.parawan(), x, 700, 0.7, w=520, tint=(1.0, 0.86, 0.5), shadow=(6, 8, 10, 0.45))
     Z0.rise(st, J.takamikura(), 640, 712, 0.78, pr(t, 0.6, 1.6), t, 710, h=470, wob=0.0)
+    lalka(st, t, "cesarz126", 640, 190, pr(t, 1.8, 1.2), y=600, p=0.7805, flip=1, rece=(10, 0))  # lektor mówi o cesarzu — jest w kadrze (1.6)
     for n, x in enumerate((440, 840)):
         Z0.rise(st, J.skrzynka(), x, 712, P.rekwizyty, pr(t, 2.6 + 0.6 * n, 1.0), t, 712 + n, h=150, wob=0.2)
     rampa(st)
