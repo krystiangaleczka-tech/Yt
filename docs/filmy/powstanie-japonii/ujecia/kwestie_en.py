@@ -193,3 +193,7 @@ WYMOWA_EN = [("Nagasunehiko", "Nah-gah-soo-neh-hee-ko"), ("Yatagarasu", "Yah-tah
              ("Himiko", "Hee-mee-ko"), ("Uzume", "Oo-zoo-meh"), ("Izumo", "Ee-zoo-mo"), ("Unebi", "Oo-neh-bee"),
              ("Kyushu", "Kyoo-shoo"), ("Hyuga", "Hyoo-gah"), ("haniwa", "hah-nee-wah"), ("Nihon", "Nee-hon"), ("Jimmu", "Jim-moo"),
              ("sake", "sah-keh"), ("Kii", "Kee"), ("Wa", "Wah")]
+
+# Frazowanie lektora (tylko tekst mówiony, FRAZY=1): przecinki tam, gdzie autor robi oddech we frazie — jak w „Pierwszym
+# cesarzu” EN. Puste, dopóki reżyser nie odsłucha pierwszego nagrania.
+FRAZY_EN = {}

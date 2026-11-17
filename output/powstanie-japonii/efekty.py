@@ -7,6 +7,11 @@ Wzór: output/pierwszy-cesarz/efekty.py (te same dźwięki bazowe).
   (ujęcia z render.BUDUJ), wydarzenia ujęć z ZDARZENIA (czasy od początku ujęcia — te same co w funkcjach ujęć).
 
 uruchom:  python3 efekty.py            → dzwiek/muzyka.wav, dzwiek/efekty.wav (cały film, 44,1 kHz mono)
+          JEZYK=en python3 efekty.py   → dzwiek_en/ (długości ujęć z lektora EN)
+Przegląd 17.11 (wytyczne 1.12, 1.14, Rytm 7): kurtyna z dźwiękiem między aktami (zatwierdzony dźwięk z „Pierwszego
+cesarza”), migający X z brzęczykiem, cios w fazach, rytm włóczni; głos człowieka (śmiech bogów, jęk konających) z
+nagrań w dzwiek_probki/ (glosy.py — Chatterbox Turbo, znaczniki [laugh], [groan]), nie z szumu. Czasy zdarzeń
+z nazwanych stałych w ujęciach (OGIEN_SMIERC, UZUME_SMIECH, NAGA_RYTM, ZDRADA_CIOS…).
 """
 import math
 import sys
@@ -18,10 +23,10 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parents[1] / "docs/filmy/powstanie-japonii/ujecia"))
-from dane import okno_kwestii, ujecia  # noqa: E402
+from dane import JEZYK, okno_kwestii, ujecia  # noqa: E402
 
 SR = 44100
-OUT = HERE / "dzwiek"
+OUT = HERE / ("dzwiek_en" if JEZYK == "en" else "dzwiek")
 RNG = np.random.default_rng(11)
 
 
@@ -190,9 +195,139 @@ def slurp(sec=1.0):
     return band(RNG.normal(0, 1, n), 200, 1400) * (0.5 + 0.5 * np.sin(2 * math.pi * 5 * tt(n))) * env(n, 0.05, 0.5) * 0.4
 
 
+# ---------- z „Pierwszego cesarza”: kurtyna (zatwierdzona przez reżysera 16.11), klapki, brzęczyk X, rzężenie, okrzyk ----------
+
+def _dzwon_kolka(r, g):
+    """Jedno kółko kurtyny stuka o drążek: krótki, nieharmoniczny brzęk metalu (ok. 2–6 kHz, 15–35 ms)."""
+    L = N(0.06)
+    t = tt(L)
+    f0 = r.uniform(1900, 2600)
+    x = sum(a * np.sin(2 * math.pi * f0 * m * t + r.uniform(0, 6)) * np.exp(-t / d)
+            for m, a, d in ((1.0, 1.0, 0.03), (1.62, 0.6, 0.02), (2.27, 0.4, 0.014), (3.1, 0.2, 0.01)))
+    return x * np.minimum(1, t / 0.0008) * g
+
+
+def _rozowy(r, n, lo, hi):
+    """Szum z naturalnym spadkiem wysokich tonów (ok. −3 dB na oktawę) w paśmie lo–hi — jak szelest materiału."""
+    X = np.fft.rfft(r.normal(0, 1, n))
+    f = np.fft.rfftfreq(n, 1 / SR)
+    X *= 1 / np.sqrt(np.maximum(f, lo)) * np.clip((f - lo * 0.6) / (lo * 0.4), 0, 1) * np.clip((hi * 1.4 - f) / (hi * 0.4), 0, 1)
+    x = np.fft.irfft(X, n)
+    return x / (np.abs(x).max() + 1e-9)
+
+
+def kurtyna_nowa(zasuwa, sec=1.25):
+    """Kurtyna teatru (reżyser 16.11: „dodaj wszędzie, gdzie jest kurtyna, dźwięk zaciągania i rozciągania kurtyny”):
+    ciężki aksamit sunie po scenie (szelest materiału rośnie i opada z prędkością kurtyny, nieregularnie faluje na
+    fałdach), kółka stukają o drążek tym gęściej, im szybciej kurtyna jedzie, a drążek turkocze. Zasuwanie
+    (zasuwa=True) kończy się miękkim „fump” spotykających się połów i ostatnim brzękiem kółek; rozsuwanie zaczyna się
+    szarpnięciem kółek. Czas ruchu jak w render.KURTYNA (0,8 s zasuwa, 0,85 s rozsuwa). Własne losowanie."""
+    r = np.random.default_rng(311 if zasuwa else 312)
+    n = N(sec)
+    t = tt(n)
+    ruch = 0.8 if zasuwa else 0.85
+    v = np.sin(math.pi * np.clip(t / ruch, 0, 1)) ** 1.3  # prędkość kurtyny 0 → 1 → 0
+    wezly = r.uniform(0.55, 1.0, int(sec * 18) + 2)  # fałdy aksamitu: nieregularne falowanie szelestu
+    fald = np.interp(t, np.linspace(0, sec, len(wezly)), wezly)
+    material = _rozowy(r, n, 120, 5500) * v ** 0.8 * fald * 0.75
+    material += band(r.normal(0, 1, n), 3000, 8000) * v ** 2.2 * fald * 0.05  # szelest brzegu materiału
+    turkot = band(r.normal(0, 1, n), 1400, 4200) * (np.sin(2 * math.pi * 34 * t) > 0.2) * v ** 1.2 * 0.10  # kółka toczą się
+    out = material + turkot
+    k = 0.02 if not zasuwa else 0.05
+    while k < ruch:  # kółka: do ok. 30 stuknięć na sekundę przy pełnej prędkości
+        vk = math.sin(math.pi * min(1.0, k / ruch)) ** 1.3
+        if vk > 0.08:
+            s_ = _dzwon_kolka(r, (0.10 + 0.16 * vk) * r.uniform(0.5, 1.0))
+            i = N(k)
+            out[i:i + len(s_)] += s_[:n - i]
+        k += 1 / (8 + 30 * vk) * r.uniform(0.6, 1.4)
+    if zasuwa:  # połowy spotykają się na środku: miękkie uderzenie ciężkiego materiału i ostatnie kółka
+        i = N(ruch - 0.03)
+        L = n - i
+        tl = tt(L)
+        fump = (np.sin(2 * math.pi * 80 * tl) * np.exp(-tl / 0.10) * 0.55
+                + _rozowy(r, L, 70, 900) * np.exp(-tl / 0.08) * 0.5)
+        out[i:] += fump
+        for d in (0.0, 0.03, 0.065):
+            s_ = _dzwon_kolka(r, 0.18)
+            j = N(ruch - 0.06 + d)
+            out[j:j + len(s_)] += s_[:n - j]
+    else:  # szarpnięcie na starcie: kółka ruszają naraz
+        for d in (0.0, 0.022, 0.045, 0.075):
+            s_ = _dzwon_kolka(r, 0.2)
+            j = N(d)
+            out[j:j + len(s_)] += s_[:n - j]
+    return out / (np.abs(out).max() + 1e-9) * 0.68
+
+
+def klaps():
+    """Drewniane klapki teatru (hyoshigi): dwa suche uderzenia przy tytule aktu."""
+    a = knock(1150, 0.18) + knock(1600, 0.18) * 0.5
+    out = np.zeros(N(0.5))
+    for d in (0.0, 0.22):
+        i = N(d)
+        out[i:i + len(a)] += a[:len(out) - i]
+    return out * 1.1
+
+
+def buzz(sec=0.32):
+    """Brzęczyk „źle”: czerwony X nad postacią."""
+    n, t = N(sec), tt(N(sec))
+    sq = np.sign(np.sin(2 * math.pi * 110 * t)) * 0.5 + np.sign(np.sin(2 * math.pi * 165 * t)) * 0.3
+    return band(sq, 90, 2400) * env(n, 0.005, 0.25) * np.minimum(1, (sec - t) / 0.04) * 0.35
+
+
+def rattle(sec=1.4):
+    """Ostatnie tchnienie: niski, rzężący wydech."""
+    n, t = N(sec), tt(N(sec))
+    x = band(RNG.normal(0, 1, n), 90, 900) * (0.5 + 0.5 * np.sin(2 * math.pi * 22 * t) ** 2)
+    return x * np.sin(np.linspace(0, math.pi, n)) ** 1.5 * np.exp(-t / 0.9) * 0.45
+
+
+def shout(sec=0.6):
+    """Okrzyk wojska przy uniesieniu włóczni: wiele gardeł naraz."""
+    n, t = N(sec), tt(N(sec))
+    x = sum(band(np.sign(np.sin(2 * math.pi * f * t + RNG.uniform(0, 6))), 250, 1600) for f in (118, 131, 147, 165))
+    return x * env(n, 0.04, 0.3) * 0.12 + clash(sec)[:n] * 0.3
+
+
+def kurtyna_zasuwa():
+    return kurtyna_nowa(True)
+
+
+def kurtyna_rozsuwa():
+    return kurtyna_nowa(False)
+
+
+# ---------- głos człowieka z nagrania (wytyczne 1.14) ----------
+# Próbki z Chatterbox Turbo głosem lektora (glosy.py → dzwiek_probki/<rodzaj>_*.wav, 44,1 kHz mono); kolejne użycia
+# biorą kolejne próbki. Bez próbek — cisza i ostrzeżenie (nigdy synteza szumu udająca człowieka).
+PROBKI = HERE / "dzwiek_probki"
+_GLOSY, _ILE = {}, {}
+
+
+def glos(rodzaj, g=0.55):
+    if rodzaj not in _GLOSY:
+        _GLOSY[rodzaj] = []
+        for f in sorted(PROBKI.glob(f"{rodzaj}_*.wav")):
+            with wave.open(str(f)) as w:
+                x = np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(np.float64) / 32768
+            _GLOSY[rodzaj].append(x / (np.abs(x).max() + 1e-9))
+        if not _GLOSY[rodzaj]:
+            print(f"UWAGA: brak próbek {rodzaj}_*.wav w {PROBKI} (glosy.py) — w tym miejscu cisza", flush=True)
+    probki = _GLOSY[rodzaj]
+    if not probki:
+        return np.zeros(N(0.1))
+    n = _ILE.get(rodzaj, 0)
+    _ILE[rodzaj] = n + 1
+    return probki[n % len(probki)] * g
+
+
 SFX = {"gong": gong, "whoosh": whoosh, "knock": knock, "drum": drum, "crack": crack, "clash": clash, "coin": coin,
        "thud": thud, "splash": splash, "sword": sword, "gong_s": lambda: gong(2.5, 220) * 0.6, "thunder": thunder,
-       "crow": crow_call, "rooster": rooster, "growl": growl, "chime": chime, "slurp": slurp}
+       "crow": crow_call, "rooster": rooster, "growl": growl, "chime": chime, "slurp": slurp,
+       "kurtyna_z": kurtyna_zasuwa, "kurtyna_r": kurtyna_rozsuwa, "klaps": klaps, "buzz": buzz, "rattle": rattle, "shout": shout,
+       "smiech": lambda: glos("smiech", 0.6), "jek": lambda: glos("jek", 0.55), "okrzyk": lambda: glos("okrzyk", 0.5)}
 
 
 # ---------- tło miejsca ----------
@@ -231,6 +366,11 @@ WNETRZE = {"kronika", "rachunek", "odcisk", "himiko", "koronacja", "pieczec"}
 BURZA = {"burza", "bitwa", "ptak", "blysk"}
 
 # wydarzenia ujęć: (sekunda od początku ujęcia, dźwięk, głośność) — czasy z funkcji ujęć w ujecia_a.py / ujecia_b.py
+import ujecia_a as A  # noqa: E402  czasy zdarzeń z ujęć (te same stałe co w rysunku, wytyczne 1.12)
+import ujecia_b as B  # noqa: E402
+
+B_NAGA_RYTM = A.NAGA_RYTM
+
 ZDARZENIA = {
     "teatr": [(0.2, "gong", 1.0), (0.7, "knock", 0.6), (1.3, "whoosh", 0.6)],
     "luty": [(1.0, "whoosh", 0.4)] + [(1.8 + 0.45 * n, "knock", 0.5) for n in range(9)],
@@ -240,14 +380,14 @@ ZDARZENIA = {
     "wlocznia": [(0.6, "splash", 0.5), (1.4, "water", 6.0)],
     "kropla": [(2.55, "splash", 0.7), (2.8, "thud", 0.4)],
     "wyspy": [(0.7 + 0.55 * n, "thud", 0.35) for n in range(8)],
-    "ogien": [(0.9, "fire", 6.0), (2.9, "whoosh", 0.4)],
+    "ogien": [(0.9, "fire", 6.0), (2.9, "whoosh", 0.4), (A.OGIEN_SMIERC - 0.1, "jek", 1.0)],
     "yomi": [(0.0, "steps", 3.6), (3.4, "whoosh", 0.4), (5.6, "steps", 2.2), (7.4, "thud", 1.0)],
     "rzeka": [(0.3, "water", 9.0), (1.6, "splash", 0.5), (2.2, "chime", 1.0), (5.2, "splash", 0.5), (8.4, "splash", 0.5), (8.6, "thunder", 0.6)],
     "susanoo": [(0.9, "whoosh", 1.0), (1.6, "whoosh", 0.9), (2.6, "crack", 0.8), (3.0, "thud", 0.7), (4.0, "whoosh", 0.8)],
     "jaskinia": [(0.4, "steps", 2.6), (3.4, "thud", 0.9), (4.6, "whoosh", 0.5)],
     "ciemno": [(0.3, "fire", 2.5), (0.8, "knock", 0.3), (1.3, "knock", 0.3), (1.8, "knock", 0.3)],
     "koguty": [(0.4, "knock", 0.5), (2.0, "whoosh", 0.4), (3.0, "whoosh", 0.4), (5.6, "rooster", 1.0), (7.2, "rooster", 0.9)],
-    "uzume": [(0.6 + 0.55 * n, "drum", 0.35) for n in range(14)] + [(2.0, "laugh", 6.0)],
+    "uzume": [(0.6 + 0.55 * n, "drum", 0.35) for n in range(14)] + [(A.UZUME_SMIECH, "smiech", 1.0), (A.UZUME_SMIECH + 1.3, "smiech", 1.0), (A.UZUME_SMIECH + 2.6, "smiech", 1.0)] + [(A.UZUME_SMIECH + 0.3 + d, "whoosh", 0.25) for d in (0.0, 0.5, 1.4, 2.0)],
     "lustro": [(0.6, "thud", 0.5), (2.4, "chime", 1.2), (5.0, "thud", 0.9), (6.2, "whoosh", 0.5)],
     "swit": [(0.2, "gong", 0.9), (0.4, "rooster", 0.9), (1.6, "rooster", 0.7)],
     "wygnanie": [(0.0, "water", 9.0), (0.7, "whoosh", 0.6), (3.3, "thud", 0.6)],
@@ -263,54 +403,55 @@ ZDARZENIA = {
     "prawnuk": [(2.2, "whoosh", 0.4), (3.2, "knock", 0.5), (4.4, "whoosh", 0.4)],
     "wschod": [(0.8, "whoosh", 0.3), (1.4, "thud", 0.5), (2.6, "gong_s", 0.7)],
     "bracia": [(0.6 + 0.6 * n, "knock", 0.5) for n in range(3)],
-    "flota": [(0.0, "water", 9.0), (0.9, "oars", 8.0)],
+    "flota": [(0.0, "water", 9.0), (0.9, "oars", 8.0), (2.4, "oars", 7.0)],
     "postoje": [(0.0, "water", 9.0), (1.0, "dig", 8.0)],
-    "naniwa": [(0.6, "water", 4.0), (0.6, "oars", 3.0), (3.2, "march", 6.0), (3.2, "drum", 0.7)],
-    "nagasune": [(0.5, "thud", 0.6), (1.6, "march", 6.0), (1.6, "drum", 0.9), (2.8, "drum", 0.9)],
+    "naniwa": [(0.4, "water", 5.0), (0.6, "oars", 3.5), (2.6, "march", 7.0), (2.6, "drum", 0.7), (3.4, "shout", 0.8)],
+    "nagasune": [(0.5, "thud", 0.6), (1.6, "march", 6.0), (1.6, "drum", 0.9), (2.2, "whoosh", 0.3)] + [(a, "shout", 0.9) for a in B_NAGA_RYTM] + [(a + 0.3, "drum", 0.8) for a in B_NAGA_RYTM],
     "strzaly": [(0.0, "whoosh", 0.9), (0.15, "whoosh", 0.8), (0.3, "whoosh", 0.8), (0.9, "thud", 0.6), (1.1, "thud", 0.5)],
-    "rana": [(0.4, "whoosh", 0.7), (0.9, "thud", 0.9)],
+    "rana": [(0.4, "whoosh", 0.7), (0.9, "thud", 0.9), (0.95, "jek", 1.0), (0.95, "whoosh", 0.25)],
     "pod_slonce": [(0.8, "whoosh", 0.3), (4.6, "knock", 0.3)],
-    "itsuse": [(0.0, "water", 8.0), (2.6, "thud", 0.4)],
+    "itsuse": [(0.0, "water", 8.0), (B.ITSUSE_SMIERC - 0.2, "jek", 1.0), (B.ITSUSE_SMIERC + 0.9, "thud", 0.4)],
     "burza": [(0.0, "storm", 7.0), (1.0, "thunder", 1.0), (3.3, "thunder", 1.0), (2.6, "crack", 0.7), (3.4, "splash", 0.8)],
     "sam": [(0.0, "water", 4.5)],
     "las": [(0.4, "whoosh", 0.4), (1.2, "march", 2.0)],
-    "niedzwiedz": [(0.6, "growl", 2.4)] + [(4.4 + 0.35 * n, "thud", 0.5) for n in range(7)],
+    "niedzwiedz": [(0.6, "growl", 2.4)] + [(4.4 + 0.3 * n, "thud", 0.5) for n in range(13)] + [(4.9 + 0.5 * n, "chime", 0.35) for n in range(4)],
     "takakuraji": [(0.5, "whoosh", 0.6), (2.4, "crack", 0.5), (2.5, "chime", 0.8), (4.0, "steps", 5.0)],
     "przebudzenie": [(2.2, "sword", 0.8), (2.3, "chime", 0.9)] + [(3.0 + 0.6 * n, "knock", 0.4) for n in range(6)],
     "wrona": [(0.8, "crow", 1.0), (3.6, "crow", 0.8), (0.0, "march", 8.0)],
     "trzy_nogi": [(0.3, "whoosh", 0.5), (1.6, "knock", 0.4), (2.4, "crow", 0.9)],
     "yamato": [(2.2 + 0.6 * n, "knock", 0.5) for n in range(3)] + [(0.0, "drum", 0.4)],
-    "pulapka": [(6.2, "steps", 1.0), (7.2, "whoosh", 0.4), (7.55, "thud", 1.2), (7.55, "crack", 0.8)],
-    "bitwa": [(1.0, "march", 8.0), (1.0, "drum", 0.9), (3.0, "clash", 0.9), (3.4, "clash", 0.8), (2.6, "hail", 8.0), (2.0, "thunder", 0.7)],
+    "pulapka": [(2.8, "whoosh", 0.3), (6.2, "steps", 1.0), (B.PULAPKA_BELKA, "whoosh", 0.4), (B.PULAPKA_BELKA + 0.35, "thud", 1.2), (B.PULAPKA_BELKA + 0.35, "crack", 0.8)] + [(B.PULAPKA_BELKA + 0.4 + 0.48 * n, "buzz", 1.0) for n in range(2)],
+    "bitwa": [(1.0, "march", 8.0), (1.0, "drum", 0.9), (3.0, "clash", 1.0), (3.0, "shout", 0.9), (3.4, "clash", 0.8), (4.6, "clash", 0.7), (6.0, "clash", 0.7), (2.6, "hail", 9.0), (2.0, "thunder", 0.7), (5.5, "thunder", 0.8)],
     "ptak": [(0.4, "whoosh", 0.6), (2.6, "chime", 1.4), (2.8, "gong_s", 0.6), (0.0, "hail", 3.0)],
     "blysk": [(0.0, "thunder", 1.0), (0.05, "chime", 1.0), (0.4, "march", 1.5)],
     "order": [(0.4, "whoosh", 0.4), (1.8, "coin", 0.6)],
     "strzala_nieba": [(0.8, "whoosh", 0.4), (2.2, "whoosh", 0.4), (4.4, "knock", 0.5)],
-    "zdrada": [(1.2, "sword", 1.1), (1.4, "thud", 0.9), (4.4, "knock", 0.4)],
+    "zdrada": [(0.3, "whoosh", 0.4), (B.ZDRADA_CIOS - 0.15, "sword", 1.1), (B.ZDRADA_CIOS, "thud", 1.0), (B.ZDRADA_CIOS + 0.3, "jek", 1.0)] + [(B.ZDRADA_CIOS + 0.35 + 0.48 * n, "buzz", 1.0) for n in range(2)] + [(B.ZDRADA_CIOS + 1.4, "thud", 0.5), (B.ZDRADA_CIOS + 2.2, "steps", 1.6), (B.ZDRADA_CIOS + 3.9, "knock", 0.4)],
     "palac": [(0.6, "thud", 0.6), (1.8, "thud", 0.6), (3.0, "knock", 0.6), (4.4, "whoosh", 0.5), (5.6, "thud", 0.7), (6.2, "whoosh", 0.4),
               (7.4, "knock", 0.6)],
     "tron": [(0.8, "whoosh", 0.4), (2.2, "chime", 0.6), (2.8, "chime", 0.5), (3.4, "chime", 0.5), (5.0, "gong", 0.8)],
     "imie": [(0.6, "whoosh", 0.4), (1.6, "gong_s", 0.6)],
     "zona": [(0.8, "whoosh", 0.3), (3.0, "chime", 0.4)],
     "pola": [(0.0, "wind_long", 9.0), (2.4, "whoosh", 0.4), (4.6, "whoosh", 0.4)],
-    "smierc": [(0.6, "whoosh", 0.4), (3.0, "gong", 0.8)],
+    "smierc": [(0.6, "whoosh", 0.4), (B.SMIERC_CESARZA - 0.1, "rattle", 1.0), (B.SMIERC_CESARZA + 0.6, "gong", 0.8), (B.SMIERC_CESARZA + 2.4, "whoosh", 0.35), (B.SMIERC_CESARZA + 3.2, "whoosh", 0.25)],
     "pusto": [(0.2, "chime", 0.5)],
-    "linia": [(0.6 + 0.22 * n, "knock", 0.25) for n in range(26)],
+    "linia": [(0.6 + 0.22 * n, "knock", 0.25) for n in range(26)] + [(4.6 + 0.07 * n, "knock", 0.08) for n in range(22)],
     "kronika": [(0.3, "knock", 0.6), (0.8, "whoosh", 0.4), (1.6, "scroll", 6.0), (2.6, "whoosh", 0.4), (6.4, "whoosh", 0.4)],
     "rachunek": [(0.8, "whoosh", 0.4), (2.6, "whoosh", 0.4), (4.4, "whoosh", 0.4), (5.4, "gong_s", 0.5)],
     "jomon": [(2.4, "steps", 7.0), (1.6, "knock", 0.5), (1.9, "knock", 0.5)],
     "wa": [(0.3, "whoosh", 0.7)] + [(2.0 + 0.5 * n, "knock", 0.2) for n in range(12)],
     "pieczec": [(0.3, "whoosh", 0.5), (1.6, "coin", 0.6), (2.0, "whoosh", 0.4)],
     "odcisk": [(0.55, "knock", 1.0), (0.6, "thud", 0.5)],
-    "chlop": [(0.0, "dig", 3.0), (3.0, "coin", 0.8), (4.0, "whoosh", 0.4)],
+    "chlop": [(0.0, "dig", 3.0), (3.0, "coin", 0.8), (3.6, "chime", 0.5), (3.6, "whoosh", 0.25), (4.0, "whoosh", 0.4)],
     "himiko": [(0.2, "whoosh", 0.4), (1.0, "knock", 0.5)] + [(2.2 + 0.4 * n, "chime", 0.25) for n in range(10)],
     "kofun": [(0.6, "whoosh", 0.7), (4.2, "whoosh", 0.4)],
-    "haniwa": [(0.4 + 0.45 * n, "knock", 0.4) for n in range(20)],
+    "haniwa": [(0.4 + 0.45 * n, "knock", 0.4) for n in range(20)] + [(0.2 + 0.12 * n, "knock", 0.12) for n in range(22)],
     "tancerz": [(0.2, "chime", 0.7)],
     "nihon": [(0.4, "whoosh", 0.4), (2.2, "whoosh", 0.6), (4.2, "whoosh", 0.4), (4.6, "gong", 0.9)],
     "luty2": [(0.4, "whoosh", 0.4), (1.4, "whoosh", 0.4)] + [(3.0 + 0.4 * n, "knock", 0.45) for n in range(9)],
-    "koronacja": [(0.6, "thud", 0.5), (2.6, "knock", 0.5), (3.2, "knock", 0.5), (5.0, "whoosh", 0.4), (5.2, "gong_s", 0.6)],
+    "koronacja": [(0.6, "thud", 0.5), (1.8, "knock", 0.5), (2.6, "knock", 0.5), (3.2, "knock", 0.5), (5.0, "whoosh", 0.4), (5.2, "gong_s", 0.6)],
     "koniec": [(0.2, "water", 6.0), (9.0, "gong", 0.9)],
+    "dzieki": [(0.5, "whoosh", 0.5), (0.8, "whoosh", 0.4), (1.5, "whoosh", 0.4), (1.6, "gong_s", 0.5)],
 }
 
 
@@ -325,18 +466,6 @@ def long_sound(kind, sec):
         return band(RNG.normal(0, 1, N(sec)), 100, 3000) * 0.18 * (0.6 + 0.4 * np.sin(2 * math.pi * tt(N(sec)) / 1.7) ** 2)
     if kind == "hail":
         return hail(sec)
-    if kind == "laugh":  # śmiech bogów: krótkie, nieregularne „ha” z pasma szumu
-        n = N(sec)
-        out = np.zeros(n)
-        k = 0.0
-        while k < sec - 0.3:
-            L = N(RNG.uniform(0.08, 0.14))
-            i = N(k)
-            f = RNG.uniform(180, 320)
-            s = (np.sin(2 * math.pi * f * tt(L)) * 0.5 + band(RNG.normal(0, 1, L), 400, 2500) * 0.6) * np.sin(np.pi * tt(L) / (L / SR))
-            out[i:i + L] += s[:n - i] * RNG.uniform(0.15, 0.35)
-            k += RNG.uniform(0.12, 0.3)
-        return out
     if kind in ("wind_long",):
         return band(RNG.normal(0, 1, N(sec)), 150, 900) * 0.06
     if kind == "scroll":
@@ -361,7 +490,7 @@ def long_sound(kind, sec):
 
 
 
-DLUGIE = ("march", "hooves", "fire", "water", "wagon", "steps", "dig", "roll", "oars", "storm", "hail", "laugh", "wind_long", "scroll")
+DLUGIE = ("march", "hooves", "fire", "water", "wagon", "steps", "dig", "roll", "oars", "storm", "hail", "wind_long", "scroll")
 
 
 def muzyka(total, voice_mask, acts):
@@ -433,6 +562,12 @@ def main():
         i = N(t0)
         fx[i:i + len(amb)] += amb[:n - i]
         evs = list(ZDARZENIA.get(klucz, []))
+        g = R.GRANICE[idx]  # przejścia: kurtyna między aktami (render.przejscie), klapki przy tytule aktu
+        zam, dl, czekaj, otw = R.KURTYNA
+        if g["ostatnie_aktu"] and idx < len(us) - 1:
+            evs += [(sec - zam, "kurtyna_z", 1.0), (sec - zam + dl - 0.05, "klaps", 0.8)]
+        elif g["pierwsze_aktu"] and idx > 0:
+            evs += [(czekaj, "kurtyna_r", 1.0)]
         if klucz in R.BUDUJ:  # zmiana dekoracji: papier i drewno w rytm wjeżdżających elementów
             evs += [(d, "whoosh", 0.35) for d in (0.0, 0.25, 0.45, 0.65, 0.9)] + [(d, "knock", 0.3) for d in (0.75, 1.05, 1.4, 1.7)]
         for at, kind, g in evs:
