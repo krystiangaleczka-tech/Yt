@@ -8,6 +8,10 @@ Wzór: output/pierwszy-cesarz/studio_film.py (te same polecenia).
   python3 studio_film.py klipy pelne [tylko=…]   — to samo w pełnej jakości (1280 × 720, 24 kl./s) — na końcu pracy
   python3 studio_film.py klipy katalog=<folder> [tylko=…] — wgrywa klipy wyrenderowane gdzie indziej (paczka na PC), bez renderu
   python3 studio_film.py dzwiek [lektor]         — muzyka i efekty (dzwiek/*.wav); z „lektor” także kwestie z lektor/*.wav
+  python3 studio_film.py klatki [tylko=…]        — wersja EN z podglądem na żywo: zamiast klipów mp4 po jednej klatce ze środka
+                                                   ujęcia (zapas na osi; Studio rysuje ujęcia z kodu, legacy.teatr)
+JEZYK=en: wersja angielska na kanał Paper Theatre (księga D8) — osobny projekt (studio_en.json), kwestie z kwestie_en.py,
+lektor z lektor_en/, dźwięk z dzwiek_en/, każde ujęcie ma legacy.teatr i rysuje się na żywo (na_zywo.py).
 Studio musi działać (port 8876). Identyfikator projektu i wgrane klipy pamięta studio.json obok skryptu.
 Ujęcia Studio są dopasowywane po `legacy.flow_director_shot_id`, więc uwagi i markery reżysera zostają przy ujęciach.
 """
@@ -28,12 +32,15 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "docs/filmy/powstanie-japonii/ujecia"))
 import ksiega  # noqa: E402
-from dane import AKTY, kwestia, ujecia  # noqa: E402
+from dane import AKTY, JEZYK, kwestia, okno_kwestii, ujecia  # noqa: E402
 
 API = f"http://127.0.0.1:{os.environ.get('DOCOS_API_PORT', '8876')}/api"
 HEAD = {"Content-Type": "application/json", "X-Docos-Request": "1"}
-STATE = HERE / "studio.json"
-TITLE = "Syn słońca — powstanie Japonii (teatr papierowy)"
+EN = JEZYK == "en"
+STATE = HERE / ("studio_en.json" if EN else "studio.json")
+TITLE = "Son of the Sun — Japan's First Emperor (EN, paper theatre)" if EN else "Syn słońca — powstanie Japonii (teatr papierowy)"
+LEKTOR_DIR = HERE / ("lektor_en" if EN else "lektor")
+DZWIEK_DIR = HERE / ("dzwiek_en" if EN else "dzwiek")
 KADR = {"PO": "plan ogólny", "PP": "plan pełny", "PŚ": "plan średni", "Z": "zbliżenie", "D": "detal", "TYT": "karta / napis"}
 RUCH = {"stat": "statyczna", "naj": "najazd", "odj": "odjazd", "pan": "panorama", "jaz": "jazda za postacią", "szarp": "szarpnięcie kamery"}
 TYPE = {"PO": "wide", "PP": "wide", "PŚ": "medium", "Z": "close-up", "D": "insert", "TYT": "insert"}
@@ -99,7 +106,7 @@ def rozpiska():
 def plan():
     st = state()
     if not st["pid"]:
-        p = call("/projects", {"title": TITLE, "language": "pl", "channel_id": "channel_f066137b388e4ed8", "production_mode": "animation_2d",
+        p = call("/projects", {"title": TITLE, "language": JEZYK, "channel_id": "channel_f066137b388e4ed8", "production_mode": "animation_2d",
                                "film_format": "teatr papierowy, lektor w 3. osobie"})
         st["pid"] = p["id"]
         save_state(st)
@@ -164,7 +171,8 @@ def plan():
                  motion_prompt=RUCH[r["ruch"]] if r["ruch"] != "stat" else "", search_query=r["title"],
                  legacy={**s.get("legacy", {}), "flow_act_id": f"act_{r['akt']:02d}", "flow_section_id": f"seq_d{r['akt']:02d}",
                          "flow_outline_id": r["oid"], "flow_director_shot_id": r["sid"], "flow_director_beat_id": r["bid"],
-                         "flow_director_kind": TYPE[r["kadr"]], "klucz": r["klucz"]})
+                         "flow_director_kind": TYPE[r["kadr"]], "klucz": r["klucz"],
+                         **({"teatr": {"film": "powstanie-japonii", "jezyk": "en", "odn": r["ref"]}} if EN else {})})  # na żywo
         scenes.append(s)
         cursor += frames
     # ujęcie zmieniło długość: stary materiał już nie pasuje — klip schodzi z osi, ujęcie czeka na nowy render
@@ -260,7 +268,7 @@ def dzwiek(lektor=False):
     for r in rozpiska():
         sc = by_shot[r["sid"]]
         total = max(total, sc["start"] + sc["duration"])
-        wav = HERE / "lektor" / f"{r['klucz']}.wav"
+        wav = LEKTOR_DIR / f"{r['klucz']}.wav"
         if not lektor or not kwestia(r["snd"]) or not wav.exists():
             continue
         meta = json.loads(wav.with_suffix(".json").read_text())
@@ -271,12 +279,15 @@ def dzwiek(lektor=False):
             cached = {"asset": upload(pid, wav, f"lektor {r['ref']} {r['klucz']}.wav"), "sha": _sha(wav)}
             st["lektor"][r["klucz"]] = cached
             save_state(st)
-        start = sc["start"] + round(0.6 * fps)
+        start = sc["start"] + round(okno_kwestii(r["snd"])[0] * fps)
         ops.append({"type": "add_clip", "clip": {"track_id": "a1", "asset_id": cached["asset"], "scene_id": sc["id"],
                                                  "title": f"Lektor · {kwestia(r['snd'])[:80]}", "start": start,
                                                  "duration": max(1, math.ceil(meta["duration"] * fps))}})
     for track, name, vol in (("a2", "muzyka", 0.8), ("a3", "efekty", 1.0)):
-        wav = HERE / "dzwiek" / f"{name}.wav"
+        wav = DZWIEK_DIR / f"{name}.wav"
+        if not wav.exists():
+            print(f"brak {wav} — bez ścieżki {name}")
+            continue
         aid = upload(pid, wav, f"{name} — cały film.wav")
         with wave.open(str(wav)) as w:
             frames = min(total, math.floor(w.getnframes() / w.getframerate() * fps))
@@ -295,6 +306,47 @@ def dzwiek(lektor=False):
     print(f"lektor: {n1} klipów | muzyka i efekty: po 1 klipie | rewizja {p['revision']}")
 
 
+def klatki(args):
+    """Wersja z podglądem na żywo: na oś idzie po jednej klatce ze środka ujęcia (szkic) — zapas, gdyby podgląd na żywo
+    był wyłączony; obraz ujęć Studio rysuje z kodu (legacy.teatr). Klipów mp4 nie rysuje się (Podręcznik, „Jak pracujemy”)."""
+    st = state()
+    pid = st["pid"]
+    only = sorted({int(x) for a in args if a.startswith("tylko=") for x in a[6:].split(",")})
+    rows = rozpiska()
+    tmp = Path(tempfile.mkdtemp(prefix="japonia-klatki-"))
+    lista = [n for n in range(1, len(rows) + 1) if not only or n in only]
+    kod = ("import sys; sys.argv=['x']; sys.path.insert(0, %r); import render as R\n"
+           "for n in %r:\n    a, b = R.SCENES[n - 1][:2]\n    R.frame(a + (b - a) * 0.6).save(%r %% R.ODN[n - 1])\n") % (
+        str(HERE), lista, str(tmp / "%s.png"))
+    subprocess.run([sys.executable, "-c", kod], env={**os.environ, "SZKIC": "1"}, check=True)
+    p = call(f"/projects/{pid}")
+    by_shot = {s["legacy"].get("flow_director_shot_id"): s for s in p["scenes"]}
+    done = []
+    for n, r in enumerate(rows, 1):
+        img = tmp / f"{r['ref']}.png"
+        if n not in lista or not img.exists():
+            continue
+        asset = upload(pid, img, f"{r['ref']} {r['klucz']} klatka.png")
+        img.unlink()
+        st["klipy"][r["ref"]] = {"asset": asset, "tryb": "klatka"}
+        by_shot[r["sid"]].update(asset_id=asset, mode="upload", animation="static")
+        done.append(r["sid"])
+    save_state(st)
+    p = call(f"/projects/{pid}")
+    scenes = [{**s, **({"asset_id": by_shot[k]["asset_id"], "mode": "upload", "animation": "static"} if (k := s["legacy"].get(
+        "flow_director_shot_id")) in done else {})} for s in p["scenes"]]
+    p = call(f"/projects/{pid}", {"expected_revision": p["revision"], "changes": {"scenes": scenes}}, "PATCH")
+    on_axis = {c.get("scene_id"): c for c in p["sequence"]["clips"] if c["track_id"] == "v1"}
+    mine = [s for s in p["scenes"] if s["legacy"].get("flow_director_shot_id") in done]
+    ops = [{"type": "update_clip", "clip_id": on_axis[s["id"]]["id"], "changes": {"asset_id": s["asset_id"]}} for s in mine if s["id"] in on_axis]
+    for i in range(0, len(ops), 200):
+        p = call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": ops[i:i + 200]})
+    for s in mine:
+        if s["id"] not in on_axis:
+            p = call(f"/projects/{pid}/scenes/{s['id']}/to-timeline", {"expected_revision": p["revision"]})
+    print(f"klatki: {len(done)} ujęć | klipów na osi {len(p['sequence']['clips'])} | rewizja {p['revision']}")
+
+
 def _sha(path):
     import hashlib
     return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
@@ -307,5 +359,7 @@ if __name__ == "__main__":
         dzwiek(lektor="lektor" in sys.argv[2:])
     elif sys.argv[1:2] == ["klipy"]:
         klipy(sys.argv[2:])
+    elif sys.argv[1:2] == ["klatki"]:
+        klatki(sys.argv[2:])
     else:
         sys.exit(__doc__)

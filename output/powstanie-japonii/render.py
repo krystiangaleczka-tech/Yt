@@ -13,6 +13,7 @@ Ujęcia: ujecia_a.py (akty 1–4) i ujecia_b.py (akty 5–9), funkcja `s_<klucz>
 Moduł ma SCENES, DUR, FPS i frame(t) — tak jak pozostałe filmy (scripts/kontrola_ujec.py, wgrywanie do Studio).
 """
 import math
+import zlib
 import os
 import sys
 from pathlib import Path
@@ -149,11 +150,18 @@ def subtitle(img, txt):
         d.text((w / 2, y0 + 8 * q + lh * n + lh / 2 - 2 * q), ln, font=f, fill=(44, 28, 22, 255), anchor="mm")
 
 
-def frame(t, void=None):
+def ziarno(i):
+    """Ziarno losowania (ziarno papieru, drżenie) z klucza ujęcia — klip ujęcia nie zależy od jego miejsca w filmie."""
+    return zlib.crc32(KOL[i].encode()) % 1000003
+
+
+def uloz(t, void=None):
+    """Klatka w chwili t filmu, ułożona (wycinki, kamera, światło), jeszcze nie narysowana: (Stage, napis albo None).
+    Z niej korzysta render i podgląd na żywo w Studio (na_zywo.py) — wzór: „Pierwszy cesarz” render.uloz."""
     i = next((k for k, s in enumerate(SCENES) if s[0] <= t < s[1]), len(SCENES) - 1)
     a, b, ruch, txt, vs, vl = SCENES[i]
     lt, T = t - a, b - a
-    st = Stage(t, seed=i)
+    st = Stage(lt, seed=ziarno(i))
     st.void = void
     if FNS[i] is None:  # ujęcie jeszcze nie narysowane: pusta scena z kartką
         st.put(Z.sky(), W / 2, H / 2, 0.14, w=1760, anchor=(0.5, 0.5), shadow=None)
@@ -166,12 +174,18 @@ def frame(t, void=None):
         FNS[i](st, w, lt, T)
         if not void:
             przejscie(st, i, lt, T)
+    if not void:
+        st.dim *= min(1.0, t / 0.5, max(0.0, (DUR - 0.1 - t) / 1.0))  # film wchodzi z czerni i w nią wychodzi
+    return st, (txt if NAPISY and txt and KOL[i] not in BEZ_NAPISU and vs <= lt < min(T - 0.05, vs + vl + 0.35) else None)
+
+
+def frame(t, void=None):
+    st, napis = uloz(t, void)
     if void:  # kontrola „końca świata”: surowe płótno, nienarysowane miejsca zostają w barwie pustki
         return st.render(post=False)
-    st.dim *= min(1.0, t / 0.5, max(0.0, (DUR - 0.1 - t) / 1.0))  # film wchodzi z czerni i w nią wychodzi
     img = st.render()
-    if NAPISY and txt and KOL[i] not in BEZ_NAPISU and vs <= lt < min(T - 0.05, vs + vl + 0.35):
-        subtitle(img, txt)
+    if napis:
+        subtitle(img, napis)
     return img
 
 
