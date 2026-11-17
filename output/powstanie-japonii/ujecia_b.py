@@ -4,8 +4,9 @@ import random
 
 import zestaw_jp as J
 from papier import CX, CY, back, clamp, ease, ease_out, noise, settle
-from scena import (FALE, P, STOPY, Z0, choragiewki, czubek_luku, gora_wyspy, kam, kraj, lalka, lerp, lodz, mapa_scena, morze,  # noqa: F401
-                   niebo_papier, poklad_lodzi, pr, punkt, rampa, slonce, swiatlo, ziemia, zawieszki)
+from scena import (FALE, P, STOPY, Z0, choragiewki, czubek_luku, gora_wyspy, iks, kam, kraj, lalka, lerp, lodz, mapa_scena,  # noqa: F401
+                   morze, niebo_papier, podpis, poklad_lodzi, pr, punkt, rampa, slonce, swiatlo, ziemia, zawieszki)
+from ujecia_a import nad
 from ujecia_a import LUK, MIECZ, WYSPY_JP
 
 SPEAR = lambda h: (Z0.prop("wlocznia"), h * 1.05, (0.5, 0.6), 0.0, False)  # zwykła włócznia myśliwego
@@ -28,8 +29,12 @@ BIALE, CIEMNE = (238, 234, 222), (56, 40, 34)
 KII = (1.05, 0.9, 0.82)  # wieczór przy Kii
 
 
+ITSUSE_SMIERC = 2.4  # Itsuse kona: X na oczach; ten sam czas w efekty.ZDARZENIA (jęk z nagrania)
+
+
 def s_itsuse(st, w, t, T):
-    """Na łodzi ranny Itsuse przechyla się i powoli opada; Iwarebiko pochyla się nad nim."""
+    """Na łodzi ranny Itsuse słabnie, przechyla się, dostaje X na oczach (śmierć widać, wytyczne 1.11 i 1.20; przegląd
+    17.11: znikał bez śmierci) i powoli opada pod burtę; Iwarebiko pochyla się nad nim."""
     kam(st, t, 38, 640, 470, lerp(1.45, 1.55, ease(t / T)), 0.75, lens=1.35)
     st.dof = 1.2
     morze(st, t, w, wyspy=[(220, 1, 360, 4, 1.0), (1100, 2, 460, 6, 1.0)], tint=KII)
@@ -38,7 +43,8 @@ def s_itsuse(st, w, t, T):
     for key, dx, lh, rc, extra in (("itsuse", 70, 150, (20, 60), "itsuse"), ("iwarebiko", -60, 155, (40, 0), None)):
         px, py, rot, p = poklad_lodzi(t, x, 3, 240, dx, lh, sink=sk, seed=2)
         if key == "itsuse":
-            lalka(st, t, key, px, lh, y=py, p=p, flip=-1, lean=rot - 22 * ease(pr(t, 1.8, 1.6)), sink=pr(t, 2.6, 2.2), rece=rc)
+            lalka(st, t, key, px, lh, y=py, p=p, flip=-1, lean=rot - 22 * ease(pr(t, 1.8, 1.6)), sink=pr(t, ITSUSE_SMIERC + 0.9, 2.4),
+                  rece=rc, oczy_x=pr(t, ITSUSE_SMIERC, 0.35))
         else:
             lalka(st, t, key, px, lh, y=py, p=p, flip=1, lean=rot + 14 * ease(pr(t, 2.4, 1.2)), rece=(70 * ease(pr(t, 2.6, 1.0)), 0))
     lodz(st, t, x, 3, h=240, v=1, seed=2, sink=sk)
@@ -83,26 +89,39 @@ def mgla(st, t, alpha=0.18):
 
 
 def s_las(st, w, t, T):
-    """Zmiana dekoracji: wyrastają cedry Kumano, snuje się mgła; wojsko z białymi proporcami wchodzi w las."""
+    """Zmiana dekoracji: wyrastają cedry Kumano, snuje się mgła; wojsko — wojownicy z włóczniami na przodzie, za nimi
+    las włóczni z białymi proporcami — wchodzi w las (przegląd 17.11: były same włócznie, bez ludzi)."""
     kam(st, t, 41, 640, 420, lerp(1.02, 1.1, ease(t / T)), 0.66, truck=0.6)
     st.dof = 0.6
     kraj(st, t, w, cedry=1.0, sosny=(0.0, 0.0), tint=(0.92, 0.98, 0.94))
-    _wojsko(st, t, lerp(-60, 420, ease(pr(t, 1.2, T - 1.2))), BIALE, p=P.wzgorza + 0.045, band="przod", h=210, up=pr(t, 1.2, 0.6))
+    marsz = ease(pr(t, 1.2, T - 1.2))
+    _wojsko(st, t, lerp(-60, 420, marsz), BIALE, p=P.wzgorza + 0.045, band="przod", h=210, up=pr(t, 1.2, 0.6))
+    _wojsko(st, t, lerp(-480, 0, marsz), BIALE, p=P.wzgorza + 0.044, band="przod", h=200, up=pr(t, 1.5, 0.6), seed=12)
+    for n in range(6):  # wojownicy z włóczniami wchodzą w las zza lewej kulisy, każdy we własnym kroku (1.7)
+        lalka(st, t, ("wojownik", "wojownik2")[n % 2], -110 - n * 105 + 560 * marsz, 220 - 6 * (n % 3), pr(t, 0.9 + 0.12 * n, 0.5), flip=1,
+              rece=(15, 0), hop=6, seed=990 + n, trzyma=SPEAR(220))
     mgla(st, t, 0.2 * pr(t, 0.8, 1.0))
     swiatlo(st, w, t, extra=(0.92, 0.98, 0.95))
 
 
 WOJ = [(170, "wojownik"), (300, "wojownik2"), (560, "wojownik"), (690, "wojownik2"), (1060, "wojownik"), (1190, "wojownik2")]
+WOJ_TYL = [(240, "wojownik2"), (440, "wojownik"), (620, "wojownik2"), (880, "wojownik"), (980, "wojownik2"), (1130, "wojownik")]
 
 
 def _lezacy(st, t, fall, rise_=None, dim=1.0):
-    """Wojownicy padają (fall) albo wstają (rise_) — każdy we własnej chwili."""
-    for n, (x, key) in enumerate(WOJ):
-        r = random.Random(970 + n)
-        side = 1 if n % 2 else -1
-        f = ease(pr(fall, r.uniform(0, 0.5), 0.5)) if rise_ is None else 1 - ease(pr(rise_, r.uniform(0, 0.55), 0.45))
-        lalka(st, t, key, x, 240 + 20 * r.random(), flip=side, lean=side * 82 * f, sink=0.22 * f, rece=(20 + 40 * f, 0), seed=980 + n,
-              tint=(dim, dim, dim), trzyma=SPEAR(240))
+    """Wojownicy w dwóch rzędach padają (fall) albo wstają (rise_) — każdy we własnej chwili (1.7). Padając, przez
+    chwilę mają gwiazdki nad głową: zamroczenie, „padli jak zaczarowani” (słownik znaków 1.20)."""
+    for row, lista in enumerate((WOJ_TYL, WOJ)):
+        for n, (x, key) in enumerate(lista):
+            r = random.Random(970 + n + 40 * (1 - row))
+            side = 1 if n % 2 else -1
+            d = r.uniform(0, 0.5) + 0.25 * (1 - row)
+            f = ease(pr(fall, d, 0.5)) if rise_ is None else 1 - ease(pr(rise_, r.uniform(0, 0.55), 0.45))
+            gw = pr(fall, d + 0.4, 0.3) * (1 - pr(fall, d + 1.9, 0.4)) if rise_ is None else 0.0
+            hh = (240 + 20 * r.random()) if row else (196 + 14 * r.random())
+            lalka(st, t, key, x, hh, flip=side, lean=side * 82 * f, sink=0.22 * f, rece=(20 + 40 * f, 0), seed=980 + n + 40 * (1 - row),
+                  tint=(dim * (1 - 0.1 * (1 - row)),) * 3, trzyma=SPEAR(hh), y=STOPY - (0 if row else 34),
+                  p=(P.lalki + 0.01) if row else (P.lalki - 0.02), gwiazdki=gw)
 
 
 def s_niedzwiedz(st, w, t, T):
@@ -115,7 +134,8 @@ def s_niedzwiedz(st, w, t, T):
     if ba > 0:
         st.put(J.niedzwiedz(), bx, ziemia("blisko", bx) + 86 + 4 * abs(math.sin(bx / 18)), P.droga + 0.034, w=300, alpha=ba, sx=-1)
     _lezacy(st, t, pr(t, 4.4, 2.4))
-    lalka(st, t, "iwarebiko", 430, 290, flip=1, lean=-82 * ease(pr(t, 5.2, 0.6)), sink=0.22 * ease(pr(t, 5.2, 0.6)), trzyma=LUK(290))
+    lalka(st, t, "iwarebiko", 430, 290, flip=1, lean=-82 * ease(pr(t, 5.2, 0.6)), sink=0.22 * ease(pr(t, 5.2, 0.6)), trzyma=LUK(290),
+          gwiazdki=pr(t, 5.6, 0.3) * (1 - pr(t, 7.1, 0.4)))
     mgla(st, t, 0.16 + 0.1 * pr(t, 4.0, 1.0))
     swiatlo(st, w, t, extra=(0.88, 0.94, 0.9), dim=lerp(1.0, 0.8, pr(t, 4.0, 2.0)))
 
@@ -139,6 +159,8 @@ def s_takakuraji(st, w, t, T):
     lalka(st, t, "takakuraji", lerp(960, 600, go), 270, pr(t, 3.0, 0.9), flip=-1, rece=(60, 0), trzyma=MIECZ(270, True), hop=6 * (0 < go < 1))
     _lezacy(st, t, 3.0, dim=0.85)
     lalka(st, t, "iwarebiko", 430, 290, flip=1, lean=-82, sink=0.22, trzyma=LUK(290))
+    podpis(w, t, "Takakuraji", 880, nad(270), 3.6, 2.6)
+    zawieszki(st, t, w)
     mgla(st, t, 0.22)
     swiatlo(st, w, t, extra=(0.88, 0.94, 0.9), dim=0.82)
 
@@ -164,12 +186,15 @@ def s_wrona(st, w, t, T):
     cx = lerp(-80, 1420, f)
     kam(st, t, 45, lerp(420, 880, f), 400, 1.1, 0.6, truck=0.85)
     st.dof = 0.6
-    kraj(st, t, w, cedry=0.6, sosny=(0.0, 1.0))
+    kraj(st, t, w, cedry=0.6, sosny=(0.0, 1.0), kul=False)  # bez kulisy z gałęzią: zasłaniała lot wrony
     # wojsko przed wszystkimi rzędami cedrów (pasmo „przod”): lektor mówi o nim, więc musi być widać ludzi, nie same czubki włóczni
     _wojsko(st, t, cx - 120, BIALE, p=P.wzgorza + 0.045, band="przod", h=210)
     _wojsko(st, t, cx - 560, BIALE, p=P.wzgorza + 0.045, band="przod", h=210, seed=12)
+    _wojsko(st, t, cx - 1000, BIALE, p=P.wzgorza + 0.044, band="przod", h=200, seed=13)
     st.put(J.wrona(int(t * 5) % 2), cx, 250 + 30 * math.sin(t * 1.6), 0.52, w=190, anchor=(0.5, 0.5), rot=-4 + 6 * math.sin(t * 1.6),
            shadow=(8, 12, 12, 0.3))
+    podpis(w, t, "Yatagarasu", cx - 20, 120, 0.3 * T, 3.0)  # tabliczka leci razem z wroną
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
@@ -215,8 +240,12 @@ def s_yamato(st, w, t, T):
     swiatlo(st, w, t)
 
 
+PULAPKA_BELKA = 7.2  # belka spada; te same czasy w efekty.ZDARZENIA (huk, X)
+
+
 def s_pulapka(st, w, t, T):
-    """Wódz zaprasza do chaty; brat go wydaje; z dachu spada belka pułapki, a wódz znika pod nią."""
+    """Wódz zaprasza do chaty; brat go wydaje (tabliczka „PUŁAPKA!”); wódz wchodzi do chaty, z dachu spada belka
+    pułapki, a nad chatą miga dwa razy czerwony X — wódz zginął we własnej pułapce (słownik znaków 1.20)."""
     kam(st, t, 48, lerp(560, 620, ease(t / T)), 470, 1.25, 0.75)
     st.dof = 0.9
     kraj(st, t, w, niebieskie=1.0, wzgorza=1.0, gory=0.0)
@@ -231,11 +260,14 @@ def s_pulapka(st, w, t, T):
     lalka(st, t, "brat_wodza", 560, 250, pr(t, 1.8, 1.0), flip=-1 if t < 4.6 else math.cos(math.pi * ease(pr(t, 4.6, 0.5))) * -1,
           rece=(110 * warn, 0), lean=-6 * warn)
     lalka(st, t, "iwarebiko", 330, 290, flip=1, trzyma=LUK(290), rece=(20, 0), lean=-3 * warn)
-    drop = pr(t, 7.2, 0.35)
+    podpis(w, t, "PUŁAPKA!", 560, nad(250), 2.8, 2.0)
+    zawieszki(st, t, w)
+    iks(st, hx, hy - 170, t, PULAPKA_BELKA + 0.4, h=180)  # wódz zginął we własnej pułapce: X miga dwa razy
+    drop = pr(t, PULAPKA_BELKA, 0.35)
     if drop > 0:
         st.put(J.belka(), hx, lerp(hy - 300, hy - 30, drop * drop), P.wzgorza + 0.061, w=120, anchor=(0.5, 1.0), rot=6 * (1 - drop))
         if drop >= 1:
-            dust = pr(t, 7.55, 1.2)
+            dust = pr(t, PULAPKA_BELKA + 0.35, 1.2)
             st.put(J.glow(), hx, hy - 40, P.wzgorza + 0.062, w=300 * (0.6 + dust), anchor=(0.5, 0.5), mode="add", alpha=0.25 * (1 - dust),
                    shadow=None, tint=(0.8, 0.65, 0.45))
     swiatlo(st, w, t)
@@ -253,18 +285,27 @@ def _grad(st, t, k, n=70):
 
 
 def s_bitwa(st, w, t, T):
-    """Dwa lasy włóczni ścierają się na wzgórzach; niebo ciemnieje i sypie się papierowy grad."""
+    """Dwa lasy włóczni, po trzy rzędy, ścierają się na wzgórzach i pchają w tę i z powrotem; w chwili starcia mocny
+    wstrząs; niebo ciemnieje, a papierowy grad gęstnieje do końca ujęcia (potęga i kulminacja, wytyczne 1.17, 1.23)."""
     w.noc = 0.45 * ease(pr(t, 2.0, 2.0))
     clash = pr(t, 3.0, 0.4)
-    kam(st, t, 49, lerp(560, 760, ease(t / T)), 420, 1.08, 0.66, shake=3.0 * (clash > 0))
+    kam(st, t, 49, lerp(560, 760, ease(t / T)), 420, 1.08, 0.66, shake=3.0 * (clash > 0) + 6.0 * (3.0 < t < 3.5))
     st.dof = 0.6
     kraj(st, t, w, niebieskie=1.0, wzgorza=1.0, gory=0.0, tint=(lerp(1, 0.8, w.noc), lerp(1, 0.84, w.noc), lerp(1, 0.95, w.noc)))
     _proporce(st, t, (1.0, 1.0, 1.0))
-    sway = 30 * math.sin(t * 3.0) * clash
-    _wojsko(st, t, lerp(200, 640, ease(pr(t, 1.0, 2.0))) + sway, BIALE, p=P.wzgorza + 0.045, band="przod", h=210, up=pr(t, 1.0, 0.5))
-    st.put(Z0.spears(22, flag=CIEMNE), lerp(1500, 1080, ease(pr(t, 1.0, 2.0))) - sway, ziemia("przod", 900) + 80 + (1 - back(pr(t, 1.0, 0.5), 1.3)) * 200,
-           P.wzgorza + 0.046, h=210, anchor=(0.0, 1.0), sx=-1, rot=0.8 * math.sin(t))
-    _grad(st, t, pr(t, 2.6, 1.6))
+    sway = 30 * math.sin(t * 3.0) * clash  # pchnięcia w tę i z powrotem: bitwa długo się nie rozstrzyga
+    adv = ease(pr(t, 1.0, 2.0))
+    for n, (dx, seed, band, p, hh) in enumerate(((0, 11, "przod", P.wzgorza + 0.045, 210), (-260, 14, "srodek", P.miasto + 0.032, 120),
+                                                 (-520, 15, "srodek", P.miasto + 0.031, 112))):
+        _wojsko(st, t, lerp(200, 640, adv) + dx + sway * hh / 210, BIALE, p=p, band=band, h=hh, up=pr(t, 1.0 + 0.25 * n, 0.5), seed=seed)
+    for n, (dx, seed, band, p, hh) in enumerate(((0, 22, "przod", P.wzgorza + 0.046, 210), (260, 24, "srodek", P.miasto + 0.033, 120),
+                                                 (520, 26, "srodek", P.miasto + 0.0325, 112))):
+        up = pr(t, 1.0 + 0.25 * n, 0.5)
+        if up > 0:
+            st.put(Z0.spears(seed, flag=CIEMNE), lerp(1500, 1080, adv) + dx - sway * hh / 210,
+                   ziemia(band, 900 + dx) + (80 if band == "przod" else 66) + (1 - back(up, 1.3)) * 200, p, h=hh, anchor=(0.0, 1.0),
+                   sx=-1, rot=0.8 * math.sin(t + n))
+    _grad(st, t, pr(t, 2.6, T - 2.6), n=120)  # grad gęstnieje do końca ujęcia (1.23)
     swiatlo(st, w, t, extra=(0.86, 0.88, 0.96))
 
 
@@ -340,20 +381,33 @@ def s_strzala_nieba(st, w, t, T):
     lalka(st, t, "nagasune", NAGA_X, 440, flip=-1, rece=(150 * a1, 0), trzyma=arrow(440) if a1 > 0.05 else None)
     lalka(st, t, "iwarebiko", 380, 300, flip=1, rece=(150 * a2, 0), trzyma=arrow(300) if a2 > 0.05 else None)
     lalka(st, t, "nigihayahi", 1080, 300, pr(t, 4.4, 1.2), flip=-1, rece=(10, 0), p=P.lalki + 0.005)
+    podpis(w, t, "Nigihayahi", 1080, nad(300), 5.3, 2.6)
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
+ZDRADA_CIOS = 1.4  # miecz Nigihayahiego spada na Nagasunehiko; te same czasy w efekty.ZDARZENIA (świst, cios, X)
+
+
 def s_zdrada(st, w, t, T):
-    """Nigihayahi unosi miecz, Nagasunehiko opada pod rampę, a Nigihayahi kłania się Iwarebiko."""
-    kam(st, t, 54, 700, 440, 1.2, 0.8, shake=4.0 * (1.2 < t < 1.6))
+    """Zabójstwo w fazach (wytyczne 1.21): Nigihayahi unosi miecz (zamach), tnie (cios — wstrząs), Nagasunehiko chwieje
+    się, ma X na oczach, nad nim miga czerwony X (śmierć i wyrok, 1.20), i opada pod rampę; jego proporzec pada.
+    Nigihayahi przechodzi na stronę Iwarebiko i kłania mu się (przegląd 17.11: wódz znikał bez ciosu)."""
+    c = ZDRADA_CIOS
+    kam(st, t, 54, 700, 440, 1.2, 0.8, shake=7.0 * (c < t < c + 0.4))
     st.dof = 1.0
     kraj(st, t, w, niebieskie=1.0, wzgorza=1.0, gory=0.0)
-    _proporce(st, t, (1.0, 1.0, 0.0 if t > 2.6 else 1.0))
-    sw = ease(pr(t, 1.2, 0.3))
-    arm = 160 * ease(pr(t, 0.3, 0.6)) - 130 * sw
-    bow_ = ease(pr(t, 4.4, 0.9))
-    lalka(st, t, "nagasune", NAGA_X, 440, flip=-1, lean=14 * ease(pr(t, 1.5, 0.8)), sink=pr(t, 1.8, 1.8))
-    lalka(st, t, "nigihayahi", 1080, 300, flip=-1, rece=(arm if t < 4.0 else lerp(30, 70, bow_), 0), lean=-18 * bow_, trzyma=MIECZ(300))
+    _proporce(st, t, (1.0, 1.0, 1.0 - pr(t, c + 1.4, 0.6)))
+    raise_ = ease(pr(t, 0.3, 0.8))
+    sw = ease(pr(t, c - 0.15, 0.25))
+    arm = 165 * raise_ - 140 * sw
+    walk = ease(pr(t, c + 2.2, 1.6))
+    bow_ = ease(pr(t, c + 3.9, 0.9))
+    lalka(st, t, "nagasune", NAGA_X, 440, flip=-1, lean=14 * ease(pr(t, c + 0.1, 0.8)) - 4 * math.sin(t * 10) * pr(t, c, 0.2) * (1 - pr(t, c + 0.7, 0.3)),
+          sink=pr(t, c + 1.1, 1.8), oczy_x=pr(t, c + 0.3, 0.3))
+    iks(st, NAGA_X - 20, 300, t, c + 0.35, h=200)
+    lalka(st, t, "nigihayahi", lerp(1080, 760, walk), 300, flip=-1, rece=(arm if t < c + 2.0 else lerp(30, 70, bow_), 0), lean=-18 * bow_,
+          trzyma=MIECZ(300), hop=5 * (0 < walk < 1))
     lalka(st, t, "iwarebiko", 380, 300, flip=1, rece=(20, 0), trzyma=LUK(300))
     swiatlo(st, w, t)
 

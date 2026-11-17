@@ -8,7 +8,7 @@ import random
 
 import zestaw_jp as J
 from papier import CX, CY, back, clamp, ease, ease_out, noise, settle
-from scena import (FALE, P, SAKAKI, SKALA, STOPY, Z0, choragiewki, czubek_luku, gora_wyspy, grzebien_we_wlosach, iks, kam, kraj,  # noqa: F401
+from scena import (FALE, P, SAKAKI, SKALA, STOPY, Z0, bk, choragiewki, czubek_luku, gora_wyspy, grzebien_we_wlosach, iks, kam, kraj,  # noqa: F401
                    kulisy, lalka, lerp, lodz, morze, niebo, niebo_papier, pochodnia, podpis, pr, punkt, rampa, slonce, strzala_w_ramieniu,
                    swiatlo, yomi, ziemia, zawieszki, zjazd)
 
@@ -730,12 +730,14 @@ def s_prawnuk(st, w, t, T):
     kraj(st, t, w, morze_k=1.0)
     lalka(st, t, "ninigi", 420, 280, pr(t, 1.2, 0.8), flip=1, sink=pr(t, 2.2, 1.4), lean=-4 * ease(pr(t, 2.0, 0.8)))  # wchodzi razem z rampą
     lalka(st, t, "iwarebiko", 420, 290, pr(t, 3.2, 1.2), flip=1, rece=(15, 0), trzyma=LUK(290))
+    podpis(w, t, "książę Iwarebiko", 300, nad(290), 4.0, 2.8)
     zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
 def s_wschod(st, w, t, T):
-    """Iwarebiko wskazuje wschód: po prawej wysuwają się błękitne góry, nad nimi wschodzi słońce."""
+    """Iwarebiko patrzy na zachód, obraca się na wschód i wskazuje go (zwrot lalki, wytyczne 1.16): po prawej wysuwają
+    się błękitne góry, nad nimi wschodzi słońce."""
     k = ease(t / T)
     kam(st, t, 29, lerp(620, 700, k), 430, lerp(1.0, 1.08, k), 0.62, truck=0.6)
     st.dof = 0.6
@@ -746,8 +748,9 @@ def s_wschod(st, w, t, T):
         st.put(J.S("sun", 0.5), 1090, 470 - 220 * ease(sr), P.slonce + 0.002, w=170, anchor=(0.5, 0.5))
     for n, (x, wd) in enumerate(((1000, 520), (1190, 600))):
         Z0.rise(st, J.gora_niebieska(n % 2), x, 470, P.gory_dal + 0.03 + 0.004 * n, pr(t, 1.4 + 0.4 * n, 0.9), t, 640 + n, w=wd, wob=0.0, haze=0.2)
-    point = ease(pr(t, 0.8, 0.8))
-    lalka(st, t, "iwarebiko", IW, 300, flip=1, rece=(85 * point, 0), lean=-2 * point, trzyma=LUK(300))
+    turn = -math.cos(math.pi * ease(pr(t, 0.3, 0.5)))  # zwrot lalki: z zachodu (dom, Kiusiu) na wschód
+    point = ease(pr(t, 1.0, 0.8))
+    lalka(st, t, "iwarebiko", IW, 300, flip=turn, rece=(85 * point, 0), lean=-2 * point, trzyma=LUK(300))
     swiatlo(st, w, t, extra=(1.03, 0.98, 0.93))
 
 
@@ -764,22 +767,39 @@ def s_bracia(st, w, t, T):
     lalka(st, t, "iwarebiko", IW, 300, flip=1, rece=(30, 0), trzyma=LUK(300))
     turns = [-math.cos(math.pi * ease(pr(t, 3.4 + 0.5 * n, 0.5))) for n in range(3)]
     bracia(st, t, [pr(t, 0.6 + 0.6 * n, 1.0) for n in range(3)], turns)
+    podpis(w, t, "Itsuse, najstarszy brat", 470, nad(285), 1.7, 2.6)
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
+# łodzie wyprawy (1 + 16): potęga to liczba (wytyczne 1.17; przegląd 17.11 — w ujęciu była jedna łódź)
+
+
 def s_flota(st, w, t, T):
-    """Łodzie z wiosłami i żaglami płyną na wschód między wyspami; kamera płynie z nimi."""
+    """Flota łodzi z wiosłami i żaglami z maty płynie na wschód między wyspami, na trzech pasmach fal; szybsze mijają
+    wolniejsze, kamera płynie z łodzią wodza (Iwarebiko i Itsuse na pokładzie)."""
     x = lerp(380, 900, t / T)
     kam(st, t, 31, x + 120, 430, 1.28, 0.6, truck=0.85)
     st.dof = 0.7
     isl = [(-200, 1, 380, 0, 1.0), (260, 2, 420, 3, 1.0), (720, 1, 300, 4, 1.0), (1150, 2, 460, 6, 1.0), (1560, 1, 360, 2, 1.0),
            (1900, 2, 420, 5, 1.0), (40, 3, 520, 7, 1.0), (1320, 3, 560, 1, 1.0)]
     morze(st, t, w, wyspy=isl)
-    for j in range(3):
-        if pr(t, 0.9 + 0.2 * j, 0.1) <= 0:  # łodzie wypływają dopiero na postawione fale
+    flota = [(0.0, 2, 150, 0.0)]  # (odstęp od łodzi wodza, pasmo fal, wysokość, prędkość względem niej w px na całe ujęcie)
+    r = random.Random(310)
+    for b, hb, n, gap in ((2, 138, 5, 340), (1, 110, 6, 300), (0, 82, 5, 330)):  # łodzie na pasmie w równych odstępach
+        for i in range(n):
+            dx = -1300 + gap * 0.5 * (b % 2) + i * gap + r.uniform(-50, 50)
+            if b == 2 and abs(dx) < 200:  # miejsce łodzi wodza
+                dx -= 260
+            flota.append((dx, b, hb * r.uniform(0.92, 1.05), r.uniform(-240, 200)))
+    for j, (dx, b, h, v) in sorted(enumerate(flota), key=lambda e: (e[1][1], e[0])):  # dalsze pasma rysuje się najpierw
+        t0 = 0.9 + 0.08 * j
+        if pr(t, t0, 0.1) <= 0:  # łodzie wypływają dopiero na postawione fale
             continue
-        lodz(st, t, x - j * 240, 2 if j != 1 else 1, h=150 - 26 * (j == 1), seed=j, sink=1 - ease(pr(t, 0.9 + 0.2 * j, 0.8)),
-             ladunek=[("iwarebiko", -40, 120, (20, 0)), ("itsuse", 50, 116, (10, 0))] if j == 0 else [("wojownik", 0, 110, (0, 0))])
+        lad = ([("iwarebiko", -40, 120, (20, 0)), ("itsuse", 50, 116, (10, 0))] if j == 0 else
+               [("wojownik", -25, h * 0.7, (0, 0)), ("wojownik", 30, h * 0.66, (0, 0))] if b == 2 else
+               [("wojownik", 0, h * 0.7, (0, 0))] if b == 1 else [])
+        lodz(st, t, x + dx + v * t / T, b, h=h, seed=j, sink=1 - ease(pr(t, t0, 0.8)), ladunek=lad, v=j % 2)
     swiatlo(st, w, t)
 
 
@@ -801,42 +821,66 @@ def s_postoje(st, w, t, T):
 
 
 def s_naniwa(st, w, t, T):
-    """Łodzie przybijają w zatoce Naniwa; wojsko z białymi proporcami wysuwa się na brzeg, przed nim góry."""
+    """Sześć łodzi wpływa do zatoki Naniwa i staje przy brzegu; rzędy włóczni z białymi proporcami i wojownicy wychodzą
+    na brzeg, każdy we własnej chwili, i ruszają na wschód, ku górom (potęga liczbą, wytyczne 1.17; przegląd 17.11:
+    w ujęciu stały tylko dwie lalki)."""
     k = ease(t / T)
-    kam(st, t, 33, lerp(560, 640, k), 450, lerp(1.08, 1.18, k), 0.66)
+    kam(st, t, 33, lerp(430, 660, k), 450, lerp(1.1, 1.18, k), 0.66)  # od zatoki z łodziami ku brzegowi z wojskiem
     st.dof = 0.7
-    kraj(st, t, w, morze_k=1.0, gora_x=900)
-    for j in range(3):
-        x = lerp(-260 - j * 160, 90 + j * 150, ease(pr(t, 0.6 + 0.3 * j, 3.0)))
-        st.put(J.lodz(0), x, 600 + 4 * math.sin(t * 1.6 + j) + j * 14, Z0.P.rownina + 0.012 + 0.008 * j, h=120, rot=2 * math.sin(t * 1.2 + j))
-    up = pr(t, 3.2, 1.2)
-    Z0_spears = Z0.spears(11, flag=(238, 234, 222))
-    if up > 0:
-        st.put(Z0_spears, 820, ziemia("blisko", 700) + 80 + (1 - back(up, 1.3)) * 140, P.droga + 0.012, h=130, anchor=(1.0, 1.0),
-               rot=0.8 * math.sin(t))
-    lalka(st, t, "iwarebiko", 420, 290, pr(t, 4.4, 1.0), flip=1, trzyma=LUK(290), rece=(20, 0))
-    lalka(st, t, "itsuse", 560, 280, pr(t, 4.8, 1.0), flip=1, rece=(10, 0))
+    kraj(st, t, w, gora_x=900, sosny=(0.0, 1.0))  # bez wiśni na lewej kulisie: zasłaniała zatokę
+    # zatoka na przodzie sceny: pasma fal wysuwają się od dołu z lewej, kończą się przy skałach brzegu (x ≈ 560)
+    zat = bk(w, 0.3, 0.8)
+    for i, (y, pp) in enumerate(((592, P.wzgorza + 0.052), (640, P.wzgorza + 0.058))):
+        st.put(J.waves(2 + i), -80 + 26 * math.sin(t * 0.9 + i) * (1 if i else -1), y + (1 - back(zat, 1.2)) * 260, pp, w=1400,
+               anchor=(0.5, 0.0))
+    for j in range(6):  # łodzie wpływają do zatoki jedna za drugą i stają przy brzegu
+        x = lerp(-340 - j * 200, 10 + j * 92, ease(pr(t, 0.6 + 0.24 * j, 2.6)))
+        st.put(J.lodz(j % 2), x, 628 + 4 * math.sin(t * 1.6 + j) - (j % 2) * 22, P.wzgorza + 0.054 + 0.0004 * j, h=146 - 14 * (j % 2),
+               rot=2 * math.sin(t * 1.2 + j), alpha=min(1.0, zat * 3))
+    Z0.rise(st, J.glaz(1), 640, 724, P.wzgorza + 0.062, bk(w, 0.9), t, 335, w=230, wob=0.0, tint=(0.88, 0.86, 0.82),
+            shadow=(4, 6, 8, 0.35))  # skały brzegu zasłaniają koniec pasm fal
+    marsz = 70 * ease(pr(t, 5.2, T - 5.2))  # wojsko rusza na wschód, ku górom
+    for n, (x, band, p, hh, seed) in enumerate(((560, "srodek", P.miasto + 0.032, 96, 13), (980, "srodek", P.miasto + 0.033, 92, 17),
+                                                (700, "blisko", P.droga + 0.012, 130, 11), (1140, "blisko", P.droga + 0.013, 124, 19))):
+        up = pr(t, 2.6 + 0.35 * n, 1.2)
+        if up > 0:  # rzędy włóczni z białymi proporcami wychodzą zza grzbietów, jeden po drugim
+            st.put(Z0.spears(seed, flag=(238, 234, 222)), x + marsz * (1.0 - 0.3 * (band == "srodek")),
+                   ziemia(band, x - 120) + (80 if band == "blisko" else 64) + (1 - back(up, 1.3)) * 140, p, h=hh, anchor=(1.0, 1.0),
+                   rot=0.8 * math.sin(t + n))
+    for n in range(5):  # wojownicy na brzegu, każdy z własnym opóźnieniem (1.7)
+        r = random.Random(330 + n)
+        lalka(st, t, "wojownik", 830 + n * 92 + marsz, 230 - 4 * n, pr(t, 3.4 + r.uniform(0, 1.2), 0.9), flip=1, rece=(10, 0),
+              hop=4 if marsz > 1 else 0, seed=170 + n)
+    lalka(st, t, "iwarebiko", 640, 290, pr(t, 4.4, 1.0), flip=1, trzyma=LUK(290), rece=(20, 0))
+    lalka(st, t, "itsuse", 740, 280, pr(t, 4.8, 1.0), flip=1, rece=(10, 0))
     swiatlo(st, w, t)
 
 
 NAGA = (930, 520)  # Nagasunehiko: x, wysokość lalki
 
 
+NAGA_RYTM = (3.6, 4.4, 5.2)  # włócznie wojska Nagasunehiko unoszą się na 0,6 s trzy razy (wytyczne 1.17); te same czasy w efektach
+
+
 def s_nagasune(st, w, t, T):
-    """Zza grani wyrasta wielki wódz na długich nogach, za nim las ciemnych włóczni; słońce zza jego pleców."""
+    """Zza grani wyrasta wielki wódz na długich nogach z tabliczką z imieniem, za nim cztery rzędy ciemnych włóczni aż
+    po dalsze wzgórza; włócznie trzy razy unoszą się w rytmie, a wódz podnosi rękę; słońce zza jego pleców."""
     w.sun_xy = (1080, 250)
     kam(st, t, 34, lerp(800, 840, ease(t / T)), 430, 1.28, 0.72)
     st.dof = 1.0
     kraj(st, t, w, gora_x=900, tint=(1.04, 0.97, 0.9))
-    up = pr(t, 1.6, 1.2)
-    if up > 0:
-        # wojsko za wodzem, ale przed bliższym pasmem wzgórz — lektor mówi „ze swoim wojskiem”, więc ma być widać ludzi z włóczniami
-        for n, (xr, seed) in enumerate(((1360, 21), (720, 23))):
-            st.put(Z0.spears(seed, flag=(56, 40, 34)), xr, ziemia("przod", xr - 250) + 40 + (1 - back(up, 1.3)) * 200,
-                   P.wzgorza + 0.035 - 0.002 * n, h=230, anchor=(1.0, 1.0), rot=0.8 * math.sin(t + n))
+    rytm = sum(24 * math.sin(math.pi * pr(t, a, 0.6)) for a in NAGA_RYTM)  # włócznie w górę trzy razy, wszystkie razem
+    for n, (xr, seed, band, p, hh) in enumerate(((1100, 25, "srodek", P.miasto + 0.032, 120), (560, 27, "srodek", P.miasto + 0.033, 116),
+                                                 (1360, 21, "przod", P.wzgorza + 0.035, 230), (720, 23, "przod", P.wzgorza + 0.033, 230))):
+        up = pr(t, 1.6 + 0.3 * n, 1.2)
+        if up > 0:  # wojsko za wodzem: dalsze rzędy na środkowym paśmie, bliższe przed pasmem przednim (1.5)
+            st.put(Z0.spears(seed, flag=(56, 40, 34)), xr, ziemia(band, xr - 250) + (40 if band == "przod" else 60)
+                   + (1 - back(up, 1.3)) * 200 - rytm * hh / 230, p, h=hh, anchor=(1.0, 1.0), rot=0.8 * math.sin(t + n))
     x, h = NAGA
-    lalka(st, t, "nagasune", x, h, pr(t, 0.5, 1.6), y=ziemia("przod", x) + 120, p=P.wzgorza + 0.04, flip=-1, rece=(30, 0),
+    lalka(st, t, "nagasune", x, h, pr(t, 0.5, 1.6), y=ziemia("przod", x) + 120, p=P.wzgorza + 0.04, flip=-1, rece=(30 + 60 * (rytm > 4), 0),
           lean=2 * settle((t - 2.2) / 1.6, 1.5))
+    podpis(w, t, "wódz Nagasunehiko", 760, 300, 2.2, 2.8)
+    zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(1.03, 0.97, 0.92))
 
 
@@ -879,6 +923,8 @@ def s_rana(st, w, t, T):
                shadow=(2, 3, 3, 0.4))
     else:
         strzala_w_ramieniu(st, "itsuse", 600, 280, rot=lean)
+    podpis(w, t, "AŁA!…", 470, 352, 0.95, 1.8)
+    zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(1.03, 0.97, 0.92))
 
 
