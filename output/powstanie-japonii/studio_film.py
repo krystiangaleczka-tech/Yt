@@ -44,7 +44,7 @@ DZWIEK_DIR = HERE / ("dzwiek_en" if EN else "dzwiek")
 KADR = {"PO": "plan ogólny", "PP": "plan pełny", "PŚ": "plan średni", "Z": "zbliżenie", "D": "detal", "TYT": "karta / napis"}
 RUCH = {"stat": "statyczna", "naj": "najazd", "odj": "odjazd", "pan": "panorama", "jaz": "jazda za postacią", "szarp": "szarpnięcie kamery"}
 TYPE = {"PO": "wide", "PP": "wide", "PŚ": "medium", "Z": "close-up", "D": "insert", "TYT": "insert"}
-NAPIECIE = {1: 3, 2: 5, 3: 7, 4: 6, 5: 7, 6: 9, 7: 6, 8: 4, 9: 5}  # krzywa filmu: napięcie aktu 0–10
+NAPIECIE = {0: 8, 1: 3, 2: 5, 3: 7, 4: 6, 5: 7, 6: 9, 7: 6, 8: 4, 9: 5}  # krzywa filmu: napięcie aktu 0–10 (0 = zapowiedź i hak)
 
 
 def call(path, body=None, method=None):
@@ -123,13 +123,20 @@ def plan():
             # szkice ujęć (etap Studio „Szkice ujęć”, warianty i zatwierdzenie reżysera) zostają przy każdym planie
             **({"sketches": old["sketches"]} if isinstance(old.get("sketches"), dict) else {})}
     t = 0.0
+    # akt 0 (zapowiedź i hak) to w Studio prolog aktu 1: jego sekwencja należy do act_01, a księga świata mówi, ile pierwszych
+    # ujęć aktu 1 to prolog (world.prologue) — kontrola ciągłości numeruje je wtedy d00_…, a akt 1 od d01_01, jak rozpiska
+    n0 = sum(r["akt"] == 0 for r in rows)
+    if n0:
+        flow["world"] = {**flow["world"], "prologue": {"1": n0}}
     for n, atitle, aopis, sceny in AKTY:
         act, seq = f"act_{n:02d}", f"seq_d{n:02d}"
+        owner = "act_01" if n == 0 else act
         mine = [r for r in rows if r["akt"] == n]
-        flow["acts"].append(node(act, f"Akt {n} · {atitle}", aopis))
-        flow["sequences"].append({**node(seq, f"Akt {n} · {atitle}", " → ".join(s[0] for s in sceny) + "."), "actId": act,
+        if n != 0:
+            flow["acts"].append(node(act, f"Akt {n} · {atitle}", aopis))
+        flow["sequences"].append({**node(seq, f"Akt {n} · {atitle}", " → ".join(s[0] for s in sceny) + "."), "actId": owner,
                                   "seconds": round(sum(r["sec"] for r in mine), 1)})
-        flow["scripts"][act] = "\n\n".join(kwestia(r["snd"]) for r in mine if kwestia(r["snd"]))
+        flow["scripts"][owner] = "\n\n".join(x for x in [flow["scripts"].get(owner, "")] + [kwestia(r["snd"]) for r in mine] if x)
         for si, (stitle, place, beaty) in enumerate(sceny, 1):
             oid = f"sc_d{n:02d}_{si}"
             srows = [r for r in mine if r["scena"] == si]
@@ -162,16 +169,21 @@ def plan():
     fps = p["sequence"]["fps_num"] / p["sequence"]["fps_den"]
     old = {s["id"]: s["duration"] for s in p["scenes"]}  # przed zmianami: dalej słowniki ujęć są zmieniane w miejscu
     by_shot = {s["legacy"].get("flow_director_shot_id"): s for s in p["scenes"]}
+    # ujęcie Studio idzie za kluczem rozpiski (legacy.klucz), a nie za miejscem w beacie: po wycięciu albo przestawieniu ujęcia
+    # (przegląd 18.11.2026) uwagi, markery i materiał zostają przy swoim ujęciu; po miejscu tylko stare ujęcia bez klucza
+    by_key = {s["legacy"]["klucz"]: s for s in p["scenes"] if s["legacy"].get("klucz")}
     scenes, cursor = [], 0
     for n, r in enumerate(rows, 1):
         frames = max(1, round(r["sec"] * fps))
-        s = by_shot.get(r["sid"]) or {"mode": "search", "asset_id": None, "voice_asset_id": None, "variants": [], "fact_ids": [],
-                                      "role": "illustration", "locked": False, "animation": "static", "timing": "estimated"}
+        stare = by_shot.get(r["sid"])
+        s = by_key.get(r["klucz"]) or (stare if stare and not stare["legacy"].get("klucz") else None) or {
+            "mode": "search", "asset_id": None, "voice_asset_id": None, "variants": [], "fact_ids": [],
+            "role": "illustration", "locked": False, "animation": "static", "timing": "estimated"}
         s.update(title=f"{r['stitle']} · {r['nr']:02d} · {r['title']}", narration=kwestia(r["snd"]), description=r["opis"],
                  director_notes=f"Kadr: {KADR[r['kadr']]} · {RUCH[r['ruch']]}. Beat: {r['btitle']}. Dźwięk: {r['snd']}"[:3000],
                  start=cursor, duration=frames, prompt=f"Rysowane kodem: output/powstanie-japonii, funkcja s_{r['klucz']} ({r['ref']}).",
                  motion_prompt=RUCH[r["ruch"]] if r["ruch"] != "stat" else "", search_query=r["title"],
-                 legacy={**s.get("legacy", {}), "flow_act_id": f"act_{r['akt']:02d}", "flow_section_id": f"seq_d{r['akt']:02d}",
+                 legacy={**s.get("legacy", {}), "flow_act_id": f"act_{max(1, r['akt']):02d}", "flow_section_id": f"seq_d{r['akt']:02d}",
                          "flow_outline_id": r["oid"], "flow_director_shot_id": r["sid"], "flow_director_beat_id": r["bid"],
                          "flow_director_kind": TYPE[r["kadr"]], "klucz": r["klucz"],
                          **({"teatr": {"film": "powstanie-japonii", "jezyk": "en", "odn": r["ref"]}} if EN else {})})  # na żywo
@@ -180,7 +192,10 @@ def plan():
     # ujęcie zmieniło długość: stary materiał już nie pasuje — klip schodzi z osi, ujęcie czeka na nowy render
     # (najpierw oś, potem ujęcia, bo serwer odrzuca ujęcie dłuższe od swojego materiału)
     changed = {s["id"] for s in scenes if s.get("id") in old and old[s["id"]] != s["duration"]}
-    gone = [{"type": "remove_clip", "clip_id": c["id"]} for c in p["sequence"]["clips"] if c.get("scene_id") in changed]
+    # ujęcia, których nie ma już w rozpisce (np. scena przeniesiona do innego aktu): ich klipy schodzą z osi razem z nimi,
+    # bo serwer odrzuca oś z klipem wskazującym nieistniejące ujęcie
+    removed = set(old) - {s.get("id") for s in scenes}
+    gone = [{"type": "remove_clip", "clip_id": c["id"]} for c in p["sequence"]["clips"] if c.get("scene_id") in changed | removed]
     for i in range(0, len(gone), 200):
         p = call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": gone[i:i + 200]})
     for s in scenes:

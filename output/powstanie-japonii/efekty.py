@@ -531,7 +531,7 @@ def muzyka(total, voice_mask, acts):
     return out
 
 
-AKT_NASTROJ = {1: "mit", 2: "noc", 3: "wojna", 4: "spokoj", 5: "noc", 6: "wojna", 7: "spokoj", 8: "spokoj", 9: "spokoj"}
+AKT_NASTROJ = {0: "wojna", 1: "mit", 2: "noc", 3: "wojna", 4: "spokoj", 5: "noc", 6: "wojna", 7: "spokoj", 8: "spokoj", 9: "spokoj"}
 
 
 def zapisz(path, x):
@@ -541,6 +541,35 @@ def zapisz(path, x):
         w.writeframes((np.clip(x, -1, 1) * 32767).astype(np.int16).tobytes())
 
 
+# Dźwięki dokładane do skrótów (akt 0, render.WYCINEK): mocne uderzenie na start zapowiedzi i gong pod tytuł teatru.
+DODATKI = {"zap_jaskinia": [(0.0, "gong", 1.0), (0.0, "drum", 0.9)], "zap_blysk": [(0.0, "drum", 0.9)],
+           "teatr": [(0.1, "kurtyna_r", 1.0), (0.9, "gong", 0.9), (1.9, "whoosh", 0.4)] + [(1.6 + 0.3 * n, "knock", 0.35) for n in range(4)],
+           "hak_najazd": [(0.3, "whoosh", 0.25), (1.6, "whoosh", 0.2), (4.1, "whoosh", 0.2)],  # podpisy Iwarebiko i Itsuse
+           # szczyty (przegląd 18.11.2026): po ciszy muzyki mocne uderzenie — ósma głowa węża, pierwsze krakanie wrony
+           "orochi": [(4.8, "drum", 1.0), (4.8, "gong", 0.8)], "wrona": [(0.8, "gong", 0.6)],
+           "hak_cien": [(0.2, "knock", 0.4), (0.35, "whoosh", 0.3), (1.35, "whoosh", 0.6), (1.65, "thud", 0.7), (1.65, "crack", 0.35),
+                        (2.75, "whoosh", 0.4), (3.4, "thud", 0.5)]}
+
+
+# Cisza muzyki przed szczytem (przegląd 18.11.2026: „za mało ciszy i muzyki przy szczytach”): w oknie (od, do) sekund od początku
+# ujęcia muzyka milknie (zostają efekty: syk głów, grad), po nim wraca głośniej i przez 3 s opada do zwykłej głośności.
+CISZA = {"orochi": (0.0, 4.7), "wrona": (-1.0, 0.8), "ptak": (0.0, 2.5)}
+
+
+def cisza_muzyki(n, starts):
+    g = np.ones(n)
+    r = N(0.15)
+    for klucz, (a, b) in CISZA.items():
+        if klucz not in starts:
+            continue
+        i0, i1 = max(0, N(starts[klucz] + a)), min(n, N(starts[klucz] + b))
+        g[i0:i1] = 0.0
+        g[max(0, i0 - r):i0] = np.minimum(g[max(0, i0 - r):i0], np.linspace(1, 0, i0 - max(0, i0 - r)))
+        j = min(n, i1 + N(3.0))
+        g[i1:j] = np.linspace(1.6, 1.0, j - i1) * np.minimum(1, np.arange(j - i1) / max(1, N(0.08)))
+    return g
+
+
 def main():
     import render as R
     import scena
@@ -548,27 +577,30 @@ def main():
     total = sum(u[5] for u in us)
     n = N(total)
     fx, voice = np.zeros(n), np.zeros(n, bool)
-    t0, acts, events = 0.0, [], 0
+    t0, acts, events, starts = 0.0, [], 0, {}
     for idx, (akt, _, klucz, kadr, ruch, sec, opis, snd) in enumerate(us):
+        starts[klucz] = t0
         vs, vl = okno_kwestii(snd)
         if vl:
             voice[N(t0 + vs):N(t0 + vs + vl)] = True
         if not acts or acts[-1][2] != akt:
             acts.append([t0, t0 + sec, akt])
         acts[-1][1] = t0 + sec
-        place = ("morze" if klucz in MORZE else "noc" if klucz in NOC else "las" if klucz in LAS else "sala" if klucz in WNETRZE
-                 else "burza" if klucz in BURZA else "wiatr")
+        # skrót innego ujęcia (render.WYCINEK): tło i zdarzenia oryginału z tego samego fragmentu, przesunięte do początku
+        src, od = (R.WYCINEK[klucz][0], R.WYCINEK[klucz][1]) if klucz in R.WYCINEK else (klucz, 0.0)
+        place = ("morze" if src in MORZE else "noc" if src in NOC else "las" if src in LAS else "sala" if src in WNETRZE
+                 else "burza" if src in BURZA else "wiatr")
         amb = ambient(place, sec + 0.3, idx)
         i = N(t0)
         fx[i:i + len(amb)] += amb[:n - i]
-        evs = list(ZDARZENIA.get(klucz, []))
+        evs = [(at - od, kind, g) for at, kind, g in ZDARZENIA.get(src, []) if od <= at < od + sec] + DODATKI.get(klucz, [])
         g = R.GRANICE[idx]  # przejścia: kurtyna między aktami (render.przejscie), klapki przy tytule aktu
         zam, dl, czekaj, otw = R.KURTYNA
         if g["ostatnie_aktu"] and idx < len(us) - 1:
             evs += [(sec - zam, "kurtyna_z", 1.0), (sec - zam + dl - 0.05, "klaps", 0.8)]
         elif g["pierwsze_aktu"] and idx > 0:
             evs += [(czekaj, "kurtyna_r", 1.0)]
-        if klucz in R.BUDUJ:  # zmiana dekoracji: papier i drewno w rytm wjeżdżających elementów
+        if klucz in R.BUDUJ and klucz not in R.WYCINEK:  # zmiana dekoracji: papier i drewno w rytm wjeżdżających elementów
             evs += [(d, "whoosh", 0.35) for d in (0.0, 0.25, 0.45, 0.65, 0.9)] + [(d, "knock", 0.3) for d in (0.75, 1.05, 1.4, 1.7)]
         for at, kind, g in evs:
             if at >= sec:
@@ -579,7 +611,7 @@ def main():
             events += 1
         t0 += sec
     fx *= np.where(voice, 10 ** (-6 / 20), 1.0)
-    mus = muzyka(total, voice, [(a0, a1, AKT_NASTROJ[a]) for a0, a1, a in acts])
+    mus = muzyka(total, voice, [(a0, a1, AKT_NASTROJ[a]) for a0, a1, a in acts]) * cisza_muzyki(n, starts)
     OUT.mkdir(exist_ok=True)
     zapisz(OUT / "efekty.wav", fx)
     zapisz(OUT / "muzyka.wav", mus)

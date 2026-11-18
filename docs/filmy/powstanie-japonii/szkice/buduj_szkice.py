@@ -9,8 +9,9 @@ i nieruchome klatki EN z projektu Studio (output/powstanie-japonii/studio_en.jso
 bierze swoją klatkę; gdy wariant zmienia kwestię, wpalony stary napis zostaje przykryty nowym. Nowe ujęcie bez klatki
 dostaje w Studio kartę (opis + kwestia) — to jest do narysowania.
 
-Uruchomienie (z katalogu repo albo worktree):
-    JEZYK=en .venv-studio/bin/python docs/filmy/powstanie-japonii/szkice/buduj_szkice.py
+Uruchomienie (z katalogu repo albo worktree; bez argumentów wszystkie warianty, np. „d” — tylko D):
+    JEZYK=en .venv-studio/bin/python docs/filmy/powstanie-japonii/szkice/buduj_szkice.py [a b c d]
+Szkice A–C są z 18.11 sprzed prologu (akt 0) — budowały się na starszej rozpisce; D idzie za filmem.
 Wynik: szkice/<a|b|c>/szkic.json + klatki/ (klatki są w .gitignore — powstają z Studio). Import do Studio:
 Szkice ujęć → „Szkice w plikach…” → „powstanie-japonii: wszystkie warianty” → „Importuj z plików”.
 """
@@ -45,8 +46,18 @@ for _n, _t, _o, _sceny in dane.AKTY:
         for _b, _shots in _beaty:
             for _shot in _shots:
                 MIEJSCE[_shot[0]] = _stitle
+# skróty ujęć (akt 0: zap_*, hak_*) dzieją się tam, gdzie oryginał; teatr cieni to osobna dekoracja (parawan)
+for _k in list(MIEJSCE):
+    _src = _k.split("_", 1)[1] if _k.startswith(("zap_", "hak_")) else ""
+    if _src in MIEJSCE:
+        MIEJSCE[_k] = MIEJSCE[_src]
+MIEJSCE["hak_cien"] = "teatr cieni (parawan)"
+NAGRANE = set()  # ujęcia, których kwestia ma już nagranie lektora EN (reszta czeka na lektora reżysera)
 for akt, k, klucz, kadr, _ruch, sec, opis, dzwiek in dane.ujecia():
     ROZPISKA[klucz] = (f"d{akt:02d}_{k:02d}", KADR.get(kadr, kadr), sec, opis, EN.get(klucz, "") if dzwiek.startswith("L:") else "")
+    if dane.nagranie(dzwiek):
+        NAGRANE.add(klucz)
+FILM_EN = sum(u[5] for u in dane.ujecia()), len(ROZPISKA)
 
 
 def slowa(line: str) -> int:
@@ -268,82 +279,64 @@ C = {
 }
 
 # ----------------------------------------------------------------------------------------------- wariant D
+# Od przeglądu scenariusza 18.11.2026 (reżyser: „tak, wszystkie oprócz lektora”) film idzie według D, więc D bierze kwestie
+# i kolejność wprost z rozpiski (dane.py) — szkic to ten sam film, rozpisany do przekartkowania z kurtynami i znacznikami.
 D = {
     "wariant": "d",
     "tytul": "D · Wszystko razem — bracia, trzy skarby i śledztwo",
     "podejscie": (
         "Reżyser 18.11.2026: „na nich bym zbudował cały film i A i B i C i aktualne akty, bo każdy z tych tematów jest "
-        "ciekawy; w pierwszej minucie musi się dużo zmieniać, sceneria co najmniej 3 razy; na początku mini spoiler 5 s, "
-        "co będzie w filmie (najlepsze akcje)”. Film zaczyna się 5-sekundową zapowiedzią: siedem najmocniejszych akcji po "
-        "ok. 0,7 s (ciemność nad jaskinią, osiem głów, cios mieczem, strzały spod słońca, burza, wrona, błysk złotego ptaka). "
-        "Hak w środku akcji jak w C (strzała, burza, został jeden brat), do tego miecz z koronacji 2019 z A i pytanie z B, "
-        "czy książę w ogóle istniał. Obietnica odpowiada wszystkim trzem wątkom. Dalej obecne akty: mit z nicią trzech "
-        "skarbów (A) i drugim hakiem przy mieczu w ogonie węża, wyprawa braci (C) z powrotem do sceny z haka, wrona, "
-        "Yamato, tron, a akt VIII to śledztwo z B (data z wróżby → złota pieczęć chłopa). Na końcu koronacja 2019 zamyka "
-        "pętlę z haka."),
+        "ciekawy; w pierwszej minucie musi się dużo zmieniać, sceneria co najmniej 3 razy; na początku mini spoiler 5 s”. "
+        "Otwarcie: 5 s zapowiedzi (siedem najmocniejszych akcji) i ściemnienie, kurtyna startu na teatr z czterema braćmi, "
+        "najazd z wprowadzeniem (Iwarebiko, przyszły cesarz; czy w ogóle istniał), hak (strzała, teatr cieni, burza, miecz "
+        "z 2019 roku, którego nikt nie widział) i obietnica. Potem pomost do mitu (czemu bracia wierzyli, że pochodzą od słońca), "
+        "mit z nicią trzech skarbów (A) i drugim hakiem przy mieczu w ogonie węża, wyprawa braci (C) z powrotem do sceny z haka "
+        "(„Pamiętasz tę strzałę?”), wrona, Yamato, tron i pytanie „Ale czy on w ogóle istniał?”, a akt VIII to śledztwo (B): "
+        "data z wróżby → chłop i złota pieczęć → chińskie zapiski → Himiko. Koronacja 2019 zamyka pętlę z haka. Po przeglądzie "
+        "scenariusza (18.11) wypadły: księżniczki kwiatów i skał, postoje w portach, pola ryżowe i żona cesarza; poprawione "
+        "fakty: miecz w chramie i zastępczy przy koronacji, haniwa, 1966, ryż, „inny miecz”, 127 lat według kroniki; mniej imion; "
+        "tytuły aktów to pytania; cisza muzyki przed szczytami (wąż, wrona, złoty ptak)."),
     "pogorszenie": "Starcy z Izumo: wąż pożarł siedem córek i idzie po ostatnią (a w akcie VIII drugie pogorszenie: data "
                    "z wróżby i myśliwi zamiast pałaców).",
-    "hak2": "Susanoo znajduje miecz w ogonie węża — ten z koronacji 2019 (odpowiedź na hak) — a Ninigi dostaje trzy skarby, "
-            "choć człowiek, który zbuduje z nimi kraj, jeszcze się nie urodził.",
+    "hak2": "Susanoo znajduje miecz w ogonie węża — według tradycji ukryty w chramie, nikt z żyjących go nie widział "
+            "(odpowiedź na hak) — a Ninigi dostaje trzy skarby, choć człowiek, który zbuduje z nimi kraj, jeszcze się nie urodził.",
     "ujecia": [
-        R("jaskinia", "", sec=0.8, mark="ZAPOWIEDŹ 5 s", uwaga="Zapowiedź: najmocniejsza chwila ujęcia (słońce znika, scena gaśnie), bez lektora; jeden mocny akord muzyki na całą zapowiedź."),
-        R("orochi", "", sec=0.7, uwaga="Zapowiedź: osiem głów wychyla się zza gór."),
-        R("miecz", "", sec=0.7, uwaga="Zapowiedź: cios mieczem, szarpnięcie kamery."),
-        R("strzaly", "", sec=0.7, uwaga="Zapowiedź: chmara strzał spod słońca."),
-        R("burza", "", sec=0.7, uwaga="Zapowiedź: łodzie znikają za falą."),
-        R("wrona", "", sec=0.7, uwaga="Zapowiedź: wrona przelatuje nad górami."),
-        R("blysk", "", sec=0.7, uwaga="Zapowiedź: błysk złotego ptaka, potem cięcie do haka."),
-        R("rana", "An arrow struck Prince Itsuse, the eldest of four brothers.", hak=True, mark="HOOK 1"),
-        R("burza", "Then a storm took two more, and only Iwarebiko was left.", hak=True),
-        R("koronacja", "In 2019, Japan's hundred and twenty-sixth emperor received a sword no one alive has seen.",
-          hak=True),
-        R("cien", "So was Iwarebiko the first of them, and did he even exist?", hak=True, pauza="beat"),
-        R("teatr", sec=2.5, mark="TYTUŁ", uwaga="Otwarcie teatru skrócone z 6,5 s do 2,5 s, dopiero po haku."),
-        R("luty", "By the end, you'll know where that sword came from, why Japan's birthday was probably made up, and "
-                  "why its football team wears a three-legged crow.", mark="OBIETNICA", pauza="akt"),
+        R("zap_jaskinia", mark="ZAPOWIEDŹ 5 s"), R("zap_orochi"), R("zap_miecz"), R("zap_strzaly"), R("zap_burza"),
+        R("zap_wrona"), R("zap_blysk", uwaga="Na końcu ściemnienie."),
+        R("teatr", mark="TYTUŁ · kurtyna startu"),
+        R("hak_najazd", mark="WPROWADZENIE", uwaga="Podpisy po kolei: „Iwarebiko, the future emperor”, „Itsuse, eldest brother”."),
+        R("hak_rana", mark="HOOK 1"), R("hak_cien"), R("hak_burza"), R("hak_koronacja"),
+        R("luty", mark="OBIETNICA"),
         AKT("I", "Act I · How do you make a country from a single drop?"),
-        R("most", "In the beginning, the young earth drifted without shape, until two gods, Izanagi and Izanami, came "
-                  "down to give it one.", uwaga="Meduza wypada; jej zdanie wchodzi do kwestii mostu."),
-        R("wlocznia"), R("kropla"), R("wyspy"),
+        R("meduza", mark="POMOST", uwaga="Pomost z haka do mitu."), R("most"), R("wlocznia"), R("kropla"), R("wyspy"),
         AKT("II", "Act II · Why did the sun hide in a cave?"),
-        R("ogien"),
-        R("yomi", uwaga="Reżyser 18.11.2026: kraina zmarłych wraca do filmu."),
-        R("rzeka", "Grieving, Izanagi washed in a river, and from his eyes and nose were born Amaterasu, the sun goddess, "
-                   "the moon god, and Susanoo, god of storms.", pauza="beat"),
-        R("susanoo"), R("jaskinia"), R("ciemno"), R("koguty"), R("uzume"),
-        R("lustro", "Curious, Amaterasu peeked out at her own radiance in a mirror, and that mirror became the first of "
-                    "the three sacred treasures of Japan's emperors.", uwaga="Nić trzech skarbów (A)."),
-        R("swit"),
+        R("ogien"), R("yomi", uwaga="Reżyser 18.11.2026: kraina zmarłych wraca do filmu."),
+        R("rzeka", uwaga="Amaterasu to przodkini czterech braci — bohater nie znika z opowieści."),
+        R("susanoo"), R("jaskinia"), R("ciemno"), R("koguty"), R("uzume"), R("lustro", uwaga="Nić trzech skarbów (A)."), R("swit"),
         AKT("III", "Act III · What was hiding in the serpent's tail?"),
-        R("wygnanie"), R("starcy", mark="POGORSZENIE"), R("kadzie"), R("orochi"), R("pije"),
-        R("miecz", "When the drunken heads fell asleep, Susanoo cut the serpent apart and found a sword in its tail, the "
-                   "sword that, according to tradition, was brought to the emperor again in 2019.",
-          mark="HOOK 2 · promyk nadziei", pauza="beat", uwaga="Odpowiedź na hak: miecz z koronacji 2019."),
-        R("skarby", "Amaterasu gave the mirror, the jewels and the sword to her grandson Ninigi, but the man who would "
-                    "build a country with them had not yet been born."),
-        R("zejscie", pauza="akt", uwaga="Księżniczki kwiatów i skał (siostry, płatki) wypadają."),
+        R("wygnanie"), R("starcy", mark="POGORSZENIE"), R("kadzie"),
+        R("orochi", uwaga="Muzyka milknie, zostaje syk głów; przy ósmej głowie bęben i gong."), R("pije"),
+        R("miecz", mark="HOOK 2 · promyk nadziei", uwaga="Odpowiedź na hak: miecz ukryty w chramie, nikt go nie widział."),
+        R("skarby", uwaga="Pytanie na dalej: człowiek, który zbuduje kraj, jeszcze się nie urodził."), R("zejscie"),
         AKT("IV", "Act IV · Why would a prince sail east at forty-five?"),
-        R("prawnuk"), R("wschod"), R("bracia"), R("flota"), R("postoje"), R("naniwa"),
-        R("nagasune"), R("strzaly", uwaga="Powrót do sceny z haka."), R("rana"), R("pod_slonce"),
+        R("prawnuk"), R("wschod"), R("bracia"), R("flota"), R("naniwa"), R("nagasune"),
+        R("strzaly", uwaga="Powrót do sceny z haka."), R("rana"), R("pod_slonce"),
         AKT("V", "Act V · Who sent the crow?"),
-        R("itsuse"), R("burza"), R("sam"), R("las"), R("niedzwiedz"), R("takakuraji"), R("przebudzenie"), R("wrona"),
+        R("itsuse"), R("burza"), R("sam"), R("las"), R("niedzwiedz"), R("takakuraji"), R("przebudzenie"),
+        R("wrona", uwaga="Muzyka milknie na sekundę przed pierwszym krakaniem, potem wraca głośniej."),
         R("trzy_nogi", mark="ODPOWIEDŹ 1"),
         AKT("VI", "Act VI · How do you win a battle in a hailstorm?"),
-        R("yamato"), R("pulapka"), R("bitwa"), R("ptak"), R("blysk"), R("order"),
-        R("strzala_nieba"), R("zdrada"),
+        R("yamato"), R("pulapka"), R("bitwa"), R("ptak", uwaga="Cisza muzyki (tylko grad), aż ptak rozbłyśnie."), R("blysk"),
+        R("order"), R("strzala_nieba"), R("zdrada"),
         AKT("VII", "Act VII · Who sat on the first throne?"),
-        R("palac"), R("tron"), R("imie"), R("zona"), R("smierc", uwaga="Pola ryżowe wypadają."), R("pusto"), R("linia"),
-        AKT("VIII", "Act VIII · Was any of it true?"),
+        R("palac"), R("tron"), R("imie"), R("smierc"), R("pusto"), R("linia", mark="HAK przed aktem VIII"),
+        AKT("VIII", "Act VIII · What does the evidence say?"),
         R("kronika"), R("rachunek", mark="ODPOWIEDŹ 2"), R("jomon", mark="POGORSZENIE (śledztwo)"),
-        R("chlop", "Then, in 1784, a farmer repairing a ditch struck something golden with his hoe.",
-          mark="promyk nadziei (śledztwo)", uwaga="Kolejność ze śledztwa B: najpierw znalezisko, potem czym było."),
-        R("pieczec", "It was a seal the emperor of China had sent to a king of the Wa in the year 57: proof that real "
-                     "kings ruled the islands long before the chronicles."),
-        R("odcisk"), R("wa"), R("himiko"),
+        R("chlop", mark="promyk nadziei (śledztwo)"), R("pieczec"), R("odcisk"), R("wa"), R("himiko"),
         AKT("IX", "Act IX · Why 'the origin of the sun'?"),
         R("kofun"), R("haniwa"), R("tancerz"), R("nihon"), R("luty2"), R("koronacja", uwaga="Zamyka pętlę z haka."),
         R("koniec"),
-        R("dzieki", DZIEKI, mark="PODZIĘKOWANIE", pauza="akt"),
+        R("dzieki", mark="PODZIĘKOWANIE"),
     ],
 }
 
@@ -363,7 +356,8 @@ def ujecia_wariantu(w):
             if e["hak"] and not zmiana:
                 sec = min(sec, czas(line, hak=True))
             rodzaj = ("z rozpiski, bez kwestii" if zmiana and not line else "z rozpiski, nowa kwestia" if zmiana
-                      else "z rozpiski" if e["sec"] is None else "z rozpiski, skrócone")
+                      else "z rozpiski, skrócone" if e["sec"] is not None
+                      else "z rozpiski, kwestia bez nagrania" if line and e["klucz"] not in NAGRANE else "z rozpiski")
             if e["hak"]:
                 e = {**e, "uwaga": " ".join(x for x in ("W haku: szybkie cięcie, tylko kulminacja ujęcia.", e["uwaga"]) if x)}
             item = {"klucz": e["klucz"], "ref": ref, "kadr": kadr, "sekundy": sec, "opis": opis, "kwestia": line,
@@ -435,16 +429,16 @@ def scenariusz(w, items):
     nowe = [i for i in items if i["rodzaj"] != "z rozpiski"]
     pominiete = [k for k in ROZPISKA if k not in {i["klucz"] for i in items}]
     lines = [w["tytul"], "", "PODEJŚCIE", w["podejscie"], "",
-             f"DŁUGOŚĆ: {zegar(t)} · {len(items)} ujęć (obecny film EN: 12:20,4 · 79 ujęć)", "",
+             f"DŁUGOŚĆ: {zegar(t)} · {len(items)} ujęć (film EN z rozpiski: {zegar(FILM_EN[0])} · {FILM_EN[1]} ujęć)", "",
              f"PIERWSZA MINUTA: dekoracja zmienia się {zmiany} razy ({'; '.join(gdzie)})", "",
              "ZNACZNIKI", *znaczniki, "",
              "POGORSZENIE → HAK 2", f"Pogorszenie: {w['pogorszenie']}", f"Hak 2: {w['hak2']}", "",
              "AKTY (tytuł na kurtynie)",
              *[f"{e['mark']}: {e['pytanie']}" for e in w["ujecia"] if e["typ"] == "AKT"], "",
              f"CO TRZEBA ZROBIĆ: nowe ujęcia do narysowania: {sum(i['rodzaj'] == 'nowe ujęcie, do narysowania' for i in items)}, "
-             f"nowe kwestie do nagrania: {sum('nowa kwestia' in i['rodzaj'] for i in items)}, "
+             f"nowe kwestie do nagrania: {sum('nowa kwestia' in i['rodzaj'] or 'bez nagrania' in i['rodzaj'] for i in items)}, "
              f"skrócone ujęcia: {sum(i['rodzaj'] == 'z rozpiski, skrócone' for i in items)}; reszta ujęć bez zmian.",
-             f"WYPADA Z FILMU ({len(pominiete)}): " + ", ".join(pominiete), "",
+             *([f"WYPADA Z FILMU ({len(pominiete)}): " + ", ".join(pominiete), ""] if pominiete else []),
              "NOWE I ZMIENIONE KWESTIE EN"]
     for n, i in enumerate(nowe):
         if i["kwestia"]:
@@ -458,8 +452,15 @@ def main():
     project = json.loads((folder / "project.json").read_text(encoding="utf-8"))
     assets = {a["id"]: a for a in project["assets"]}
     media = folder / "media"
+    wybrane = sys.argv[1:] or ["a", "b", "c", "d"]
     for w in (A, B, C, D):
-        items = ujecia_wariantu(w)
+        if w["wariant"] not in wybrane:
+            continue
+        try:
+            items = ujecia_wariantu(w)
+        except KeyError as brak:  # wariant zbudowany na starszej rozpisce (ujęcie, którego już nie ma w filmie)
+            print(f"{w['tytul']}: pominięty — w rozpisce nie ma już ujęcia {brak}; szkic.json zostaje bez zmian")
+            continue
         tekst, total, czasy = scenariusz(w, items)
         cel = TU / w["wariant"]
         ujecia = []

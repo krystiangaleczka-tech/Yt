@@ -34,9 +34,82 @@ def s_teatr(st, w, t, T):
     st.dof = 0.0
     kraj(st, t, w, pola=1.0)
     on = pr(t, 0.7, 0.5) * (0.75 + 0.25 * (math.sin(t * 43) > -0.6 or t > 1.25))
+    bracia_na_polanie(st, t)
     st.put(J.black(), CX, CY, 0.992, w=1300, anchor=(0.5, 0.5), alpha=1 - on, shadow=None, blur=0)
     J.theatre_put(st, 0.55 + 0.45 * pr(t, 0.2, 0.8))
     swiatlo(st, w, t)
+
+
+# Otwarcie filmu (reżyser 18.11.2026): w teatrze na polanie stoi ludek z ujęcia strzały (Itsuse), w następnym ujęciu kamera
+# najeżdża na niego. Bracia stoją tak, żeby przy najeździe zostać poza kadrem zbliżenia (zbliżenie „hak_rana”: x 300–900).
+BRACIA = (("itsuse", 600, 280, 2.6, None), ("iwarebiko", 1000, 290, 2.9, "luk"), ("brat2", 185, 270, 3.1, None),
+          ("brat3", 1115, 265, 3.3, None))
+
+
+def bracia_na_polanie(st, t, wstaja=True):
+    """Czterech braci na polanie: wysuwają się zza rampy po kolei (wstaja=False: już stoją), patrzą na wschód."""
+    for key, x, h, t0, rzecz in BRACIA:
+        k = ease(pr(t, t0, 0.7)) if wstaja else 1.0
+        if k <= 0:
+            continue
+        lalka(st, t, key, x, h, k, flip=1, rece=(8, 0), trzyma=LUK(h) if rzecz == "luk" else None)
+
+
+def s_hak_najazd(st, w, t, T):
+    """Kamera najeżdża z całej sceny na Itsuse i Iwarebiko na polanie (przegląd 18.11.2026: lektor mówi o przyszłym
+    cesarzu, więc widz ma go zobaczyć, a nie wziąć Itsuse za cesarza). Podpisy po kolei, kiedy lektor ich nazywa:
+    „Iwarebiko, przyszły cesarz” (imię pada ok. 2 s), potem „Itsuse, najstarszy brat” (przy „trzech braciach”)."""
+    k = ease(t / T)
+    m = math.exp(lerp(math.log(1.0), math.log(1.55), k))
+    kam(st, t, 36, lerp(640, 800, k), lerp(360, 455, k), m, lerp(1.0, 0.8, k), lens=lerp(1.0, 1.5, k), truck=0.8, drift=0.3)
+    st.dof = lerp(0.3, 1.4, k)
+    kraj(st, t, w, pola=1.0)
+    bracia_na_polanie(st, t, wstaja=False)
+    podpis(w, t, "Iwarebiko, przyszły cesarz", 1000, nad(290), 1.6, 0.42 * T)
+    podpis(w, t, "Itsuse, najstarszy brat", 600, nad(280), 0.42 * T, 0.5 * T)
+    zawieszki(st, t, w)
+    swiatlo(st, w, t)
+
+
+# Teatr cieni między strzałą a burzą (reżyser 18.11.2026: „ujęcie, jak jest ziomek za kurtyną, ale dokładamy, że strzela
+# ktoś strzałą w niego”): cień Itsuse na parawanie, z prawej wysuwa się cień łucznika, strzela, Itsuse pada (śmierć widać).
+CIEN_STRZAL = 1.35  # łucznik puszcza cięciwę; strzała leci 0,3 s
+CIEN_TRAF = CIEN_STRZAL + 0.3
+
+
+def s_hak_cien(st, w, t, T):
+    """Parawan podświetlony od tyłu: cień Itsuse, z prawej cień łucznika strzela, Itsuse zatacza się i opada."""
+    kam(st, t, 2, 640, 458, lerp(1.62, 1.7, ease(t / T)), 0.84, lens=1.42, shake=4.0 * (CIEN_TRAF < t < CIEN_TRAF + 0.3))
+    st.dof = 1.6
+    kraj(st, t, w, pola=1.0, kul=False)
+    pw = 600
+    ph = pw * 480 / 760
+    y0, p0 = 704, 0.83
+    cien = dict(tint=(0.10, 0.07, 0.06), shadow=None, blur=1.6, y=y0 - 26, p=p0 + 0.001)
+    st.put(J.glow(), 640, y0 - ph * 0.5, p0 - 0.004, w=900, anchor=(0.5, 0.5), mode="add", alpha=0.35, shadow=None, tint=(1.0, 0.8, 0.55))
+    st.put(J.parawan(), 640, y0, p0, w=pw, anchor=(0.5, 1.0), shadow=(6, 8, 10, 0.45))
+    hit = ease(pr(t, CIEN_TRAF, 0.35))
+    lean = -14 * hit + 3 * settle((t - CIEN_TRAF - 0.4) / 1.2, 1.5) * (t > CIEN_TRAF + 0.4)
+    sink = ease(pr(t, CIEN_TRAF + 1.1, 1.3))
+    hx, hh = 520, 250
+    lalka(st, t, "itsuse", hx, hh, 1.0, flip=1, lean=lean, sink=sink, rece=(25 + 30 * hit, -10 * hit), alpha=0.82 * (1 - 0.6 * sink),
+          **cien)
+    ax, ay = punkt("itsuse", hx, hh, 196, 236, y=y0 - 26, rot=lean)
+    ay += sink * hh * 0.9
+    lk = ease(pr(t, 0.25, 0.6))  # łucznik wysuwa się z prawej krawędzi parawanu
+    naciag = ease(pr(t, 0.75, 0.5)) * (1 - ease(pr(t, CIEN_STRZAL, 0.15)))
+    lalka(st, t, "wojownik2", lerp(980, 820, lk), 260, lk, flip=-1, rece=(85 + 10 * naciag, 60 * naciag), trzyma=LUK(260),
+          alpha=0.82 * lk, **cien)
+    f = pr(t, CIEN_STRZAL, CIEN_TRAF - CIEN_STRZAL)
+    if 0 < f < 1:
+        st.put(Z0.prop("strzala"), lerp(790, ax, f), lerp(ay - 30, ay, f) - 20 * math.sin(math.pi * f), p0 + 0.002, w=hh * 0.42,
+               anchor=(0.95, 0.5), rot=180, tint=(0.10, 0.07, 0.06), alpha=0.8, shadow=None, blur=1.6)
+    elif f >= 1 and sink < 0.95:
+        st.put(Z0.prop("strzala"), ax, ay, p0 + 0.002, w=hh * 0.42, anchor=(0.95, 0.5), rot=lean + 160, tint=(0.10, 0.07, 0.06),
+               alpha=0.8 * (1 - sink), shadow=None, blur=1.6)
+    st.put(J.parawan_rama(), 640, y0, p0 + 0.003, w=pw, anchor=(0.5, 1.0), shadow=(2, 3, 4, 0.4))
+    swiatlo(st, w, t, dim=0.92)
+    st.spot = (640, y0 - ph * 0.5, p0, 560, 0.5)
 
 
 def s_luty(st, w, t, T):
@@ -405,7 +478,7 @@ def s_uzume(st, w, t, T):
     _bogowie(st, t, rozbaw=1.0, dim=0.9, t0=UZUME_SMIECH)
     for n, x in enumerate((90, 1250)):
         pochodnia(st, t, x, 720, P.rekwizyty, seed=n + 3)
-    podpis(w, t, "Uzume", 640, nad(240, 596) - 24, 0.8, 2.2)
+    podpis(w, t, "bogini tańca", 640, nad(240, 596) - 24, 0.8, 2.2)
     for n, (txt, x, d) in enumerate((("HA HA!", 270, 0.0), ("HA HA HA!", 1020, 0.5), ("HA HA!", 400, 1.4), ("HA HA HA!", 900, 2.0))):
         podpis(w, t, txt, x, 330 + 40 * (n % 2), UZUME_SMIECH + 0.3 + d, 1.6)
     zawieszki(st, t, w)
@@ -722,8 +795,9 @@ IW = 300  # Iwarebiko stoi z lewej, twarzą na wschód
 
 
 def s_prawnuk(st, w, t, T):
-    """Ninigi opada pod rampę, na jego miejscu wysuwa się Iwarebiko z łukiem; zjeżdża zawieszka „Hyūga”."""
-    w.zawieszki = [("Hyūga", 580, 330, pr(t, 4.4, 1.0))]
+    """Ninigi opada pod rampę, na jego miejscu wysuwa się Iwarebiko z łukiem; zjeżdża zawieszka „Kiusiu” (przegląd 18.11.2026:
+    mniej imion — bez krainy Hyūga)."""
+    w.zawieszki = [("Kiusiu", 580, 330, pr(t, 4.4, 1.0))]
     k = ease(t / T)
     kam(st, t, 28, lerp(470, 500, k), 500, lerp(1.48, 1.62, k), 0.8)
     st.dof = 1.3

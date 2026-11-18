@@ -41,7 +41,7 @@ def stan(i):
     po = lambda k: i > I[k]
     f = lambda c: 1.0 if c else 0.0
     return Stan(
-        build=None, noc=0.0, sun=f(not (po("cien") and not po("rzeka"))), sun_xy=(905, 96),  # przed Amaterasu nie ma słońca
+        build=None, noc=0.0, sun=f(not (po("luty") and not po("rzeka"))), sun_xy=(905, 96),  # przed Amaterasu nie ma słońca (od mitu)
         moon=0.0, clouds=[1.0, 1.0, 1.0],
         ciemnosc=f(po("jaskinia") and not po("lustro")),  # słońce w jaskini
         cesarz=f(po("tron") and not po("smierc")), choragiewki=0.0, zawieszki=[], kulisy=True,

@@ -57,9 +57,6 @@ SWIAT = {
         {"id": "susanoo", "name": "Susanoo", "role": "bóg burzy, brat Amaterasu", "look": "granatowa szata, rozwiane włosy, broda, miecz"},
         {"id": "uzume", "name": "Uzume", "role": "bogini tańca", "look": "pomarańczowa szata, gałązki w rękach"},
         {"id": "ninigi", "name": "Ninigi", "role": "wnuk Amaterasu", "look": "biało-złota szata, mizura", "leaves": r("prawnuk", "opada")},
-        {"id": "kwiat", "name": "księżniczka kwiatów", "role": "żona Ninigiego (Konohanasakuya)", "look": "różowa szata, wiśnia"},
-        {"id": "skala", "name": "księżniczka skał", "role": "siostra odesłana do ojca (Iwanaga)", "look": "szara szata, głaz",
-         "leaves": r("siostry", "opada")},
         {"id": "itsuse", "name": "Itsuse", "role": "najstarszy brat Iwarebiko", "look": "niebieska szata, mizura",
          "joins": r("bracia", "Itsuse"), "leaves": r("itsuse", "zmarł")},
         {"id": "bracia2", "name": "dwaj młodsi bracia", "role": "giną w burzy przy Kii (Inahi i Mikenu)", "look": "zielona i brązowa szata",
@@ -89,7 +86,8 @@ SWIAT = {
         {"id": "grzebien", "name": "Grzebień we włosach Susanoo", "owner": "Susanoo", "seeded": r("kadzie", "grzebień")},
         {"id": "futsu", "name": "Miecz zrzucony z nieba", "seeded": r("takakuraji", "miecz"), "uses": [r("przebudzenie", "miecz")]},
         {"id": "strzaly_nieba", "name": "Strzały z niebiańskim upierzeniem", "seeded": r("strzala_nieba", "strzale")},
-        {"id": "pieczec", "name": "Złota pieczęć króla Na", "seeded": r("pieczec", "pieczęć"), "uses": [r("chlop", "pieczęć")]},
+        {"id": "pieczec", "name": "Złota pieczęć króla Na", "seeded": r("chlop", "pieczęć"),
+         "uses": [r("pieczec", "pieczęć"), r("odcisk", "pieczęć")], "note": "Od przeglądu 18.11.2026 najpierw znalezisko chłopa (1784), potem czym była."},
         {"id": "choragiewki", "name": "Chorągiewki z czerwonym słońcem", "place": "kraj", "seeded": r("luty", "chorągiewki"),
          "uses": [r("luty2", "chorągiewki")]},
     ],
@@ -118,28 +116,26 @@ SWIAT = {
         {"at": r("strzala_nieba", "Nagasunehiko"), "note": "Nagasunehiko pokazuje niebiańską strzałę", "needs": ["nagasune"]},
         {"at": r("palac", "pałac"), "note": "pałac powstaje po zwycięstwie", "needsOff": ["nagasune"]},
         {"at": r("imie", "cesarzem"), "note": "zawieszka z imieniem przed cesarzem", "needs": ["cesarz"]},
-        {"at": r("zona", "cesarza"), "note": "cesarz bierze żonę", "needs": ["cesarz"]},
         {"at": r("linia", "cesarzy"), "note": "linia następców po śmierci", "needsOff": ["cesarz"]},
     ],
     "threads": [
         {"id": "swieto", "title": "11 lutego: urodziny państwa", "setup": [r("luty", "lutego")], "clues": [r("tron", "nowego roku")],
          "payoff": [r("luty2", "lutego")]},
-        {"id": "czy_zyl", "title": "Czy pierwszy cesarz żył?", "setup": [r("cien", "żył")],
-         "clues": [r("imie", "później"), r("kronika", "712"), r("rachunek", "wróżby"), r("jomon", "myśliwi"), r("haniwa", "naprawdę")],
+        {"id": "czy_zyl", "title": "Czy pierwszy cesarz żył?", "setup": [r("hak_najazd", "istniał")],
+         "clues": [r("imie", "później"), r("kronika", "712"), r("rachunek", "wróżby"), r("jomon", "myśliwi"), r("haniwa", "prawdziwi")],
          "payoff": [r("koniec", "żył")]},
         {"id": "kropla", "title": "Kraj z kropli z włóczni", "setup": [r("kropla", "kropli")], "clues": [r("wyspy", "wysp")],
          "payoff": [r("koniec", "kropli")]},
-        {"id": "skarby", "title": "Lustro, klejnoty i miecz", "setup": [r("koguty", "lustro"), r("miecz", "miecz")],
-         "clues": [r("skarby", "skarby"), r("tron", "lustro"), r("smierc", "przeszły")], "payoff": [r("koronacja", "miecz")]},
-        {"id": "slonce", "title": "Potomek słońca walczy pod słońce", "setup": [r("rzeka", "słońca")],
+        {"id": "skarby", "title": "Lustro, klejnoty i miecz", "setup": [r("koguty", "lustro"), r("lustro", "skarbów"), r("miecz", "miecz")],
+         "clues": [r("skarby", "klejnoty"), r("tron", "lustro"), r("smierc", "przeszły")], "payoff": [r("koronacja", "miecz")]},
+        {"id": "slonce", "title": "Potomek słońca walczy pod słońce", "setup": [r("meduza", "słońca"), r("rzeka", "przodkini")],
          "clues": [r("jaskinia", "słońce"), r("wschod", "słońce"), r("nagasune", "słońce")], "payoff": [r("pod_slonce", "słońcem")]},
-        {"id": "kwiat", "title": "Życie krótkie jak kwiat", "setup": [r("siostry", "kwiatów")], "payoff": [r("platki", "kwiatów")]},
-        {"id": "bracia", "title": "Czterech braci wyrusza, wraca jeden", "setup": [r("bracia", "braćmi")],
+        {"id": "bracia", "title": "Czterech braci wyrusza, wraca jeden", "setup": [r("hak_najazd", "braćmi"), r("bracia", "braćmi")],
          "clues": [r("rana", "Itsuse"), r("itsuse", "zmarł"), r("burza", "braci")], "payoff": [r("sam", "Iwarebiko")]},
         {"id": "nagasune", "title": "Książę o długich goleniach", "setup": [r("nagasune", "Nagasunehiko")],
          "clues": [r("rana", "strzał"), r("bitwa", "Nagasunehiko"), r("strzala_nieba", "Nagasunehiko")], "payoff": [r("zdrada", "zabił")]},
         {"id": "wrona", "title": "Wrona przewodniczka", "setup": [r("wrona", "Yatagarasu")], "payoff": [r("trzy_nogi", "trzema")]},
-        {"id": "ptak", "title": "Złoty ptak na łuku", "setup": [r("cien", "ptaka")], "clues": [r("ptak", "złoty")],
+        {"id": "ptak", "title": "Złoty ptak na łuku", "setup": [r("zap_blysk", "ptaka")], "clues": [r("ptak", "złoty")],
          "payoff": [r("order", "ptaka")]},
         {"id": "nihon", "title": "Kraj od słońca", "setup": [r("teatr", "słońce")], "clues": [r("rzeka", "Amaterasu")],
          "payoff": [r("nihon", "słońca"), r("koniec", "słońca")]},
@@ -189,6 +185,22 @@ SWIAT = {
          "gwiazdki przy zamroczeniu), syn przy śmierci cesarza, kurtyna z tytułem między aktami i ściemnienie przy zmianie "
          "miejsca, podziękowanie na końcu, głos człowieka (śmiech, jęk, kaszel) z nagrania, a nie z szumu.", "at": "2026-11-17",
          "by": "reżyser"},
+        {"id": "D11", "text": "Film budujemy na wszystkich szkicach naraz (szkic D „Wszystko razem”: A trzy skarby, B śledztwo, "
+         "C czterech braci + obecne akty; reżyser 18.11: „na nich bym zbudował cały film i A i B i C i aktualne akty”). "
+         "Pierwszy krok: otwarcie jako prolog (akt 0) — 5 s zapowiedzi najlepszych akcji (skróty ujęć, render.WYCINEK), hak "
+         "w środku akcji (strzała w Itsuse, burza, miecz z koronacji 2019, pytanie, czy pierwszy cesarz istniał), tytuł teatru "
+         "2,5 s i obietnica filmu; w pierwszej minucie dekoracja zmienia się co najmniej 3 razy. Reszta filmu według szkicu D "
+         "po jego zatwierdzeniu w Studio.", "at": "2026-11-18", "by": "reżyser"},
+        {"id": "D12", "text": "Poprawki z przeglądu scenariusza (reżyser 18.11: „tak, wszystkie oprócz lektora, lektora dodam na końcu”). "
+         "Film idzie według szkicu D: wypadają księżniczki kwiatów i skał, postoje w portach, pola ryżowe i żona cesarza (11:59 przy "
+         "tempie lektora EN). Wprowadzenie nazywa Iwarebiko i pokazuje go z podpisem „przyszły cesarz”; meduza to pomost do mitu "
+         "(„żeby zrozumieć, czemu bracia wierzyli, że pochodzą od słońca…”); Amaterasu to przodkini braci; koronacja z 2019 to „cesarz "
+         "z jego rodu”. Fakty: miecz z ogona węża według tradycji ukryty w chramie, cesarz dostał zastępczy; haniwa — prawdziwi "
+         "władcy Yamato, nie „pierwsi, o których wiemy”; święto 11 lutego zniesione po wojnie i przywrócone w 1966; ryż na południowym "
+         "zachodzie; „inny miecz” w Kumano; 127 lat „według kroniki”. Śledztwo: chłop → pieczęć → odcisk → chińskie zapiski. Powrót "
+         "do sceny z haka innymi słowami („Pamiętasz tę strzałę?”), hak przed aktem VIII („Ale czy on w ogóle istniał?”), tytuły "
+         "aktów to pytania, mniej imion (bez Uzume, Takakuraji, Hyūga, Kii, Unebi), cisza muzyki przed szczytami (wąż, wrona, "
+         "złoty ptak). Kwestie bez nagrania czekają na lektora reżysera.", "at": "2026-11-18", "by": "reżyser"},
     ],
 }
 
@@ -196,7 +208,7 @@ BIBLIA = {
     "characters": "Iwarebiko (od intronizacji cesarz Jimmu) — biała tunika z czerwonym pasem, mizura, długi łuk; od intronizacji złota "
                   "opaska. Bracia: Itsuse (niebieski, najstarszy), dwaj młodsi (zielony, brązowy). Bogowie: Izanagi (biel, włócznia), "
                   "Izanami (czerwień), Amaterasu (złoto, krąg słońca), Susanoo (granat, rozwiane włosy), Uzume (pomarańcz). Ninigi "
-                  "(biel i złoto), księżniczka kwiatów (róż) i księżniczka skał (szarość). Wrogowie: Nagasunehiko (ciemny brąz, długie "
+                  "(biel i złoto). Wrogowie: Nagasunehiko (ciemny brąz, długie "
                   "nogi, najwyższy), Nigihayahi (purpura). Takakuraji, Himiko, pisarz z 712 roku, chłop z 1784 roku.",
     "chronology": "Era bogów (mit) · Ninigi schodzi na Takachiho · Iwarebiko ma 45 lat i wyrusza na wschód (wg Nihon shoki 667 p.n.e.) · "
                   "Kusaka, śmierć Itsuse, burza przy Kii, Kumano, Yamato · 660 p.n.e. intronizacja w Kashiharze · 585 p.n.e. śmierć "
@@ -215,7 +227,7 @@ BIBLIA = {
              "(pieczęć z 57 roku; pieczęć z Shikanoshimy, skarb narodowy), Kronika Wei (Himiko, 239 rok, sto luster). Data 660 p.n.e. "
              "z cyklu 1260 lat liczonego wstecz od 601 roku (hipoteza Naki Michiyo). Imię Jimmu: Ōmi no Mifune, VIII w. Order Złotej "
              "Kani: 1890–1947. Kurhan Daisen: 486 m. Święto 11 lutego (Kigensetsu) od 1873, dziś Dzień Założenia Państwa. Naruhito — "
-             "126. cesarz, koronacja 2019; miecz i klejnot przy ceremonii zawinięte. Rejestr faktów projektu do uzupełnienia przed publikacją.",
+             "126. cesarz, koronacja 2019; miecz i klejnot przy ceremonii zawinięte, a miecz to zastępczy egzemplarz (Kusanagi według tradycji leży w chramie Atsuta w Nagoi; pałacowy zatonął pod Dan-no-ura w 1185 i go zastąpiono). Kigensetsu zniesione w 1948, przywrócone w 1966 jako Dzień Założenia Państwa. Uprawa ryżu na Kiusiu według części archeologów już od X–IX w. p.n.e. Rejestr faktów projektu do uzupełnienia przed publikacją.",
     "transitions": "Między ujęciami cięcie. Film zaczyna się frontem teatru i wjazdem na scenę, kończy wyjazdem i zgaszeniem lampy. Zmiana "
                    "dekoracji (morze → niebo → kraj → mapa) to cięcie, a w pierwszym ujęciu nowego miejsca dekoracja staje od nowa.",
 }

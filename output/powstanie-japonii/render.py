@@ -56,6 +56,18 @@ DUR = _t
 
 BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
 
+# Skróty ujęć (akt 0: zapowiedź i hak, szkic D; reżyser 18.11.2026: „na początku mini spoiler 5 s, co będzie w filmie (najlepsze
+# akcje)”). Ujęcie z tego słownika rysuje inne ujęcie filmu od chwili `od` (sekundy od jego początku), ze stanem świata z jego
+# miejsca w filmie i z jego długością (kamera i zdarzenia liczą się tak jak w oryginale) — to skrót, a nie nowa scena.
+# Trzeci element: długość, z jaką liczy się oryginał, gdy ujęcie skraca samo siebie (teatr: od 1 s, za kurtyną zapala się
+# lampa, szyld „SON OF THE SUN” widać, gdy kurtyna się rozsunie, bracia wysuwają się na polanę, kamera dojeżdża do 5 s).
+WYCINEK = {"zap_jaskinia": ("jaskinia", 5.0), "zap_orochi": ("orochi", 6.0), "zap_miecz": ("miecz", 0.6),
+           "zap_strzaly": ("strzaly", 0.3), "zap_burza": ("burza", 2.6), "zap_wrona": ("wrona", 5.5), "zap_blysk": ("blysk", 0.1),
+           "hak_rana": ("rana", 0.0), "hak_burza": ("burza", 0.8), "hak_koronacja": ("koronacja", 1.0), "teatr": ("teatr", 1.0, 5.0)}
+# Kurtyna startu (reżyser 18.11.2026: „po spoilerze na końcu ściemnienie i kurtyna startu z pierwszym ujęciem”): ujęcie
+# zaczyna się zasuniętą kurtyną bez tytułu, która się rozsuwa (zapowiedź kończy się ściemnieniem — koniec swojej sceny).
+KURTYNA_START = {"teatr"}
+
 # ---- przejścia między ujęciami (wzór: „Pierwszy cesarz” render.py; reżyser 15.11: kurtyna między aktami, ściemnienie przy
 # zmianie miejsca, Podręcznik „Rytm” 7) — nachodzą na pauzę po kwestii i na początek następnego ujęcia, film nie rośnie ----
 GRANICE = []  # na ujęcie: akt, tytuł aktu, czy pierwsze/ostatnie w scenie i w akcie (kolejność jak w dane.ujecia())
@@ -98,15 +110,24 @@ def kurtyna(st, k, tytul=None, kt=0.0, p=0.975):
                rot=0.5 * noise(st.t, 300 + strona, 0.6) * (1 - k * 0.5), sx=0.86 + 0.14 * ease(k), blur=0,
                shadow=(8 * strona, 0, 14, 0.45))
     if tytul and kt > 0.001:
-        wx, wy = na_swiat(640, 330 - (1 - back(kt, 1.2)) * 520)
-        st.put(Z.tag(tytul, 52), wx, wy, p + 0.002, h=96 / ky, anchor=(0.5, 0.5), rot=1.2 * noise(st.t, 333, 0.5), blur=0,
-               shadow=(4, 6, 8, 0.45))
+        # tytuł aktu jako pytanie (przegląd 18.11.2026): „Act N” na małej tabliczce, pod nią pytanie — jedna tabliczka z całym
+        # zdaniem byłaby szersza niż kadr
+        akt, _, pytanie = Z.tr(tytul).partition(" · ")
+        spad = (1 - back(kt, 1.2)) * 520
+        rzedy = [(akt, 40, 74, 268)] + ([(pytanie, 46, 86, 352)] if pytanie else [])
+        for n, (txt, size, h, y) in enumerate(rzedy):
+            wx, wy = na_swiat(640, y - spad)
+            st.put(Z.tag(txt, size), wx, wy, p + 0.002 + 0.001 * n, h=h / ky, anchor=(0.5, 0.5),
+                   rot=1.2 * noise(st.t, 333 + n, 0.5), blur=0, shadow=(4, 6, 8, 0.45))
 
 
 def przejscie(st, i, lt, T):
     """Kurtyna na granicy aktów, ściemnienie na granicy scen w akcie; w pozostałych miejscach cięcie."""
     g = GRANICE[i]
     zam, dl, czekaj, otw = KURTYNA
+    if KOL[i] in KURTYNA_START:
+        kurtyna(st, 1 - pr_(lt, 0.1, otw))
+        return
     if g["ostatnie_aktu"] and i < len(UJ) - 1:
         kurtyna(st, pr_(lt, T - zam, dl), tytul_aktu(g["akt"] + 1), pr_(lt, T - zam + dl - 0.1, 0.45))
     elif g["pierwsze_aktu"] and i > 0:
@@ -163,7 +184,20 @@ def uloz(t, void=None):
     lt, T = t - a, b - a
     st = Stage(lt, seed=ziarno(i))
     st.void = void
-    if FNS[i] is None:  # ujęcie jeszcze nie narysowane: pusta scena z kartką
+    if KOL[i] in WYCINEK:  # skrót innego ujęcia: oryginał od chwili `od`, jego świat i jego długość
+        src, od, *dl = WYCINEK[KOL[i]]
+        j = swiat.I[src]
+        Tj = dl[0] if dl else SCENES[j][1] - SCENES[j][0]
+        st = Stage(od + lt, seed=ziarno(j))  # czas sceny jak w oryginale (mruganie, drżenie, kołysanie)
+        st.void = void
+        w = swiat.stan(j)
+        if src in BUDUJ:
+            w.build = od + lt
+        st.T = Tj
+        FNS[j](st, w, od + lt, Tj)
+        if not void:
+            przejscie(st, i, lt, T)
+    elif FNS[i] is None:  # ujęcie jeszcze nie narysowane: pusta scena z kartką
         st.put(Z.sky(), W / 2, H / 2, 0.14, w=1760, anchor=(0.5, 0.5), shadow=None)
         st.put(Z.tag(f"{ODN[i]} · do narysowania"), W / 2, H / 2, 0.8, h=60, anchor=(0.5, 0.5))
     else:
@@ -175,7 +209,7 @@ def uloz(t, void=None):
         if not void:
             przejscie(st, i, lt, T)
     if not void:
-        st.dim *= min(1.0, t / 0.5, max(0.0, (DUR - 0.1 - t) / 1.0))  # film wchodzi z czerni i w nią wychodzi
+        st.dim *= min(1.0, t / 0.2, max(0.0, (DUR - 0.1 - t) / 1.0))  # film wchodzi z czerni (szybko: zapowiedź) i w nią wychodzi
     return st, (txt if NAPISY and txt and KOL[i] not in BEZ_NAPISU and vs <= lt < min(T - 0.05, vs + vl + 0.35) else None)
 
 

@@ -18,28 +18,75 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))  # kwestie_en.py obok
 
 N = None
 AKTY = [
-    (1, "Kropla z włóczni", "Japonia świętuje urodziny państwa 11 lutego, choć nikt nie wie, czy jej pierwszy cesarz żył. Kroniki "
-        "zaczynają od bogów Izanagi i Izanami, którzy włócznią wyłowili z morza pierwszą wyspę, a potem urodzili osiem wielkich wysp.", [
-        ("Teatr się otwiera", "front teatru i kraj na scenie", [
-            ("Otwarcie", [
-                ("teatr", "TYT", "naj", 6.5, "front teatru w kształcie bramy torii z szyldem „SYN SŁOŃCA”: w ciemnej skrzyni zapala się światło, "
-                 "czerwone słońce zjeżdża na nitce, od dołu wysuwają się góry, wzgórza i pola ryżowe; kamera wjeżdża do środka sceny",
-                 "gong, szelest papieru, skrzyp bloczków"),
-            ]),
-            ("Święto", [
-                ("luty", "PO", "naj", N, "na wzgórzach wyskakują po kolei białe chorągiewki z czerwonym słońcem, a nad scenę zjeżdża na nitce "
-                 "zawieszka „11 lutego”", "L: Co roku jedenastego lutego Japonia świętuje urodziny swojego państwa, bo tego dnia na tron miał "
-                 "wstąpić jej pierwszy cesarz."),
-                ("cien", "PŚ", "stat", N, "przód sceny: zza rampy wysuwa się papierowy parawan podświetlony od tyłu; na nim wyrasta cień władcy "
-                 "z łukiem, a nad nim przelatuje cień ptaka", "L: Według kronik był prapraprawnukiem bogini słońca, a historycy do dziś się "
-                 "spierają, czy ten człowiek w ogóle żył."),
+    # Akt 0 · zapowiedź i hak (szkic D „Wszystko razem”, reżyser 18.11.2026: „na początku musi być taki mini spoiler 5 s, co będzie
+    # w filmie (najlepsze akcje)”; „w pierwszej minucie musi się dużo zmieniać, sceneria co najmniej 3 razy”). Ujęcia zap_* i hak_*
+    # to skróty innych ujęć filmu: render.WYCINEK rysuje oryginał od jego najlepszej chwili. Sąsiednie skróty różnią się ≥ ¼ s.
+    (0, "Zapowiedź i hak", "Pięć sekund najmocniejszych akcji filmu i ściemnienie; kurtyna startu rozsuwa się na teatr, na polanie "
+        "stoi czterech braci, kamera najeżdża na najstarszego, a lektor mówi, o czym jest film. Potem hak: strzała trafia Itsuse, "
+        "w teatrze cieni Itsuse pada, burza zabiera dwóch braci, w 2019 roku cesarz dostaje miecz, którego nikt nie widział — "
+        "i obietnica filmu.", [
+        ("Zapowiedź", "skróty najmocniejszych ujęć filmu, cięte bez przejść; na końcu ściemnienie", [
+            ("Zapowiedź", [
+                ("zap_jaskinia", "PO", "stat", 0.8, "zapowiedź (skrót ujęcia „jaskinia” od 5,0 s): słońce odjeżdża w górę, scena gaśnie",
+                 "muzyka: jeden mocny akord na całą zapowiedź"),
+                ("zap_orochi", "PO", "naj", 0.5, "zapowiedź (skrót ujęcia „orochi” od 6,0 s): osiem głów węża stoi nad górami",
+                 "syk, uderzenie bębna"),
+                ("zap_miecz", "PŚ", "szarp", 0.9, "zapowiedź (skrót ujęcia „miecz” od 0,6 s): Susanoo tnie mieczem, szyje opadają",
+                 "świst miecza, cios"),
+                ("zap_strzaly", "PP", "szarp", 0.6, "zapowiedź (skrót ujęcia „strzaly” od 0,3 s): chmara strzał spod słońca",
+                 "świst strzał"),
+                ("zap_burza", "PO", "szarp", 0.9, "zapowiedź (skrót ujęcia „burza” od 2,6 s): łódź przechyla się za falę, błyska",
+                 "grzmot, fale"),
+                ("zap_wrona", "PO", "jaz", 0.55, "zapowiedź (skrót ujęcia „wrona” od 5,5 s): wrona przelatuje nad górami",
+                 "krakanie, łopot skrzydeł"),
+                ("zap_blysk", "PP", "szarp", 0.85, "zapowiedź (skrót ujęcia „blysk” od 0,1 s): błysk złotego ptaka, włócznie się cofają",
+                 "grzmot, potem cisza"),
             ]),
         ]),
+        ("Teatr i bracia", "front teatru i kraj na scenie, potem teatr cieni za parawanem", [
+            ("Tytuł", [
+                ("teatr", "TYT", "naj", 4.5, "kurtyna startu rozsuwa się na front teatru w kształcie bramy torii z szyldem „SYN "
+                 "SŁOŃCA”: światło już się pali, czerwone słońce dojeżdża na nitce, od dołu wysuwa się kraj, a na polanie po kolei "
+                 "wysuwają się czterej bracia (pierwszy Itsuse); kamera wjeżdża do środka sceny (render.WYCINEK, KURTYNA_START)",
+                 "kurtyna, gong, szelest papieru"),
+            ]),
+            ("Wprowadzenie", [
+                # przegląd 18.11.2026: lektor mówi o pierwszym cesarzu, więc kamera i podpis pokazują Iwarebiko, nie tylko
+                # Itsuse (inaczej widz bierze Itsuse za przyszłego cesarza, a po 15 s Itsuse ginie); kwestia krótsza (ok. 9 s)
+                ("hak_najazd", "PO", "naj", N, "kamera najeżdża z całej sceny na Itsuse i Iwarebiko stojących na polanie, dwaj młodsi "
+                 "bracia zostają za kadrem; nad Iwarebiko zjeżdża podpis „Iwarebiko, przyszły cesarz”, potem nad Itsuse „Itsuse, "
+                 "najstarszy brat”", "L: Kroniki mówią, że książę Iwarebiko razem z trzema braćmi wywalczył sobie drogę na wschód "
+                 "i został pierwszym cesarzem Japonii, o ile w ogóle istniał."),
+            ]),
+            ("Hak", [
+                ("hak_rana", "Z", "stat", N, "hak (skrót ujęcia „rana” od początku): strzała trafia Itsuse w ramię, lalka się zatacza",
+                 "L: Ale strzała trafiła najstarszego brata, księcia Itsuse."),
+                ("hak_cien", "PŚ", "stat", 4.6, "teatr cieni: na podświetlonym parawanie cień Itsuse; z prawej wysuwa się cień łucznika, "
+                 "napina łuk i strzela, strzała trafia Itsuse w ramię, Itsuse zatacza się i opada (śmierć)",
+                 "L: Itsuse zmarł od tej rany, daleko od domu."),
+                ("hak_burza", "PO", "szarp", N, "hak (skrót ujęcia „burza” od 0,8 s): dwie łodzie z braćmi przechylają się i znikają za "
+                 "falą, zostaje łódź Iwarebiko", "L: Burza zabrała dwóch kolejnych i został tylko Iwarebiko."),
+                ("hak_koronacja", "PO", "naj", N, "hak (skrót ujęcia „koronacja” od 1,0 s): tron pod baldachimem, cesarz w szacie "
+                 "koronacyjnej, przed nim wyrastają skrzynki owinięte płótnem, zjeżdża zawieszka „126”",
+                 "L: W 2019 roku sto dwudziesty szósty cesarz z jego rodu dostał miecz, którego nikt z żyjących nie widział."),
+            ]),
+        ]),
+        ("Obietnica", "kraj na scenie, chorągiewki na wzgórzach", [
+            ("Obietnica", [
+                ("luty", "PO", "naj", N, "na wzgórzach wyskakują po kolei białe chorągiewki z czerwonym słońcem, a nad scenę zjeżdża na nitce "
+                 "zawieszka „11 lutego”", "L: Pod koniec filmu będziesz wiedzieć, skąd wziął się ten miecz, czemu urodziny Japonii są "
+                 "pewnie zmyślone i dlaczego jej reprezentacja w piłce nożnej nosi trójnogą wronę."),
+            ]),
+        ]),
+    ]),
+    (1, "Kropla z włóczni", "Kroniki zaczynają od bogów Izanagi i Izanami, którzy włócznią wyłowili z morza pierwszą wyspę, a potem "
+        "urodzili osiem wielkich wysp.", [
         ("Pływający most", "scena: morze pod chmurami", [
             ("Początek", [
+                # pomost z haka do mitu (przegląd 18.11.2026: po obietnicy film skakał w „na początku…” bez słowa, po co)
                 ("meduza", "PO", "naj", N, "zmiana dekoracji: na scenie tylko pasma papierowych fal pod chmurami, a między falami dryfuje "
-                 "półprzezroczysta papierowa meduza", "L: Kroniki zaczynają od czasów, kiedy młoda ziemia dryfowała po wodzie jak meduza "
-                 "i nie miała jeszcze kształtu."),
+                 "półprzezroczysta papierowa meduza", "L: Żeby zrozumieć, czemu ci bracia wierzyli, że pochodzą od słońca, wróćmy do "
+                 "początku, kiedy młoda ziemia dryfowała po wodzie jak meduza."),
                 ("most", "PP", "naj", N, "z chmur zjeżdża na nitkach tęczowy łuk mostu; po nim zsuwają się dwie lalki bogów: Izanagi w białej "
                  "szacie z włócznią i Izanami w czerwonej; nad bogami, kiedy staną, tabliczki „Izanami” i „Izanagi”", "L: Wtedy na pływający most niebios zeszło dwoje bogów, Izanagi i Izanami, którzy "
                  "dostali rozkaz, żeby nadać jej kształt."),
@@ -68,7 +115,7 @@ AKTY = [
             ("Troje dzieci", [
                 ("rzeka", "PŚ", "naj", N, "Izanagi pochyla się nad rzeką; z wody wynurzają się po kolei trzy krążki: złote słońce, srebrny księżyc "
                  "i ciemna chmura, a za nimi lalki trojga bogów; przy każdym z troje bogów tabliczka z imieniem i rolą", "L: Potem obmył się w rzece, a z jego lewego oka narodziła się Amaterasu, "
-                 "bogini słońca, z prawego bóg księżyca, a z nosa Susanoo, bóg burzy."),
+                 "bogini słońca i przodkini czterech braci, z prawego bóg księżyca, a z nosa Susanoo, bóg burzy."),
             ]),
         ]),
         ("Jaskinia", "scena: niebiańska równina na chmurach, skała z jaskinią", [
@@ -85,19 +132,21 @@ AKTY = [
                 ("koguty", "PŚ", "naj", N, "przed jaskinią wyrasta drzewo sakaki; na nitkach zjeżdżają na nie lustro i sznur zielonych klejnotów, "
                  "a na grzędzie stają koguty i pieją", "L: Bogowie postawili przed jaskinią koguty, żeby piały jak o świcie, a na drzewie "
                  "zawiesili lustro i sznur klejnotów."),
+                # mniej imion (przegląd 18.11.2026): Uzume bez imienia, w kadrze tabliczka z rolą
                 ("uzume", "PP", "stat", N, "na odwróconej kadzi tańczy bogini Uzume, tupie i wymachuje gałązkami; rząd bogów kołysze się "
-                 "ze śmiechu, każdy w swoim rytmie; nad Uzume tabliczka z imieniem, nad bogami tabliczki „HA HA!”; scena jaśniejsza niż reszta nocy", "L: Bogini Uzume zatańczyła na odwróconej kadzi tak zuchwale, że wszyscy bogowie "
+                 "ze śmiechu, każdy w swoim rytmie; nad nią tabliczka „bogini tańca”, nad bogami tabliczki „HA HA!”; scena jaśniejsza niż reszta nocy", "L: Wtedy jedna z bogiń zatańczyła na odwróconej kadzi tak zuchwale, że wszyscy bogowie "
                  "wybuchnęli śmiechem."),
+                # nić trzech skarbów (szkic A): lustro to pierwszy skarb cesarzy
                 ("lustro", "Z", "stat", N, "głaz uchyla się, ze szczeliny pada światło; Amaterasu wychyla się, lustro na drzewie rozbłyskuje, "
                  "a zza skały wysuwa się siłacz i odsuwa głaz; nad siłaczem tabliczka „najsilniejszy z bogów”", "L: Zaciekawiona Amaterasu wyjrzała i zobaczyła w lustrze własny blask, "
-                 "a wtedy najsilniejszy z bogów wyciągnął ją na zewnątrz."),
+                 "a to lustro stało się pierwszym z trzech świętych skarbów cesarzy Japonii."),
                 ("swit", "PO", "odj", 3.2, "słońce wraca na nitce, scena jaśnieje, a przed jaskinią zjeżdża gruby sznur z białymi paskami papieru",
                  "gong, pianie kogutów"),
             ]),
         ]),
     ]),
     (3, "Miecz w ogonie węża", "Wygnany Susanoo zabija w Izumo ośmiogłowego węża i znajduje w jego ogonie miecz. Amaterasu daje wnukowi "
-        "Ninigiemu lustro, klejnoty i miecz; Ninigi schodzi na Kiusiu i wybiera księżniczkę kwiatów zamiast księżniczki skał.", [
+        "Ninigiemu lustro, klejnoty i miecz, a Ninigi schodzi z nimi na Kiusiu.", [
         ("Izumo", "scena: kraina Izumo, rzeka między górami", [
             ("Wygnanie", [
                 ("wygnanie", "PP", "jaz", N, "lalka Susanoo zjeżdża na nitce z chmur nad górami i ląduje nad rzeką; rzeką spływają dwie pałeczki",
@@ -113,24 +162,21 @@ AKTY = [
                  "L: Wąż miał osiem głów i osiem ogonów, a był tak długi, że rozciągał się na osiem dolin i osiem wzgórz."),
                 ("pije", "PP", "stat", 3.4, "głowy zanurzają się w kadziach, piją, kiwają się i jedna po drugiej opadają na wzgórza",
                  "chlupot, chrapanie"),
+                # drugi hak (szkic A) i fakt (przegląd 18.11.2026): miecz z ogona węża według tradycji leży w chramie Atsuta,
+                # cesarz w 2019 roku dostał jego zastępczy egzemplarz (ujęcie „koronacja”)
                 ("miecz", "PŚ", "szarp", N, "Susanoo tnie mieczem: szyje opadają, z ogona wysuwa się błyszczący miecz i wznosi się nad scenę",
-                 "L: Kiedy pijane głowy zasnęły, Susanoo porąbał węża, a w jego ogonie znalazł miecz, który oddał siostrze na przeprosiny."),
+                 "L: Kiedy pijane głowy zasnęły, Susanoo porąbał węża i w jego ogonie znalazł miecz, który według tradycji do dziś "
+                 "leży ukryty w chramie i którego nikt z żyjących nie widział."),
             ]),
         ]),
+        # księżniczki kwiatów i skał (siostry, płatki) wypadają ze szkicem D (reżyser 18.11.2026 przywrócił tylko krainę zmarłych)
         ("Wnuk", "scena: niebo na chmurach, potem szczyt Takachiho na Kiusiu", [
             ("Trzy skarby", [
                 ("skarby", "PŚ", "naj", N, "na chmurach Amaterasu i jej wnuk Ninigi; zjeżdżają na nitkach lustro, sznur klejnotów i miecz, "
-                 "a Ninigi unosi ręce; nad Ninigim tabliczka „Ninigi, wnuk Amaterasu”", "L: Amaterasu postanowiła, że ziemią będzie rządził jej wnuk Ninigi, i dała mu trzy skarby: lustro, "
-                 "klejnoty i miecz z ogona węża."),
+                 "a Ninigi unosi ręce; nad Ninigim tabliczka „Ninigi, wnuk Amaterasu”", "L: Amaterasu dała lustro, klejnoty i miecz "
+                 "swojemu wnukowi Ninigiemu, ale człowiek, który zbuduje z nimi kraj, jeszcze się nie urodził."),
                 ("zejscie", "PO", "jaz", N, "Ninigi zjeżdża na chmurze przez kolejne warstwy chmur aż na szczyt góry; kamera jedzie z nim w dół",
                  "L: Ninigi zszedł z nieba przez osiem warstw chmur na szczyt góry Takachiho na wyspie Kiusiu."),
-            ]),
-            ("Kwiat i skała", [
-                ("siostry", "PŚ", "stat", N, "pod kwitnącą wiśnią stoi księżniczka w różowym, obok przy głazie jej szara siostra; Ninigi odwraca "
-                 "się ku wiśni, a szara lalka opada pod rampę; tabliczki „księżniczka kwiatów” i „księżniczka skał”", "L: Tamtejszy bóg gór ofiarował mu dwie córki, ale Ninigi wybrał piękną "
-                 "księżniczkę kwiatów, a brzydką księżniczkę skał odesłał do ojca."),
-                ("platki", "D", "stat", N, "detal: z wiśni sypią się płatki i opadają na rampę, a kwiaty na gałęziach gasną jeden po drugim",
-                 "L: Dlatego, jak mówi kronika, życie cesarzy jest krótkie jak życie kwiatów, a nie trwałe jak skała."),
             ]),
         ]),
     ]),
@@ -139,7 +185,7 @@ AKTY = [
         ("Hyūga", "scena: Kiusiu, wybrzeże Hyūga", [
             ("Prawnuk", [
                 ("prawnuk", "PŚ", "naj", N, "lalka Ninigiego opada pod rampę, a na jej miejscu wysuwa się młodszy książę z łukiem; z góry zjeżdża "
-                 "zawieszka „Hyūga”; tabliczka „książę Iwarebiko”", "L: Prawnuk Ninigiego, książę Iwarebiko, dorastał na Kiusiu, w krainie Hyūga, daleko od reszty wysp."),
+                 "zawieszka „Kiusiu”; tabliczka „książę Iwarebiko”", "L: Prawnuk Ninigiego, książę Iwarebiko, dorastał na Kiusiu, daleko od reszty wysp."),
                 ("wschod", "PO", "naj", N, "Iwarebiko wskazuje na wschód: po prawej stronie sceny wysuwają się błękitne góry, a nad nimi wschodzi "
                  "słońce; Iwarebiko najpierw patrzy na zachód, obraca się i dopiero wtedy wskazuje", "L: Kiedy miał czterdzieści pięć lat, usłyszał, że na wschodzie leży piękna kraina otoczona niebieskimi górami."),
                 ("bracia", "PŚ", "stat", N, "obok Iwarebiko wysuwają się trzej bracia, najstarszy Itsuse w niebieskiej szacie; wszyscy obracają "
@@ -151,9 +197,7 @@ AKTY = [
             ("Rejs", [
                 ("flota", "PO", "jaz", N, "łodzie z wiosłami i żaglami z maty płyną na wschód między wyspami; kamera płynie z nimi; kilkanaście łodzi na trzech pasmach fal, szybsze mijają wolniejsze",
                  "L: Płynęli wzdłuż wybrzeży Morza Wewnętrznego, a według kroniki zatrzymywali się po drodze na całe lata."),
-                ("postoje", "PP", "stat", N, "przy brzegu stoją łodzie; na poletku ryż wyrasta, żółknie i zostaje ścięty, a na brzegu rośnie "
-                 "szkielet nowej łodzi", "L: W każdym porcie budowali okręty, siali ryż i zbierali zapasy na wojnę, która czekała ich na końcu "
-                 "drogi."),
+                # postoje w portach wypadają (przegląd 18.11.2026: cięcie do 12 min, „całe lata” mówi już kwestia floty)
             ]),
         ]),
         ("Kusaka", "scena: zatoka Naniwa i góry od wschodu", [
@@ -166,8 +210,9 @@ AKTY = [
             ]),
             ("Strzała", [
                 ("strzaly", "PP", "szarp", 1.8, "z gór, spod wschodzącego słońca, nadlatuje chmara strzał i wbija się w brzeg", "świst strzał"),
+                # powrót do sceny z haka innymi słowami (przegląd 18.11.2026: nie powtarzać kwestii haka)
                 ("rana", "Z", "stat", N, "strzała trafia Itsuse w ramię; lalka zatacza się i przyciska rękę; nad Itsuse tabliczka „AŁA!…”",
-                 "L: Jedna ze strzał trafiła najstarszego brata, Itsuse, i wtedy zrozumiał, dlaczego przegrywają."),
+                 "L: Pamiętasz tę strzałę? Trafiła najstarszego brata, Itsuse, i wtedy Iwarebiko zrozumiał, dlaczego przegrywają."),
                 ("pod_slonce", "PŚ", "stat", N, "ranny Itsuse wskazuje słońce nad górami; Iwarebiko odwraca się ku słońcu i opuszcza łuk",
                  "L: Jako potomkowie bogini słońca walczyli twarzą do słońca, więc postanowili obejść góry i uderzyć ze słońcem za plecami."),
             ]),
@@ -178,11 +223,12 @@ AKTY = [
         ("Półwysep Kii", "scena: morze przy półwyspie Kii", [
             ("Straty", [
                 ("itsuse", "PŚ", "stat", N, "na łodzi ranny Itsuse przechyla się i powoli opada pod rampę; Iwarebiko pochyla się nad nim; Itsuse dostaje X na oczach (śmierć), zanim opadnie",
-                 "L: Kiedy płynęli na południe, dookoła półwyspu Kii, Itsuse zmarł od rany."),
+                 "L: Itsuse już nie wyzdrowiał i zmarł na łodzi, kiedy płynęli na południe."),
                 ("burza", "PO", "szarp", N, "burza: fale rosną, łodzie podskakują, dwie z nich przechylają się i znikają za falą",
                  "L: Potem burza zatopiła dwie łodzie, a morze zabrało jeszcze dwóch braci."),
+                # przegląd 18.11.2026: hak powiedział już „został tylko Iwarebiko” — tu nowe zdanie, które ciągnie dalej
                 ("sam", "Z", "stat", N, "zbliżenie: Iwarebiko sam na łodzi, za nim puste morze i ciemne chmury",
-                 "L: Z czterech braci został tylko Iwarebiko."),
+                 "L: Iwarebiko stracił wszystkich trzech braci, a najtrudniejsze było jeszcze przed nim."),
             ]),
         ]),
         ("Kumano", "scena: góry i lasy Kumano", [
@@ -192,9 +238,10 @@ AKTY = [
                 ("niedzwiedz", "PP", "stat", N, "las Kumano: spomiędzy cedrów wychodzi czarny niedźwiedź i znika, a wojownicy przewracają się "
                  "po kolei, każdy w swojej chwili; dwa rzędy wojowników, nad padającymi krążą przez chwilę gwiazdki (zamroczenie)", "L: W lasach Kumano z gęstwiny wyszedł wielki niedźwiedź i zniknął, a cała armia nagle "
                  "padła jak zaczarowana."),
-                ("takakuraji", "PŚ", "stat", N, "z nieba zjeżdża na nitce przez dach spichlerza miecz; miejscowy człowiek Takakuraji chwyta go "
-                 "i niesie do leżącego Iwarebiko; tabliczka „Takakuraji”", "L: Wtedy miejscowy człowiek, Takakuraji, przyniósł mu miecz, który bóg piorunów zrzucił "
-                 "z nieba przez dach jego spichlerza."),
+                # przegląd 18.11.2026: „inny miecz”, żeby widz nie wziął go za miecz z ogona węża; bez imienia Takakuraji
+                ("takakuraji", "PŚ", "stat", N, "z nieba zjeżdża na nitce przez dach spichlerza miecz; miejscowy człowiek (Takakuraji) chwyta go "
+                 "i niesie do leżącego Iwarebiko; tabliczka „miejscowy człowiek”", "L: Wtedy miejscowy człowiek przyniósł mu inny miecz, który "
+                 "bóg piorunów zrzucił z nieba przez dach jego spichlerza."),
                 ("przebudzenie", "PP", "stat", N, "Iwarebiko podnosi się z mieczem, a za nim wstają wojownicy, jeden po drugim; cienie lasu "
                  "cofają się", "L: Kiedy Iwarebiko wziął miecz do ręki, złe moce lasu padły same, a jego wojownicy obudzili się jeden "
                  "po drugim."),
@@ -244,26 +291,25 @@ AKTY = [
         ("Kashihara", "scena: kotlina Yamato, góra Unebi", [
             ("Pałac", [
                 ("palac", "PO", "naj", N, "u stóp zielonej góry Unebi wysuwają się słupy, potem podłoga, dach z trzciny i skrzyżowane belki "
-                 "na szczycie pałacu", "L: Pod górą Unebi, w miejscu zwanym Kashihara, kazał zbudować pałac, którego słupy, jak pisze "
+                 "na szczycie pałacu", "L: W Kashiharze, u stóp zielonej góry, kazał zbudować pałac, którego słupy, jak pisze "
                  "kronika, wbito w samą skałę."),
                 ("tron", "PŚ", "naj", N, "Iwarebiko wysuwa się na ganek pałacu; zjeżdżają za nim lustro, klejnoty i miecz, a obok zawieszka "
                  "„660 p.n.e.”", "L: Pierwszego dnia nowego roku, w 660 roku przed naszą erą, wstąpił tam na tron jako pierwszy cesarz "
                  "Japonii."),
                 ("imie", "Z", "stat", N, "zbliżenie: przed cesarzem zjeżdża zawieszka ze znakami 神武; pod znakami podpis „Jimmu — boska waleczność”",
                  "L: Imię Jimmu, czyli „boska waleczność”, nadali mu uczeni dopiero tysiąc czterysta lat później."),
-                ("zona", "PŚ", "stat", N, "obok cesarza wysuwa się lalka księżniczki w zielonym; oboje kłaniają się sobie; tabliczka „córka miejscowego boga”",
-                 "L: Za żonę wziął córkę miejscowego boga, żeby nowa władza połączyła się ze starą ziemią."),
+                # żona cesarza wypada (przegląd 18.11.2026: cięcie do 12 min; wątek bez dalszego ciągu)
             ]),
         ]),
+        # pola ryżowe (76 lat panowania) wypadają ze szkicem D; 127 lat „według kroniki” (Kojiki podaje 137)
         ("Panowanie", "scena: kotlina Yamato z polami ryżu", [
             ("Długie życie", [
-                ("pola", "PO", "pan", N, "pola ryżowe zielenieją, złocą się i znów zielenieją; słońce i księżyc mijają się na nitkach",
-                 "L: Według kroniki panował siedemdziesiąt sześć lat, a jego dwór rósł razem z polami ryżu w kotlinie."),
                 ("smierc", "PŚ", "stat", N, "zawieszka „127 lat”; lalka cesarza przechyla się i opada pod rampę, a lustro, klejnoty i miecz "
-                 "zostają nad pustym miejscem; cesarz dostaje X na oczach i opada, pod skarbami wysuwa się jego syn z tabliczką „syn cesarza”", "L: Zmarł, mając sto dwadzieścia siedem lat, a lustro, klejnoty i miecz przeszły na jego syna."),
+                 "zostają nad pustym miejscem; cesarz dostaje X na oczach i opada, pod skarbami wysuwa się jego syn z tabliczką „syn cesarza”", "L: Według kroniki zmarł, mając sto dwadzieścia siedem lat, a trzy skarby przeszły na jego syna."),
                 ("pusto", "D", "stat", 2.6, "detal: pusty ganek pałacu; lustro kołysze się na nitce i łapie ostatni promień słońca; pod skarbami stoi już syn", "wiatr"),
+                # hak przed aktem VIII (przegląd 18.11.2026): śmierć cesarza i „linia trwa do dziś” brzmiały jak koniec filmu
                 ("linia", "PO", "odj", N, "wzdłuż wzgórz wysuwa się długi szereg małych lalek cesarzy, coraz mniejszych w głębi; trzy rzędy cesarzy w różnych strojach aż po horyzont",
-                 "L: Od niego miała się zacząć linia cesarzy, która według tradycji nie przerwała się aż do dziś."),
+                 "L: Od niego, według tradycji, zaczęła się linia cesarzy, która nie przerwała się do dziś. Ale czy on w ogóle istniał?"),
             ]),
         ]),
     ]),
@@ -280,19 +326,22 @@ AKTY = [
                  "wielka przemiana."),
                 ("jomon", "PO", "naj", N, "zmiana dekoracji: wzgórza bez pałacu i pól; wyrastają stożkowe chaty z trzciny i gliniane garnki, "
                  "a między nimi przechodzą myśliwi z włóczniami", "L: Tymczasem w 660 roku przed naszą erą na wyspach żyli myśliwi i rybacy, "
-                 "a ryż dopiero docierał na nie z kontynentu."),
+                 "a ryż dopiero zaczynano uprawiać na południowym zachodzie."),
             ]),
         ]),
+        # kolejność śledztwa ze szkicu B: najpierw znalezisko chłopa (promyk nadziei po „nic tu nie jest prawdą”), potem czym było,
+        # a chińskie zapiski z tamtych czasów na końcu (przegląd 18.11.2026: „pierwsze pewne wiadomości” po pieczęci to krok wstecz)
         ("Chińskie zapiski", "scena: mapa wysp na nitkach", [
             ("Wa", [
-                ("wa", "PO", "stat", N, "na nitkach zjeżdża papierowa mapa wysp; na niej wyskakują dziesiątki maleńkich chorągiewek",
-                 "L: Pierwsze pewne wiadomości o wyspach zostawili Chińczycy, według których kraj ludzi Wa dzielił się na ponad sto państewek."),
+                ("chlop", "PŚ", "stat", N, "chłop kopie motyką rów na polu; spod ziemi wysuwa się złota pieczęć, a z góry zjeżdża zawieszka „1784”; motyka uderza w ziemię, lecą grudy; nad chłopem tabliczka „O!”",
+                 "L: Ale w 1784 roku chłop, który naprawiał rów na polu, uderzył motyką w coś złotego."),
                 ("pieczec", "D", "naj", N, "detal: złota pieczęć z wężem na uchwycie zjeżdża na nitce i obraca się; zawieszka „57”",
-                 "L: W 57 roku cesarz Chin podarował jednemu z ich królów złotą pieczęć z wężem na uchwycie."),
+                 "L: Była to pieczęć, którą cesarz Chin w 57 roku posłał jednemu z królów Wa: dowód, że na wyspach rządzili "
+                 "prawdziwi królowie na długo przed kronikami."),
                 ("odcisk", "D", "stat", 2.4, "pieczęć opada na papier i unosi się, a na papierze zostaje czerwony odcisk pięciu znaków",
                  "stuk pieczęci"),
-                ("chlop", "PŚ", "stat", N, "chłop kopie motyką rów na polu; spod ziemi wysuwa się złota pieczęć, a z góry zjeżdża zawieszka „1784”; motyka uderza w ziemię, lecą grudy; nad chłopem tabliczka „O!”",
-                 "L: W 1784 roku wykopał ją chłop, który naprawiał rów na polu, i dziś jest skarbem narodowym Japonii."),
+                ("wa", "PO", "stat", N, "na nitkach zjeżdża papierowa mapa wysp; na niej wyskakują dziesiątki maleńkich chorągiewek",
+                 "L: Chińskie zapiski z tamtych czasów opisują kraj ludzi Wa jako ponad sto małych państewek."),
             ]),
             ("Himiko", [
                 ("himiko", "PŚ", "naj", N, "za parawanem wysuwa się lalka królowej Himiko; na nitkach zjeżdżają do niej rzędy błyszczących luster; tabliczka „królowa Himiko”",
@@ -302,15 +351,15 @@ AKTY = [
         ]),
     ]),
     (9, "Źródło słońca", "Królowie z Yamato chowają się w kurhanach w kształcie dziurki od klucza; pod koniec VII wieku kraj dostaje nazwę "
-        "Nihon. W 1873 roku rząd ogłasza 11 lutego świętem, a w 2019 roku 126. cesarz dostaje przy koronacji miecz i klejnoty.", [
+        "Nihon. W 1873 roku rząd ogłasza 11 lutego świętem (po wojnie zniesionym, od 1966 znów obchodzonym), a w 2019 roku 126. cesarz dostaje przy koronacji klejnoty i zastępczy miecz.", [
         ("Kurhany", "scena: równina z kurhanem", [
             ("Królowie", [
                 ("kofun", "PO", "naj", N, "na nitkach zjeżdża plansza z kurhanem w kształcie dziurki od klucza, otoczonym fosą; zawieszka „486 m”",
                  "L: Potem władcy z Yamato zaczęli się chować w ogromnych kurhanach w kształcie dziurki od klucza, a największy ma prawie pół "
                  "kilometra długości."),
                 ("haniwa", "PP", "jaz", N, "przed kurhanem wysuwają się rzędy glinianych figurek: wojownicy, konie, domki i tancerze, każda "
-                 "we własnej chwili; trzy rzędy figurek, najdalszy aż po krawędź kurhanu", "L: Na ich zboczach stawiano tysiące glinianych figurek haniwa, a w środku leżeli pierwsi królowie, "
-                 "o których wiemy, że naprawdę żyli."),
+                 "we własnej chwili; trzy rzędy figurek, najdalszy aż po krawędź kurhanu", "L: Na ich zboczach stawiano tysiące glinianych figurek haniwa, a w środku leżeli prawdziwi władcy "
+                 "Yamato, choć nikt nie wie na pewno, kim byli."),
                 ("tancerz", "Z", "stat", 2.6, "zbliżenie: gliniany tancerz haniwa z uniesioną ręką; przez jego puste oczy prześwieca słońce",
                  "wiatr, stuk gliny"),
             ]),
@@ -322,10 +371,10 @@ AKTY = [
                  "wschodziło właśnie tam."),
                 ("luty2", "PŚ", "stat", N, "kartka kalendarza „11 lutego” zjeżdża na nitce obok zawieszki „1873”; na wzgórzach znów wyskakują "
                  "chorągiewki ze słońcem", "L: Dopiero w 1873 roku rząd w Tokio przeliczył datę z kroniki na nasz kalendarz i ogłosił jedenasty "
-                 "lutego świętem."),
+                 "lutego świętem, które po wojnie zniesiono, a w 1966 roku przywrócono."),
                 ("koronacja", "PO", "naj", N, "przód sceny: na stojakach stają dwie skrzynki owinięte białym płótnem, a za nimi wyrasta tron pod "
-                 "ośmiokątnym baldachimem; zawieszka „126”; na tronie staje cesarz w szacie koronacyjnej", "L: W 2019 roku na tron wstąpił sto dwudziesty szósty cesarz i przy koronacji "
-                 "znów przyniesiono mu miecz i klejnoty, choć nikt nie odwija ich z płótna."),
+                 "ośmiokątnym baldachimem; zawieszka „126”; na tronie staje cesarz w szacie koronacyjnej", "L: W 2019 roku na tron wstąpił sto dwudziesty szósty cesarz "
+                 "i przyniesiono mu klejnoty oraz zastępczy miecz z ogona węża, wciąż owinięte płótnem, którego nikt nie odwija."),
             ]),
             ("Słońce", [
                 ("koniec", "PO", "odj", N, "kamera wycofuje się z teatru: nad wyspami świeci czerwone słońce, światło w skrzyni gaśnie i zostaje "
@@ -333,8 +382,8 @@ AKTY = [
                  "siebie źródłem słońca."),
                 # podziękowanie jak w „Pierwszym cesarzu” (reżyser 16.11.2026); tekst jest w kadrze, więc bez paska napisu
                 ("dzieki", "TYT", "stat", N, "ciemna scena pod szyldem: na nitkach zjeżdżają duże papierowe tabliczki z "
-                 "podziękowaniem dla widzów, potem film schodzi w czerń", "L: Dziękuję za obejrzenie. Wesprzyj mnie, a dam z siebie "
-                 "wszystko."),
+                 "podziękowaniem dla widzów, potem film schodzi w czerń", "L: Dziękuję za obejrzenie! Jeśli lubisz moje filmy, "
+                 "wesprzyj mnie, a dam z siebie wszystko."),
             ]),
         ]),
     ]),
@@ -343,8 +392,10 @@ AKTY = [
 # liczby w kwestiach czytane słowami — do liczenia czasu kwestii i do lektora (zamiana całych fraz, bo forma zależy od zdania)
 SLOWNIE = {"w 660 roku": "w sześćset sześćdziesiątym roku", "Datę 660 roku": "Datę sześćset sześćdziesiątego roku",
            "w 712 i 720 roku": "w siedemset dwunastym i siedemset dwudziestym roku", "W 57 roku": "W pięćdziesiątym siódmym roku",
-           "W 1784 roku": "W tysiąc siedemset osiemdziesiątym czwartym roku",
-           "w 1873 roku": "w tysiąc osiemset siedemdziesiątym trzecim roku", "W 2019 roku": "W dwa tysiące dziewiętnastym roku"}
+           "w 57 roku": "w pięćdziesiątym siódmym roku",
+           "W 1784 roku": "W tysiąc siedemset osiemdziesiątym czwartym roku", "w 1784 roku": "w tysiąc siedemset osiemdziesiątym czwartym roku",
+           "w 1873 roku": "w tysiąc osiemset siedemdziesiątym trzecim roku", "w 1966 roku": "w tysiąc dziewięćset sześćdziesiątym szóstym roku",
+           "W 2019 roku": "W dwa tysiące dziewiętnastym roku"}
 
 
 # JEZYK=en: angielska wersja filmu na kanał Paper Theatre (reżyser 17.11.2026, księga D8): kwestie z kwestie_en.py,

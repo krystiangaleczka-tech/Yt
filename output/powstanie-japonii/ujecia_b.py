@@ -144,7 +144,8 @@ SPICH = (1020, 260)
 
 
 def s_takakuraji(st, w, t, T):
-    """Miecz zjeżdża z nieba przez dach spichlerza; Takakuraji chwyta go i niesie do leżącego Iwarebiko."""
+    """Miecz zjeżdża z nieba przez dach spichlerza; Takakuraji (podpis „miejscowy człowiek” — przegląd 18.11.2026: mniej imion)
+    chwyta go i niesie do leżącego Iwarebiko."""
     kam(st, t, 43, lerp(780, 700, ease(t / T)), 450, 1.2, 0.7)
     st.dof = 0.8
     kraj(st, t, w, cedry=1.0, sosny=(0.0, 0.0), tint=(0.86, 0.92, 0.88))
@@ -159,7 +160,7 @@ def s_takakuraji(st, w, t, T):
     lalka(st, t, "takakuraji", lerp(960, 600, go), 270, pr(t, 3.0, 0.9), flip=-1, rece=(60, 0), trzyma=MIECZ(270, True), hop=6 * (0 < go < 1))
     _lezacy(st, t, 3.0, dim=0.85)
     lalka(st, t, "iwarebiko", 430, 290, flip=1, lean=-82, sink=0.22, trzyma=LUK(290))
-    podpis(w, t, "Takakuraji", 880, nad(270), 3.6, 2.6)
+    podpis(w, t, "miejscowy człowiek", 880, nad(270), 3.6, 2.6)
     zawieszki(st, t, w)
     mgla(st, t, 0.22)
     swiatlo(st, w, t, extra=(0.88, 0.94, 0.9), dim=0.82)

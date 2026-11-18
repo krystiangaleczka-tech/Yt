@@ -83,7 +83,7 @@
           "state": "cesarz (złota opaska)"
         },
         {
-          "from": "d07_06~opada",
+          "from": "d07_04~opada",
           "state": "nie żyje"
         }
       ]
@@ -125,19 +125,6 @@
       "role": "wnuk Amaterasu",
       "look": "biało-złota szata, mizura",
       "leaves": "d04_01~opada"
-    },
-    {
-      "id": "kwiat",
-      "name": "księżniczka kwiatów",
-      "role": "żona Ninigiego (Konohanasakuya)",
-      "look": "różowa szata, wiśnia"
-    },
-    {
-      "id": "skala",
-      "name": "księżniczka skał",
-      "role": "siostra odesłana do ojca (Iwanaga)",
-      "look": "szara szata, głaz",
-      "leaves": "d03_09~opada"
     },
     {
       "id": "itsuse",
@@ -199,10 +186,10 @@
       "id": "wlocznia",
       "name": "Włócznia z klejnotami",
       "owner": "Izanagi",
-      "seeded": "d01_05~włócznią",
+      "seeded": "d01_02~włócznią",
       "uses": [
-        "d01_06~włócznię",
-        "d01_07~grot"
+        "d01_03~włócznię",
+        "d01_04~grot"
       ]
     },
     {
@@ -214,7 +201,7 @@
         "d02_09~lustrze",
         "d03_07~lustro",
         "d07_02~lustro",
-        "d07_06~lustro"
+        "d07_04~lustro"
       ],
       "note": "Jedno z trzech skarbów; w 2019 roku zostaje w świątyni, dlatego przy koronacji są tylko dwie skrzynki."
     },
@@ -226,7 +213,7 @@
       "uses": [
         "d03_07~klejnoty",
         "d07_02~klejnoty",
-        "d07_06~klejnoty",
+        "d07_04~klejnoty",
         "d09_06~klejnoty"
       ]
     },
@@ -237,7 +224,7 @@
       "uses": [
         "d03_07~miecz",
         "d07_02~miecz",
-        "d07_06~miecz",
+        "d07_04~miecz",
         "d09_06~miecz"
       ]
     },
@@ -247,7 +234,7 @@
       "owner": "Iwarebiko",
       "seeded": "d04_01~łukiem",
       "uses": [
-        "d04_10~łuk",
+        "d04_09~łuk",
         "d06_04~łuku"
       ]
     },
@@ -282,16 +269,18 @@
     {
       "id": "pieczec",
       "name": "Złota pieczęć króla Na",
-      "seeded": "d08_05~pieczęć",
+      "seeded": "d08_04~pieczęć",
       "uses": [
-        "d08_07~pieczęć"
-      ]
+        "d08_05~pieczęć",
+        "d08_06~pieczęć"
+      ],
+      "note": "Od przeglądu 18.11.2026 najpierw znalezisko chłopa (1784), potem czym była."
     },
     {
       "id": "choragiewki",
       "name": "Chorągiewki z czerwonym słońcem",
       "place": "kraj",
-      "seeded": "d01_02~chorągiewki",
+      "seeded": "d00_14~chorągiewki",
       "uses": [
         "d09_05~chorągiewki"
       ]
@@ -302,7 +291,7 @@
     {
       "id": "izanami",
       "name": "Izanami żyje",
-      "from": "d01_05~Izanami",
+      "from": "d01_02~Izanami",
       "to": "d02_01~opada"
     },
     {
@@ -328,26 +317,26 @@
     {
       "id": "nagasune",
       "name": "Nagasunehiko żyje",
-      "from": "d04_07~Nagasunehiko",
+      "from": "d04_06~Nagasunehiko",
       "to": "d06_08~opada"
     },
     {
       "id": "cesarz",
       "name": "Iwarebiko jest cesarzem",
       "from": "d07_02~tron",
-      "to": "d07_06~opada"
+      "to": "d07_04~opada"
     }
   ],
   "events": [
     {
-      "at": "d01_06~Izanagi",
+      "at": "d01_03~Izanagi",
       "note": "Izanagi i Izanami mieszają morze włócznią",
       "needs": [
         "izanami"
       ]
     },
     {
-      "at": "d01_08~Izanami",
+      "at": "d01_05~Izanami",
       "note": "bogowie stoją na pierwszej wyspie",
       "needs": [
         "izanami"
@@ -375,14 +364,14 @@
       ]
     },
     {
-      "at": "d04_09~Itsuse",
+      "at": "d04_08~Itsuse",
       "note": "strzała trafia Itsuse",
       "needs": [
         "itsuse"
       ]
     },
     {
-      "at": "d04_10~Itsuse",
+      "at": "d04_09~Itsuse",
       "note": "ranny Itsuse wskazuje słońce",
       "needs": [
         "itsuse"
@@ -435,14 +424,7 @@
       ]
     },
     {
-      "at": "d07_04~cesarza",
-      "note": "cesarz bierze żonę",
-      "needs": [
-        "cesarz"
-      ]
-    },
-    {
-      "at": "d07_08~cesarzy",
+      "at": "d07_06~cesarzy",
       "note": "linia następców po śmierci",
       "needsOff": [
         "cesarz"
@@ -454,7 +436,7 @@
       "id": "swieto",
       "title": "11 lutego: urodziny państwa",
       "setup": [
-        "d01_02~lutego"
+        "d00_14~lutego"
       ],
       "clues": [
         "d07_02~nowego roku"
@@ -467,14 +449,14 @@
       "id": "czy_zyl",
       "title": "Czy pierwszy cesarz żył?",
       "setup": [
-        "d01_03~żył"
+        "d00_09~istniał"
       ],
       "clues": [
         "d07_03~później",
         "d08_01~712",
         "d08_02~wróżby",
         "d08_03~myśliwi",
-        "d09_02~naprawdę"
+        "d09_02~prawdziwi"
       ],
       "payoff": [
         "d09_07~żył"
@@ -484,10 +466,10 @@
       "id": "kropla",
       "title": "Kraj z kropli z włóczni",
       "setup": [
-        "d01_07~kropli"
+        "d01_04~kropli"
       ],
       "clues": [
-        "d01_08~wysp"
+        "d01_05~wysp"
       ],
       "payoff": [
         "d09_07~kropli"
@@ -498,12 +480,13 @@
       "title": "Lustro, klejnoty i miecz",
       "setup": [
         "d02_07~lustro",
+        "d02_09~skarbów",
         "d03_06~miecz"
       ],
       "clues": [
-        "d03_07~skarby",
+        "d03_07~klejnoty",
         "d07_02~lustro",
-        "d07_06~przeszły"
+        "d07_04~przeszły"
       ],
       "payoff": [
         "d09_06~miecz"
@@ -513,35 +496,27 @@
       "id": "slonce",
       "title": "Potomek słońca walczy pod słońce",
       "setup": [
-        "d02_03~słońca"
+        "d01_01~słońca",
+        "d02_03~przodkini"
       ],
       "clues": [
         "d02_05~słońce",
         "d04_02~słońce",
-        "d04_07~słońce"
+        "d04_06~słońce"
       ],
       "payoff": [
-        "d04_10~słońcem"
-      ]
-    },
-    {
-      "id": "kwiat",
-      "title": "Życie krótkie jak kwiat",
-      "setup": [
-        "d03_09~kwiatów"
-      ],
-      "payoff": [
-        "d03_10~kwiatów"
+        "d04_09~słońcem"
       ]
     },
     {
       "id": "bracia",
       "title": "Czterech braci wyrusza, wraca jeden",
       "setup": [
+        "d00_09~braćmi",
         "d04_03~braćmi"
       ],
       "clues": [
-        "d04_09~Itsuse",
+        "d04_08~Itsuse",
         "d05_01~zmarł",
         "d05_02~braci"
       ],
@@ -553,10 +528,10 @@
       "id": "nagasune",
       "title": "Książę o długich goleniach",
       "setup": [
-        "d04_07~Nagasunehiko"
+        "d04_06~Nagasunehiko"
       ],
       "clues": [
-        "d04_09~strzał",
+        "d04_08~strzał",
         "d06_03~Nagasunehiko",
         "d06_07~Nagasunehiko"
       ],
@@ -578,7 +553,7 @@
       "id": "ptak",
       "title": "Złoty ptak na łuku",
       "setup": [
-        "d01_03~ptaka"
+        "d00_07~ptaka"
       ],
       "clues": [
         "d06_04~złoty"
@@ -591,7 +566,7 @@
       "id": "nihon",
       "title": "Kraj od słońca",
       "setup": [
-        "d01_01~słońce"
+        "d00_08~słońce"
       ],
       "clues": [
         "d02_03~Amaterasu"
@@ -605,7 +580,7 @@
       "id": "teatr",
       "title": "To wszystko było w papierowym teatrze",
       "setup": [
-        "d01_01~teatru"
+        "d00_08~teatru"
       ],
       "payoff": [
         "d09_07~teatru"
@@ -683,6 +658,18 @@
       "id": "D10",
       "text": "Ujęcia przerabia się według Wytycznych ujęć z 17.11 (przepis na ujęcie, zasady 1.15–1.24): podpis przy pierwszym pojawieniu się każdej postaci, śmierć widać (X na oczach, konanie, opadanie), zabójstwo ma fazy ciosu, potęga liczbą (flota, wojsko w Naniwie i w bitwie, haniwa), gagi ze słownika znaków (tabliczki „HA HA!”, „AW!…”, gwiazdki przy zamroczeniu), syn przy śmierci cesarza, kurtyna z tytułem między aktami i ściemnienie przy zmianie miejsca, podziękowanie na końcu, głos człowieka (śmiech, jęk, kaszel) z nagrania, a nie z szumu.",
       "at": "2026-11-17",
+      "by": "reżyser"
+    },
+    {
+      "id": "D11",
+      "text": "Film budujemy na wszystkich szkicach naraz (szkic D „Wszystko razem”: A trzy skarby, B śledztwo, C czterech braci + obecne akty; reżyser 18.11: „na nich bym zbudował cały film i A i B i C i aktualne akty”). Pierwszy krok: otwarcie jako prolog (akt 0) — 5 s zapowiedzi najlepszych akcji (skróty ujęć, render.WYCINEK), hak w środku akcji (strzała w Itsuse, burza, miecz z koronacji 2019, pytanie, czy pierwszy cesarz istniał), tytuł teatru 2,5 s i obietnica filmu; w pierwszej minucie dekoracja zmienia się co najmniej 3 razy. Reszta filmu według szkicu D po jego zatwierdzeniu w Studio.",
+      "at": "2026-11-18",
+      "by": "reżyser"
+    },
+    {
+      "id": "D12",
+      "text": "Poprawki z przeglądu scenariusza (reżyser 18.11: „tak, wszystkie oprócz lektora, lektora dodam na końcu”). Film idzie według szkicu D: wypadają księżniczki kwiatów i skał, postoje w portach, pola ryżowe i żona cesarza (11:59 przy tempie lektora EN). Wprowadzenie nazywa Iwarebiko i pokazuje go z podpisem „przyszły cesarz”; meduza to pomost do mitu („żeby zrozumieć, czemu bracia wierzyli, że pochodzą od słońca…”); Amaterasu to przodkini braci; koronacja z 2019 to „cesarz z jego rodu”. Fakty: miecz z ogona węża według tradycji ukryty w chramie, cesarz dostał zastępczy; haniwa — prawdziwi władcy Yamato, nie „pierwsi, o których wiemy”; święto 11 lutego zniesione po wojnie i przywrócone w 1966; ryż na południowym zachodzie; „inny miecz” w Kumano; 127 lat „według kroniki”. Śledztwo: chłop → pieczęć → odcisk → chińskie zapiski. Powrót do sceny z haka innymi słowami („Pamiętasz tę strzałę?”), hak przed aktem VIII („Ale czy on w ogóle istniał?”), tytuły aktów to pytania, mniej imion (bez Uzume, Takakuraji, Hyūga, Kii, Unebi), cisza muzyki przed szczytami (wąż, wrona, złoty ptak). Kwestie bez nagrania czekają na lektora reżysera.",
+      "at": "2026-11-18",
       "by": "reżyser"
     }
   ]
