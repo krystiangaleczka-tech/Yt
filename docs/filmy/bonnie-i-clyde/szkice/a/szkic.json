@@ -1,0 +1,881 @@
+{
+  "film": "bonnie-i-clyde",
+  "wariant": "A",
+  "tytul": "A · Legenda z gazety — prasa kontra prawda",
+  "scenariusz": "A · Legenda z gazety — prasa kontra prawda\n\nPODEJŚCIE\nPrasa kontra prawda, po kolei od slumsów West Dallas do zasadzki. Scena teatru jest zbudowana z gazet: nagłówki zjeżdżają na nitkach, a potem papierowe lalki pokazują, co było naprawdę. Hak 1: żart z cygarem, który trafił na pierwsze strony. Pogorszenie: Eastham (pierwsze zabójstwo, obcięte palce), promyk nadziei i hak 2: zwolnienie sześć dni później i przysięga, że nigdy nie wróci. Humor: indyki, muły, sznur sąsiadów w Joplin, przedsiębiorca pogrzebowy, wąwóz w Wellington, wiadomość o cygarach. Od Grapevine ton poważny; finał: pamiątkarze, Darby przy ich ciałach, osobne groby, Hollywood i gra wideo sprzedają tę samą legendę.\n\nTON\nHumor to ironia i suchy lektor: śmiejemy się z legendy, niezdarności i próżności (indyki, muły, wąwóz, cygaro), nigdy z ofiar. Każda śmierć policjanta czy sprzedawcy ma imię i ciszę; od Grapevine (Wielkanoc 1934) ton zostaje poważny do końca. Śmierć pokazuje teatr cieni za parawanem — błyski i padające sylwetki, bez krwi. Trzy szczyty z ciszą muzyki: Wellington, Grapevine, zasadzka.\n\nDŁUGOŚĆ: 14:55.0 · 97 ujęć · 85 kwestii EN, 1880 słów (tempo 2.84 słowa/s)\nHOOK 2 w 3:25.2\n\nPIERWSZA MINUTA: dekoracja zmienia się 11 razy (0:00.9 Joplin (pozowanie); 0:01.5 drukarnia; 0:02.3 Commerce (auto gangu); 0:03.0 ganek w Austin; 0:03.6 Arcadia; 0:05.1 teatr z gazet; 0:31.0 Joplin (mieszkanie); 0:42.2 Joplin (pozowanie); 0:48.9 teatr z gazet; 0:50.5 drukarnia; 0:59.9 kryjówka (auto))\n\nZNACZNIKI\n0:00.0  ZAPOWIEDŹ 5 s\n0:05.1  TYTUŁ · kurtyna startu\n0:09.7  WPROWADZENIE\n0:31.0  HOOK 1\n1:09.0  OBIETNICA\n1:20.5  AKT I · POMOST\n2:55.2  POGORSZENIE\n3:25.2  HOOK 2 · promyk nadziei\n3:48.7  AKT II\n5:47.6  AKT III\n7:36.7  AKT IV\n9:47.3  AKT V\n10:49.6  AKT VI\n12:29.8  AKT VII\n14:46.5  PODZIĘKOWANIE\n\nAKTY (tytuł na kurtynie)\n- Act I · Who were they before the headlines?\n- Act II · How do you become America's most wanted?\n- Act III · How did a joke make them famous?\n- Act IV · What does life on the run really look like?\n- Act V · Who finally went after them?\n- Act VI · When did America stop cheering?\n- Act VII · How does the story end?\n\nFAKTY\nSprawdzone 18.11 w sieci (do potwierdzenia w gazetach z 1934 przed rozpiską): wiadomość Bonnie przez komendanta Boyda, że nie pali cygar (relacje wtórne); Maree Tullis w sukni ślubnej na pogrzebie H.D. Murphy'ego (jeden artykuł lokalny, Tyler Paper) — w kwestii „local historians say”; śmiech Bonnie z zawodu Darby'ego i to, że Darby pomagał przy balsamowaniu (relacje wtórne) — w kwestii „reportedly”. List Clyde'a do Forda: autentyczność sporna — kwestia to mówi. Wiersz Bonnie („The Trail's End”) tylko parafrazujemy; status praw autorskich niesprawdzony. Do sprawdzenia przed rozpiską: 5 dolarów dla porwanych (jedno źródło), 6 dni między obcięciem palców a zwolnieniem, kanapka i skarpetki w dniu zasadzki, liczba ok. 20 tys. na pogrzebie Bonnie, „co najmniej 9 zabitych stróżów prawa”, wiek i sytuacja Cala Campbella, dni pościgu Hamera (10.02 → 23.05.1934 = 102 dni; Grapevine 1.04 = dzień 50).\n\nŹRÓDŁA\nPBS American Experience „Bonnie & Clyde”; FBI History „Bonnie and Clyde”; 64 Parishes „Capture of Bonnie and Clyde”; Tyler Paper (Maree Tullis); funeralwise.com (Dillard Darby); homebrewedmojo.blogspot.com (Percy Boyd).\n\nKLATKI: jeszcze ich nie ma — dekoracje lat 30. (prerie, Ford V8, stacje, drukarnia, teatr cieni) powstaną po zatwierdzeniu szkicu; w przeglądzie każde ujęcie to karta z opisem i kwestią.",
+  "ujecia": [
+    {
+      "nr": 1,
+      "klucz": "zap_wellington_most",
+      "sekundy": 0.9,
+      "opis": "zapowiedź (skrót ujęcia „wellington_most”): Ford spada z rozebranego mostu w wąwóz, bucha płomień",
+      "kwestia": "",
+      "kadr": "plan ogólny",
+      "znacznik": "ZAPOWIEDŹ 5 s"
+    },
+    {
+      "nr": 2,
+      "klucz": "zap_zdjecie",
+      "sekundy": 0.6,
+      "opis": "zapowiedź (skrót ujęcia „zdjecie”): Bonnie z cygarem i rewolwerem pozuje przy Fordzie, błyska flesz",
+      "kwestia": "",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 3,
+      "klucz": "zap_prasa",
+      "sekundy": 0.8,
+      "opis": "zapowiedź (skrót ujęcia „prasa”): wałki drukarni kręcą się, wylatują gazety ze zdjęciem",
+      "kwestia": "",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 4,
+      "klucz": "zap_boyd",
+      "sekundy": 0.7,
+      "opis": "zapowiedź (skrót ujęcia „boyd”): porwany komendant z rękami w górze, Bonnie grozi mu palcem",
+      "kwestia": "",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 5,
+      "klucz": "zap_hamer",
+      "sekundy": 0.6,
+      "opis": "zapowiedź (skrót ujęcia „hamer”): Hamer wstaje z bujanego fotela i sięga po karabin",
+      "kwestia": "",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 6,
+      "klucz": "zap_pamiatki",
+      "sekundy": 1.5,
+      "opis": "zapowiedź (skrót ujęcia „pamiatki”): tłum przy podziurawionym Fordzie, ktoś odcina pukiel włosów; ściemnienie",
+      "kwestia": "",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 7,
+      "klucz": "tytul",
+      "sekundy": 4.6,
+      "opis": "Kurtyna startu rozsuwa się na teatr zbudowany z gazet: stoi Ford, Bonnie opiera nogę o zderzak z cygarem w zębach i rewolwerem, obok Clyde z karabinem; z góry zjeżdża szyld „The Outlaws Made of Paper”",
+      "kwestia": "",
+      "kadr": "karta / napis",
+      "znacznik": "TYTUŁ · kurtyna startu"
+    },
+    {
+      "nr": 8,
+      "klucz": "wprowadzenie",
+      "sekundy": 10.5,
+      "opis": "Kamera najeżdża na Bonnie; przy jej imieniu zjeżdża podpis „Bonnie Parker”; Bonnie wyjmuje cygaro z ust i krzywi się",
+      "kwestia": "This is Bonnie Parker, the most famous outlaw girl in America, and almost everything you think you know about her was printed in a newspaper.",
+      "kadr": "plan średni",
+      "znacznik": "WPROWADZENIE"
+    },
+    {
+      "nr": 9,
+      "klucz": "wprowadzenie2",
+      "sekundy": 10.8,
+      "opis": "Kamera odjeżdża na Clyde'a; podpis „Clyde Barrow”; za nimi z nitek zjeżdżają nagłówki gazet jeden za drugim",
+      "kwestia": "Together with Clyde Barrow, she spent two years robbing gas stations and corner shops, while the papers turned two broke kids from Dallas into legends.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 10,
+      "klucz": "hak_joplin_rzeczy",
+      "sekundy": 11.2,
+      "opis": "Policjant chodzi po opuszczonym pokoju: walizki, karabiny, zeszyt z wierszem; podnosi z podłogi aparat, z kasety wysuwa się klisza",
+      "kwestia": "In April 1933, police raided their hideout in Joplin, Missouri, and found the one thing outlaws should never leave behind: a camera full of film.",
+      "kadr": "detal",
+      "znacznik": "HOOK 1"
+    },
+    {
+      "nr": 11,
+      "klucz": "zdjecie",
+      "sekundy": 6.7,
+      "opis": "Ożywa klatka z kliszy: Bonnie opiera nogę o zderzak Forda, ktoś zza kadru podaje jej cygaro, ona wkłada je do ust i pozuje z rewolwerem; błyska flesz",
+      "kwestia": "On one frame, Bonnie posed with a pistol and a borrowed cigar, just for fun.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 12,
+      "klucz": "hak_pomost",
+      "sekundy": 1.6,
+      "opis": "Pomost: wielka strona gazety przewraca się przez cały kadr jak kurtyna, szelest papieru",
+      "kwestia": "",
+      "kadr": "detal",
+      "znacznik": ""
+    },
+    {
+      "nr": 13,
+      "klucz": "prasa",
+      "sekundy": 9.4,
+      "opis": "Wałki maszyny drukarskiej kręcą się, wylatują setki gazet ze zdjęciem Bonnie z cygarem i odlatują nad dachy miasteczek",
+      "kwestia": "Within days that joke was on front pages across America, and Bonnie became the cigar-smoking gun girl.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 14,
+      "klucz": "hak_cygaro",
+      "sekundy": 9.1,
+      "opis": "Bonnie w aucie czyta gazetę ze swoim zdjęciem, wypuszcza z ust papierosa i zgniata gazetę; tabliczka „I DON'T SMOKE CIGARS!”",
+      "kwestia": "There was just one problem: Bonnie didn't smoke cigars, and she spent the rest of her short life trying to tell everyone.",
+      "kadr": "zbliżenie",
+      "znacznik": ""
+    },
+    {
+      "nr": 15,
+      "klucz": "obietnica",
+      "sekundy": 11.5,
+      "opis": "Gazety układają się w mapę pięciu stanów; po mapie sunie papierowy Ford i zostawia za sobą ślad z nagłówków",
+      "kwestia": "By the end, you'll know how two small-time thieves became the most hunted couple in America, who finally caught them, and why their legend still sells today.",
+      "kadr": "plan ogólny",
+      "znacznik": "OBIETNICA"
+    },
+    {
+      "nr": 16,
+      "klucz": "wagon",
+      "sekundy": 13.4,
+      "opis": "Kurtyna z tytułem „Act I · Who were they before the headlines?”; rozsuwa się, z ziemi wyrastają namioty i szałasy pod wiaduktem; rodzina Barrowów śpi pod wozem konnym",
+      "kwestia": "To see how a joke became a legend, we go back to West Dallas in the 1920s, a slum so poor that people called it the Devil's Back Porch.",
+      "kadr": "plan średni",
+      "znacznik": "AKT I · POMOST"
+    },
+    {
+      "nr": 17,
+      "klucz": "indyki",
+      "sekundy": 13.0,
+      "opis": "Nastoletni Clyde i brat Buck pchają ciężarówkę pełną gdaczących indyków; zza rogu wychodzi policjant z gwizdkiem, indyki wyfruwają; tabliczka „STOP!”",
+      "kwestia": "Clyde Barrow's family had arrived with almost nothing, and as a teenager Clyde was arrested for a rented car he forgot to return, and then for a truck full of stolen turkeys.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 18,
+      "klucz": "szkola",
+      "sekundy": 8.7,
+      "opis": "Mała Bonnie wbiega na podium po dyplom za ortografię i wiersze; klasa klaszcze, z nitki zjeżdża złota gwiazdka",
+      "kwestia": "Bonnie Parker, meanwhile, was a star pupil who won prizes for spelling and poetry, and she dreamed of the stage.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 19,
+      "klucz": "slub",
+      "sekundy": 10.9,
+      "opis": "Piętnastoletnia Bonnie i Roy Thornton stają pod łukiem z papierowych kwiatów; z góry zjeżdża tabliczka-tatuaż: dwa serca „Bonnie” i „Roy”; podpis „Roy Thornton”",
+      "kwestia": "At fifteen she married a boy named Roy Thornton and had their names tattooed in two hearts, which is a very permanent decision for a fifteen-year-old.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 20,
+      "klucz": "roy",
+      "sekundy": 9.1,
+      "opis": "Roy wychodzi z walizką, drzwi skrzypią i zostają otwarte; Bonnie przy oknie obraca obrączkę na palcu; zjeżdża zawieszka „1929”",
+      "kwestia": "Roy kept disappearing and soon landed in prison, but Bonnie never divorced him and wore his ring until the very end.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 21,
+      "klucz": "kawiarnia",
+      "sekundy": 8.3,
+      "opis": "Bonnie w fartuszku nalewa kawę; klient za gazetą nie podnosi wzroku; Bonnie przewraca oczami i odstawia dzbanek z hukiem",
+      "kwestia": "So at nineteen she was a waitress with a husband in prison, waiting for something exciting to happen.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 22,
+      "klucz": "kuchnia",
+      "sekundy": 9.1,
+      "opis": "W ciasnej kuchni Bonnie miesza kakao; drzwiami wchodzi Clyde w kapeluszu i uchyla go; z nitki zjeżdżają dwa serduszka; podpis „Clyde Barrow”",
+      "kwestia": "In January 1930, in a friend's kitchen, she met Clyde, and from then on something exciting happened almost every week.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 23,
+      "klucz": "areszt",
+      "sekundy": 6.6,
+      "opis": "Do kuchni wchodzi policjant i zakuwa Clyde'a w kajdanki; Bonnie zostaje z łyżką w ręce; tabliczka „HEY!”",
+      "kwestia": "Unfortunately, a few weeks later the police arrested him for a string of burglaries.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 24,
+      "klucz": "waco",
+      "sekundy": 6.9,
+      "opis": "Przy kratach Bonnie wyjmuje spod płaszcza pistolet i podaje go przez pręty; strażnik w tle ziewa i patrzy w drugą stronę",
+      "kwestia": "Bonnie smuggled a pistol into the Waco jail, and soon after, Clyde broke out.",
+      "kadr": "detal",
+      "znacznik": ""
+    },
+    {
+      "nr": 25,
+      "klucz": "ohio",
+      "sekundy": 8.7,
+      "opis": "Clyde w nowym kapeluszu przechadza się po peronie i gwiżdże; z obu stron wchodzą policjanci; tabliczka „OH NO”",
+      "kwestia": "He was caught again a week later in Ohio, which tells you a lot about his talent for escapes.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 26,
+      "klucz": "eastham",
+      "sekundy": 12.2,
+      "opis": "Za bramą farmy więziennej Eastham więźniowie w pasiakach tną bawełnę, każdy w swoim rytmie; strażnik na koniu jedzie wzdłuż rzędu; słońce praży",
+      "kwestia": "This time he was sent to Eastham Prison Farm, one of the harshest prisons in Texas, where men picked cotton from dawn to dark.",
+      "kadr": "plan ogólny",
+      "znacznik": "POGORSZENIE"
+    },
+    {
+      "nr": 27,
+      "klucz": "eastham_rura",
+      "sekundy": 9.8,
+      "opis": "Za parawanem w baraku cień rosłego więźnia pochyla się nad Clyde'em; Clyde chwyta rurę, cień przeciwnika pada; muzyka cichnie",
+      "kwestia": "There another inmate attacked him again and again, until Clyde killed him with a pipe, and it was the first life he took.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 28,
+      "klucz": "palce",
+      "sekundy": 8.0,
+      "opis": "Na polu cień siekiery opada poza kadrem; Clyde łapie się za but i podskakuje na jednej nodze; tabliczka „AW!”, gwiazdki nad głową",
+      "kwestia": "Desperate to get out of the fields, he had two of his toes cut off with an axe.",
+      "kadr": "detal",
+      "znacznik": ""
+    },
+    {
+      "nr": 29,
+      "klucz": "parol",
+      "sekundy": 9.7,
+      "opis": "Brama się otwiera; Clyde wychodzi o kulach; strażnik macha za nim kartką z pieczątką „PAROLE”; Clyde patrzy na bandaż na stopie",
+      "kwestia": "Six days later he was released on parole anyway, thanks to a petition from his mother, so the toes were a waste.",
+      "kadr": "plan pełny",
+      "znacznik": "HOOK 2 · promyk nadziei"
+    },
+    {
+      "nr": 30,
+      "klucz": "przysiega",
+      "sekundy": 13.8,
+      "opis": "Clyde o kulach odwraca się do bramy, która zamyka się za nim z hukiem; tabliczka „NEVER AGAIN”",
+      "kwestia": "He limped for the rest of his life, and he swore he would die before going back, but how do you stay free when every policeman in Texas knows your face?",
+      "kadr": "zbliżenie",
+      "znacznik": ""
+    },
+    {
+      "nr": 31,
+      "klucz": "akt2",
+      "sekundy": 9.7,
+      "opis": "Kurtyna „Act II · How do you become America's most wanted?”; rozsuwa się na drogę wśród pól; z ziemi wyrasta stacja benzynowa z jednym dystrybutorem",
+      "kwestia": "Clyde's plan was simple: steal a fast car, rob small places with little cash and no guards, and keep driving.",
+      "kadr": "plan ogólny",
+      "znacznik": "AKT II"
+    },
+    {
+      "nr": 32,
+      "klucz": "stacja",
+      "sekundy": 9.4,
+      "opis": "Clyde wpada do budki stacji z rewolwerem; kasjer otwiera szufladę: kilka monet i guzik; tabliczka „THAT'S IT?”",
+      "kwestia": "Most of their robberies were gas stations and grocery stores, and many of them paid only a few dollars.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 33,
+      "klucz": "kaufman",
+      "sekundy": 13.1,
+      "opis": "Nocą Ford grzęźnie w błocie po kołpaki; Clyde i Bonnie wskakują na dwa muły, muły ani drgną; tabliczka „GO!”",
+      "kwestia": "Their first big plan was to rob a hardware store for guns, but the car got stuck in the mud, so they tried to escape on stolen mules.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 34,
+      "klucz": "cela",
+      "sekundy": 9.4,
+      "opis": "Bonnie w celi pisze ołówkiem w zeszycie; zapisane kartki odrywają się i fruwają po celi jak ptaki",
+      "kwestia": "Bonnie was caught and spent two months in jail, where she wrote a long poem about an outlaw girl called Suicide Sal.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 35,
+      "klucz": "hillsboro",
+      "sekundy": 10.7,
+      "opis": "Za papierowym parawanem cienie: napad w sklepie, błysk, sylwetka sprzedawcy opada za ladę; muzyka cichnie",
+      "kwestia": "While she was locked up, one of Clyde's robberies went wrong in Hillsboro, and a shopkeeper named John Bucher was shot dead.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 36,
+      "klucz": "matka_obietnica",
+      "sekundy": 11.1,
+      "opis": "Bonnie wychodzi z aresztu prosto w objęcia matki i kiwa głową; za płotem stoi Ford, Clyde cicho trąbi",
+      "kwestia": "When the grand jury let Bonnie go, she promised her mother to stay away from Clyde, and she kept that promise for a few weeks.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 37,
+      "klucz": "atoka",
+      "sekundy": 11.5,
+      "opis": "Potańcówka pod gołym niebem w Atoce, pary wirują; dwaj stróże prawa podchodzą do auta; za parawanem błyski, jedna sylwetka pada",
+      "kwestia": "That August, at a country dance in Oklahoma, Clyde's gang shot a deputy named Eugene Moore, and now they were wanted for killing a lawman.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 38,
+      "klucz": "wd",
+      "sekundy": 7.3,
+      "opis": "Do auta wsiada chudy chłopak z nieśmiałym uśmiechem i zatrzaskuje drzwi; podpis „W.D. Jones, 16”",
+      "kwestia": "Soon a sixteen-year-old kid from the neighborhood, W.D. Jones, joined them, mostly because it sounded exciting.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 39,
+      "klucz": "buck",
+      "sekundy": 12.9,
+      "opis": "Z bramy wychodzi Buck Barrow z ułaskawieniem w ręku; czeka Blanche w kapelusiku, z białym pieskiem na rękach; podpisy „Buck Barrow”, „Blanche Barrow”",
+      "kwestia": "Then in March 1933, Clyde's older brother Buck was pardoned, and he and his wife Blanche came along for what was supposed to be a short family visit.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 40,
+      "klucz": "joplin_dom",
+      "sekundy": 11.7,
+      "opis": "Dwa auta zajeżdżają pod garaż z mieszkaniem na piętrze; zjeżdża zawieszka „Joplin, Missouri, 1933”; w oknach zapalają się światła",
+      "kwestia": "They rented an apartment above a garage in Joplin, Missouri, where the five of them tried very hard to look like a normal family.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 41,
+      "klucz": "joplin_karty",
+      "sekundy": 12.1,
+      "opis": "Buck i Blanche grają w karty, Clyde dmucha w saksofon, Bonnie pisze; sąsiadka przykłada ucho do ściany; tabliczka „SHHH!”",
+      "kwestia": "They played cards, drank and argued so loudly that the neighbors called the police, thinking they were bootleggers, so who was really waiting behind that door?",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 42,
+      "klucz": "joplin_walka",
+      "sekundy": 10.6,
+      "opis": "Kurtyna „Act III · How did a joke make them famous?”; rozsuwa się na garaż w Joplin; za parawanem błyski z okien, dwie sylwetki policjantów padają, gang zbiega do auta i wyjeżdża przez drzwi garażu",
+      "kwestia": "On April 13, 1933, two officers walked up to the garage, and the gang answered with gunfire from the windows.",
+      "kadr": "plan ogólny",
+      "znacznik": "AKT III"
+    },
+    {
+      "nr": 43,
+      "klucz": "joplin_ofiary",
+      "sekundy": 9.8,
+      "opis": "Na pustym podwórku leżą dwie czapki policyjne; z nitek zjeżdżają podpisy „Harry McGinnis”, „Wes Harryman”; światło przygasa",
+      "kwestia": "Detective Harry McGinnis and Constable Wes Harryman were killed, and the gang fled in such a hurry that they left almost everything behind.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 44,
+      "klucz": "joplin_rzeczy",
+      "sekundy": 8.7,
+      "opis": "Policjant chodzi po opuszczonym pokoju: walizki, karabiny, zeszyt z wierszem; podnosi z podłogi aparat, z kasety wysuwa się klisza",
+      "kwestia": "Remember that camera? It was lying on the floor, next to their guns, their clothes and one of Bonnie's poems.",
+      "kadr": "detal",
+      "znacznik": ""
+    },
+    {
+      "nr": 45,
+      "klucz": "ciemnia",
+      "sekundy": 9.4,
+      "opis": "W czerwonym świetle ciemni klisza pływa w kuwecie; na papierze wyłania się Bonnie z rewolwerem i cygarem",
+      "kwestia": "The Joplin Globe developed the film, and suddenly a country deep in the Great Depression had pictures of its new favorite villains.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 46,
+      "klucz": "kiosk",
+      "sekundy": 12.9,
+      "opis": "Gazeciarz macha gazetą; kolejka ludzi w łatanych płaszczach kupuje; sterta gazet rośnie aż do markizy; tabliczka „EXTRA!”",
+      "kwestia": "People who had lost their jobs and farms to the banks bought every edition, because these two looked like they were having a much better time.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 47,
+      "klucz": "cygaro_zlosc",
+      "sekundy": 8.0,
+      "opis": "Bonnie w aucie czyta gazetę, marszczy brwi i wyrzuca cygaro przez okno; tabliczka „CIGARETTES!”",
+      "kwestia": "Bonnie loved the attention, but she hated being called a cigar smoker, because she only ever smoked cigarettes.",
+      "kadr": "zbliżenie",
+      "znacznik": ""
+    },
+    {
+      "nr": 48,
+      "klucz": "darby_auto",
+      "sekundy": 11.5,
+      "opis": "Gang odjeżdża cudzym autem sprzed domu; z domu wybiegają młody mężczyzna w garniturze i kobieta w kapeluszu i wskakują do drugiego auta",
+      "kwestia": "Two weeks later in Louisiana they stole a car, and its owner, a young man named Dillard Darby, chased them with a friend, Sophia Stone.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 49,
+      "klucz": "darby_tyl",
+      "sekundy": 10.9,
+      "opis": "Darby i Stone siedzą ściśnięci na tylnym siedzeniu; Bonnie odwraca się do nich i pyta; podpisy „Dillard Darby, undertaker”, „Sophia Stone”",
+      "kwestia": "The gang caught them instead and took them along, and when Bonnie asked Darby what he did for a living, he said he was an undertaker.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 50,
+      "klucz": "darby_smiech",
+      "sekundy": 7.0,
+      "opis": "Bonnie wybucha śmiechem i klepie się po kolanie; Darby blednie; tabliczka „HA HA!”",
+      "kwestia": "Bonnie reportedly laughed and said that one day he might have to work on her.",
+      "kadr": "zbliżenie",
+      "znacznik": ""
+    },
+    {
+      "nr": 51,
+      "klucz": "darby_puszczeni",
+      "sekundy": 8.3,
+      "opis": "Porwani wysiadają na poboczu; Clyde wręcza im przez okno banknot; Ford odjeżdża w kurzu, Darby zostaje z banknotem w ręce",
+      "kwestia": "Later they let both hostages go near Waldo, Arkansas, and even gave them five dollars to get home.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 52,
+      "klucz": "plakaty",
+      "sekundy": 12.0,
+      "opis": "Mapa z gazet: pinezki w Teksasie, Oklahomie, Missouri, Luizjanie; na mapie wyrastają ich twarze z listów gończych",
+      "kwestia": "Now their faces were on wanted posters in five states, but what happens when America's most famous getaway driver misses a road sign?",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 53,
+      "klucz": "wellington_noc",
+      "sekundy": 11.2,
+      "opis": "Kurtyna „Act IV · What does life on the run really look like?”; nocna droga przez prerię, Ford pędzi; tablica „DETOUR” mija się w ciemności",
+      "kwestia": "In June 1933, near Wellington, Texas, Clyde was driving fast at night and missed the signs warning that the bridge ahead was out.",
+      "kadr": "plan ogólny",
+      "znacznik": "AKT IV"
+    },
+    {
+      "nr": 54,
+      "klucz": "wellington_most",
+      "sekundy": 3.4,
+      "opis": "Ford wjeżdża na rozebrany most, leci w wąwóz, przewraca się i bucha płomieniem; mocny wstrząs kamery, przed uderzeniem muzyka milknie (szczyt 1)",
+      "kwestia": "",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 55,
+      "klucz": "wellington_bonnie",
+      "sekundy": 8.7,
+      "opis": "Clyde i W.D. wyciągają Bonnie z płonącego auta; jej noga dymi; tabliczka „AAAA!”",
+      "kwestia": "The car caught fire, and acid from the battery burned Bonnie's leg so badly that she never walked properly again.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 56,
+      "klucz": "farma",
+      "sekundy": 9.4,
+      "opis": "Rodzina farmerów nosi wiadra i opatruje Bonnie na ganku; drogą nadjeżdżają szeryf i marszałek",
+      "kwestia": "A farm family took them in and tried to help, but somebody called the sheriff, and two lawmen arrived.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 57,
+      "klucz": "drzewo",
+      "sekundy": 10.8,
+      "opis": "Szeryf i marszałek przywiązani drutem kolczastym do drzewa; Clyde macha im z auta na pożegnanie; tabliczka „BYE!”",
+      "kwestia": "The gang took both lawmen hostage, drove them across the border into Oklahoma and left them tied to a tree with barbed wire.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 58,
+      "klucz": "noszenie",
+      "sekundy": 8.0,
+      "opis": "Clyde niesie Bonnie na rękach z auta do pokoju motelu; noga w bandażu; Bonnie krzywi się przy każdym jego kroku",
+      "kwestia": "For weeks afterwards Clyde carried Bonnie in his arms, because she could no longer stand on her own.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 59,
+      "klucz": "oboz",
+      "sekundy": 9.9,
+      "opis": "Wieczór przy drodze: auto z otwartymi drzwiami, pranie suszy się na drzwiach, puszka fasoli na ognisku, Bonnie pisze, Clyde czyści karabin",
+      "kwestia": "This was the glamorous outlaw life: sleeping in stolen cars, eating cold beans from cans and washing in rivers.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 60,
+      "klucz": "rzeka",
+      "sekundy": 2.3,
+      "opis": "Bonnie myje włosy w rzece; ryba wyskakuje jej spod ręki; tabliczka „BRRR!”",
+      "kwestia": "",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 61,
+      "klucz": "platte",
+      "sekundy": 12.0,
+      "opis": "Policja otacza dwa domki motelu, podjeżdża opancerzone auto; za parawanem błyski, sylwetka Bucka chwieje się, szyba pęka przed Blanche",
+      "kwestia": "In July, police surrounded them at a motel in Missouri; Buck was shot in the head, and flying glass blinded Blanche in one eye.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 62,
+      "klucz": "dexfield",
+      "sekundy": 12.4,
+      "opis": "Świt w lesie w Iowie: z krzaków wychodzą farmerzy i policjanci; Buck leży przy ognisku, Blanche klęczy przy nim i nie chce odejść",
+      "kwestia": "Days later, in an Iowa park, a posse of police and farmers found their camp, and Buck was captured, dying, while Blanche refused to leave him.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 63,
+      "klucz": "przeprawa",
+      "sekundy": 8.0,
+      "opis": "Clyde, Bonnie i W.D. brną przez rzekę; Clyde ciągnie Bonnie za rękę; na brzegu za nimi błyski",
+      "kwestia": "Clyde, Bonnie and W.D. waded across a river and escaped, wounded, with almost nothing left.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 64,
+      "klucz": "wd_odchodzi",
+      "sekundy": 7.0,
+      "opis": "Nocą W.D. wysiada po cichu i odchodzi w ciemność; Bonnie patrzy za nim przez szybę",
+      "kwestia": "Soon even W.D. Jones slipped away in the night and went home to his mother.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 65,
+      "klucz": "rodziny",
+      "sekundy": 13.4,
+      "opis": "Nocą przy polnej drodze stoją dwa auta z wygaszonymi światłami; matki podają przez okna koszyki z jedzeniem, Bonnie oddaje pranie",
+      "kwestia": "Bonnie and Clyde went home too, in their own way: every few weeks they met their families on dark country roads outside Dallas, bringing laundry and taking home-cooked food.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 66,
+      "klucz": "sowers",
+      "sekundy": 14.1,
+      "opis": "Nocą przy drodze z krzaków wyskakują policjanci; błyski za parawanem za wcześnie, Ford z przestrzelonymi szybami odjeżdża; tabliczka „OUCH!”",
+      "kwestia": "In November, the Dallas sheriff tried to ambush one of these family picnics, and both of them escaped with bullets in their legs, so why didn't they just stop?",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 67,
+      "klucz": "odbicie",
+      "sekundy": 12.5,
+      "opis": "Kurtyna „Act V · Who finally went after them?”; mgła nad polami Eastham; więźniowie wyciągają broń z rowu, strażnik pada; z mgły trąbi klakson, wyjeżdża Ford, więźniowie wskakują na stopnie",
+      "kwestia": "Instead, in January 1934, Clyde went back to Eastham to free his friends, while Bonnie honked the horn in the fog to guide them.",
+      "kadr": "plan ogólny",
+      "znacznik": "AKT V"
+    },
+    {
+      "nr": 68,
+      "klucz": "straznik",
+      "sekundy": 7.0,
+      "opis": "Mgła rzednie; na drodze zostaje kapelusz strażnika; z nitki zjeżdża podpis „Major Joe Crowson”; światło przygasa",
+      "kwestia": "Five prisoners got away, but a guard named Joe Crowson was shot and later died.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 69,
+      "klucz": "simmons",
+      "sekundy": 8.4,
+      "opis": "Szef więziennictwa wali pięścią w biurko, aż podskakuje kałamarz; podpis „Lee Simmons, Texas prisons chief”",
+      "kwestia": "The head of the Texas prisons, Lee Simmons, took it personally, and he went looking for one particular man.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 70,
+      "klucz": "hamer",
+      "sekundy": 9.8,
+      "opis": "Na ganku wysoki mężczyzna w kapeluszu wstaje powoli z bujanego fotela i sięga po karabin; podpis „Frank Hamer, retired Texas Ranger”",
+      "kwestia": "Frank Hamer was a retired Texas Ranger who had survived dozens of gunfights, and in February 1934 he quietly took the job.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 71,
+      "klucz": "mapa",
+      "sekundy": 9.5,
+      "opis": "Hamer przypina do mapy papierowe znaczniki: Teksas, Oklahoma, Missouri, Luizjana; łączy je czerwoną nicią",
+      "kwestia": "Hamer didn't chase them, because everyone who chased them lost; instead, he studied every place they had been.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 72,
+      "klucz": "petle",
+      "sekundy": 15.1,
+      "opis": "Czerwona nić na mapie układa się w pętle wzdłuż granic stanów; każda pętla wraca do Dallas, do dwóch małych domków",
+      "kwestia": "He noticed that Clyde drove in great loops along state lines, where most police could not follow, and that sooner or later they always came home to their mothers.",
+      "kadr": "detal",
+      "znacznik": ""
+    },
+    {
+      "nr": 73,
+      "klucz": "grapevine",
+      "sekundy": 11.7,
+      "opis": "Kurtyna „Act VI · When did America stop cheering?”; wiejska droga, kwitnące drzewa, Ford stoi na poboczu; nadjeżdżają dwaj motocykliści i zwalniają",
+      "kwestia": "On Easter Sunday 1934, near Grapevine, Texas, two young highway patrolmen on motorcycles stopped to help what they thought was a stranded car.",
+      "kadr": "plan ogólny",
+      "znacznik": "AKT VI"
+    },
+    {
+      "nr": 74,
+      "klucz": "grapevine_cien",
+      "sekundy": 6.4,
+      "opis": "Muzyka milknie; za parawanem dwa błyski, dwie sylwetki z motocyklami padają; motocykl przewraca się z łoskotem (szczyt 2)",
+      "kwestia": "They were shot before they could draw their guns.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 75,
+      "klucz": "tullis",
+      "sekundy": 11.9,
+      "opis": "Przy trumnie stoi młoda kobieta w białej sukni ślubnej; z góry powoli spadają płatki; podpis „Maree Tullis”",
+      "kwestia": "One of them, H.D. Murphy, was supposed to marry his sweetheart, Maree Tullis, that month, and local historians say she came to his funeral in her wedding dress.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 76,
+      "klucz": "gazety_zle",
+      "sekundy": 10.2,
+      "opis": "Nowe gazety z nagłówkiem o bezlitosnej Bonnie; ludzie zgniatają je i rzucają na ziemię; kolejka przy kiosku się rozchodzi",
+      "kwestia": "The papers claimed Bonnie had laughed over a dying man, which was probably not true, but after Grapevine nobody was cheering for them anymore.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 77,
+      "klucz": "listy_gon",
+      "sekundy": 11.3,
+      "opis": "Na słupie wyrastają kolejne listy gończe z nagrodą; farmer z dubeltówką przystaje, czyta i odwraca się w stronę drogi",
+      "kwestia": "Rewards were posted across the South, and from then on every farmer with a shotgun was watching the road for a stolen Ford.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 78,
+      "klucz": "commerce",
+      "sekundy": 9.7,
+      "opis": "Ford ugrzązł w rowie pod Commerce w Oklahomie; dwaj stróże prawa idą przez pole, żeby pomóc",
+      "kwestia": "Five days later, near Commerce, Oklahoma, their car slid into a ditch again, and two lawmen walked over to help.",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 79,
+      "klucz": "commerce_cien",
+      "sekundy": 7.0,
+      "opis": "Za parawanem błysk, starszy konstabl pada; komendant podnosi ręce i wsiada do Forda",
+      "kwestia": "Clyde killed Constable Cal Campbell and took the police chief, Percy Boyd, as a hostage.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 80,
+      "klucz": "boyd",
+      "sekundy": 9.1,
+      "opis": "Komendant na tylnym siedzeniu z rękami w górze; Bonnie odwraca się do niego z uniesionym palcem; podpis „Percy Boyd, police chief”",
+      "kwestia": "They drove Boyd around for hours, and before letting him go in Kansas, Bonnie gave him one message for the newspapers.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 81,
+      "klucz": "boyd_tab",
+      "sekundy": 8.7,
+      "opis": "Boyd stoi przy drodze i patrzy za odjeżdżającym Fordem; zjeżdża nad nim tabliczka „SHE DOESN'T SMOKE CIGARS!”",
+      "kwestia": "Not that she was innocent, and not that she was sorry, only that Bonnie Parker did not smoke cigars.",
+      "kadr": "zbliżenie",
+      "znacznik": ""
+    },
+    {
+      "nr": 82,
+      "klucz": "methvin",
+      "sekundy": 14.2,
+      "opis": "Hamer siedzi przy stole naprzeciw brodatego farmera; między nimi papier z pieczęcią „PARDON”; farmer kiwa głową; podpis „Ivy Methvin”",
+      "kwestia": "Meanwhile, Hamer made a deal with Ivy Methvin, whose son they had freed at Eastham: help set a trap, and your boy walks free, so how much longer could they keep driving?",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 83,
+      "klucz": "wiersz",
+      "sekundy": 11.9,
+      "opis": "Kurtyna „Act VII · How does the story end?”; dom matki Bonnie; Bonnie wręcza matce zeszyt, matka czyta przy lampie, za oknem czeka Ford",
+      "kwestia": "In May 1934, Bonnie gave her mother a new poem, which said that one day she and Clyde would go down together and be buried side by side.",
+      "kadr": "plan średni",
+      "znacznik": "AKT VII"
+    },
+    {
+      "nr": 84,
+      "klucz": "pozegnanie",
+      "sekundy": 6.9,
+      "opis": "Ford przejeżdża powoli obok dwóch domów; w oknach dwie matki machają; Ford znika za zakrętem",
+      "kwestia": "Then they drove on, because a car was the only home they had left.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 85,
+      "klucz": "zasadzka_rano",
+      "sekundy": 12.7,
+      "opis": "Świt na leśnej drodze; ciężarówka Ivy'ego stoi na lewarku jak z przebitą oponą; w krzakach sześć kapeluszy i luf",
+      "kwestia": "On the morning of May 23, six lawmen hid beside a country road in Louisiana, next to Ivy Methvin's truck, which stood on a jack as bait.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 86,
+      "klucz": "kanapka",
+      "sekundy": 7.7,
+      "opis": "Wnętrze Forda: Bonnie w czerwonej sukience je kanapkę z papierka; Clyde prowadzi w skarpetkach i ciemnych okularach",
+      "kwestia": "Clyde was driving in his socks, and Bonnie was eating a sandwich from a café in town.",
+      "kadr": "zbliżenie",
+      "znacznik": ""
+    },
+    {
+      "nr": 87,
+      "klucz": "zwolnienie",
+      "sekundy": 2.2,
+      "opis": "Ford zwalnia przy ciężarówce; Ivy macha z pobocza; Clyde opuszcza szybę i wychyla się",
+      "kwestia": "",
+      "kadr": "plan pełny",
+      "znacznik": ""
+    },
+    {
+      "nr": 88,
+      "klucz": "zasadzka",
+      "sekundy": 4.8,
+      "opis": "Muzyka milknie; za parawanem dziesiątki błysków jeden po drugim, papierowy Ford drży i powoli zjeżdża do rowu; spada kapelusz; cisza (szczyt 3)",
+      "kwestia": "",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 89,
+      "klucz": "dym",
+      "sekundy": 10.5,
+      "opis": "Dym opada; mężczyźni wychodzą z krzaków z bronią; jeden zdejmuje kapelusz; nikt nic nie mówi",
+      "kwestia": "The lawmen fired more than a hundred rounds in a few seconds, and it was over before Clyde could reach for a gun.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 90,
+      "klucz": "pamiatki",
+      "sekundy": 13.0,
+      "opis": "Tłum otacza podziurawionego Forda; ktoś odcina nożyczkami pukiel włosów, ktoś kawałek sukienki; szeryf odgania ludzi",
+      "kwestia": "Within hours thousands of people crowded into the little town of Arcadia, and souvenir hunters cut locks of Bonnie's hair and pieces of her dress.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 91,
+      "klucz": "darby_zaklad",
+      "sekundy": 8.0,
+      "opis": "W zakładzie pogrzebowym młody mężczyzna w fartuchu zakłada rękawice; z nitki zjeżdża jego stary podpis „Dillard Darby, undertaker”",
+      "kwestia": "And according to local accounts, the undertaker Bonnie had laughed at a year earlier helped prepare her body.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 92,
+      "klucz": "pogrzeby",
+      "sekundy": 13.2,
+      "opis": "Dwa osobne pogrzeby na dwóch cmentarzach, między nimi droga; tłumy przy obu; matka Bonnie odwraca się plecami do cmentarza Clyde'a",
+      "kwestia": "Her poem got almost everything right except the last line: her mother refused to let them share a grave, so they were buried in different cemeteries.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 93,
+      "klucz": "auto_jarmark",
+      "sekundy": 9.9,
+      "opis": "Na jarmarku pod namiotem stoi podziurawiony Ford; kolejka ludzi płaci za wejście i zagląda w dziury po kulach; nad namiotem kręci się karuzela",
+      "kwestia": "Even their bullet-riddled car went on tour, and people paid to look at it at fairs across the country.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 94,
+      "klucz": "blanche_po",
+      "sekundy": 9.0,
+      "opis": "Starsza Blanche w okularach z jednym ciemnym szkłem podlewa kwiaty przed domkiem; zjeżdża zawieszka „1988”",
+      "kwestia": "Blanche served six years in prison and lived quietly until 1988, the only one of the four who grew old.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 95,
+      "klucz": "legenda",
+      "sekundy": 12.7,
+      "opis": "Gazety składają się w ekran kina; na ekranie piękna para w kapeluszach z filmu z 1967 roku; widownia wzdycha, ktoś ociera łzę",
+      "kwestia": "Thirty years later a Hollywood film made them young and beautiful again, and in 2026 a new video game built its heroes on the same romance.",
+      "kadr": "plan ogólny",
+      "znacznik": ""
+    },
+    {
+      "nr": 96,
+      "klucz": "koniec",
+      "sekundy": 14.2,
+      "opis": "Papierowa Bonnie z cygarem i Clyde kładą się płasko w stronę gazety; gazeta zamyka się; kurtyna zasuwa się",
+      "kwestia": "But the real Bonnie and Clyde were two broke kids from Dallas who left at least nine dead lawmen behind them, and most of what made them legends was printed on paper.",
+      "kadr": "plan średni",
+      "znacznik": ""
+    },
+    {
+      "nr": 97,
+      "klucz": "dzieki",
+      "sekundy": 8.5,
+      "opis": "Przed kurtyną wychodzą wszystkie lalki filmu i kłaniają się po kolei; Hamer zdejmuje kapelusz, Bonnie macha",
+      "kwestia": "Thank you for watching! If you like my videos, support me, and I'll do my best.",
+      "kadr": "plan średni",
+      "znacznik": "PODZIĘKOWANIE"
+    }
+  ]
+}
