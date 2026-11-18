@@ -152,12 +152,15 @@ def bez_doklejki(raw, dst):
 
 
 def obrob(raw, dst):
-    tmp = Path(tempfile.mkdtemp())
-    if bez_doklejki(raw, tmp / "raw.wav"):
-        raw = tmp / "raw.wav"
-    _ffmpeg(raw, tmp / "fx.wav", FX)
-    _enhance(tmp / "fx.wav", tmp / "e.wav", lambd=0.1)   # próbka już czysta: chodzi o pasmo, nie o odszumianie
-    _ffmpeg(tmp / "e.wav", dst, POST)
+    # pliki pośrednie w katalogu tymczasowym, który znika po obróbce (18.11.2026: 1148 zostawionych katalogów, ok. 1 GB,
+    # zapchały dysk w połowie obróbki lektora)
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+        if bez_doklejki(raw, tmp / "raw.wav"):
+            raw = tmp / "raw.wav"
+        _ffmpeg(raw, tmp / "fx.wav", FX)
+        _enhance(tmp / "fx.wav", tmp / "e.wav", lambd=0.1)   # próbka już czysta: chodzi o pasmo, nie o odszumianie
+        _ffmpeg(tmp / "e.wav", dst, POST)
 
 
 def pauzy(path):
@@ -196,9 +199,10 @@ def wybierz(spoken, takes):
 
 def teatr(zrodlo, dst, spoken, klucz):
     """Teatr papierowy: wybrane podejście wolniej o 3 %, potem pauzy w kwestii z zakresów. → raport pauz."""
-    tmp = Path(tempfile.mkdtemp()) / "tempo.wav"
-    _ffmpeg(zrodlo, tmp, f"atempo={TEMPO}")
-    return pauzy_lektora.plik(tmp, dst, spoken, pauzy_lektora.ziarno_kwestii(klucz))
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td) / "tempo.wav"
+        _ffmpeg(zrodlo, tmp, f"atempo={TEMPO}")
+        return pauzy_lektora.plik(tmp, dst, spoken, pauzy_lektora.ziarno_kwestii(klucz))
 
 
 def podejscia(lektor, teatr_papierowy=False):
