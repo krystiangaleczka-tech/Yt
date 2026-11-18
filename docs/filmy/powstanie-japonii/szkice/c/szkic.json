@@ -1,0 +1,538 @@
+{
+ "film": "powstanie-japonii",
+ "wariant": "c",
+ "tytul": "C · Czterech braci — od klęski do tronu",
+ "scenariusz": "C · Czterech braci — od klęski do tronu\n\nPODEJŚCIE\nStart w środku akcji, od najgorszej chwili: strzała trafia najstarszego brata, burza zabiera dwóch kolejnych, zostaje jeden. Potem film cofa się i krótko opowiada legendę rodu (słońce, lustro, miecz) jako to, w co wierzył książę, i wraca na wyprawę: klęska pod słońcem (pogorszenie, tak jak w haku), zaczarowany las i ratunek — miecz z nieba i trójnoga wrona (hak 2). Dalej Yamato, tron i na koniec zwrot historyczny: kronika, wróżba, pieczęć, kurhany, 2019. Najbardziej opowieść o bohaterze; mit najkrótszy, film najkrótszy.\n\nDŁUGOŚĆ: 8:14.2 · 53 ujęć (obecny film EN: 12:20,4 · 79 ujęć)\n\nZNACZNIKI\n0:00.0  HOOK 1\n0:20.8  TYTUŁ\n0:23.3  OBIETNICA\n0:33.9  AKT I\n1:38.3  AKT II\n2:41.7  POGORSZENIE\n3:04.2  AKT III\n3:18.5  HOOK 2 · promyk nadziei\n3:53.6  ODPOWIEDŹ 1\n4:02.5  AKT IV\n5:12.3  AKT V\n6:07.2  AKT VI\n6:18.1  ODPOWIEDŹ 2\n8:05.0  PODZIĘKOWANIE\n\nPOGORSZENIE → HAK 2\nPogorszenie: Klęska pod Kusaką: strzała w Itsuse, Itsuse umiera, burza zabiera dwóch braci, Iwarebiko zostaje sam, a w lesie Kumano cała armia pada zaczarowana.\nHak 2: Takakuraji przynosi miecz zrzucony z nieba, wojsko się budzi i przylatuje wrona Yatagarasu.\n\nAKTY (tytuł na kurtynie)\nAKT I: Act I · Why did a prince believe he came from the sun?\nAKT II: Act II · Why were they losing?\nAKT III: Act III · Who sent the crow?\nAKT IV: Act IV · How do you take a valley where every hill has a chief?\nAKT V: Act V · Did the first emperor really live to 127?\nAKT VI: Act VI · So did he exist?\n\nCO TRZEBA ZROBIĆ: nowe ujęcia do narysowania: 1, nowe kwestie do nagrania: 11, skrócone ujęcia: 1; reszta ujęć bez zmian.\nWYPADA Z FILMU (31): luty, cien, meduza, most, wlocznia, wyspy, ogien, yomi, susanoo, ciemno, koguty, uzume, swit, wygnanie, starcy, kadzie, pije, miecz, zejscie, siostry, platki, flota, postoje, order, zona, pola, pusto, wa, odcisk, himiko, tancerz\n\nNOWE I ZMIENIONE KWESTIE EN\n0:01.8 [rana] „An arrow struck Prince Itsuse, the eldest of four brothers fighting their way east.”\n0:08.1 [burza] „Soon Itsuse was dead, and a storm swallowed two more of the brothers.”\n0:14.1 [sam] „The last one left would become Japan's first emperor, if he ever existed at all.”\n0:23.3 [obietnica] „By the end, you'll know who sent him a three-legged crow, and why Japan celebrates a birthday that was probably made up.”\n0:33.9 [prawnuk] „His name was Iwarebiko, and he grew up on Kyushu, in the land of Hyuga, as a descendant of the sun goddess herself.”\n0:43.7 [kropla] „His family's legend began with two gods, who stirred the sea with a jewelled spear until a single drop of salt became the first island of Japan.”\n0:54.9 [rzeka] „Later, the god Izanagi washed in a river, and from his left eye was born Amaterasu, the sun goddess.”\n1:12.4 [lustro] „The gods lured her out with a mirror, and light returned to the world.”\n1:19.0 [orochi] „Her storm-god brother, Susanoo, killed an eight-headed serpent and found a sword in its tail.”\n1:28.0 [skarby] „Amaterasu gave the mirror, the jewels and the sword to her grandson Ninigi, who carried them down from heaven to Kyushu.”\n1:38.3 [wschod] „Iwarebiko was Ninigi's great-grandson, and at forty-five he heard of a beautiful land in the east, surrounded by blue mountains.”\n8:05.0 [dzieki] „Thank you for watching! If you like my videos, support me, and I'll do my best.”",
+ "ujecia": [
+  {
+   "nr": 1,
+   "klucz": "strzaly",
+   "kadr": "plan pełny",
+   "sekundy": 1.8,
+   "opis": "[z rozpiski] z gór, spod wschodzącego słońca, nadlatuje chmara strzał i wbija się w brzeg — Uwaga: Bez kwestii: chmara strzał spod słońca.",
+   "kwestia": "",
+   "znacznik": "HOOK 1",
+   "klatka": "klatki/001_strzaly.jpg"
+  },
+  {
+   "nr": 2,
+   "klucz": "rana",
+   "kadr": "zbliżenie",
+   "sekundy": 6.3,
+   "opis": "[z rozpiski, nowa kwestia] strzała trafia Itsuse w ramię; lalka zatacza się i przyciska rękę; nad Itsuse tabliczka „AŁA!…” — Uwaga: W haku: szybkie cięcie, tylko kulminacja ujęcia.",
+   "kwestia": "An arrow struck Prince Itsuse, the eldest of four brothers fighting their way east.",
+   "znacznik": "",
+   "klatka": "klatki/002_rana.jpg"
+  },
+  {
+   "nr": 3,
+   "klucz": "burza",
+   "kadr": "plan ogólny",
+   "sekundy": 6.0,
+   "opis": "[z rozpiski, nowa kwestia] burza: fale rosną, łodzie podskakują, dwie z nich przechylają się i znikają za falą — Uwaga: W haku: szybkie cięcie, tylko kulminacja ujęcia.",
+   "kwestia": "Soon Itsuse was dead, and a storm swallowed two more of the brothers.",
+   "znacznik": "",
+   "klatka": "klatki/003_burza.jpg"
+  },
+  {
+   "nr": 4,
+   "klucz": "sam",
+   "kadr": "zbliżenie",
+   "sekundy": 6.7,
+   "opis": "[z rozpiski, nowa kwestia] zbliżenie: Iwarebiko sam na łodzi, za nim puste morze i ciemne chmury — Uwaga: W haku: szybkie cięcie, tylko kulminacja ujęcia.",
+   "kwestia": "The last one left would become Japan's first emperor, if he ever existed at all.",
+   "znacznik": "",
+   "klatka": "klatki/004_sam.jpg"
+  },
+  {
+   "nr": 5,
+   "klucz": "teatr",
+   "kadr": "karta / napis",
+   "sekundy": 2.5,
+   "opis": "[z rozpiski, skrócone] front teatru w kształcie bramy torii z szyldem „SYN SŁOŃCA”: w ciemnej skrzyni zapala się światło, czerwone słońce zjeżdża na nitce, od dołu wysuwają się góry, wzgórza i pola ryżowe; kamera wjeżdża do środka sceny",
+   "kwestia": "",
+   "znacznik": "TYTUŁ",
+   "klatka": "klatki/005_teatr.jpg"
+  },
+  {
+   "nr": 6,
+   "klucz": "obietnica",
+   "kadr": "plan ogólny",
+   "sekundy": 10.6,
+   "opis": "[nowe ujęcie, do narysowania] Wrona Yatagarasu przelatuje nad górami (kadr z ujęcia „wrona”), a obok zjeżdża zawieszka „11 February” i kołysze się.",
+   "kwestia": "By the end, you'll know who sent him a three-legged crow, and why Japan celebrates a birthday that was probably made up.",
+   "znacznik": "OBIETNICA",
+   "klatka": "klatki/006_obietnica.jpg"
+  },
+  {
+   "nr": 7,
+   "klucz": "prawnuk",
+   "kadr": "plan średni",
+   "sekundy": 9.8,
+   "opis": "[z rozpiski, nowa kwestia] Kurtyna z tytułem aktu: „Act I · Why did a prince believe he came from the sun?”. Potem: lalka Ninigiego opada pod rampę, a na jej miejscu wysuwa się młodszy książę z łukiem; z góry zjeżdża zawieszka „Hyūga”; tabliczka „książę Iwarebiko”",
+   "kwestia": "His name was Iwarebiko, and he grew up on Kyushu, in the land of Hyuga, as a descendant of the sun goddess herself.",
+   "znacznik": "AKT I",
+   "klatka": "klatki/007_prawnuk.jpg"
+  },
+  {
+   "nr": 8,
+   "klucz": "kropla",
+   "kadr": "detal",
+   "sekundy": 11.2,
+   "opis": "[z rozpiski, nowa kwestia] detal: grot włóczni unosi się nad falę, skapuje z niego biała kropla, a tam, gdzie spadła, wyrasta mała wysepka — Uwaga: Meduza i most wypadają.",
+   "kwestia": "His family's legend began with two gods, who stirred the sea with a jewelled spear until a single drop of salt became the first island of Japan.",
+   "znacznik": "",
+   "klatka": "klatki/008_kropla.jpg"
+  },
+  {
+   "nr": 9,
+   "klucz": "rzeka",
+   "kadr": "plan średni",
+   "sekundy": 8.4,
+   "opis": "[z rozpiski, nowa kwestia] Izanagi pochyla się nad rzeką; z wody wynurzają się po kolei trzy krążki: złote słońce, srebrny księżyc i ciemna chmura, a za nimi lalki trojga bogów; przy każdym z troje bogów tabliczka z imieniem i rolą",
+   "kwestia": "Later, the god Izanagi washed in a river, and from his left eye was born Amaterasu, the sun goddess.",
+   "znacznik": "",
+   "klatka": "klatki/009_rzeka.jpg"
+  },
+  {
+   "nr": 10,
+   "klucz": "jaskinia",
+   "kadr": "plan ogólny",
+   "sekundy": 9.1,
+   "opis": "[z rozpiski] Amaterasu wchodzi do skalnej jaskini, głaz zasuwa się na wejście, słońce odjeżdża na nitce w górę i cała scena gaśnie",
+   "kwestia": "Offended, Amaterasu shut herself inside a rock cave, and darkness fell over heaven and earth.",
+   "znacznik": "",
+   "klatka": "klatki/010_jaskinia.jpg"
+  },
+  {
+   "nr": 11,
+   "klucz": "lustro",
+   "kadr": "zbliżenie",
+   "sekundy": 6.6,
+   "opis": "[z rozpiski, nowa kwestia] głaz uchyla się, ze szczeliny pada światło; Amaterasu wychyla się, lustro na drzewie rozbłyskuje, a zza skały wysuwa się siłacz i odsuwa głaz; nad siłaczem tabliczka „najsilniejszy z bogów”",
+   "kwestia": "The gods lured her out with a mirror, and light returned to the world.",
+   "znacznik": "",
+   "klatka": "klatki/011_lustro.jpg"
+  },
+  {
+   "nr": 12,
+   "klucz": "orochi",
+   "kadr": "plan ogólny",
+   "sekundy": 9.0,
+   "opis": "[z rozpiski, nowa kwestia] zza gór wychylają się po kolei osiem głów na długich szyjach, z czerwonymi oczami",
+   "kwestia": "Her storm-god brother, Susanoo, killed an eight-headed serpent and found a sword in its tail.",
+   "znacznik": "",
+   "klatka": "klatki/012_orochi.jpg"
+  },
+  {
+   "nr": 13,
+   "klucz": "skarby",
+   "kadr": "plan średni",
+   "sekundy": 10.3,
+   "opis": "[z rozpiski, nowa kwestia] na chmurach Amaterasu i jej wnuk Ninigi; zjeżdżają na nitkach lustro, sznur klejnotów i miecz, a Ninigi unosi ręce; nad Ninigim tabliczka „Ninigi, wnuk Amaterasu” — Uwaga: Zejście Ninigiego wchodzi do tej kwestii.",
+   "kwestia": "Amaterasu gave the mirror, the jewels and the sword to her grandson Ninigi, who carried them down from heaven to Kyushu.",
+   "znacznik": "",
+   "klatka": "klatki/013_skarby.jpg"
+  },
+  {
+   "nr": 14,
+   "klucz": "wschod",
+   "kadr": "plan ogólny",
+   "sekundy": 8.7,
+   "opis": "[z rozpiski, nowa kwestia] Kurtyna z tytułem aktu: „Act II · Why were they losing?”. Potem: Iwarebiko wskazuje na wschód: po prawej stronie sceny wysuwają się błękitne góry, a nad nimi wschodzi słońce; Iwarebiko najpierw patrzy na zachód, obraca się i dopiero wtedy wskazuje",
+   "kwestia": "Iwarebiko was Ninigi's great-grandson, and at forty-five he heard of a beautiful land in the east, surrounded by blue mountains.",
+   "znacznik": "AKT II",
+   "klatka": "klatki/014_wschod.jpg"
+  },
+  {
+   "nr": 15,
+   "klucz": "bracia",
+   "kadr": "plan średni",
+   "sekundy": 8.6,
+   "opis": "[z rozpiski] obok Iwarebiko wysuwają się trzej bracia, najstarszy Itsuse w niebieskiej szacie; wszyscy obracają się na wschód; nad Itsuse tabliczka „Itsuse, najstarszy brat”",
+   "kwestia": "It seemed the best place to rule the whole country from, so with his brothers and his army he set out east.",
+   "znacznik": "",
+   "klatka": "klatki/015_bracia.jpg"
+  },
+  {
+   "nr": 16,
+   "klucz": "naniwa",
+   "kadr": "plan pełny",
+   "sekundy": 12.3,
+   "opis": "[z rozpiski] łodzie przybijają do brzegu zatoki; wojsko z białymi proporcami wysuwa się na brzeg, przed nim wznoszą się góry; sześć łodzi w zatoce na przodzie sceny, cztery rzędy włóczni i wojownicy ruszają ku górom — Uwaga: Rejs i postoje wypadają: łodzie od razu przybijają w Naniwie.",
+   "kwestia": "At last they reached Naniwa Bay, where Osaka stands today, and marched across the mountains toward Yamato.",
+   "znacznik": "",
+   "klatka": "klatki/016_naniwa.jpg"
+  },
+  {
+   "nr": 17,
+   "klucz": "nagasune",
+   "kadr": "plan średni",
+   "sekundy": 11.3,
+   "opis": "[z rozpiski] zza grani wyrasta wielka lalka wodza na długich nogach, za nią las włóczni z ciemnymi proporcami; słońce świeci zza jego pleców; tabliczka „wódz Nagasunehiko”, cztery rzędy włóczni unoszą się trzy razy w rytmie",
+   "kwestia": "Their way was blocked by a local chief, Nagasunehiko, 'the Prince with Long Shins', and his army.",
+   "znacznik": "",
+   "klatka": "klatki/017_nagasune.jpg"
+  },
+  {
+   "nr": 18,
+   "klucz": "strzaly",
+   "kadr": "plan pełny",
+   "sekundy": 1.8,
+   "opis": "[z rozpiski] z gór, spod wschodzącego słońca, nadlatuje chmara strzał i wbija się w brzeg",
+   "kwestia": "",
+   "znacznik": "",
+   "klatka": "klatki/018_strzaly.jpg"
+  },
+  {
+   "nr": 19,
+   "klucz": "rana",
+   "kadr": "zbliżenie",
+   "sekundy": 9.1,
+   "opis": "[z rozpiski] strzała trafia Itsuse w ramię; lalka zatacza się i przyciska rękę; nad Itsuse tabliczka „AŁA!…”",
+   "kwestia": "One arrow struck the eldest brother, Itsuse, and Iwarebiko suddenly understood why they were losing.",
+   "znacznik": "",
+   "klatka": "klatki/019_rana.jpg"
+  },
+  {
+   "nr": 20,
+   "klucz": "pod_slonce",
+   "kadr": "plan średni",
+   "sekundy": 11.6,
+   "opis": "[z rozpiski] ranny Itsuse wskazuje słońce nad górami; Iwarebiko odwraca się ku słońcu i opuszcza łuk",
+   "kwestia": "As children of the sun goddess, they had been fighting facing the sun, so they decided to circle the mountains and attack with the sun behind them.",
+   "znacznik": "",
+   "klatka": "klatki/020_pod_slonce.jpg"
+  },
+  {
+   "nr": 21,
+   "klucz": "itsuse",
+   "kadr": "plan średni",
+   "sekundy": 8.9,
+   "opis": "[z rozpiski] na łodzi ranny Itsuse przechyla się i powoli opada pod rampę; Iwarebiko pochyla się nad nim; Itsuse dostaje X na oczach (śmierć), zanim opadnie",
+   "kwestia": "As they sailed south, around the Kii Peninsula, Itsuse died of his wound.",
+   "znacznik": "POGORSZENIE",
+   "klatka": "klatki/021_itsuse.jpg"
+  },
+  {
+   "nr": 22,
+   "klucz": "burza",
+   "kadr": "plan ogólny",
+   "sekundy": 6.1,
+   "opis": "[z rozpiski] burza: fale rosną, łodzie podskakują, dwie z nich przechylają się i znikają za falą",
+   "kwestia": "Then a storm sank two boats, and the sea took two more brothers.",
+   "znacznik": "",
+   "klatka": "klatki/022_burza.jpg"
+  },
+  {
+   "nr": 23,
+   "klucz": "sam",
+   "kadr": "zbliżenie",
+   "sekundy": 7.5,
+   "opis": "[z rozpiski] zbliżenie: Iwarebiko sam na łodzi, za nim puste morze i ciemne chmury",
+   "kwestia": "Of the four brothers, only Iwarebiko was left.",
+   "znacznik": "",
+   "klatka": "klatki/023_sam.jpg"
+  },
+  {
+   "nr": 24,
+   "klucz": "las",
+   "kadr": "plan ogólny",
+   "sekundy": 3.0,
+   "opis": "[z rozpiski] Kurtyna z tytułem aktu: „Act III · Who sent the crow?”. Potem: zmiana dekoracji: wyrastają cedry Kumano, między nimi snuje się mgła, a wojsko z białymi proporcami wchodzi w las; wojownicy z włóczniami idą w las na przodzie",
+   "kwestia": "",
+   "znacznik": "AKT III",
+   "klatka": "klatki/024_las.jpg"
+  },
+  {
+   "nr": 25,
+   "klucz": "niedzwiedz",
+   "kadr": "plan pełny",
+   "sekundy": 11.3,
+   "opis": "[z rozpiski] las Kumano: spomiędzy cedrów wychodzi czarny niedźwiedź i znika, a wojownicy przewracają się po kolei, każdy w swojej chwili; dwa rzędy wojowników, nad padającymi krążą przez chwilę gwiazdki (zamroczenie)",
+   "kwestia": "In the Kumano forests, a huge bear appeared and vanished, and the whole army collapsed as if under a spell.",
+   "znacznik": "",
+   "klatka": "klatki/025_niedzwiedz.jpg"
+  },
+  {
+   "nr": 26,
+   "klucz": "takakuraji",
+   "kadr": "plan średni",
+   "sekundy": 11.7,
+   "opis": "[z rozpiski] z nieba zjeżdża na nitce przez dach spichlerza miecz; miejscowy człowiek Takakuraji chwyta go i niesie do leżącego Iwarebiko; tabliczka „Takakuraji”",
+   "kwestia": "Then a local man, Takakuraji, brought Iwarebiko a sword the thunder god had dropped through the roof of his storehouse.",
+   "znacznik": "HOOK 2 · promyk nadziei",
+   "klatka": "klatki/026_takakuraji.jpg"
+  },
+  {
+   "nr": 27,
+   "klucz": "przebudzenie",
+   "kadr": "plan pełny",
+   "sekundy": 11.4,
+   "opis": "[z rozpiski] Iwarebiko podnosi się z mieczem, a za nim wstają wojownicy, jeden po drugim; cienie lasu cofają się",
+   "kwestia": "When Iwarebiko took the sword, the evil powers of the forest fell, and his warriors woke one after another.",
+   "znacznik": "",
+   "klatka": "klatki/027_przebudzenie.jpg"
+  },
+  {
+   "nr": 28,
+   "klucz": "wrona",
+   "kadr": "plan ogólny",
+   "sekundy": 12.0,
+   "opis": "[z rozpiski] nad górami przelatuje wielka czarna wrona, a pod nią wojsko z białymi proporcami idzie przełęczą; kamera leci z nią; tabliczka „Yatagarasu” leci z wroną; trzy kolumny wojska",
+   "kwestia": "Heaven also sent a great crow, Yatagarasu, which guided the army through wild mountains all the way to Yamato.",
+   "znacznik": "",
+   "klatka": "klatki/028_wrona.jpg"
+  },
+  {
+   "nr": 29,
+   "klucz": "trzy_nogi",
+   "kadr": "zbliżenie",
+   "sekundy": 8.9,
+   "opis": "[z rozpiski] zbliżenie: wrona siada na gałęzi i składa skrzydła — ma trzy nogi",
+   "kwestia": "Later it was painted with three legs, and Japan's national football team still wears it on its shirts.",
+   "znacznik": "ODPOWIEDŹ 1",
+   "klatka": "klatki/029_trzy_nogi.jpg"
+  },
+  {
+   "nr": 30,
+   "klucz": "yamato",
+   "kadr": "plan ogólny",
+   "sekundy": 9.3,
+   "opis": "[z rozpiski] Kurtyna z tytułem aktu: „Act IV · How do you take a valley where every hill has a chief?”. Potem: kotlina Yamato: w kręgu niebieskich gór wyrastają trzy wzgórza, a na każdym staje proporzec innego wodza",
+   "kwestia": "In Yamato every hill had its own chief, and none of them meant to give his land to a newcomer from Kyushu.",
+   "znacznik": "AKT IV",
+   "klatka": "klatki/030_yamato.jpg"
+  },
+  {
+   "nr": 31,
+   "klucz": "pulapka",
+   "kadr": "plan średni",
+   "sekundy": 10.4,
+   "opis": "[z rozpiski] wódz zaprasza do chaty; jego brat ostrzega Iwarebiko; z dachu chaty spada belka pułapki, a wódz znika pod nią; brat ostrzega tabliczką „PUŁAPKA!”, nad chatą po upadku belki miga dwa razy czerwony X",
+   "kwestia": "One of them built his guest a house with a hidden trap, but his own brother gave him away, and the chief died in his own trap.",
+   "znacznik": "",
+   "klatka": "klatki/031_pulapka.jpg"
+  },
+  {
+   "nr": 32,
+   "klucz": "bitwa",
+   "kadr": "plan ogólny",
+   "sekundy": 13.3,
+   "opis": "[z rozpiski] dwa lasy włóczni ścierają się na wzgórzach, białe i ciemne proporce; niebo ciemnieje i sypie się papierowy grad; po trzy rzędy włóczni z każdej strony pchają się w tę i z powrotem, mocny wstrząs przy starciu, grad gęstnieje do końca",
+   "kwestia": "Iwarebiko fought Nagasunehiko once more, but the battle dragged on, the sky grew dark, and hail began to fall.",
+   "znacznik": "",
+   "klatka": "klatki/032_bitwa.jpg"
+  },
+  {
+   "nr": 33,
+   "klucz": "ptak",
+   "kadr": "plan średni",
+   "sekundy": 7.8,
+   "opis": "[z rozpiski] z chmur zlatuje złoty ptak i siada na czubku łuku Iwarebiko; ptak rozbłyskuje",
+   "kwestia": "Then a golden bird landed on the tip of Iwarebiko's bow, shining like lightning.",
+   "znacznik": "",
+   "klatka": "klatki/033_ptak.jpg"
+  },
+  {
+   "nr": 34,
+   "klucz": "blysk",
+   "kadr": "plan pełny",
+   "sekundy": 2.0,
+   "opis": "[z rozpiski] błysk: ciemne włócznie chwieją się i cofają za wzgórze",
+   "kwestia": "",
+   "znacznik": "",
+   "klatka": "klatki/034_blysk.jpg"
+  },
+  {
+   "nr": 35,
+   "klucz": "strzala_nieba",
+   "kadr": "plan średni",
+   "sekundy": 13.3,
+   "opis": "[z rozpiski] Nagasunehiko i Iwarebiko unoszą po strzale z niebiańskim upierzeniem; za wodzem wysuwa się lalka Nigihayahiego; tabliczka „Nigihayahi”",
+   "kwestia": "Nagasunehiko still refused to give in, because he served another descendant of the gods, Nigihayahi.",
+   "znacznik": "",
+   "klatka": "klatki/035_strzala_nieba.jpg"
+  },
+  {
+   "nr": 36,
+   "klucz": "zdrada",
+   "kadr": "plan średni",
+   "sekundy": 13.7,
+   "opis": "[z rozpiski] Nigihayahi unosi miecz, lalka Nagasunehiko opada pod rampę, a Nigihayahi kłania się Iwarebiko; zabójstwo w fazach: zamach, cios ze wstrząsem, X na oczach i migający X, wódz opada, jego proporzec pada, Nigihayahi przechodzi do Iwarebiko i się kłania",
+   "kwestia": "But Nigihayahi decided that the newcomer had the better claim to rule, killed the stubborn chief, and went over to his side.",
+   "znacznik": "",
+   "klatka": "klatki/036_zdrada.jpg"
+  },
+  {
+   "nr": 37,
+   "klucz": "palac",
+   "kadr": "plan ogólny",
+   "sekundy": 15.1,
+   "opis": "[z rozpiski] Kurtyna z tytułem aktu: „Act V · Did the first emperor really live to 127?”. Potem: u stóp zielonej góry Unebi wysuwają się słupy, potem podłoga, dach z trzciny i skrzyżowane belki na szczycie pałacu",
+   "kwestia": "Below Mount Unebi, at Kashihara, Iwarebiko built a palace whose pillars, the chronicle says, were driven into the bedrock.",
+   "znacznik": "AKT V",
+   "klatka": "klatki/037_palac.jpg"
+  },
+  {
+   "nr": 38,
+   "klucz": "tron",
+   "kadr": "plan średni",
+   "sekundy": 9.3,
+   "opis": "[z rozpiski] Iwarebiko wysuwa się na ganek pałacu; zjeżdżają za nim lustro, klejnoty i miecz, a obok zawieszka „660 p.n.e.”",
+   "kwestia": "On the first day of the new year, in 660 BC, he took the throne there as the first emperor of Japan.",
+   "znacznik": "",
+   "klatka": "klatki/038_tron.jpg"
+  },
+  {
+   "nr": 39,
+   "klucz": "imie",
+   "kadr": "zbliżenie",
+   "sekundy": 9.4,
+   "opis": "[z rozpiski] zbliżenie: przed cesarzem zjeżdża zawieszka ze znakami 神武; pod znakami podpis „Jimmu — boska waleczność”",
+   "kwestia": "The name Jimmu, meaning 'divine valour', was given to him by scholars only fourteen hundred years later.",
+   "znacznik": "",
+   "klatka": "klatki/039_imie.jpg"
+  },
+  {
+   "nr": 40,
+   "klucz": "smierc",
+   "kadr": "plan średni",
+   "sekundy": 9.4,
+   "opis": "[z rozpiski] zawieszka „127 lat”; lalka cesarza przechyla się i opada pod rampę, a lustro, klejnoty i miecz zostają nad pustym miejscem; cesarz dostaje X na oczach i opada, pod skarbami wysuwa się jego syn z tabliczką „syn cesarza”",
+   "kwestia": "The emperor died at a hundred and twenty-seven, and the mirror, the jewels and the sword passed to his son.",
+   "znacznik": "",
+   "klatka": "klatki/040_smierc.jpg"
+  },
+  {
+   "nr": 41,
+   "klucz": "linia",
+   "kadr": "plan ogólny",
+   "sekundy": 11.7,
+   "opis": "[z rozpiski] wzdłuż wzgórz wysuwa się długi szereg małych lalek cesarzy, coraz mniejszych w głębi; trzy rzędy cesarzy w różnych strojach aż po horyzont",
+   "kwestia": "With him began a line of emperors which, according to tradition, has never been broken to this day.",
+   "znacznik": "",
+   "klatka": "klatki/041_linia.jpg"
+  },
+  {
+   "nr": 42,
+   "klucz": "kronika",
+   "kadr": "plan średni",
+   "sekundy": 10.9,
+   "opis": "[z rozpiski] Kurtyna z tytułem aktu: „Act VI · So did he exist?”. Potem: zza rampy wysuwa się stół, za nim pisarz w dworskiej szacie; zwój rozwija się i pokrywa znakami, a z góry zjeżdża zawieszka „712”; pisarz przed stołem, cały widoczny, z tabliczką „pisarz dworu”",
+   "kwestia": "But this story was written down only in 712 and 720, in chronicles the court ordered to prove its right to rule.",
+   "znacznik": "AKT VI",
+   "klatka": "klatki/042_kronika.jpg"
+  },
+  {
+   "nr": 43,
+   "klucz": "rachunek",
+   "kadr": "detal",
+   "sekundy": 9.9,
+   "opis": "[z rozpiski] detal: na nitkach zjeżdżają po kolei zawieszki „601”, „− 1260 lat” i „660 p.n.e.”",
+   "kwestia": "The date 660 BC was probably worked out from a Chinese prophecy of a great change every twelve hundred and sixty years.",
+   "znacznik": "ODPOWIEDŹ 2",
+   "klatka": "klatki/043_rachunek.jpg"
+  },
+  {
+   "nr": 44,
+   "klucz": "jomon",
+   "kadr": "plan ogólny",
+   "sekundy": 10.5,
+   "opis": "[z rozpiski] zmiana dekoracji: wzgórza bez pałacu i pól; wyrastają stożkowe chaty z trzciny i gliniane garnki, a między nimi przechodzą myśliwi z włóczniami",
+   "kwestia": "Meanwhile, in 660 BC, the islands were home to hunters and fishermen, and rice was only just arriving from the mainland.",
+   "znacznik": "",
+   "klatka": "klatki/044_jomon.jpg"
+  },
+  {
+   "nr": 45,
+   "klucz": "pieczec",
+   "kadr": "detal",
+   "sekundy": 9.4,
+   "opis": "[z rozpiski] detal: złota pieczęć z wężem na uchwycie zjeżdża na nitce i obraca się; zawieszka „57”",
+   "kwestia": "In the year 57, the emperor of China gave one of their kings a golden seal with a snake on its handle.",
+   "znacznik": "",
+   "klatka": "klatki/045_pieczec.jpg"
+  },
+  {
+   "nr": 46,
+   "klucz": "chlop",
+   "kadr": "plan średni",
+   "sekundy": 10.0,
+   "opis": "[z rozpiski] chłop kopie motyką rów na polu; spod ziemi wysuwa się złota pieczęć, a z góry zjeżdża zawieszka „1784”; motyka uderza w ziemię, lecą grudy; nad chłopem tabliczka „O!”",
+   "kwestia": "In 1784 it was dug up by a farmer repairing a ditch in his field, and today it is a National Treasure of Japan.",
+   "znacznik": "",
+   "klatka": "klatki/046_chlop.jpg"
+  },
+  {
+   "nr": 47,
+   "klucz": "kofun",
+   "kadr": "plan ogólny",
+   "sekundy": 10.2,
+   "opis": "[z rozpiski] na nitkach zjeżdża plansza z kurhanem w kształcie dziurki od klucza, otoczonym fosą; zawieszka „486 m”",
+   "kwestia": "Later, the rulers of Yamato were buried in huge keyhole-shaped mounds, and the largest is almost half a kilometre long.",
+   "znacznik": "",
+   "klatka": "klatki/047_kofun.jpg"
+  },
+  {
+   "nr": 48,
+   "klucz": "haniwa",
+   "kadr": "plan pełny",
+   "sekundy": 12.1,
+   "opis": "[z rozpiski] przed kurhanem wysuwają się rzędy glinianych figurek: wojownicy, konie, domki i tancerze, każda we własnej chwili; trzy rzędy figurek, najdalszy aż po krawędź kurhanu",
+   "kwestia": "On their slopes stood thousands of clay figures called haniwa, and inside lay the first kings we know really lived.",
+   "znacznik": "",
+   "klatka": "klatki/048_haniwa.jpg"
+  },
+  {
+   "nr": 49,
+   "klucz": "nihon",
+   "kadr": "plan średni",
+   "sekundy": 11.0,
+   "opis": "[z rozpiski] zawieszka 倭 zjeżdża, obraca się na nitce i odjeżdża, a na jej miejsce zjeżdża 日本; za nią wschodzi czerwone słońce; pod znakami podpisy „Wa” i „Nihon — źródło słońca”",
+   "kwestia": "In the late seventh century, the court renamed the country Nihon, 'origin of the sun', because from China, that is where the sun rose.",
+   "znacznik": "",
+   "klatka": "klatki/049_nihon.jpg"
+  },
+  {
+   "nr": 50,
+   "klucz": "luty2",
+   "kadr": "plan średni",
+   "sekundy": 10.7,
+   "opis": "[z rozpiski] kartka kalendarza „11 lutego” zjeżdża na nitce obok zawieszki „1873”; na wzgórzach znów wyskakują chorągiewki ze słońcem",
+   "kwestia": "Only in 1873 did the government in Tokyo convert the chronicle's date to our calendar and declare the eleventh of February a holiday.",
+   "znacznik": "",
+   "klatka": "klatki/050_luty2.jpg"
+  },
+  {
+   "nr": 51,
+   "klucz": "koronacja",
+   "kadr": "plan ogólny",
+   "sekundy": 13.5,
+   "opis": "[z rozpiski] przód sceny: na stojakach stają dwie skrzynki owinięte białym płótnem, a za nimi wyrasta tron pod ośmiokątnym baldachimem; zawieszka „126”; na tronie staje cesarz w szacie koronacyjnej",
+   "kwestia": "In 2019 the hundred and twenty-sixth emperor was enthroned, and the sword and jewels were brought to him again, still wrapped in cloth no one opens.",
+   "znacznik": "",
+   "klatka": "klatki/051_koronacja.jpg"
+  },
+  {
+   "nr": 52,
+   "klucz": "koniec",
+   "kadr": "plan ogólny",
+   "sekundy": 9.6,
+   "opis": "[z rozpiski] kamera wycofuje się z teatru: nad wyspami świeci czerwone słońce, światło w skrzyni gaśnie i zostaje szyld z tytułem",
+   "kwestia": "No one knows whether Jimmu really lived, but the country that began with a drop from a spear still calls itself the origin of the sun.",
+   "znacznik": "",
+   "klatka": "klatki/052_koniec.jpg"
+  },
+  {
+   "nr": 53,
+   "klucz": "dzieki",
+   "kadr": "karta / napis",
+   "sekundy": 9.2,
+   "opis": "[z rozpiski, nowa kwestia] ciemna scena pod szyldem: na nitkach zjeżdżają duże papierowe tabliczki z podziękowaniem dla widzów, potem film schodzi w czerń",
+   "kwestia": "Thank you for watching! If you like my videos, support me, and I'll do my best.",
+   "znacznik": "PODZIĘKOWANIE",
+   "klatka": "klatki/053_dzieki.jpg"
+  }
+ ]
+}
