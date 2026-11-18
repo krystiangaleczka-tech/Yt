@@ -307,8 +307,9 @@ D = {
         R("wlocznia"), R("kropla"), R("wyspy"),
         AKT("II", "Act II · Why did the sun hide in a cave?"),
         R("ogien"),
+        R("yomi", uwaga="Reżyser 18.11.2026: kraina zmarłych wraca do filmu."),
         R("rzeka", "Grieving, Izanagi washed in a river, and from his eyes and nose were born Amaterasu, the sun goddess, "
-                   "the moon god, and Susanoo, god of storms.", pauza="beat", uwaga="Kraina zmarłych (yomi) wypada."),
+                   "the moon god, and Susanoo, god of storms.", pauza="beat"),
         R("susanoo"), R("jaskinia"), R("ciemno"), R("koguty"), R("uzume"),
         R("lustro", "Curious, Amaterasu peeked out at her own radiance in a mirror, and that mirror became the first of "
                     "the three sacred treasures of Japan's emperors.", uwaga="Nić trzech skarbów (A)."),
