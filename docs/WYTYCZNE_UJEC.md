@@ -298,6 +298,18 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 - Postać w otworze ma skalę otworu: w okienku widać ją od ramion w górę, a nie całą, małą jak mrówka, wiszącą
   w powietrzu (pilot 29.10). Postać w lokacji ma skalę sąsiadów; olbrzym tylko z powodu fabuły (1.15).
 
+### 1.25 Każdy w kadrze gra, a każda rzecz jest tam, gdzie trzeba
+- Co ma pracować, pracuje u wszystkich: każda łódź wiosłuje we własnym rytmie, nie tylko łódź bohatera (reżyser 18.11:
+  „każda łódź ma wiosłować”).
+- Na mocnej chwili postać reaguje gestem i okrzykiem ze słownika znaków (1.20): ścięta głowa woła „HELP!”, tonący
+  „AAAA!”, brat „BROTHER!”, umierający „I can't…”, osamotniony bohater podnosi ręce, wódz „NO WAY!”, straż „STOP!” z ręką
+  w górze, niedźwiedź „BOO!”. Radość widać ruchem (brat podskakuje), zamiar czynem (zamiast wskazać góry — strzela w nie).
+- Rekwizyt, który postać bierze, trafia do jej dłoni; nie wisi obok ręki (miecz Ninigiego). Rzecz, o której mówi
+  kwestia albo gest (słońce, na które wskazuje Itsuse), jest w kadrze cała i żyje, a nie ucięta krawędzią.
+- Zwrot postaci zaczyna się od przeciwnego kierunku, żeby był widoczny (Iwarebiko najpierw patrzy w lewo, potem
+  zwraca się ku słońcu). Ujęcie przejścia albo przybycia ma końcówkę „już na miejscu” (Ninigi stoi na szczycie, wojsko
+  wchodzi w las) — 1.18.
+
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
 - Osobne warstwy: tło bez postaci, postać (PNG RGBA, przezroczyste tło), **pierwszy plan zasłaniający** (drzwi z
@@ -552,6 +564,7 @@ i błędy znalezione w kontroli.
 | Miniaturka Pierwszego cesarza (16.11, reżyser) | z dwóch koncepcji wygrało zbliżenie; plan ogólny miał za drobne postacie; cesarz bez obrysu ginął na tle miasta; tabliczka „NO WAY?!” prosta i za wysoko | 5.1 |
 | Miniaturka (16.11, znalezione w kontroli) | ostrze łopaty ucięte krawędzią arkusza wyglądało jak grot; grudy ziemi na żołnierzu jak dziury; szyld z tytułem EN dotykał krawędzi kadru; meteoryt nachodził na ostrze łopaty | 5.2 |
 | Miniaturka (16.11, reżyser) | Fujifilm o sile 1,8 „za mocny”, 0,8 nadal za dużo → 0,5 i minimalne rozjaśnienie; spirale na oczach z białym tłem → grube czarne wprost na skórze | 5.1, 5.4 |
+| Syn słońca EN, akty 3–5 (18.11, reżyser: 3 uwagi, 16 markerów) | brak reakcji na mocnych chwilach (tabliczki „help”, „hmm..”, „stop!” z ręką do góry, „no way!”, „aaa!”, „I can't..”, „aaaa”, „brother!”, „boo!”); leżąca głowa i brat bez ruchu („porusz go”, „niech skacze”); wiosłuje tylko część łodzi; miecz obok dłoni Ninigiego („miecz ma być tutaj”); słońce ucięte krawędzią; zwrot ku słońcu niewidoczny; Iwarebiko tylko wskazuje góry („strzel tu strzałą”); po stracie braci stoi bez gestu („podnosi ręce”); za krótkie końcówki zejścia Ninigiego i wejścia w las Kumano | 1.25, 1.20, 1.18 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

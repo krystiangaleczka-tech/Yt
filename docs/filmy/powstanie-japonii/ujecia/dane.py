@@ -73,9 +73,10 @@ AKTY = [
         ]),
         ("Obietnica", "kraj na scenie, chorągiewki na wzgórzach", [
             ("Obietnica", [
-                ("luty", "PO", "naj", N, "na wzgórzach wyskakują po kolei białe chorągiewki z czerwonym słońcem, a nad scenę zjeżdża na nitce "
-                 "zawieszka „11 lutego”", "L: Pod koniec filmu będziesz wiedzieć, skąd wziął się ten miecz, czemu urodziny Japonii są "
-                 "pewnie zmyślone i dlaczego jej reprezentacja w piłce nożnej nosi trójnogą wronę."),
+                # reżyser 18.11.2026: „ujęcie 14 skracamy o 4 s” (12,4 → 8,4 s) — obietnica bez wrony
+                ("luty", "PO", "naj", 8.4, "na wzgórzach wyskakują po kolei białe chorągiewki z czerwonym słońcem, a nad scenę zjeżdża na nitce "
+                 "zawieszka „11 lutego”", "L: Pod koniec filmu będziesz wiedzieć, skąd wziął się ten miecz i czemu urodziny Japonii "
+                 "są zmyślone."),
             ]),
         ]),
     ]),
@@ -209,7 +210,7 @@ AKTY = [
                  "ze swoim wojskiem."),
             ]),
             ("Strzała", [
-                ("strzaly", "PP", "szarp", 1.8, "z gór, spod wschodzącego słońca, nadlatuje chmara strzał i wbija się w brzeg", "świst strzał"),
+                ("strzaly", "PP", "szarp", 2.2, "z gór, spod wschodzącego słońca, nadlatuje chmara strzał i wbija się w brzeg", "świst strzał"),
                 # powrót do sceny z haka innymi słowami (przegląd 18.11.2026: nie powtarzać kwestii haka)
                 ("rana", "Z", "stat", N, "strzała trafia Itsuse w ramię; lalka zatacza się i przyciska rękę; nad Itsuse tabliczka „AŁA!…”",
                  "L: Pamiętasz tę strzałę? Trafiła najstarszego brata, Itsuse, i wtedy Iwarebiko zrozumiał, dlaczego przegrywają."),
@@ -233,7 +234,7 @@ AKTY = [
         ]),
         ("Kumano", "scena: góry i lasy Kumano", [
             ("Niedźwiedź", [
-                ("las", "PO", "stat", 3.0, "zmiana dekoracji: wyrastają cedry Kumano, między nimi snuje się mgła, a wojsko z białymi "
+                ("las", "PO", "stat", 5.5, "zmiana dekoracji: wyrastają cedry Kumano, między nimi snuje się mgła, a wojsko z białymi "
                  "proporcami wchodzi w las; wojownicy z włóczniami idą w las na przodzie", "ptaki, wiatr w koronach drzew"),
                 ("niedzwiedz", "PP", "stat", N, "las Kumano: spomiędzy cedrów wychodzi czarny niedźwiedź i znika, a wojownicy przewracają się "
                  "po kolei, każdy w swojej chwili; dwa rzędy wojowników, nad padającymi krążą przez chwilę gwiazdki (zamroczenie)", "L: W lasach Kumano z gęstwiny wyszedł wielki niedźwiedź i zniknął, a cała armia nagle "
@@ -274,7 +275,7 @@ AKTY = [
                  "i spadł grad."),
                 ("ptak", "PŚ", "naj", N, "z chmur zlatuje złoty ptak i siada na czubku łuku Iwarebiko; ptak rozbłyskuje",
                  "L: Wtedy na czubku jego łuku usiadł złoty ptak, który świecił jak błyskawica."),
-                ("blysk", "PP", "szarp", 2.0, "błysk: ciemne włócznie chwieją się i cofają za wzgórze", "grzmot, krzyki"),
+                ("blysk", "PP", "szarp", 2.2, "błysk: ciemne włócznie chwieją się i cofają za wzgórze", "grzmot, krzyki"),
                 ("order", "D", "stat", N, "detal: na nitce zjeżdża złoty order z ptakiem i kołysze się, aż stanie",
                  "L: Na pamiątkę tego ptaka Japonia przez pół wieku odznaczała żołnierzy Orderem Złotej Kani."),
             ]),
@@ -468,7 +469,9 @@ PAUZA_PO = {"ujecie": 1.1, "beat": 1.4, "scena": 1.8, "akt": 2.3}
 # (wytyczne 1.8, 1.17, 1.18: we wzorcu reżyser wydłużał budowę, wojsko, tłum i podróż o 2–5 s). Przegląd 17.11.2026.
 WYDLUZ = {"wyspy": 2.0, "orochi": 2.0, "miecz": 1.5, "flota": 2.5, "naniwa": 2.0, "nagasune": 1.5, "itsuse": 1.5,
           "niedzwiedz": 1.5, "przebudzenie": 1.5, "wrona": 1.5, "bitwa": 2.5, "zdrada": 1.5, "palac": 2.5, "smierc": 1.5,
-          "linia": 2.0, "haniwa": 2.5, "koronacja": 1.5, "uzume": 1.0, "rana": 1.0, "pulapka": 1.0, "dzieki": 0.7}
+          "linia": 2.0, "haniwa": 2.5, "koronacja": 1.5, "uzume": 1.0, "rana": 1.0, "pulapka": 1.0, "dzieki": 0.7,
+          # reżyser 18.11.2026: „wydłuż niektóre za krótkie ujęcia” — Ninigi stoi już na szczycie (zejście)
+          "zejscie": 2.0}
 
 
 def ujecia(akt=None):

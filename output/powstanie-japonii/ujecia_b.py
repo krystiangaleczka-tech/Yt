@@ -43,11 +43,13 @@ def s_itsuse(st, w, t, T):
     for key, dx, lh, rc, extra in (("itsuse", 70, 150, (20, 60), "itsuse"), ("iwarebiko", -60, 155, (40, 0), None)):
         px, py, rot, p = poklad_lodzi(t, x, 3, 240, dx, lh, sink=sk, seed=2)
         if key == "itsuse":
+            podpis(w, t, "Nie mogę…", 760, 300, 1.4, 2.2)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): Itsuse słabnie
             lalka(st, t, key, px, lh, y=py, p=p, flip=-1, lean=rot - 22 * ease(pr(t, 1.8, 1.6)), sink=pr(t, ITSUSE_SMIERC + 0.9, 2.4),
                   rece=rc, oczy_x=pr(t, ITSUSE_SMIERC, 0.35))
         else:
             lalka(st, t, key, px, lh, y=py, p=p, flip=1, lean=rot + 14 * ease(pr(t, 2.4, 1.2)), rece=(70 * ease(pr(t, 2.6, 1.0)), 0))
     lodz(st, t, x, 3, h=240, v=1, seed=2, sink=sk)
+    zawieszki(st, t, w)
     swiatlo(st, w, t, extra=KII)
 
 
@@ -65,6 +67,9 @@ def s_burza(st, w, t, T):
              sink=sink, ladunek=[(key, 0, 110 if b == 1 else 128, (100 if key != "iwarebiko" else 60, 30))])
     if flash > 0:
         st.put(J.glow(), 640, 120, 0.2, w=2600, anchor=(0.5, 0.5), mode="add", alpha=0.6 * flash, shadow=None, tint=(0.8, 0.85, 1.0))
+    podpis(w, t, "AAAA!", 300, 300, 2.5, 1.6)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): brat w lewej łodzi krzyczy, kiedy łódź się przewraca
+    podpis(w, t, "BRACIE!", 960, 315, 3.3, 1.8)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): drugi brat woła, zanim zniknie za falą
+    zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(0.72, 0.76, 0.9), dim=1 + 0.5 * flash)
 
 
@@ -77,7 +82,9 @@ def s_sam(st, w, t, T):
     for n, x in enumerate((420, 760, 1000)):
         J.hang(st, J.krazek("chmura"), x, 140 + 30 * n, P.chmury + 0.02, 1.0, t, 560 + n, w=260, sway=1.0, haze=0.2)
     px, py, rot, p = poklad_lodzi(t, 640, 3, 240, 0, 160, seed=4, burza=0.2)
-    lalka(st, t, "iwarebiko", px, 160, y=py, p=p, flip=1, lean=rot + 4 * math.sin(t * 0.7), rece=(10, 0))
+    rozpacz = ease(pr(t, 2.3, 0.7)) * (1 - ease(pr(t, 5.2, 0.9)))  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): „podnosi ręce” — rozpacz po braciach
+    lalka(st, t, "iwarebiko", px, 160, y=py, p=p, flip=1, lean=rot + 4 * math.sin(t * 0.7) - 4 * rozpacz,
+          rece=(10 + 150 * rozpacz, 150 * rozpacz))
     lodz(st, t, 640, 3, h=240, v=1, seed=4, burza=0.2)
     swiatlo(st, w, t, extra=(0.74, 0.78, 0.9))
 
@@ -133,10 +140,12 @@ def s_niedzwiedz(st, w, t, T):
     ba = 1 - pr(t, 4.0, 1.0)
     if ba > 0:
         st.put(J.niedzwiedz(), bx, ziemia("blisko", bx) + 86 + 4 * abs(math.sin(bx / 18)), P.droga + 0.034, w=300, alpha=ba, sx=-1)
+    podpis(w, t, "BU!", 800, 470, 2.2, 1.8)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): niedźwiedź straszy wojsko
     _lezacy(st, t, pr(t, 4.4, 2.4))
     lalka(st, t, "iwarebiko", 430, 290, flip=1, lean=-82 * ease(pr(t, 5.2, 0.6)), sink=0.22 * ease(pr(t, 5.2, 0.6)), trzyma=LUK(290),
           gwiazdki=pr(t, 5.6, 0.3) * (1 - pr(t, 7.1, 0.4)))
     mgla(st, t, 0.16 + 0.1 * pr(t, 4.0, 1.0))
+    zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(0.88, 0.94, 0.9), dim=lerp(1.0, 0.8, pr(t, 4.0, 2.0)))
 
 

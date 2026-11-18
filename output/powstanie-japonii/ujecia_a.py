@@ -686,6 +686,8 @@ def s_miecz(st, w, t, T):
         base = (x, ziemia("srodek", x) + 70)
         fall = ease(pr(t, 1.0 + 0.12 * n, 0.8))
         sleep = (x + 60 * (1 if n % 2 else -1), ziemia("przod", x) + 14 + 140 * fall)
+        if n == 3:  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): „porusz go troszkę” — ścięta głowa jeszcze drga
+            sleep = (sleep[0], sleep[1] - 14 * abs(math.sin(t * 7.0)) * pr(t, 8.4, 0.3) * (1 - pr(t, 11.0, 0.4)))
         szyja(st, t, base, sleep, 1.0, n % 3, P.miasto + 0.012 + 0.0015 * n, n, lezy=1.0, p_blisko=P.wzgorza + 0.062 + 0.001 * n)
     kadzie(st, t, 1.0)
     arm = 160 - 150 * ease(slash) if t > 0.3 else 160 * ease(pr(t, 0.0, 0.3))
@@ -696,6 +698,8 @@ def s_miecz(st, w, t, T):
         y = ziemia("srodek", 1000) + 140 - 300 * ease(rs) + 6 * math.sin(t * 1.5)
         st.put(J.glow(), 1000, y - 120, P.miasto + 0.025, w=420, anchor=(0.5, 0.5), mode="add", alpha=0.45 * rs, shadow=None, tint=(1.0, 0.95, 0.75))
         st.put(J.miecz_jp(True), 1000, y, P.miasto + 0.026, h=240, rot=8 * math.sin(t * 0.9))
+    podpis(w, t, "POMOCY!", 250, 440, 1.5, 2.4)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): pierwsza ścięta głowa woła o pomoc
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
@@ -714,8 +718,14 @@ def s_skarby(st, w, t, T):
     st.dof = 1.0
     niebo(st, t, w, drzwi=0.0, dach=0.0, pola=(1.0,) * 5, lina=1.0)
     lalka(st, t, "amaterasu", 360, 300, pr(t, 1.0, 1.0), flip=1, rece=(70 * ease(pr(t, 2.4, 0.8)), 0))
-    lalka(st, t, "ninigi", 880, 280, pr(t, 1.4, 1.0), flip=-1, rece=(120 * ease(pr(t, 6.6, 1.0)), 120 * ease(pr(t, 6.8, 1.0))))
-    skarby_w_niebie(st, t, (pr(t, 2.6, 1.2), pr(t, 3.8, 1.2), pr(t, 5.0, 1.2)))
+    # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): „miecz ma być tutaj” — Ninigi, unosząc ręce, bierze wiszący miecz do dłoni (6,4–7,0 s) i trzyma go w górze
+    chwyt = ease(pr(t, 6.4, 0.6))
+    dlon = lalka(st, t, "ninigi", 880, 280, pr(t, 1.4, 1.0), flip=-1, rece=(120 * ease(pr(t, 6.6, 1.0)), 120 * ease(pr(t, 6.8, 1.0))),
+                 trzyma=MIECZ(280, True) if chwyt >= 1 else None)
+    skarby_w_niebie(st, t, (pr(t, 2.6, 1.2), pr(t, 3.8, 1.2), pr(t, 5.0, 1.2) if chwyt <= 0 else 0.0))
+    if 0 < chwyt < 1 and dlon:
+        st.put(J.miecz_jp(True), lerp(840, dlon[0], chwyt), lerp(310, dlon[1] - 110, chwyt), P.lalki + 0.03, h=200 * lerp(1.0, 0.87, chwyt),
+               anchor=(0.5, 0.0))
     podpis(w, t, "Ninigi, wnuk Amaterasu", 880, nad(280) - 4, 1.8, 2.6)
     zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(1.03, 1.0, 0.94))
@@ -737,11 +747,13 @@ def s_zejscie(st, w, t, T):
         x = r.uniform(-100, 1380)
         st.put(J.S(name, 0.5), x, y, p, w=lerp(400, 900, p), anchor=(0.5, 0.5), haze=0.2 * (1 - p), shadow=(6, 8, 10, 0.2),
                alpha=0.95, blur=None)
-    peak = ease(pr(t, T - 3.4, 2.6))
+    peak = ease(pr(t, T - 5.6, 2.6))  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): „wydłuż końcówkę, jak już jest na ziemi” — ląduje 3 s przed końcem
+    na_ziemi = ease(pr(t, T - 2.6, 0.9))
     st.put(J.fuji(1), 660, 1200 - 520 * peak, 0.62, w=900, haze=0.1)  # zielony stożek Takachiho
     ry = 470 + 8 * math.sin(t * 1.6) + 70 * peak
     st.put(J.S("cloud_center", 0.5), 640, ry + 40, 0.8, w=420, anchor=(0.5, 0.5), shadow=(6, 8, 10, 0.3))
-    lalka(st, t, "ninigi", 640, 250, y=ry + 30, p=0.801, rece=(40, 20), lean=3 * math.sin(t * 1.3))
+    lalka(st, t, "ninigi", 640, 250, y=ry + 30, p=0.801, rece=(40 + 110 * na_ziemi, 20 + 60 * na_ziemi),
+          lean=3 * math.sin(t * 1.3) * (1 - na_ziemi))
     rampa(st)
     swiatlo(st, w, t, extra=tint)
 
@@ -792,6 +804,8 @@ def s_platki(st, w, t, T):
 # ---------- akt 4 · Na wschód ----------
 
 IW = 300  # Iwarebiko stoi z lewej, twarzą na wschód
+WSCHOD_STRZAL = 3.6
+BRACIA_SKOK = (6.5, 7.15, 7.8)  # najmłodszy brat podskakuje z radości (marker reżysera 18.11.2026)  # strzała w stronę gór (marker reżysera 18.11.2026)
 
 
 def s_prawnuk(st, w, t, T):
@@ -824,13 +838,26 @@ def s_wschod(st, w, t, T):
         Z0.rise(st, J.gora_niebieska(n % 2), x, 470, P.gory_dal + 0.03 + 0.004 * n, pr(t, 1.4 + 0.4 * n, 0.9), t, 640 + n, w=wd, wob=0.0, haze=0.2)
     turn = -math.cos(math.pi * ease(pr(t, 0.3, 0.5)))  # zwrot lalki: z zachodu (dom, Kiusiu) na wschód
     point = ease(pr(t, 1.0, 0.8))
-    lalka(st, t, "iwarebiko", IW, 300, flip=turn, rece=(85 * point, 0), lean=-2 * point, trzyma=LUK(300))
+    dlon = lalka(st, t, "iwarebiko", IW, 300, flip=turn, rece=(85 * point, 0), lean=-2 * point, trzyma=LUK(300))
+    # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): tabliczka „HMM…”, potem Iwarebiko strzela w stronę niebieskich gór (strzała wbija się w zbocze)
+    podpis(w, t, "HMM…", IW, nad(300), 1.8, 1.5)
+    lot = pr(t, WSCHOD_STRZAL, 0.55)
+    if dlon and lot > 0:
+        cel = (873, 404)
+        x0, y0 = dlon[0] + 30, dlon[1] - 10
+        ang = math.degrees(math.atan2(cel[1] - y0, cel[0] - x0))
+        if lot < 1:
+            st.put(Z0.prop("strzala"), lerp(x0, cel[0], lot), lerp(y0, cel[1], lot) - 50 * math.sin(math.pi * lot), P.lalki + 0.013, w=96,
+                   anchor=(0.95, 0.5), rot=-ang + 12 * (1 - 2 * lot), shadow=(2, 3, 3, 0.4))
+        else:
+            st.put(Z0.prop("strzala"), cel[0], cel[1], P.gory_dal + 0.036, w=60, anchor=(0.95, 0.5), rot=-ang - 10, shadow=(2, 3, 3, 0.3))
+    zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(1.03, 0.98, 0.93))
 
 
-def bracia(st, t, ks=(1.0, 1.0, 1.0), turns=(1.0, 1.0, 1.0), x0=470):
+def bracia(st, t, ks=(1.0, 1.0, 1.0), turns=(1.0, 1.0, 1.0), x0=470, lifts=(0.0, 0.0, 0.0)):
     for n, key in enumerate(("itsuse", "brat2", "brat3")):
-        lalka(st, t, key, x0 + n * 125, 285 - 8 * n, ks[n], flip=turns[n], rece=(10, 0), seed=150 + n)
+        lalka(st, t, key, x0 + n * 125, 285 - 8 * n, ks[n], flip=turns[n], rece=(10 + 2 * lifts[n], 0), seed=150 + n, lift=lifts[n])
 
 
 def s_bracia(st, w, t, T):
@@ -840,7 +867,8 @@ def s_bracia(st, w, t, T):
     kraj(st, t, w, morze_k=1.0, tint=(1.03, 0.98, 0.93))
     lalka(st, t, "iwarebiko", IW, 300, flip=1, rece=(30, 0), trzyma=LUK(300))
     turns = [-math.cos(math.pi * ease(pr(t, 3.4 + 0.5 * n, 0.5))) for n in range(3)]
-    bracia(st, t, [pr(t, 0.6 + 0.6 * n, 1.0) for n in range(3)], turns)
+    skok = sum(55 * math.sin(math.pi * pr(t, a0, 0.45)) for a0 in BRACIA_SKOK)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): „porusz go, niech skacze”
+    bracia(st, t, [pr(t, 0.6 + 0.6 * n, 1.0) for n in range(3)], turns, lifts=(0.0, 0.0, skok))
     podpis(w, t, "Itsuse, najstarszy brat", 470, nad(285), 1.7, 2.6)
     zawieszki(st, t, w)
     swiatlo(st, w, t)
@@ -873,7 +901,7 @@ def s_flota(st, w, t, T):
         lad = ([("iwarebiko", -40, 120, (20, 0)), ("itsuse", 50, 116, (10, 0))] if j == 0 else
                [("wojownik", -25, h * 0.7, (0, 0)), ("wojownik", 30, h * 0.66, (0, 0))] if b == 2 else
                [("wojownik", 0, h * 0.7, (0, 0))] if b == 1 else [])
-        lodz(st, t, x + dx + v * t / T, b, h=h, seed=j, sink=1 - ease(pr(t, t0, 0.8)), ladunek=lad, v=j % 2)
+        lodz(st, t, x + dx + v * t / T, b, h=h, seed=j, sink=1 - ease(pr(t, t0, 0.8)), ladunek=lad, v=j % 2, wiosla=True)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN)
     swiatlo(st, w, t)
 
 
@@ -923,10 +951,13 @@ def s_naniwa(st, w, t, T):
                    rot=0.8 * math.sin(t + n))
     for n in range(5):  # wojownicy na brzegu, każdy z własnym opóźnieniem (1.7)
         r = random.Random(330 + n)
-        lalka(st, t, "wojownik", 830 + n * 92 + marsz, 230 - 4 * n, pr(t, 3.4 + r.uniform(0, 1.2), 0.9), flip=1, rece=(10, 0),
+        stop = ease(pr(t, 10.4, 0.4)) if n == 0 else 0.0  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): tabliczka „STOP!” i ręka do góry
+        lalka(st, t, "wojownik", 830 + n * 92 + marsz, 230 - 4 * n, pr(t, 3.4 + r.uniform(0, 1.2), 0.9), flip=1, rece=(10 + 150 * stop, 0),
               hop=4 if marsz > 1 else 0, seed=170 + n)
+    podpis(w, t, "STOP!", 830 + marsz, nad(230) - 10, 10.5, 1.8)
     lalka(st, t, "iwarebiko", 640, 290, pr(t, 4.4, 1.0), flip=1, trzyma=LUK(290), rece=(20, 0))
     lalka(st, t, "itsuse", 740, 280, pr(t, 4.8, 1.0), flip=1, rece=(10, 0))
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
@@ -954,6 +985,7 @@ def s_nagasune(st, w, t, T):
     lalka(st, t, "nagasune", x, h, pr(t, 0.5, 1.6), y=ziemia("przod", x) + 120, p=P.wzgorza + 0.04, flip=-1, rece=(30 + 60 * (rytm > 4), 0),
           lean=2 * settle((t - 2.2) / 1.6, 1.5))
     podpis(w, t, "wódz Nagasunehiko", 760, 300, 2.2, 2.8)
+    podpis(w, t, "NIE MA MOWY!", 830, 230, 5.3, 2.2)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN)
     zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(1.03, 0.97, 0.92))
 
@@ -998,13 +1030,15 @@ def s_rana(st, w, t, T):
     else:
         strzala_w_ramieniu(st, "itsuse", 600, 280, rot=lean)
     podpis(w, t, "AŁA!…", 470, 352, 0.95, 1.8)
+    podpis(w, t, "AAA!", 500, 350, 5.2, 2.0)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): Itsuse krzyczy z bólu
     zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(1.03, 0.97, 0.92))
 
 
 def s_pod_slonce(st, w, t, T):
     """Ranny Itsuse wskazuje słońce nad górami; Iwarebiko odwraca się ku słońcu i opuszcza łuk."""
-    w.sun_xy = (1080, 250)
+    k = ease(t / T)
+    w.sun_xy = (lerp(1010, 975, k), lerp(262, 236, k) + 4 * math.sin(t * 1.1))  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): słońce w kadrze i powoli się podnosi
     kam(st, t, 37, lerp(600, 660, ease(t / T)), 450, 1.4, 0.8)
     st.dof = 1.2
     kraj(st, t, w, gora_x=900, tint=(1.04, 0.97, 0.9))
@@ -1012,5 +1046,6 @@ def s_pod_slonce(st, w, t, T):
     lalka(st, t, "itsuse", 560, 280, flip=1, lean=-6 + 3 * point, rece=(130 * point, 60))
     strzala_w_ramieniu(st, "itsuse", 560, 280, rot=-6 + 3 * point)
     low = ease(pr(t, 4.6, 1.4))
-    lalka(st, t, "iwarebiko", 380, 290, flip=1, rece=(70 * (1 - low) + 8, 0), trzyma=LUK(290), lean=2 * low)
+    zwrot = -math.cos(math.pi * ease(pr(t, 1.9, 0.5)))  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): od początku patrzy w lewo, przy geście Itsuse zwraca się ku słońcu
+    lalka(st, t, "iwarebiko", 380, 290, flip=zwrot, rece=(70 * (1 - low) + 8, 0), trzyma=LUK(290), lean=2 * low)
     swiatlo(st, w, t, extra=(1.04, 0.96, 0.9))

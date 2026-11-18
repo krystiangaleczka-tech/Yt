@@ -863,9 +863,13 @@ def grzebien():
 
 # ---------- morze: łodzie ----------
 
+WIOSLA_FAZY = 8
+
+
 @lru_cache(None)
-def lodz(v=0):
-    """Łódź z epoki kofun: długi kadłub z zadartym dziobem i rufą, wiosła, żagiel z maty (v = 1: bez żagla)."""
+def lodz(v=0, faza=-1):
+    """Łódź z epoki kofun: długi kadłub z zadartym dziobem i rufą, wiosła, żagiel z maty (v = 1: bez żagla).
+    faza 0..WIOSLA_FAZY-1: wiosła w kolejnej chwili zamachu (pióro idzie do tyłu w wodzie, wraca nad wodą); -1 — spoczynek."""
     w, h = 560, 420
     hull = (110, 74, 50)
     hull_pts = [(10, 250), (40, 290), (110, 330), (450, 330), (520, 290), (552, 220), (530, 230), (480, 290), (90, 296), (40, 270)]
@@ -882,10 +886,13 @@ def lodz(v=0):
             d.line([(168, y), (386, y)], fill=(150, 120, 80, 200), width=2)
         for x in (210, 250, 300, 340):
             d.line([(x, 82), (x + 2, 248)], fill=(150, 120, 80, 160), width=2)
+    a = 2 * math.pi * faza / WIOSLA_FAZY if faza >= 0 else 0.0
+    ex, ey = (-40, 100) if faza < 0 else (-8 - 46 * math.cos(a), 92 - 14 * math.sin(a))  # koniec wiosła po elipsie
     for x in (140, 210, 280, 350, 420):  # wiosła
-        d.line([(x, 300), (x - 40, 400)], fill=(90, 62, 44, 255), width=6)
-        d.polygon([(x - 40, 392), (x - 52, 418), (x - 34, 420), (x - 30, 396)], fill=(110, 76, 52, 255))
-    return Sprite(im, f"lodz-{v}", rim=2, clean=False)
+        bx, by = x + ex, 300 + ey
+        d.line([(x, 300), (bx, by)], fill=(90, 62, 44, 255), width=6)
+        d.polygon([(bx, by - 8), (bx - 12, by + 18), (bx + 6, by + 20), (bx + 10, by - 4)], fill=(110, 76, 52, 255))
+    return Sprite(im, f"lodz-{v}" + (f"-w{faza}" if faza >= 0 else ""), rim=2, clean=False)
 
 
 @lru_cache(None)

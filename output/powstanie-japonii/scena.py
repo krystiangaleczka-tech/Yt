@@ -251,15 +251,17 @@ def morze(st, t, w, fale=1.0, wyspy=(), tint=(1.0, 1.0, 1.0), burza=0.0, chmury_
         kulisy(st, t, w, dol=False, chmura=True)
 
 
-def lodz(st, t, x, pasmo_i, h=150, flip=1.0, v=0, burza=0.0, seed=0, przechyl=0.0, sink=0.0, ladunek=()):
-    """Łódź na paśmie fal pasmo_i (płynie razem z nim); ladunek = [(klucz lalki, dx, wysokość, rece)] — lalki na pokładzie."""
+def lodz(st, t, x, pasmo_i, h=150, flip=1.0, v=0, burza=0.0, seed=0, przechyl=0.0, sink=0.0, ladunek=(), wiosla=False):
+    """Łódź na paśmie fal pasmo_i (płynie razem z nim); ladunek = [(klucz lalki, dx, wysokość, rece)] — lalki na pokładzie.
+    wiosla — wiosła pracują (faza z zegara i ziarna, każda łódź w swoim rytmie; reżyser 18.11.2026: „każda łódź ma wiosłować”)."""
     p = FALE[pasmo_i][0] + 0.006
     y = fala(pasmo_i, t, burza) + 40 + (3 + 10 * burza) * math.sin(t * 2.0 + seed) + ease(sink) * h * 1.3
     rot = (2 + 7 * burza) * math.sin(t * (1.1 + burza) + seed * 2.3) + przechyl
     for key, dx, lh, rc in ladunek:
         hx, hy = _off(dx * flip, -h * 0.30, rot)
         lalka(st, t, key, x + hx, lh, 1.0, y=y + hy + lh * 0.2, p=p - 0.003, flip=flip, lean=rot, rece=rc)
-    st.put(J.lodz(v), x, y, p, h=h, anchor=(0.5, 0.74), rot=rot, sx=flip, haze=0.25 * (3 - pasmo_i) / 3)
+    faza = int(((t * (0.9 + 0.07 * (seed % 5)) + 0.37 * seed) % 1.0) * J.WIOSLA_FAZY) if wiosla else -1
+    st.put(J.lodz(v, faza), x, y, p, h=h, anchor=(0.5, 0.74), rot=rot, sx=flip, haze=0.25 * (3 - pasmo_i) / 3)
 
 
 # ---- niebiańska równina ----

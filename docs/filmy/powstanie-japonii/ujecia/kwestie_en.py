@@ -18,8 +18,8 @@ EN = {
     # cien: ujęcie z pierwszej wersji filmu (parawan z cieniem władcy), dziś poza filmem — kwestia jak w nagraniu lektora
     "cien": "The chronicles call him a great-great-great-grandson of the sun goddess, and historians "
             "still argue whether he ever lived.",
-    "luty": "By the end, you'll know where that sword came from, why Japan's birthday was probably made up, and why its "
-            "football team wears a three-legged crow.",
+    # reżyser 18.11.2026: ujęcie 14 krótsze o 4 s — obietnica bez wrony (wrona i tak wraca w tytule aktu V)
+    "luty": "By the end, you'll know where that sword came from and why Japan's birthday was made up.",
     # akt 1 · Kropla z włóczni
     "meduza": "To see why these brothers believed they came from the sun, we go back to the beginning, when the young "
               "earth drifted like a jellyfish.",
@@ -174,6 +174,9 @@ ETYKIETY = {
     "pisarz dworu": "court scribe", "chłop": "a farmer", "królowa Himiko": "Queen Himiko",
     # tabliczki ze słownika znaków (wytyczne 1.20)
     "HA HA!": "HA HA!", "HA HA HA!": "HA HA HA!", "AŁA!…": "AW!…", "O!": "OH!", "PUŁAPKA!": "A TRAP!",
+    # okrzyki z markerów reżysera 18.11.2026
+    "POMOCY!": "HELP!", "HMM…": "HMM…", "STOP!": "STOP!", "NIE MA MOWY!": "NO WAY!", "AAA!": "AAA!", "Nie mogę…": "I can't…",
+    "AAAA!": "AAAA!", "BRACIE!": "BROTHER!", "BU!": "BOO!",
     # tytuły aktów na kurtynie (przejście między aktami)
     # przegląd 18.11.2026 (szkic D): tytuły aktów to pytania, na które akt odpowiada; kurtyna rysuje „Act N” i pytanie
     # w dwóch rzędach (render.kurtyna)
