@@ -160,6 +160,59 @@ class LogEntry(_FlowModel):
     files: list[str] = Field(default_factory=list, max_length=100)
 
 
+class SketchShot(_FlowModel):
+    """Jedno ujęcie szkicu: tyle, ile trzeba, żeby przekartkować film (studio_core/sketches.py)."""
+    id: str = Field(min_length=1, max_length=160)
+    nr: int = Field(default=0, ge=0, le=9999)
+    key: str = Field(default="", max_length=200)
+    kadr: str = Field(default="", max_length=300)
+    seconds: float = Field(default=4, ge=0.1, le=600)
+    description: str = Field(default="", max_length=4000)
+    line: str = Field(default="", max_length=4000)
+    mark: str = Field(default="", max_length=200)
+    assetId: str = Field(default="", max_length=120)
+
+
+class SketchVariant(_FlowModel):
+    id: str = Field(min_length=1, max_length=120)
+    title: str = Field(default="", max_length=300)
+    scenario: str = Field(default="", max_length=120_000)
+    shots: list[SketchShot] = Field(default_factory=list, max_length=600)
+    source: dict = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _unique_shots(self):
+        ids = [shot.id for shot in self.shots]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Powtórzony identyfikator ujęcia w szkicu")
+        return self
+
+
+class SketchApproval(_FlowModel):
+    variantId: str = Field(min_length=1, max_length=120)
+    title: str = Field(default="", max_length=300)
+    at: str = Field(default="", max_length=40)
+    who: str = Field(default="", max_length=200)
+    note: str = Field(default="", max_length=4000)
+    signature: str = Field(default="", max_length=80)
+    snapshot: dict = Field(default_factory=dict)
+
+
+class Sketches(_FlowModel):
+    """Szkice ujęć: kilka całych podejść do opowieści, porównywanych przed rozpiską."""
+    version: int = Field(default=1, ge=1, le=99)
+    playSeconds: float = Field(default=25, ge=5, le=180)
+    variants: list[SketchVariant] = Field(default_factory=list, max_length=12)
+    approved: SketchApproval | None = None
+
+    @model_validator(mode="after")
+    def _unique_variants(self):
+        ids = [variant.id for variant in self.variants]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Powtórzony identyfikator wariantu szkicu")
+        return self
+
+
 class ProductionFlow(_FlowModel):
     version: int = Field(default=1, ge=1, le=99)
     factual: bool = False
@@ -177,6 +230,7 @@ class ProductionFlow(_FlowModel):
     book: ProductionBook = Field(default_factory=ProductionBook)
     unitReviews: dict[str, UnitReview] = Field(default_factory=dict)
     log: list[LogEntry] = Field(default_factory=list, max_length=5000)
+    sketches: Sketches = Field(default_factory=Sketches)
 
     @model_validator(mode="after")
     def _unique_ids(self):
