@@ -1,0 +1,607 @@
+{
+  "version": 1,
+  "unitLabel": "Akt",
+  "tempo": {
+    "minSeconds": 80,
+    "maxSeconds": 160,
+    "maxVoiceShare": 0.85
+  },
+  "places": [
+    {
+      "id": "teatr",
+      "name": "Teatr z gazet",
+      "note": "Rama sceny oklejona pierwszymi stronami gazet z lat 30.; szyld „THE OUTLAWS MADE OF PAPER” w stylu art déco; pierwsze i ostatnie ujęcia, obietnica, puenta.",
+      "connects": [
+        "preria",
+        "miasto"
+      ]
+    },
+    {
+      "id": "west_dallas",
+      "name": "West Dallas (lata 20.)",
+      "note": "Namioty i szałasy pod wiaduktem nad rzeką Trinity, dymy z kominów, błoto; wóz konny Barrowów.",
+      "connects": [
+        "miasto"
+      ]
+    },
+    {
+      "id": "cement_city",
+      "name": "Cement City",
+      "note": "Kominy cementowni, drewniane domki, szkoła z podium; dom Bonnie i Roya."
+    },
+    {
+      "id": "wnetrza",
+      "name": "Wnętrza",
+      "note": "Kawiarnia w Dallas, kuchnia przyjaciółki, areszty w Waco i Kaufman (kraty), mieszkanie nad garażem w Joplin, ciemnia redakcji, biuro Hamera, chata Methvinów, dom matki Bonnie, zakład pogrzebowy. Jedna dekoracja wnętrza z wymiennymi ścianami, oknem, drzwiami i meblami."
+    },
+    {
+      "id": "preria",
+      "name": "Preria i drogi",
+      "note": "Płaska preria w złocistych pasach trawy, polna droga z koleinami, słupy telegraficzne, wiatrak, płot; odmiany: Teksas, Oklahoma, granica stanów, Kansas.",
+      "connects": [
+        "miasto",
+        "las"
+      ]
+    },
+    {
+      "id": "miasto",
+      "name": "Miasteczko",
+      "note": "Ulica z fasadami: stacja benzynowa, sklep żelazny, kawiarnia, kiosk, drukarnia, słup z listami gończymi; odmiany: Joplin, Ruston, Commerce, Arcadia, Shreveport."
+    },
+    {
+      "id": "eastham",
+      "name": "Farma więzienna Eastham",
+      "note": "Rzędy bawełny, płot z drutu, wieża strażnicza, brama; barak (teatr cieni); mgła przy odbiciu w styczniu 1934."
+    },
+    {
+      "id": "wellington",
+      "name": "Wellington: rozebrany most i wąwóz",
+      "note": "Nocna droga, tablica DETOUR, most bez przęsła, wąwóz z rzeką; farma; las w Oklahomie z drzewem."
+    },
+    {
+      "id": "las",
+      "name": "Lasy i rzeki",
+      "note": "Park Dexfield w Iowie (liściaste), rzeka, las sosnowy przy drodze w Luizjanie (zasadzka), krzaki."
+    },
+    {
+      "id": "parawan",
+      "name": "Teatr cieni",
+      "note": "Podświetlony parawan, za którym giną ludzie: Eastham (barak), Hillsboro, Atoka, Joplin, Platte City, Sowers, Grapevine, Commerce, zasadzka. Błyski i padające sylwetki, bez krwi (D2)."
+    },
+    {
+      "id": "mapa",
+      "name": "Mapa pięciu stanów",
+      "note": "Mapa z gazet na tablicy Hamera: Teksas, Oklahoma, Missouri, Luizjana, Kansas (i Iowa, Arkansas); pinezki, czerwona nić w pętlach."
+    },
+    {
+      "id": "epilog",
+      "name": "Epilog",
+      "note": "Cmentarze w Dallas, jarmark z autem pod namiotem, dom Blanche (1988), ganek Hamera, kino z ekranem z gazet."
+    }
+  ],
+  "characters": [
+    {
+      "id": "bonnie",
+      "name": "Bonnie Parker",
+      "role": "kelnerka z Dallas, poetka, wspólniczka Clyde'a",
+      "look": "drobna (ok. 150 cm), jasne kręcone włosy do ramion, beret; sukienka do kolan, od d04_03~noga bandaż na nodze i kulenie",
+      "costume": "w dniu zasadzki czerwona sukienka",
+      "namedIn": [
+        "d*"
+      ],
+      "states": [
+        {
+          "from": "d04_03~noga",
+          "state": "poparzona noga, kuleje"
+        },
+        {
+          "from": "d07_10~papierowy Ford",
+          "state": "nie żyje"
+        }
+      ]
+    },
+    {
+      "id": "bonnie_mala",
+      "name": "mała Bonnie",
+      "role": "Bonnie w szkole",
+      "look": "dziewczynka w sukience z kokardą"
+    },
+    {
+      "id": "clyde",
+      "name": "Clyde Barrow",
+      "role": "złodziej z West Dallas, kierowca",
+      "look": "szczupły, ciemne włosy, fedora, garnitur; od d01_13~siekiery kuleje (obcięte palce u stopy)",
+      "namedIn": [
+        "d*"
+      ],
+      "states": [
+        {
+          "from": "d01_13~siekiery",
+          "state": "kuleje"
+        },
+        {
+          "from": "d07_10~papierowy Ford",
+          "state": "nie żyje"
+        }
+      ]
+    },
+    {
+      "id": "clyde_maly",
+      "name": "mały Clyde",
+      "role": "Clyde jako dziecko pod wozem",
+      "look": "chłopiec w łatanych ogrodniczkach"
+    },
+    {
+      "id": "buck",
+      "name": "Buck Barrow",
+      "role": "starszy brat Clyde'a",
+      "look": "krępy, kaszkiet, kamizelka",
+      "joins": "d02_09~Buck",
+      "leaves": "d04_11~Buck"
+    },
+    {
+      "id": "blanche",
+      "name": "Blanche Barrow",
+      "role": "żona Bucka",
+      "look": "kapelusik, płaszczyk, biały piesek na rękach",
+      "joins": "d02_09~Blanche",
+      "leaves": "d04_11~Blanche",
+      "states": [
+        {
+          "from": "d04_10~Blanche",
+          "state": "ślepa na jedno oko (od Platte City)"
+        }
+      ]
+    },
+    {
+      "id": "wd",
+      "name": "W.D. Jones",
+      "role": "szesnastolatek z sąsiedztwa",
+      "look": "chudy chłopak w kaszkiecie",
+      "joins": "d02_08~W.D. Jones",
+      "leaves": "d04_13~W.D."
+    },
+    {
+      "id": "roy",
+      "name": "Roy Thornton",
+      "role": "mąż Bonnie",
+      "look": "młody, zaczesane włosy, walizka",
+      "leaves": "d01_05~Roy"
+    },
+    {
+      "id": "hamer",
+      "name": "Frank Hamer",
+      "role": "emerytowany strażnik Teksasu (Ranger), łowca",
+      "look": "wysoki, ciężki, kapelusz Stetson, kamizelka, długi płaszcz",
+      "namedIn": [
+        "d05_*",
+        "d06_*",
+        "d07_*",
+        "d08_*"
+      ]
+    },
+    {
+      "id": "simmons",
+      "name": "Lee Simmons",
+      "role": "szef więziennictwa Teksasu",
+      "look": "garnitur, okulary, łysina"
+    },
+    {
+      "id": "darby",
+      "name": "Dillard Darby",
+      "role": "młody przedsiębiorca pogrzebowy z Ruston",
+      "look": "czarny garnitur, muszka",
+      "namedIn": [
+        "d03_*",
+        "d08_*"
+      ]
+    },
+    {
+      "id": "stone",
+      "name": "Sophia Stone",
+      "role": "znajoma Darby'ego",
+      "look": "kapelusz z rondem, płaszczyk"
+    },
+    {
+      "id": "ivy",
+      "name": "Ivy Methvin",
+      "role": "farmer z Luizjany, ojciec Henry'ego",
+      "look": "broda, ogrodniczki, kapelusz słomkowy",
+      "namedIn": [
+        "d07_*"
+      ]
+    },
+    {
+      "id": "henry",
+      "name": "Henry Methvin",
+      "role": "młody więzień uwolniony w Eastham",
+      "look": "chłopak w koszuli, kaszkiet",
+      "namedIn": [
+        "d07_*"
+      ]
+    },
+    {
+      "id": "boyd",
+      "name": "Percy Boyd",
+      "role": "komendant policji z Commerce",
+      "look": "mundur, czapka"
+    },
+    {
+      "id": "murphy",
+      "name": "H.D. Murphy",
+      "role": "młody policjant drogowy z Grapevine",
+      "look": "mundur, bryczesy, motocykl",
+      "leaves": "d06_02~shot"
+    },
+    {
+      "id": "tullis",
+      "name": "Maree Tullis",
+      "role": "narzeczona Murphy'ego",
+      "look": "biała suknia ślubna"
+    },
+    {
+      "id": "matki",
+      "name": "matki: Emma Parker i Cumie Barrow",
+      "role": "rodziny, do których wracają",
+      "look": "starsze kobiety w fartuchach, siwe włosy"
+    },
+    {
+      "id": "posse",
+      "name": "sześciu ludzi z zasadzki",
+      "role": "Hamer, Gault, Alcorn, Hinton, Jordan, Oakley",
+      "look": "kapelusze, karabiny",
+      "namedIn": [
+        "d07_*"
+      ]
+    }
+  ],
+  "props": [
+    {
+      "id": "aparat",
+      "name": "Aparat z kliszą",
+      "place": "wnetrza",
+      "seeded": "d00_11~aparat",
+      "uses": [
+        "d03_03~aparat",
+        "d03_04~klisza"
+      ],
+      "note": "Hak 1 i powrót w akcie III innymi słowami."
+    },
+    {
+      "id": "cygaro",
+      "name": "Pożyczone cygaro",
+      "owner": "Bonnie",
+      "seeded": "d00_12~cygaro",
+      "uses": [
+        "d00_15~cigars",
+        "d03_06~cygaro",
+        "d06_09~cigars"
+      ]
+    },
+    {
+      "id": "suicide_sal",
+      "name": "Wiersz o Suicide Sal",
+      "owner": "Bonnie",
+      "seeded": "d02_04~Suicide Sal",
+      "uses": [
+        "d03_03~poems"
+      ]
+    },
+    {
+      "id": "teczka",
+      "name": "Teczka z wycinkami",
+      "place": "wnetrza",
+      "seeded": "d03_11~teczki",
+      "uses": [
+        "d05_07~teczkę",
+        "d05_08~aktach",
+        "d06_10~desk"
+      ]
+    },
+    {
+      "id": "radiowoz_zabawka",
+      "name": "Zabawkowy radiowóz",
+      "owner": "Hamer",
+      "seeded": "d05_06~radiowóz"
+    },
+    {
+      "id": "mapa_nic",
+      "name": "Mapa z czerwoną nicią",
+      "place": "mapa",
+      "seeded": "d05_12~mapy",
+      "uses": [
+        "d05_13~nić",
+        "d06_10~map"
+      ]
+    },
+    {
+      "id": "list_forda",
+      "name": "List do Henry'ego Forda",
+      "seeded": "d04_09~letter"
+    },
+    {
+      "id": "pardon",
+      "name": "Papier z pieczęcią PARDON",
+      "seeded": "d07_01~pardon"
+    },
+    {
+      "id": "ciezarowka",
+      "name": "Ciężarówka Ivy'ego na lewarku",
+      "owner": "Ivy Methvin",
+      "seeded": "d07_07~truck",
+      "uses": [
+        "d07_09~ciężarówce"
+      ]
+    },
+    {
+      "id": "wiersz",
+      "name": "Wiersz dla matki („The Trail's End”)",
+      "owner": "Bonnie",
+      "seeded": "d07_02~poem",
+      "uses": [
+        "d08_03~poem"
+      ],
+      "note": "Tylko parafraza; prawa autorskie niesprawdzone."
+    },
+    {
+      "id": "obraczka",
+      "name": "Obrączka Roya",
+      "owner": "Bonnie",
+      "seeded": "d01_05~ring"
+    }
+  ],
+  "resources": [],
+  "rules": [
+    {
+      "id": "clyde_wolny",
+      "name": "Clyde na wolności",
+      "from": "d01_14~parole",
+      "to": "d07_10~papierowy Ford"
+    },
+    {
+      "id": "buck_zyje",
+      "name": "Buck żyje i jest z gangiem",
+      "from": "d02_09~Buck",
+      "to": "d04_11~Buck"
+    },
+    {
+      "id": "wd_w_gangu",
+      "name": "W.D. jest z gangiem",
+      "from": "d02_08~W.D.",
+      "to": "d04_13~W.D."
+    },
+    {
+      "id": "hamer_poluje",
+      "name": "Hamer prowadzi pościg",
+      "from": "d05_04~took the job",
+      "to": "d07_11~rounds"
+    },
+    {
+      "id": "powaga",
+      "name": "ton poważny (bez żartów)",
+      "from": "d06_01~Easter",
+      "to": "d08_03~cemeteries",
+      "note": "D2: od Grapevine do pogrzebów bez gagów; tabliczka z cygarami to ironia o Bonnie, nie o ofiarach."
+    }
+  ],
+  "events": [
+    {
+      "at": "d02_11~cards",
+      "note": "Buck i Blanche w mieszkaniu w Joplin",
+      "needs": [
+        "buck_zyje"
+      ]
+    },
+    {
+      "at": "d04_10~Buck",
+      "note": "Buck ranny w Platte City",
+      "needs": [
+        "buck_zyje"
+      ]
+    },
+    {
+      "at": "d04_03~W.D.",
+      "note": "W.D. wyciąga Bonnie z auta",
+      "needs": [
+        "wd_w_gangu"
+      ]
+    },
+    {
+      "at": "d04_12~W.D.",
+      "note": "W.D. ucieka z nimi przez rzekę",
+      "needs": [
+        "wd_w_gangu"
+      ]
+    },
+    {
+      "at": "d04_14~families",
+      "note": "spotkania z matkami bez W.D. i Bucka",
+      "needsOff": [
+        "wd_w_gangu",
+        "buck_zyje"
+      ]
+    },
+    {
+      "at": "d05_09~day one",
+      "note": "pierwszy dzień pościgu Hamera",
+      "needs": [
+        "hamer_poluje"
+      ]
+    },
+    {
+      "at": "d06_01~day fifty",
+      "note": "Grapevine = 50. dzień pościgu",
+      "needs": [
+        "hamer_poluje"
+      ]
+    },
+    {
+      "at": "d07_07~May 23",
+      "note": "zasadzka = 102. dzień",
+      "needs": [
+        "hamer_poluje",
+        "clyde_wolny"
+      ]
+    }
+  ],
+  "threads": [
+    {
+      "id": "cygaro",
+      "title": "Bonnie nie paliła cygar",
+      "setup": [
+        "d00_12~cigar"
+      ],
+      "clues": [
+        "d00_15~cigars",
+        "d03_06~cygaro"
+      ],
+      "payoff": [
+        "d06_09~cigars"
+      ]
+    },
+    {
+      "id": "aparat",
+      "title": "Klisza z Joplin",
+      "setup": [
+        "d00_11~camera"
+      ],
+      "payoff": [
+        "d03_03~camera"
+      ]
+    },
+    {
+      "id": "darby",
+      "title": "Przedsiębiorca pogrzebowy",
+      "setup": [
+        "d03_09~work on her"
+      ],
+      "payoff": [
+        "d08_02~undertaker"
+      ]
+    },
+    {
+      "id": "wiersz",
+      "title": "Wiersz przewidział koniec poza jednym",
+      "setup": [
+        "d07_02~side by side"
+      ],
+      "clues": [
+        "d07_11~rounds"
+      ],
+      "payoff": [
+        "d08_03~cemeteries"
+      ]
+    },
+    {
+      "id": "teczka",
+      "title": "Wycinki trafią do jednej teczki",
+      "setup": [
+        "d03_11~file"
+      ],
+      "payoff": [
+        "d05_07~file",
+        "d08_09~file"
+      ]
+    },
+    {
+      "id": "przysiega",
+      "title": "Clyde nie wróci do Eastham",
+      "setup": [
+        "d01_15~swore"
+      ],
+      "clues": [
+        "d05_01~Eastham"
+      ],
+      "payoff": [
+        "d05_08~promise"
+      ]
+    },
+    {
+      "id": "matki",
+      "title": "Pętle prowadzą do matek",
+      "setup": [
+        "d04_14~families"
+      ],
+      "clues": [
+        "d04_15~picnics",
+        "d05_13~mothers"
+      ],
+      "payoff": [
+        "d07_04~father's farm",
+        "d07_07~truck"
+      ]
+    },
+    {
+      "id": "obietnica",
+      "title": "Łowca, który nie gonił",
+      "setup": [
+        "d00_16~without ever chasing"
+      ],
+      "clues": [
+        "d05_05~ditch"
+      ],
+      "payoff": [
+        "d05_06~stopped chasing"
+      ]
+    },
+    {
+      "id": "methvin",
+      "title": "Henry Methvin",
+      "setup": [
+        "d05_01~free his friends"
+      ],
+      "payoff": [
+        "d07_01~Henry Methvin"
+      ]
+    }
+  ],
+  "spoilers": [
+    {
+      "pattern": "Hamer",
+      "notBefore": "d05_04~Frank Hamer",
+      "why": "Łowca jest tajemnicą do aktu V (obietnica mówi „a retired Ranger”)."
+    },
+    {
+      "pattern": "Methvin",
+      "notBefore": "d07_01~Ivy Methvin",
+      "why": "Zdrajca pojawia się dopiero w akcie VII."
+    },
+    {
+      "pattern": "embalm",
+      "notBefore": "d08_02~undertaker",
+      "why": "Klamra Darby'ego dopiero w akcie VIII."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "text": "Film według szkicu D: oś A (prasa kontra prawda) z wplecionym B (pościg Hamera), opowieść wydłużona do ok. 18 minut. Reżyser 19.11.2026: „Robimy A, ale wplatamy gdzieś te B, wydłużając opowieść”, potem „Tak, zatwierdzam D”.",
+      "at": "2026-11-19",
+      "by": "reżyser"
+    },
+    {
+      "id": "D2",
+      "text": "Ton: lekki humor jako ironia i suchy lektor; z ofiar się nie żartuje, każda ofiara ma imię, śmierć w teatrze cieni bez krwi; od Grapevine ton poważny (reżyser 18.11.2026: „lekko humorystycznie”).",
+      "at": "2026-11-18",
+      "by": "reżyser"
+    },
+    {
+      "id": "D3",
+      "text": "Film tylko po angielsku na kanał Paper Theatre; napisy w kadrze po angielsku; dla Polaków polski tytuł, opis i ewentualnie ścieżka lektora.",
+      "at": "2026-11-18",
+      "by": "reżyser"
+    },
+    {
+      "id": "D4",
+      "text": "Sceneria lat 30. w USA rysowana od nowa (preria, Ford V8, stacje, drukarnia, lasy Luizjany) — bez krajobrazu Chin i Japonii (zasada sceneria-na-film).",
+      "at": "2026-11-19",
+      "by": "reżyser"
+    },
+    {
+      "id": "D5",
+      "text": "Fakty z relacji wtórnych mają w kwestii zastrzeżenie: „reportedly”, „local historians say”, „according to local accounts”; wiersz Bonnie tylko parafrazowany; list do Forda jako niepewny.",
+      "at": "2026-11-19",
+      "by": "Claude"
+    }
+  ]
+}

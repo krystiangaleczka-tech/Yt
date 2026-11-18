@@ -1,0 +1,7 @@
+build/
+__pycache__/
+lektor_en/
+dzwiek_en/
+*.mp4
+arkusz*.png
+klatka*.png

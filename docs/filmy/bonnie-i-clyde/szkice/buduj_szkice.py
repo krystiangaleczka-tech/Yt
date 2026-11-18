@@ -245,7 +245,7 @@ def U(klucz, kadr, miejsce, opis, kwestia="", mark="", pauza="ujecie", dodaj=0.0
     else:
         s = sek if sek is not None else 2.0
     return {"klucz": klucz, "kadr": kadr, "miejsce": miejsce, "opis": opis, "kwestia": kwestia, "mark": mark,
-            "sekundy": round(s, 1)}
+            "sekundy": round(s, 1), "dodaj": dodaj, "hak": hak, "pauza": pauza}
 
 
 def S(klucz, kwestia="", **kw):

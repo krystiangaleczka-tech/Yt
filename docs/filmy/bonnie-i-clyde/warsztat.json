@@ -1,0 +1,46 @@
+{
+  "pipeline": "## Technika\n\nUjęcia są **rysowane kodem** w Pythonie (PIL + numpy) jako teatr papierowy — ten sam silnik co „Pierwszy cesarz” i „Syn słońca”.\n\n- **Silnik** (`output/pierwszy-cesarz/papier.py`, wspólny): plany głębi, kamera, cienie, głębia ostrości, światło.\n- **Papiery i wycinki wspólne** (`output/pierwszy-cesarz/zestaw.py`): faktury, darte krawędzie, chmury, nitki, wysuwanie.\n- **Zestaw filmu** (`output/bonnie-i-clyde/zestaw_bc.py`): lalki lat 30. z rękami na zawiasie, rama teatru z gazet, Ford V8, radiowóz, motocykl, ciężarówka, stacja, drukarnia, gazety, aparat, mapa, preria, miasteczko, wnętrza, więzienie, las, parawan teatru cieni.\n- **Świat** (`output/bonnie-i-clyde/scena.py`): stan sceny i scenografie.\n- **Ujęcia** (`ujecia_a.py` — akty 0–4, `ujecia_b.py` — akty 5–8): funkcja `s_<klucz>(st, w, t, T)`.\n- **Podgląd na żywo** (`na_zywo.py`): Studio rysuje ujęcia z kodu (legacy.teatr), klipów mp4 nie rysuje się.",
+  "method": "## Kolejność pracy\n\n1. Rozpiska: `docs/filmy/bonnie-i-clyde/ujecia/dane.py` (z zatwierdzonego szkicu D).\n2. Księga świata: `ujecia/ksiega.py`.\n3. `python3 output/bonnie-i-clyde/studio_film.py plan` — plan, księga i warsztat do Studio + kontrola ciągłości.\n4. Rysunek: funkcja ujęcia; `python3 output/bonnie-i-clyde/render.py arkusz 12,13` — arkusz klatek.\n5. `python3 output/bonnie-i-clyde/render.py kontrola` — test „końca świata”.\n6. Podgląd na żywo w Studio (zakładka Ujęcia); `studio_film.py klatki` — zapasowe klatki na osi.\n7. Recenzja aktu i wpis w dzienniku. Lektor tylko za zgodą reżysera (reżyser nagrywa sam na końcu).",
+  "files": [
+    {
+      "path": "docs/filmy/bonnie-i-clyde/szkice/buduj_szkice.py",
+      "role": "szkice A–D (D zatwierdzony)"
+    },
+    {
+      "path": "docs/filmy/bonnie-i-clyde/ujecia/dane.py",
+      "role": "rozpiska: akty, sceny, ujęcia, kwestie EN"
+    },
+    {
+      "path": "docs/filmy/bonnie-i-clyde/ujecia/ksiega.py",
+      "role": "księga świata, Story Bible i warsztat"
+    },
+    {
+      "path": "output/bonnie-i-clyde/zestaw_bc.py",
+      "role": "lalki lat 30. i wycinanki filmu"
+    },
+    {
+      "path": "output/bonnie-i-clyde/scena.py",
+      "role": "stan świata i scenografie"
+    },
+    {
+      "path": "output/bonnie-i-clyde/ujecia_a.py",
+      "role": "ujęcia aktów 0–4"
+    },
+    {
+      "path": "output/bonnie-i-clyde/ujecia_b.py",
+      "role": "ujęcia aktów 5–8"
+    },
+    {
+      "path": "output/bonnie-i-clyde/render.py",
+      "role": "klatka, arkusz, kontrola, klipy"
+    },
+    {
+      "path": "output/bonnie-i-clyde/na_zywo.py",
+      "role": "podgląd na żywo w Studio"
+    },
+    {
+      "path": "output/bonnie-i-clyde/studio_film.py",
+      "role": "plan, księga i klatki do Studio"
+    }
+  ]
+}
