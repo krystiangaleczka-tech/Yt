@@ -110,9 +110,13 @@ def _enhance(src, dst, lambd):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     wav, sr = torchaudio.load(str(src))
     mono, parts = wav.mean(0), []
-    for i in range(0, len(mono), 8 * sr):
-        out, out_sr = enhance(mono[i:i + 8 * sr], sr, device, nfe=32, solver="midpoint", lambd=lambd, tau=0.5,
-                              run_dir=run_dir)
+    # granice kawałków co 8 s; ogon krótszy niż 1 s dokleja się do poprzedniego kawałka — model wywraca się na
+    # kilkuset próbkach („padding (840, 840) … input [1, 1, 445]”, kwestia 8,01 s, 18.11.2026)
+    cuts = list(range(0, len(mono), 8 * sr)) + [len(mono)]
+    if len(cuts) > 2 and cuts[-1] - cuts[-2] < sr:
+        del cuts[-2]
+    for a, b in zip(cuts, cuts[1:]):
+        out, out_sr = enhance(mono[a:b], sr, device, nfe=32, solver="midpoint", lambd=lambd, tau=0.5, run_dir=run_dir)
         parts.append(out.cpu())
     torchaudio.save(str(dst), torch.cat(parts).unsqueeze(0), out_sr)
 
