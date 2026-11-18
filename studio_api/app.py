@@ -42,6 +42,7 @@ from studio_core.workspace import Workspace
 from studio_api.workspace import register_workspace
 from studio_api.animation import register_animation
 from studio_api.flow import register_flow
+from studio_api.sketches import register_sketches
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -73,6 +74,7 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     register_workspace(app, workspace)
     register_animation(app, store, connectors, jobs)
     register_flow(app, store, connectors)
+    register_sketches(app, store)
     motion_render=register_inserts(app, store, jobs, connectors)
     from studio_api.tv import register_tv
     register_tv(app, store)

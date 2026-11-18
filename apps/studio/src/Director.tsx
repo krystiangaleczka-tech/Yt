@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { useStudio } from "./context";
 import { Button, SectionHead } from "./components";
+import SketchStrip from "./SketchStrip";
 import { api } from "./api";
 import { makeScene } from "./Generation";
 import { chosen, flowFrom, isApproved, isReady, orderedOutlines, sceneSourceSignature, stageSignature } from "./flowTypes";
@@ -321,6 +322,7 @@ export default function Director() {
       description="Na podstawie zatwierdzonych scen przygotuj rytm, ujęcia i wykres napięcia. Dopiero potem wygeneruj kadry.">
       <span className="flow-counter">{outlines.length} scen · {counts.ready} gotowych{counts.stale ? ` · ${counts.stale} nieaktualnych` : ""}</span>
     </SectionHead>
+    <SketchStrip project={p} onOpen={() => s.setPage("sketches")} />
     <div className="director-topbar">
       <div className="flow-tabs" role="group" aria-label="Zakładki reżyserii">
         <button className={view === "plan" ? "active" : ""} onClick={() => setView("plan")}>Planowanie scen</button>

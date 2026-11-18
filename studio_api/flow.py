@@ -12,7 +12,7 @@ import datetime
 import uuid
 
 from studio_core.assistant import complete
-from studio_core import continuity, handbook
+from studio_core import continuity, handbook, sketches
 
 
 def _chosen(node):
@@ -140,6 +140,9 @@ def flow_prompt(project, kind: str, target_id: str = "", instruction: str = "") 
         "sources": [{"title": x.title, "url": x.url} for x in project.sources[:100]],
         "target_id": target_id, "target": target, "instruction": instruction[:4000],
     }
+    approved_sketch = sketches.approved_brief(flow)
+    if approved_sketch:
+        context["approved_sketch"] = approved_sketch
     if kind != "review":
         context["rendered_shots"] = context["rendered_shots"][-20:]
     if kind == "direction":
@@ -160,6 +163,8 @@ def flow_prompt(project, kind: str, target_id: str = "", instruction: str = "") 
         "źródeł, cytatów, analityki kanału ani zweryfikowanych faktów. "
         "Oddziel fikcję od rekonstrukcji historycznej. "
         "Cała historia to jedno dzieło. Nie powtarzaj wcześniejszych ekspozycji.\n"
+        + ("Zatwierdzony szkic ujęć (approved_sketch) to kierunek reżysera: trzymaj się jego struktury, "
+           "hooków i kolejności wydarzeń.\n" if approved_sketch else "")
         + tasks[kind] + "\nKONTEKST:\n" + json.dumps(context, ensure_ascii=False)
     )
 
@@ -204,8 +209,8 @@ def register_flow(app, store, connectors):
         project = store.get(pid)
         report = continuity.check(_flow(project))
         extra = continuity.timeline_issues(project)
-        report["issues"] += extra
-        report["totals"]["2"] = report["totals"].get("2", 0) + len(extra)
+        report["issues"] += extra + sketches.issues(_flow(project))
+        report["totals"] = {str(w): sum(1 for i in report["issues"] if i["severity"] == w) for w in (3, 2, 1)}
         return report
 
     @app.put("/api/projects/{pid}/flow/world")

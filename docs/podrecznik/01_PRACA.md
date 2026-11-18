@@ -28,11 +28,41 @@ Każda jednostka przechodzi ten sam cykl:
 
 ## Etapy w aplikacji
 
-Story Bible → Projekt → Pomysł i tytuł → Master Story → Akty → Sekwencje → Scenariusz → Plan scen → Reżyseria i napięcie →
-Sceny / Canvas → Ujęcia → Montaż → **Continuity Editor** (świat, kontrola, recenzje, dziennik, warsztat) → Eksport.
+Story Bible → Projekt → Pomysł i tytuł → **Szkice ujęć** → Master Story → Akty → Sekwencje → Scenariusz → Plan scen →
+Reżyseria i napięcie → Sceny / Canvas → Ujęcia → Montaż → **Continuity Editor** (świat, kontrola, recenzje, dziennik,
+warsztat) → Eksport.
 
 Zmiana na wcześniejszym etapie unieważnia zatwierdzenia późniejszych (podpisy). Zmiana ujęć unieważnia recenzję
 jednostki i oznacza jednostki z nią powiązane (rozdział „Dziennik pracy i zmiany w locie”).
+
+## Szkice ujęć (po tytule, przed rozpiską)
+
+Do jednego tytułu można podejść na wiele sposobów. Zanim powstanie cały film, reżyser porównuje **kilka zupełnie różnych
+podejść** (domyślnie trzy warianty A, B, C; można dodać do 12) i zatwierdza jedno. Szkic jest dla całego filmu, więc
+nie jest jednostką (tabela „Jednostka filmu” go nie dotyczy).
+
+- **Wariant** = tytuł podejścia, wklejony scenariusz (struktura, hooki, kwestie) i lista ujęć: numer, klucz, kadr,
+  długość w sekundach, opis, kwestia lektora, znacznik (np. „HOOK 1”, „pogorszenie”, „promyk nadziei”), opcjonalnie
+  klatka.
+- **Wypełnianie ręcznie** — wklej scenariusz: przegląd od razu kartkuje go z akapitów (akapit = karta; krótka linia
+  „HOOK 1”, „# Pogorszenie” albo zakończona dwukropkiem to znacznik następnego ujęcia; tekst w cudzysłowie to kwestia).
+  „Rozpisz scenariusz na ujęcia” zamienia akapity na edytowalne ujęcia; klatki wgrywa się przy ujęciu.
+- **Wypełnianie z plików** — katalog `docs/filmy/<film>/szkice/<wariant>/` z plikiem `szkic.json` i klatkami obok:
+  `{"film", "wariant", "tytul", "scenariusz", "ujecia": [{"nr", "klucz", "sekundy", "opis", "kwestia", "klatka":
+  "klatki/001.png", "kadr", "znacznik"}]}` (`kadr` i `znacznik` opcjonalne). W Studio: „Szkice w plikach…” → wybór
+  katalogu → „Importuj z plików” (jeden wariant albo cały katalog `szkice/`). Bez Studio:
+  `python -m studio_core.cli szkice <id_projektu> <katalog>` albo `POST /api/projects/{id}/sketches/import {"path"}`.
+  Klatki: PNG/JPG/WEBP wewnątrz katalogu wariantu, zalecane 1280×720; brakująca albo uszkodzona klatka daje
+  ostrzeżenie i kartę, nie błąd. Ponowny import tego samego filmu i wariantu podmienia ten sam wariant.
+- **Przegląd jak zeszyt** — pod każdym wariantem odtwarzacz: cały film mija w ustawionym czasie (domyślnie 25 s,
+  5–180 s), kartka trwa proporcjonalnie do długości ujęcia, z minimum, żeby żadne nie znikło. Ujęcie bez klatki to
+  czarno-biała karta (kadr, opis, kwestia). Spacja — odtwarzaj/pauza, strzałki — poprzednie/następne ujęcie; żółte
+  kreski na pasku to znaczniki.
+- **Zatwierdzenie** — „Zatwierdź ten szkic” zapisuje migawkę wariantu i wpis w dzienniku pracy (rodzaj „szkic”).
+  Dalsze etapy się do niego odwołują: pasek „Szkic ujęć” na etapach od Master Story, przycisk „Przejmij zatwierdzony
+  szkic” w Master Story, a AI dostaje go jako kierunek reżysera (struktura, hooki, kolejność).
+- **Zmiana po zatwierdzeniu** — wariant oznaczony „Zmieniony po zatwierdzeniu”; kontrola ciągłości pokazuje uwagę
+  wagi 2 (reguła „szkic”), aż reżyser zatwierdzi go ponownie. Wypełnione szkice bez zatwierdzenia = uwaga wagi 1.
 
 ## Podgląd na żywo (teatr papierowy)
 

@@ -22,6 +22,7 @@ def main():
     command=commands.add_parser("import"); command.add_argument("file",type=Path)
     command=commands.add_parser("edit"); command.add_argument("id"); command.add_argument("file",type=Path); command.add_argument("--revision",required=True,type=int)
     command=commands.add_parser("patch"); command.add_argument("id"); command.add_argument("file",type=Path); command.add_argument("--revision",required=True,type=int)
+    command=commands.add_parser("szkice",help="Wczytaj szkice ujęć z katalogu wariantu albo katalogu szkice/"); command.add_argument("id"); command.add_argument("directory",type=Path); command.add_argument("--revision",type=int)
     command=commands.add_parser("render"); command.add_argument("id"); command.add_argument("output",type=Path); command.add_argument("--start",type=int,default=0); command.add_argument("--end",type=int)
     args=parser.parse_args(); service=ProjectService(args.home)
     if args.command=="list": result=service.list(include_archived=True)
@@ -32,6 +33,10 @@ def main():
     elif args.command in ("undo","redo"): result=service.restore(args.id,args.revision,args.command)
     elif args.command=="edit": result=service.edit(args.id,args.revision,json.loads(args.file.read_text()))
     elif args.command=="patch": result=service.patch(args.id,args.revision,json.loads(args.file.read_text()))
+    elif args.command=="szkice":
+        from .sketches import import_dirs
+        outcome=import_dirs(service,args.id,args.directory.resolve(),args.revision,who="cli")
+        result={"revision":outcome["project"].revision,"imported":outcome["imported"],"warnings":outcome["warnings"]}
     else:
         from studio_timeline.render import render
         args.output.parent.mkdir(parents=True,exist_ok=True)
