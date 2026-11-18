@@ -38,8 +38,13 @@ TEMPO_EN = 2.84
 KADR = {"TYT": "karta / napis", "PO": "plan ogólny", "PP": "plan pełny", "PŚ": "plan średni", "Z": "zbliżenie", "D": "detal"}
 PAUZA = {"ujecie": 1.1, "beat": 1.4, "scena": 1.8, "akt": 2.3}
 
-# Ujęcia rozpiski: klucz → (ref, kadr, sekundy EN, opis PL, kwestia EN)
-ROZPISKA = {}
+# Ujęcia rozpiski: klucz → (ref, kadr, sekundy EN, opis PL, kwestia EN); MIEJSCE: klucz → scena rozpiski (dekoracja)
+ROZPISKA, MIEJSCE = {}, {}
+for _n, _t, _o, _sceny in dane.AKTY:
+    for _stitle, _place, _beaty in _sceny:
+        for _b, _shots in _beaty:
+            for _shot in _shots:
+                MIEJSCE[_shot[0]] = _stitle
 for akt, k, klucz, kadr, _ruch, sec, opis, dzwiek in dane.ujecia():
     ROZPISKA[klucz] = (f"d{akt:02d}_{k:02d}", KADR.get(kadr, kadr), sec, opis, EN.get(klucz, "") if dzwiek.startswith("L:") else "")
 
@@ -262,6 +267,85 @@ C = {
     ],
 }
 
+# ----------------------------------------------------------------------------------------------- wariant D
+D = {
+    "wariant": "d",
+    "tytul": "D · Wszystko razem — bracia, trzy skarby i śledztwo",
+    "podejscie": (
+        "Reżyser 18.11.2026: „na nich bym zbudował cały film i A i B i C i aktualne akty, bo każdy z tych tematów jest "
+        "ciekawy; w pierwszej minucie musi się dużo zmieniać, sceneria co najmniej 3 razy; na początku mini spoiler 5 s, "
+        "co będzie w filmie (najlepsze akcje)”. Film zaczyna się 5-sekundową zapowiedzią: siedem najmocniejszych akcji po "
+        "ok. 0,7 s (ciemność nad jaskinią, osiem głów, cios mieczem, strzały spod słońca, burza, wrona, błysk złotego ptaka). "
+        "Hak w środku akcji jak w C (strzała, burza, został jeden brat), do tego miecz z koronacji 2019 z A i pytanie z B, "
+        "czy książę w ogóle istniał. Obietnica odpowiada wszystkim trzem wątkom. Dalej obecne akty: mit z nicią trzech "
+        "skarbów (A) i drugim hakiem przy mieczu w ogonie węża, wyprawa braci (C) z powrotem do sceny z haka, wrona, "
+        "Yamato, tron, a akt VIII to śledztwo z B (data z wróżby → złota pieczęć chłopa). Na końcu koronacja 2019 zamyka "
+        "pętlę z haka."),
+    "pogorszenie": "Starcy z Izumo: wąż pożarł siedem córek i idzie po ostatnią (a w akcie VIII drugie pogorszenie: data "
+                   "z wróżby i myśliwi zamiast pałaców).",
+    "hak2": "Susanoo znajduje miecz w ogonie węża — ten z koronacji 2019 (odpowiedź na hak) — a Ninigi dostaje trzy skarby, "
+            "choć człowiek, który zbuduje z nimi kraj, jeszcze się nie urodził.",
+    "ujecia": [
+        R("jaskinia", "", sec=0.8, mark="ZAPOWIEDŹ 5 s", uwaga="Zapowiedź: najmocniejsza chwila ujęcia (słońce znika, scena gaśnie), bez lektora; jeden mocny akord muzyki na całą zapowiedź."),
+        R("orochi", "", sec=0.7, uwaga="Zapowiedź: osiem głów wychyla się zza gór."),
+        R("miecz", "", sec=0.7, uwaga="Zapowiedź: cios mieczem, szarpnięcie kamery."),
+        R("strzaly", "", sec=0.7, uwaga="Zapowiedź: chmara strzał spod słońca."),
+        R("burza", "", sec=0.7, uwaga="Zapowiedź: łodzie znikają za falą."),
+        R("wrona", "", sec=0.7, uwaga="Zapowiedź: wrona przelatuje nad górami."),
+        R("blysk", "", sec=0.7, uwaga="Zapowiedź: błysk złotego ptaka, potem cięcie do haka."),
+        R("rana", "An arrow struck Prince Itsuse, the eldest of four brothers.", hak=True, mark="HOOK 1"),
+        R("burza", "Then a storm took two more, and only Iwarebiko was left.", hak=True),
+        R("koronacja", "In 2019, Japan's hundred and twenty-sixth emperor received a sword no one alive has seen.",
+          hak=True),
+        R("cien", "So was Iwarebiko the first of them, and did he even exist?", hak=True, pauza="beat"),
+        R("teatr", sec=2.5, mark="TYTUŁ", uwaga="Otwarcie teatru skrócone z 6,5 s do 2,5 s, dopiero po haku."),
+        R("luty", "By the end, you'll know where that sword came from, why Japan's birthday was probably made up, and "
+                  "why its football team wears a three-legged crow.", mark="OBIETNICA", pauza="akt"),
+        AKT("I", "Act I · How do you make a country from a single drop?"),
+        R("most", "In the beginning, the young earth drifted without shape, until two gods, Izanagi and Izanami, came "
+                  "down to give it one.", uwaga="Meduza wypada; jej zdanie wchodzi do kwestii mostu."),
+        R("wlocznia"), R("kropla"), R("wyspy"),
+        AKT("II", "Act II · Why did the sun hide in a cave?"),
+        R("ogien"),
+        R("rzeka", "Grieving, Izanagi washed in a river, and from his eyes and nose were born Amaterasu, the sun goddess, "
+                   "the moon god, and Susanoo, god of storms.", pauza="beat", uwaga="Kraina zmarłych (yomi) wypada."),
+        R("susanoo"), R("jaskinia"), R("ciemno"), R("koguty"), R("uzume"),
+        R("lustro", "Curious, Amaterasu peeked out at her own radiance in a mirror, and that mirror became the first of "
+                    "the three sacred treasures of Japan's emperors.", uwaga="Nić trzech skarbów (A)."),
+        R("swit"),
+        AKT("III", "Act III · What was hiding in the serpent's tail?"),
+        R("wygnanie"), R("starcy", mark="POGORSZENIE"), R("kadzie"), R("orochi"), R("pije"),
+        R("miecz", "When the drunken heads fell asleep, Susanoo cut the serpent apart and found a sword in its tail, the "
+                   "sword that, according to tradition, was brought to the emperor again in 2019.",
+          mark="HOOK 2 · promyk nadziei", pauza="beat", uwaga="Odpowiedź na hak: miecz z koronacji 2019."),
+        R("skarby", "Amaterasu gave the mirror, the jewels and the sword to her grandson Ninigi, but the man who would "
+                    "build a country with them had not yet been born."),
+        R("zejscie", pauza="akt", uwaga="Księżniczki kwiatów i skał (siostry, płatki) wypadają."),
+        AKT("IV", "Act IV · Why would a prince sail east at forty-five?"),
+        R("prawnuk"), R("wschod"), R("bracia"), R("flota"), R("postoje"), R("naniwa"),
+        R("nagasune"), R("strzaly", uwaga="Powrót do sceny z haka."), R("rana"), R("pod_slonce"),
+        AKT("V", "Act V · Who sent the crow?"),
+        R("itsuse"), R("burza"), R("sam"), R("las"), R("niedzwiedz"), R("takakuraji"), R("przebudzenie"), R("wrona"),
+        R("trzy_nogi", mark="ODPOWIEDŹ 1"),
+        AKT("VI", "Act VI · How do you win a battle in a hailstorm?"),
+        R("yamato"), R("pulapka"), R("bitwa"), R("ptak"), R("blysk"), R("order"),
+        R("strzala_nieba"), R("zdrada"),
+        AKT("VII", "Act VII · Who sat on the first throne?"),
+        R("palac"), R("tron"), R("imie"), R("zona"), R("smierc", uwaga="Pola ryżowe wypadają."), R("pusto"), R("linia"),
+        AKT("VIII", "Act VIII · Was any of it true?"),
+        R("kronika"), R("rachunek", mark="ODPOWIEDŹ 2"), R("jomon", mark="POGORSZENIE (śledztwo)"),
+        R("chlop", "Then, in 1784, a farmer repairing a ditch struck something golden with his hoe.",
+          mark="promyk nadziei (śledztwo)", uwaga="Kolejność ze śledztwa B: najpierw znalezisko, potem czym było."),
+        R("pieczec", "It was a seal the emperor of China had sent to a king of the Wa in the year 57: proof that real "
+                     "kings ruled the islands long before the chronicles."),
+        R("odcisk"), R("wa"), R("himiko"),
+        AKT("IX", "Act IX · Why 'the origin of the sun'?"),
+        R("kofun"), R("haniwa"), R("tancerz"), R("nihon"), R("luty2"), R("koronacja", uwaga="Zamyka pętlę z haka."),
+        R("koniec"),
+        R("dzieki", DZIEKI, mark="PODZIĘKOWANIE", pauza="akt"),
+    ],
+}
+
 
 def ujecia_wariantu(w):
     out, pytanie, akt_mark = [], "", ""
@@ -282,10 +366,12 @@ def ujecia_wariantu(w):
             if e["hak"]:
                 e = {**e, "uwaga": " ".join(x for x in ("W haku: szybkie cięcie, tylko kulminacja ujęcia.", e["uwaga"]) if x)}
             item = {"klucz": e["klucz"], "ref": ref, "kadr": kadr, "sekundy": sec, "opis": opis, "kwestia": line,
+                    "miejsce": MIEJSCE.get(e["klucz"], ""),
                     "klatka_ref": ref, "napis": zmiana, "rodzaj": rodzaj, "uwaga": e["uwaga"], "mark": e["mark"]}
         else:
             sec = e["sec"] if e["sec"] is not None else czas(e["line"], e["pauza"], e["hak"])
             item = {"klucz": e["klucz"], "ref": "", "kadr": e["kadr"], "sekundy": sec, "opis": e["opis"],
+                    "miejsce": MIEJSCE.get(e["klatka"] or "", "nowa dekoracja"),
                     "kwestia": e["line"], "klatka_ref": ROZPISKA[e["klatka"]][0] if e["klatka"] else "",
                     "napis": bool(e["klatka"]), "rodzaj": "nowe ujęcie, do narysowania", "uwaga": "", "mark": e["mark"]}
         if pytanie:
@@ -325,16 +411,31 @@ def klatka(ref, line, napis, cel, assets, klipy, media):
     return True
 
 
+def zmiany_scenerii(items, do=60.0):
+    """Ile razy w pierwszej minucie zmienia się dekoracja (inna scena rozpiski niż w poprzednim ujęciu)."""
+    t, n, prev, lista = 0.0, 0, None, []
+    for i in items:
+        if t >= do:
+            break
+        if prev is not None and i["miejsce"] != prev:
+            n += 1
+            lista.append(f"{zegar(t)} {i['miejsce']}")
+        prev, t = i["miejsce"], t + i["sekundy"]
+    return n, lista
+
+
 def scenariusz(w, items):
     t, czasy = 0.0, []
     for i in items:
         czasy.append(t)
         t += i["sekundy"]
+    zmiany, gdzie = zmiany_scenerii(items)
     znaczniki = [f"{zegar(czasy[n])}  {i['mark']}" for n, i in enumerate(items) if i["mark"]]
     nowe = [i for i in items if i["rodzaj"] != "z rozpiski"]
     pominiete = [k for k in ROZPISKA if k not in {i["klucz"] for i in items}]
     lines = [w["tytul"], "", "PODEJŚCIE", w["podejscie"], "",
              f"DŁUGOŚĆ: {zegar(t)} · {len(items)} ujęć (obecny film EN: 12:20,4 · 79 ujęć)", "",
+             f"PIERWSZA MINUTA: dekoracja zmienia się {zmiany} razy ({'; '.join(gdzie)})", "",
              "ZNACZNIKI", *znaczniki, "",
              "POGORSZENIE → HAK 2", f"Pogorszenie: {w['pogorszenie']}", f"Hak 2: {w['hak2']}", "",
              "AKTY (tytuł na kurtynie)",
@@ -356,7 +457,7 @@ def main():
     project = json.loads((folder / "project.json").read_text(encoding="utf-8"))
     assets = {a["id"]: a for a in project["assets"]}
     media = folder / "media"
-    for w in (A, B, C):
+    for w in (A, B, C, D):
         items = ujecia_wariantu(w)
         tekst, total, czasy = scenariusz(w, items)
         cel = TU / w["wariant"]
@@ -377,7 +478,8 @@ def main():
         gorzej = next(czasy[n] for n, i in enumerate(items) if "POGORSZENIE" in i["mark"])
         hak1 = sum(i["sekundy"] for i in items[:next(n for n, i in enumerate(items) if "TYTUŁ" in i["mark"])])
         print(f"{w['tytul']}: {zegar(total)}, {len(items)} ujęć, hak 1 {hak1:.1f} s, pogorszenie {zegar(gorzej)}, "
-              f"hak 2 {zegar(hak2)}, klatek {sum(1 for u in ujecia if u['klatka'])}")
+              f"hak 2 {zegar(hak2)}, klatek {sum(1 for u in ujecia if u['klatka'])}, "
+              f"zmian scenerii w 1. minucie {zmiany_scenerii(items)[0]}")
 
 
 if __name__ == "__main__":

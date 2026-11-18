@@ -119,7 +119,9 @@ def plan():
             "reviews": old.get("reviews", []), "log": old.get("log", []), "unitReviews": old.get("unitReviews", {}),
             "bible": ksiega.BIBLIA, "world": ksiega.SWIAT, "book": ksiega.WARSZTAT,
             "master": node("master", "Syn słońca — powstanie Japonii", " ".join(a[2] for a in AKTY)),
-            "acts": [], "sequences": [], "outlines": [], "scripts": {}, "director": {"mode": "manual", "plans": {}, "customPatterns": []}}
+            "acts": [], "sequences": [], "outlines": [], "scripts": {}, "director": {"mode": "manual", "plans": {}, "customPatterns": []},
+            # szkice ujęć (etap Studio „Szkice ujęć”, warianty i zatwierdzenie reżysera) zostają przy każdym planie
+            **({"sketches": old["sketches"]} if isinstance(old.get("sketches"), dict) else {})}
     t = 0.0
     for n, atitle, aopis, sceny in AKTY:
         act, seq = f"act_{n:02d}", f"seq_d{n:02d}"
@@ -283,6 +285,7 @@ def dzwiek(lektor=False):
         ops.append({"type": "add_clip", "clip": {"track_id": "a1", "asset_id": cached["asset"], "scene_id": sc["id"],
                                                  "title": f"Lektor · {kwestia(r['snd'])[:80]}", "start": start,
                                                  "duration": max(1, math.ceil(meta["duration"] * fps))}})
+    wgrane = []
     for track, name, vol in (("a2", "muzyka", 0.8), ("a3", "efekty", 1.0)):
         wav = DZWIEK_DIR / f"{name}.wav"
         if not wav.exists():
@@ -293,17 +296,23 @@ def dzwiek(lektor=False):
             frames = min(total, math.floor(w.getnframes() / w.getframerate() * fps))
         ops.append({"type": "add_clip", "clip": {"track_id": track, "asset_id": aid, "title": f"{name.capitalize()} · cały film",
                                                  "start": 0, "duration": frames, "volume": vol}})
+        wgrane.append(name)
     p = call(f"/projects/{pid}")  # wgrane pliki podbiły rewizję
     for i in range(0, len(ops), 200):
         p = call(f"/projects/{pid}/edits", {"expected_revision": p["revision"], "operations": ops[i:i + 200]})
     n1 = sum(c["track_id"] == "a1" for c in p["sequence"]["clips"])
     call(f"/projects/{pid}/flow/log", {"entry": {
-        "who": "studio_film.py", "kind": "wgranie", "summary": f"Dźwięk wgrany: muzyka i efekty na cały film" + (f", lektor {n1} kwestii" if lektor else " (lektor jeszcze nie nagrany)"),
-        "details": "Lektor: klon głosu autora (Chatterbox, próbka bez pogłosu pilot/assets/ref_studio.wav, 3 podejścia na kwestię, "
-                   "suche i z odbudowanym pasmem — Podręcznik → Lektor), output/powstanie-japonii/lektor.py. "
-                   "Muzyka i efekty: synteza w numpy, output/powstanie-japonii/efekty.py (pod kwestiami ściszone).",
-        "files": ["output/powstanie-japonii/lektor.py", "output/powstanie-japonii/efekty.py"]}})
-    print(f"lektor: {n1} klipów | muzyka i efekty: po 1 klipie | rewizja {p['revision']}")
+        "who": "studio_film.py", "kind": "wgranie", "summary": "Dźwięk wgrany: " + ", ".join(([f"lektor {n1} kwestii"] if lektor else []) + [f"{x} na cały film" for x in wgrane]
+                                                 or ["nic (brak plików)"]),
+        "details": ("Lektor EN roboczy (do rytmu, docelowo nagranie reżysera): klon głosu autora, Chatterbox Multilingual en, "
+                    "próbka pilot/assets/ref_en_teatr_nizej_0.25pt.wav, jedno podejście na kwestię, output/powstanie-japonii/lektor_en.py. "
+                    if EN else
+                    "Lektor: klon głosu autora (Chatterbox, próbka bez pogłosu pilot/assets/ref_studio.wav, 3 podejścia na kwestię, "
+                    "suche i z odbudowanym pasmem — Podręcznik → Lektor), output/powstanie-japonii/lektor.py. ")
+                   + "Muzyka i efekty: synteza w numpy, output/powstanie-japonii/efekty.py (pod kwestiami ściszone).",
+        "files": ["output/powstanie-japonii/lektor_en.py" if EN else "output/powstanie-japonii/lektor.py",
+                  "output/powstanie-japonii/efekty.py"]}})
+    print(f"lektor: {n1} klipów | {', '.join(wgrane) or 'bez muzyki i efektów'} | rewizja {p['revision']}")
 
 
 def klatki(args):
