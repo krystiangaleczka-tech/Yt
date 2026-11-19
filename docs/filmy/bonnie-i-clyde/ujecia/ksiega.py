@@ -217,11 +217,14 @@ WARSZTAT = {
               "7. Dźwięk: `python3 -I output/bonnie-i-clyde/efekty.py` (przegląd filmu, muzyka i efekty), nowy rodzaj dźwięku → "
               "`probka_dzwieku.py` i zgoda reżysera, potem `studio_film.py dzwiek`; po każdej zmianie długości ujęć: `plan`, "
               "`klatki`, dźwięk od nowa.\n"
-              "8. Recenzja aktu i wpis w dzienniku. Lektor tylko za zgodą reżysera (reżyser nagrywa sam na końcu).",
+              "8. Recenzja aktu i wpis w dzienniku. Lektor tylko za zgodą reżysera (reżyser nagrywa sam na końcu).\n"
+              "9. Humor: propozycje gagów w `docs/filmy/bonnie-i-clyde/GAGI.md` (Podręcznik → Humor i gagi); reżyser wybiera "
+              "skrótem, wybrane idą do rozpiski, gagi powracające do księgi świata.",
     "files": [
         {"path": "docs/filmy/bonnie-i-clyde/szkice/buduj_szkice.py", "role": "szkice A–D (D zatwierdzony)"},
         {"path": "docs/filmy/bonnie-i-clyde/ujecia/dane.py", "role": "rozpiska: akty, sceny, ujęcia, kwestie EN"},
         {"path": "docs/filmy/bonnie-i-clyde/ujecia/ksiega.py", "role": "księga świata, Story Bible i warsztat"},
+        {"path": "docs/filmy/bonnie-i-clyde/GAGI.md", "role": "propozycje gagów na akty (do wyboru przez reżysera)"},
         {"path": "output/bonnie-i-clyde/zestaw_bc.py", "role": "lalki lat 30. i wycinanki filmu"},
         {"path": "output/bonnie-i-clyde/scena.py", "role": "stan świata i scenografie"},
         {"path": "output/bonnie-i-clyde/ujecia_a.py", "role": "ujęcia aktów 0–4"},
