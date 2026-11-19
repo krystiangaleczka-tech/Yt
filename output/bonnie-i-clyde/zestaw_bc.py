@@ -482,6 +482,18 @@ class Figura:
         self.aw, self.ah = arm.size
         self.zawias = (RAMIE_ZAWIAS[0] * k + (self.aw - RAMIE_W * k) / 2, RAMIE_ZAWIAS[1])
         self.dlon = DLON[1] - RAMIE_ZAWIAS[1]
+        self._siedzi = None
+
+    @property
+    def siedzi(self):
+        """Korpus bez nóg (ucięty tuż pod biodrami): pasażer w aucie, lalka za stołem — nogi nie wystają spod karoserii."""
+        if self._siedzi is None:
+            im = _korpus_img(self.s).copy()
+            a = im.getchannel("A")
+            a.paste(0, (0, BIODRO + 40, im.size[0], im.size[1]))
+            im.putalpha(a)
+            self._siedzi = Sprite(im, f"lalka-siedzi-{self.key}", rim=2, clean=False, crop=False)
+        return self._siedzi
 
 
 @lru_cache(None)
@@ -762,6 +774,7 @@ FASADY = {  # rodzaj: (szerokość, wysokość, ściana, szyld, napis, markiza)
     "dom": (420, 380, (210, 200, 180), None, "", None),
     "dworzec": (620, 440, (176, 150, 120), (40, 60, 50), "MIDDLETOWN · OHIO", (110, 70, 50)),
     "szkola": (560, 440, (190, 110, 90), (60, 60, 60), "CEMENT CITY SCHOOL", None),
+    "wiezienie": (900, 480, (186, 170, 150), (50, 50, 54), "STATE PENITENTIARY · HUNTSVILLE", None),
 }
 
 
@@ -937,12 +950,18 @@ def mebel(key):
 
 
 @lru_cache(None)
-def kraty(w=520, h=640):
+def listwa(w=50, h=800, kolor=(96, 70, 48)):
+    """Pionowa listwa / słupek ściany działowej."""
+    return Sprite(stack(w, h, [(rect(0, 0, w, h), kolor)], seed=777), f"listwa-{w}-{h}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def kraty(w=520, h=640, krok=52):
     parts = [(rect(0, 0, w, 24), (60, 60, 64)), (rect(0, h - 24, w, h), (60, 60, 64))]
-    for x in range(10, w, 52):
+    for x in range(10, w, krok):
         parts.append((rect(x, 0, x + 14, h), (70, 70, 74), dict(kind="gladki", contrast=0.7)))
     parts.append((rect(0, h / 2 - 10, w, h / 2 + 10), (60, 60, 64)))
-    return Sprite(stack(w, h, parts, seed=170), f"kraty-{w}-{h}", rim=2, clean=False)
+    return Sprite(stack(w, h, parts, seed=170), f"kraty-{w}-{h}-{krok}", rim=2, clean=False)
 
 
 @lru_cache(None)
@@ -1188,6 +1207,11 @@ REKWIZYTY = {
     "tablica_szkolna": (700, 400, lambda: [(rect(0, 0, 700, 400), (110, 80, 56)), (rect(20, 20, 680, 380), (50, 70, 60)),
                                            _tekst("SPELLING BEE  1922", 40, (350, 120), (236, 236, 226)), _tekst("C-A-T", 36, (350, 240), (236, 236, 226))]),
     "podium": (300, 200, lambda: [(rect(0, 40, 300, 200), (140, 100, 70), dict(edge=2)), (rect(0, 20, 300, 50), (160, 120, 84))]),
+    "czapka_policyjna": (160, 80, lambda: [(poly([(20, 10), (140, 10), (130, 56), (30, 56)]), (36, 44, 66)), (poly([(60, 52), (156, 60), (150, 74), (70, 70)]), (24, 22, 22)),
+                                           (ell(80, 30, 9, 10), GOLD)]),
+    "koszyk": (160, 120, lambda: [(poly([(10, 40), (150, 40), (136, 116), (24, 116)]), (180, 140, 90)), (lambda d, s: d.arc([30 * s, 0, 130 * s, 80 * s], 180, 360, fill=255, width=int(8 * s)), (150, 110, 70)),
+                                  (ell(60, 40, 22, 12), (236, 226, 200)), (ell(100, 38, 20, 12), (200, 150, 90))]),
+    "pranie": (180, 140, lambda: [(poly([(10, 4), (170, 4), (160, 136), (20, 136)]), (236, 226, 206), dict(kind="gladki", edge=2))]),
     "mapa_zwoj": (300, 200, lambda: [(rect(4, 4, 296, 196), (230, 216, 180), dict(edge=2))]),
 }
 
@@ -1559,3 +1583,19 @@ def tatuaz():
         lay.alpha_composite(sz, (int(x - 80), 28))
         im = glue(im, lay, shadow=0.4)
     return Sprite(im, "tatuaz", rim=2, clean=False)
+
+
+@lru_cache(None)
+def zdjecie_bonnie(w=420, h=320):
+    """Odbitka zdjęcia z Joplin: biała ramka, szare tło, Bonnie z cygarem (z arkusza lalki) przy błotniku Forda — w sepii."""
+    im = Image.new("RGBA", (w, h), (244, 240, 230, 255))
+    foto = Image.new("RGBA", (w - 40, h - 40), (150, 146, 138, 255))
+    auto_ = ford("szary").img if hasattr(ford("szary"), "img") else None
+    body = _korpus_img(spec("bonnie_cygaro"))
+    bh = int((h - 50) * 1.0)
+    body = body.resize((int(body.width * bh / body.height), bh), Image.LANCZOS)
+    foto.alpha_composite(body, (int((w - 40) * 0.25), (h - 40) - bh + 10))
+    g = np.asarray(foto.convert("L"), np.float32)
+    sep = np.dstack([g * 1.05, g * 0.95, g * 0.8, np.full_like(g, 255)]).clip(0, 255).astype(np.uint8)
+    im.alpha_composite(Image.fromarray(sep, "RGBA"), (20, 20))
+    return Sprite(im, "zdjecie-bonnie", rim=2, clean=False)

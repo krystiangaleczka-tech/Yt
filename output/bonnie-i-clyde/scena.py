@@ -30,6 +30,13 @@ I = {k: n for n, k in enumerate(KOL)}
 RAMPA = 676  # górna krawędź rampy: lalki stoją za nią
 STOPY = 708  # linia stóp lalek na planie lalek (stopy chowają się za rampą)
 DROGA_Y = 694  # linia kół aut na planie aut (P.auta)
+BUDOWA = {"t": None}  # render: sekundy od początku budowania dekoracji w bieżącym ujęciu (None — dekoracja już stoi)
+
+
+def wejscie(d=1.0, dur=0.6):
+    """Aktorzy i auta wchodzą dopiero, gdy dekoracja się zbuduje (ujęcie otwierające scenę)."""
+    b = BUDOWA["t"]
+    return 1.0 if b is None else pr(b, d, dur)
 P.auta = 0.78
 P.droga_dal = 0.58
 
@@ -99,15 +106,16 @@ USTA = (174, 160)
 
 
 def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink=0.0, lift=0.0, rece=(0.0, 0.0), tint=None,
-          trzyma=None, seed=None, hop=0.0, alpha=1.0, shadow=True, blur=None, oczy_x=0.0, gwiazdki=0.0, kuleje=0.0):
+          trzyma=None, seed=None, hop=0.0, alpha=1.0, shadow=True, blur=None, oczy_x=0.0, gwiazdki=0.0, kuleje=0.0, siedzi=False):
     """Lalka na patyczku: wysuwa się zza rampy (k), opada pod nią (sink), obraca się (flip: 1 w prawo, -1 w lewo),
     pochyla (lean, stopnie). hop — podskok przy jeździe na listwie (z położenia x). kuleje — przy jeździe lalka kołysze się
     na jedną stronę (Bonnie po Wellington, Clyde po Eastham). trzyma = (sprite, wysokość, kotwica, obrót, za_ręką).
     oczy_x — śmierć: X na oczach; gwiazdki — zamroczenie (słownik znaków, wytyczne 1.20). Zwraca położenie dłoni."""
+    seed = sum(map(ord, key)) if seed is None else seed
+    k = k * wejscie(1.0 + 0.08 * (seed % 5))
     if k <= 0 or sink >= 1:
         return None
     f = J.figura(key)
-    seed = sum(map(ord, key)) if seed is None else seed
     p = P.lalki + 0.01 if p is None else p
     sc = h / f.wys
     yy = y + (1 - back(k, 1.2)) * h * 1.1 + ease(sink) * h * 1.12 - lift - abs(math.sin(x / 26.0)) * hop
@@ -127,7 +135,7 @@ def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink
         if name == "przod":
             hx, hy = _off(0, f.dlon * sc, arot)
             out = (sx_ + hx, sy_ + hy, arot)
-    st.put(f.body, x, yy, p, h=f.ch * sc, anchor=(ax, ay), rot=rot, sx=flip, **kw)
+    st.put(f.siedzi if siedzi else f.body, x, yy, p, h=f.ch * sc, anchor=(ax, ay), rot=rot, sx=flip, **kw)
     kk = f.s["szer"]
     na_ark = lambda u, v: _off((f.cw / 2 + (u - 150) * kk - af[0]) * sc * flip, (v - af[1]) * sc, rot)
     if oczy_x > 0:
@@ -160,7 +168,7 @@ def punkt(key, x, h, u, v, y=STOPY, flip=1.0, rot=0.0, lift=0.0):
 
 def cien(st, t, key, x, h, y, p, **kw):
     """Sylwetka lalki w teatrze cieni (czarna, lekko rozmyta, bez własnego cienia)."""
-    kw.setdefault("alpha", 0.85)
+    kw.setdefault("alpha", 1.0)  # pełna czerń: przy przezroczystości ręce rysowały „X” na tułowiu
     return lalka(st, t, key, x, h, y=y, p=p, tint=(0.08, 0.06, 0.05), shadow=None, blur=1.6, **kw)
 
 
@@ -179,15 +187,20 @@ def auto(st, t, x, h=230, y=DROGA_Y, p=None, flip=1.0, kolor="szary", napis=None
     p = P.auta if p is None else p
     spr = J.ford(kolor, napis, dziury, kurz)
     k = h / 360.0
-    yb = y - lift
+    kb = wejscie(0.9)
+    if kb <= 0:
+        return spr
+    yb = y - lift + (1 - back(kb, 1.2)) * h * 1.3
     kw = dict(tint=tint, alpha=alpha, blur=blur)
-    for key, miejsce, rece in pasazerowie:
-        hx, hy = J.FORD_GLOWY[miejsce]
+    for poz in pasazerowie:  # (klucz, miejsce: 0/1 albo (x, y) głowy na arkuszu auta, ręce[, obrót: -1 — twarzą do tyłu])
+        key, miejsce, rece = poz[:3]
+        hx, hy = J.FORD_GLOWY[miejsce] if isinstance(miejsce, int) else miejsce
         dh = h * 0.92  # wysokość lalki
         sx_ = x + (hx - 450) * k * flip
         glowa_y = yb + (hy - 356) * k
         stopy = glowa_y + (676 - 128) / 614.0 * dh
-        lalka(st, t, key, sx_, dh, y=stopy, p=p - 0.004, flip=flip, rece=rece, lean=przechyl, shadow=None, **kw)
+        lalka(st, t, key, sx_, dh, y=stopy, p=p - 0.004, flip=flip * (poz[3] if len(poz) > 3 else 1), rece=rece, lean=przechyl, shadow=None,
+              siedzi=True, **kw)
     st.put(spr, x, yb, p, h=h, anchor=(0.5, 356 / 360.0), rot=przechyl, sx=flip, shadow=shadow, **kw)
     if szyby:
         st.put(J.ford_szyby(), x, yb, p + 0.001, h=h, anchor=(0.5, 356 / 360.0), rot=przechyl, sx=flip, shadow=None, alpha=0.42 * alpha,

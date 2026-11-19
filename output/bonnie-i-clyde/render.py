@@ -193,6 +193,7 @@ def uloz(t, void=None):
         w = swiat.stan(j)
         if src in BUDUJ:
             w.build = od + lt
+        swiat.BUDOWA["t"] = w.build
         st.T = Tj
         FNS[j](st, w, od + lt, Tj)
         if not void:
@@ -204,6 +205,7 @@ def uloz(t, void=None):
         w = swiat.stan(i)
         if KOL[i] in BUDUJ:
             w.build = lt
+        swiat.BUDOWA["t"] = w.build
         st.T = T
         FNS[i](st, w, lt, T)
         if not void:
