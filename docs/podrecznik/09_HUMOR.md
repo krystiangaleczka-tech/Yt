@@ -40,8 +40,11 @@ Ujęcie, w którym ktoś ginie, i ujęcie żałoby nie mają gagu. Od zwrotu, po
 - **Dwa takty i reakcja**: widz widzi stan → przychodzi zmiana (1.21) → postać reaguje przez ok. 1 s (zastyga, powoli
   patrzy w górę, tabliczka ze słownika). Bez reakcji gag przelatuje niezauważony.
 - **Kończy się na oczach widza** i stoi chwilę (1.18); nie ucina go cięcie.
-- **Jeden gag na ujęcie**, najwyżej jeden mały w tle. **Dwa do czterech gagów na akt**; po dwóch gagach z rzędu ujęcie
-  bez gagu jako oddech. Więcej robi z filmu kreskówkę i zabiera wagę zwrotom.
+- **Jeden gag na ujęcie**, najwyżej jeden mały w tle. **Gęsto**: reżyser chce więcej, niż wydaje się bezpiecznie
+  („więcej gagów”, 19.11) — w „Bonnie and Clyde” 46 gagów na 114 ujęć, czyli ok. 5 na akt i coś śmiesznego co ok. 20–25 s
+  poza fragmentami powagi. Oddech zostaje tylko tam, gdzie ktoś ginie albo jest żałoba; tam cisza robi swoje.
+- Każde ujęcie otwierające retrospekcję albo akt (lekcja historii, „It all starts in…”) dostaje gag — to miejsca, gdzie
+  widzowie „Pierwszego cesarza” odchodzili.
 - Gag nie zasłania rzeczy, o której mówi lektor, i nie dzieje się pod pasem napisów (1.27).
 - Gag może wydłużyć ujęcie (zwykle o 0,5–1,5 s). Zmiana długości idzie przez rozpiskę, potem dźwięk liczy się od nowa.
 
@@ -117,5 +120,7 @@ idzie jako próbka do reżysera (rozdział „Dźwięk”).
 | Wstęga po pęknięciu prawej nitki obracała się w złą stronę | Fizyka gagu jak w teatrze: po pęknięciu nitki rzecz obraca się wokół tej, która trzyma |
 | Rewolwer w locie wylatywał poza kadr przy zbliżeniu | Tor rzeczy w gagu mieści się w kadrze przy tej kamerze, jaką ma ujęcie |
 | Ptak „na kapelusz” szeryfa, który siedzi w aucie | Gag dopasowany do pozycji postaci: plama na szybie tuż przed jego nosem |
+| Rzeczy w dłoniach źle ułożone: karabiny w X, gazety obok twarzy, laska w górę, miarka w powietrzu | Arkusz zbliżeń dłoni przed oddaniem; chwyty `KARABIN_PION`, `GAZETA` (Wytyczne 1.27) |
+| Gag kurtyny na końcu filmu wpadał w końcowe ściemnienie | Gag kończy się co najmniej 1 s przed ściemnieniem ostatniego ujęcia |
 | Trzy dźwięki gagów były nowe (kaszel silnika, werbel, zapałka) | Gag z istniejącymi dźwiękami idzie od razu; nowy rodzaj czeka na próbkę (`efekty.NOWE`) |
 
