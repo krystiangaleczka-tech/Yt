@@ -384,6 +384,46 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 - **Podpis i puenta na słowo**: podpis zjeżdża, kiedy lektor nazywa postać i postać jest widać (W.D. stoi przy aucie, wsiada
   potem); puenta kwestii („undertaker”) nie stoi w podpisie wcześniej niż w kwestii.
 
+### 1.28 Biomechanika lalki i rekwizytu
+Reżyser 19.11 („umiejscowienie tych rekwizytów w rękach, albo na stole, przy stole itp. jest tragiczne… ogarnij biomechanikę”).
+Lalka teatru papierowego ma ciało sztywne i dwie ręce, każda to jeden odcinek od barku do dłoni (zawias tylko w barku). Z tego
+wynikają zasady — liczone, nie zgadywane (`scena.bark`, `scena.dlon`, `scena.siegnij`, `scena.stan_przy`):
+
+**Zasięg i kolejność.** Najpierw ustala się punkt, którego dotyka dłoń (ucho dzbanka nad filiżanką, brzeg gazety przy twarzy,
+dłoń partnera, blat), potem kąt ręki z tego punktu: `kat, dosiega = siegnij(lalka, x, punkt)`. Jeśli dłoń nie dosięga
+(odległość od barku większa niż ręka), lalka **podchodzi** (`stan_przy`) albo rzecz leży bliżej — rzecz nigdy nie przyskakuje
+do dłoni, a dłoń nie wisi w powietrzu obok rzeczy.
+
+**Chwyt za uchwyt.** Każdy rekwizyt ma punkt chwytu w arkuszu (kotwica `trzyma`): dzbanek — ucho, rewolwer — kolba (0.3, 0.75),
+karabin — szyjka kolby (0.3, 0.55), kula — rączka (0.5, 0.45), laska — gałka, gazeta — bliższy brzeg, miarka — kasetka.
+Dłoń leży na punkcie chwytu; rzecz płaska (gazeta, list, zdjęcie) leży **za dłonią** (szósty element `trzyma` z = 0.02).
+
+**Kierunek rzeczy nie idzie za ręką**, tylko za tym, do czego służy (`za_ręką = False`): rewolwer lufą przed siebie, poziomo
+(marker 19.11: „w tę stronę ma być skierowany rewolwer, i w następnych ujęciach też”); karabin noszony przy nodze lufą w dół
+(`KARABIN`), karabin do strzału poziomo, ręka ok. 90° (`CEL`), karabin na warcie pionowo lufą w górę (`KARABIN_PION`);
+dzbanek pionowo, przy nalewaniu przechylony o ok. 45° dzióbkiem nad naczynie; laska i kula pionowo do ziemi; łyżka w garnku.
+
+**Rzecz na stole stoi na blacie**: dolna krawędź rzeczy = górna krawędź mebla (`STOPY − wysokość mebla`), plan rzeczy tuż
+przed meblem. Postać przy stole stoi tak blisko, że dłoń sięga blatu; siedząca — `sink`, a mebel ją zasłania od pasa w dół.
+
+**Rzecz zmienia się w jednej klatce, bez przemiany**: gazeta → zgnieciona kulka, cygaro w dłoni → cygaro w ustach,
+rewolwer w dłoni → za paskiem. W klatce N rzecz A znika, w klatce N+1 w tym samym miejscu jest rzecz B (marker 19.11: „ma
+zniknąć w tej klatce… i tu w rękach pojawić się w następnej klatce; nie robisz tych przemian pomiędzy tymi dwoma rodzajami
+obiektu”). Nigdy nie skaluje się jednej rzeczy w drugą.
+
+**Rzecz przechodzi z ręki do ręki dłonią w dłoń**: dający wyciąga rękę (dłoń w punkcie P), biorący sięga tą samą chwilą do P
+(`siegnij`), rzecz przeskakuje między dłońmi w jednej klatce. Nie ma rąk bez właściciela — jeśli coś podaje ktoś, to ten ktoś
+stoi w kadrze (marker 19.11: „skąd ta ręka? tu ma stać gościu”).
+
+**Postać na pojeździe**: siedzi (`siedzi=True`, biodra na siedzisku, pace, grzbiecie konia), nie stoi obok; zsiada łukiem
+(skok) na ziemię. Jeździec na koniu: biodra na grzbiecie, nogi zakrywa koń.
+
+**Kontakt dwóch postaci** (pocałunek, uścisk): podchodzą, aż głowy albo dłonie się zetkną, i nie wchodzą jedna w drugą;
+wyższa się pochyla (`lean`), niższa unosi (`lift`); potem wracają na swoje miejsca.
+
+**Kontrola**: arkusz zbliżeń dłoni (wycinek 240 px wokół każdej dłoni z rzeczą w kilku chwilach ujęcia) i arkusz stołów
+(rzeczy na blacie, postacie przy meblach) przed oddaniem ujęć.
+
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
 - Osobne warstwy: tło bez postaci, postać (PNG RGBA, przezroczyste tło), **pierwszy plan zasłaniający** (drzwi z
@@ -648,6 +688,7 @@ i błędy znalezione w kontroli.
 | Bonnie and Clyde, otwarcie (19.11, reżyser) | „jest 5 s spoiler, najlepiej zrób go 6 s i szybko zmieniaj ujęcia… a potem w tym filmie dowiecie się blablabla… i kurtyna i znowu od nowa tak jakby?” — trzy starty: długa kurtyna tytułu, lista obietnic, kurtyna aktu I z powrotem w czasie; w zapowiedzi podpis zdradzał łowcę | 1.26 |
 | Pierwszy cesarz EN, wyniki po 1 dniu 20 h (19.11, reżyser) | po 30 s ogląda 35 %, średnio 1:29 z 11:19: pusta rama z tytułem na starcie, chronologia „Long ago…” bez haka, pięć nazw w 40 s, kurtyna aktu w 1:18 | 1.26, Rytm |
 | Bonnie and Clyde, ślub (19.11, marker reżysera) | „znika to i po łuku napis pod tymi kwiatkami Happy Ever After” — tabliczka z sercami zjeżdżała na górę łuku z kwiatów i go zasłaniała; pod łukiem brakowało napisu | 1.27 |
+| Bonnie and Clyde, 21 markerów (19.11, reżyser) | broń w złą stronę w prologu; ręka zza kadru podaje cygaro; klisza wysuwa się w bok zamiast w dół; gazeta płynnie zmienia się w kulkę; chłopcy obok ciężarówki zamiast na pace; Bonnie nie trzyma dzbanka i nie leje do filiżanki; gazeta obok rąk; ciemne 5 s na początku Eastham po turbo krótkich ujęciach; Bonnie „nagle w więzieniu” (brak ujęcia pośredniego przed aresztem w Waco i niejasna ucieczka); siekiera nie spada z góry; przysięga za długa i bez ruchu | 1.27, 1.28 |
 | Bonnie and Clyde, akt I (19.11, reżyser) | „dlaczego z ujęcia 21 o jakichś indykach robi się nagle w 22 ślub? to nie ma sensu” — przy skracaniu aktu I wypadło ujęcie szkoły, które było pomostem od Clyde'a do Bonnie; kwestia ślubu zaczynała się bez „tymczasem” | 1.27, Rytm |
 | Bonnie and Clyde, gagi (19.11, reżyser) | „więcej gagów i musisz poprawić ich umiejscowienie w rękach szczególnie” — karabiny łowców w X, gazety obok twarzy, łyżka obok garnka, laska w górę, miarka w powietrzu, kieszenie jako kwadraty, ręka maszynisty jak patyk, kapelusz nad maską | 1.27 |
 | Bonnie and Clyde, próbka głosów (19.11, reżyser) | „wygląda to jakby dwie historie nachodziły na siebie… na 2:48 jak kurtyna wjeżdża, pojawiają się dwie różne tabliczki po sobie” — próbka była zlepkiem fragmentów z różnych aktów bez plansz (kurtyna aktu III, zaraz potem akt VIII); w filmie cztery sceny w tym samym miejscu budowały się od pustego płótna | 1.27 |
