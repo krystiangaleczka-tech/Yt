@@ -449,14 +449,18 @@ def akord(root, q, lo, hi):
 
 
 class Pasmo:
-    """Bufor tematu: nuty wstawiane w czasie bezwzględnym (sekundy od początku tematu)."""
+    """Bufor tematu: nuty wstawiane w czasie bezwzględnym (sekundy od początku tematu). mapa — funkcja „czas muzyczny →
+    czas filmu”: temat przyspiesza i zwalnia bez zmiany wysokości nut (nuta trwa tyle samo, zmienia się odstęp między nutami)."""
 
-    def __init__(self, sec):
+    def __init__(self, sec, mapa=None):
         self.x = np.zeros(N(sec + 3.0))
+        self.mapa = mapa
 
     def __call__(self, at, s, g=1.0):
         if at < 0:
             return
+        if self.mapa is not None:
+            at = self.mapa(at)
         i = N(at)
         n = len(self.x)
         if i >= n:
@@ -745,10 +749,61 @@ CISZA = {"wellington_most": (0.0, 1.5, True), "eastham_rura": (4.3, 6.4, False),
          "commerce_cien": (0.0, 7.0, False), "przysiega": (2.1, 2.9, True)}
 
 
-def muzyka(total, starts, durs, voice):
+# ---- tempo z cięć (reżyser 20.11: „powinno liczyć tempo cięć”) ----
+# Tempo montażu (60 / długość ujęcia, wygładzone) względem mediany filmu daje mnożnik tempa tematu:
+# szybkie cięcia → temat szybciej, długie ujęcia → wolniej. Wysokość nut się nie zmienia (Pasmo.mapa).
+TEMPO_WYKL, TEMPO_MIN, TEMPO_MAX = 0.5, 0.85, 1.2
+
+
+def gestosc_ciec(ciecia, total, krok=0.25, sigma=5.0):
+    """Tempo montażu w czasie filmu (siatka co `krok` s): 60 / długość bieżącego ujęcia, wygładzone gaussem (sigma s).
+    W obrębie ujęcia stałe, między ujęciami przechodzi płynnie — muzyka nie „kołysze się” od cięcia do cięcia."""
+    tg = np.arange(0.0, total + krok, krok)
+    c = np.asarray(sorted(ciecia) + [total])
+    dl = np.diff(c)
+    idx = np.clip(np.searchsorted(c, tg, side="right") - 1, 0, len(dl) - 1)
+    raw = 60.0 / np.maximum(dl[idx], 0.3)
+    k = np.arange(-int(3 * sigma / krok), int(3 * sigma / krok) + 1) * krok
+    g = np.exp(-0.5 * (k / sigma) ** 2)
+    g /= g.sum()
+    pad = len(k) // 2
+    sm = np.convolve(np.pad(raw, pad, mode="edge"), g, mode="valid")
+    return tg, sm
+
+
+def mapa_tempa(a0, sec, tg, cpm, ref):
+    """(czas muzyczny potrzebny na odcinek, funkcja czas muzyczny → czas od początku tematu)."""
+    t_real = np.arange(0.0, sec + 0.05, 0.05)
+    r = np.clip((np.interp(a0 + t_real, tg, cpm) / ref) ** TEMPO_WYKL, TEMPO_MIN, TEMPO_MAX)
+    m = np.concatenate([[0.0], np.cumsum((r[1:] + r[:-1]) / 2 * np.diff(t_real))])
+    return float(m[-1]), (lambda at: float(np.interp(at, m, t_real, right=t_real[-1] + (at - m[-1]))))
+
+
+# ---- zmiana tematu na cięciu (reżyser 20.11: „zmiana tematu też powinna być”): stary temat kończy się na cięciu, nowy
+# zaczyna się na nim od mocnej części taktu z akcentem; wcześniej przenikały się przez pół sekundy niezależnie od obrazu ----
+CIECIE_WYJSCIE, CIECIE_WEJSCIE = 0.12, 0.03
+
+# ---- gagi: muzyka robi przystanek na puencie gagu, żeby jego dźwięk wybrzmiał (Podręcznik → Humor i gagi). Sekundy od
+# początku ujęcia — chwila puenty, a nie początek gagu. Lekko: −9 dB na 0,6 s, bez muzycznych „mickey-mousingów” na każdym
+# kroku (przy 46 gagach muzyka by się jąkała).
+GAG_PRZYSTANEK_DB, GAG_PRZYSTANEK_S = -9.0, 0.6
+GAG_PUENTA = {"wprowadzenie2": 1.6, "zdjecie": 4.25, "hak_cygaro": 2.6, "indyki": 5.0, "poezja": 2.3, "slub": 7.7, "kawiarnia": 7.0,
+              "kuchnia": 9.5, "akt2": 7.3, "stacja": 6.6, "wd": 6.4, "joplin_dom": 9.2, "ciemnia": 5.0, "kiosk": 9.9, "darby_auto": 2.0,
+              "darby_tyl": 9.6, "darby_puszczeni": 5.3, "oboz": 4.4, "list_ford": 6.4, "wd_odchodzi": 6.4, "rodziny": 9.0, "dzien1": 4.6,
+              "hamer_motel": 8.85, "dzien20": 11.45, "mapa": 6.1, "listy_gon": 9.4, "prasa_cygaro": 5.6, "noc": 10.6, "kanapka": 5.3,
+              "auto_jarmark": 8.0, "gra": 6.85, "dzieki": 8.25, "wagon": 11.3, "prasa": 6.9, "matka_obietnica": 9.8, "buck": 11.5,
+              "joplin_karty": 10.0, "plakaty": 5.0, "farma": 5.15, "drzewo": 8.9, "simmons": 3.25, "hamer": 7.4, "podkreslenie": 6.2,
+              "methvin": 11.9, "pozegnanie": 3.8, "shreveport": 11.1, "posse": 11.75}
+
+
+def muzyka(total, starts, durs, voice, ciecia=None):
     n = N(total)
     out = np.zeros(n)
-    keys = [k for k in starts]
+    ciecia = sorted(starts.values()) if ciecia is None else ciecia
+    tg, cpm = gestosc_ciec(ciecia, total)
+    ref = float(np.median(cpm[(tg > 10) & (tg < total - 10)]))
+    global TEMPA
+    TEMPA = {}
     for c, (klucz, styl, o) in enumerate(CUES):
         if klucz not in starts or styl == "cisza":
             continue
@@ -756,9 +811,12 @@ def muzyka(total, starts, durs, voice):
         nast = [starts[k] for k, _, _ in CUES[c + 1:] if k in starts]
         a1 = min(nast) if nast else total
         fn, odchyl = STYLE[styl]
-        sec = a1 - a0 + 0.6
-        P = Pasmo(sec)
-        fn(P, sec, np.random.default_rng(100 + c), o)
+        sec = a1 - a0 + CIECIE_WYJSCIE
+        dl_muz, mapa = mapa_tempa(a0, sec, tg, cpm, ref)
+        TEMPA[klucz] = round(dl_muz / sec, 3)
+        P = Pasmo(sec, mapa)
+        fn(P, dl_muz + 0.5, np.random.default_rng(100 + c), o)
+        P(0.0, stopa(0.9) * 1.3)  # akcent na cięciu: nowy temat wchodzi mocną częścią taktu
         x = P.x[:N(sec)]
         L = len(x)
         # wyrównanie: każdy temat tak samo głośny (RMS bez cichych brzegów), plus zamierzona różnica stylu
@@ -766,7 +824,7 @@ def muzyka(total, starts, durs, voice):
         rms = float(np.sqrt(np.mean(srodek ** 2))) + 1e-9
         g = 10 ** ((MUZYKA_DB + odchyl + (CICHO_DB if o.get("cicho") else 0.0)) / 20) / rms
         tl = tt(L)
-        fade = np.minimum(1, tl / 0.5) * np.clip((sec - tl) / 0.6, 0, 1)
+        fade = np.minimum(1, tl / CIECIE_WEJSCIE) * np.clip((sec - tl) / CIECIE_WYJSCIE, 0, 1)
         i0 = N(a0)
         out[i0:i0 + L] += (x * fade * g)[:n - i0]
     # cisza przed szczytami
@@ -781,8 +839,24 @@ def muzyka(total, starts, durs, voice):
         j = min(n, i1 + N(2.5))
         gain[i1:j] = (np.linspace(1.5, 1.0, j - i1) if powrot else np.linspace(0, 1, j - i1))
     out *= gain
+    # przystanek na puencie gagu
+    gg = np.ones(n)
+    lo = 10 ** (GAG_PRZYSTANEK_DB / 20)
+    for klucz, tp in GAG_PUENTA.items():
+        if klucz not in starts:
+            continue
+        a = starts[klucz] + tp
+        i0, i1, i2 = N(a - 0.06), N(a + GAG_PRZYSTANEK_S), N(a + GAG_PRZYSTANEK_S + 0.5)
+        if i0 < 0 or i2 >= n:
+            continue
+        gg[i0:i1] = np.minimum(gg[i0:i1], lo)
+        gg[i1:i2] = np.minimum(gg[i1:i2], np.linspace(lo, 1.0, i2 - i1))
+    out *= gg
     out *= sciszanie(voice, POD_KWESTIA_MUZYKA)
     return out
+
+
+TEMPA = {}
 
 
 def sciszanie(voice, db, przerwa=3.0, przed=0.25, wejscie=0.3, wyjscie=0.9):

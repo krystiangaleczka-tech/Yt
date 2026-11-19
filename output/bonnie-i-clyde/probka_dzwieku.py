@@ -25,6 +25,8 @@ FRAGMENTY_GLOSY = [("zap_wellington_most", "wagon"), ("kiosk", "darby_smiech"), 
 # werbel do musztry, zapałka) — do akceptacji przed wgraniem
 FRAGMENTY_GAGI = [(k, k) for k in ("zdjecie", "slub", "kawiarnia", "stacja", "darby_auto", "oboz", "dzien20", "listy_gon", "prasa_cygaro",
                                    "noc", "gra", "dzieki")]
+# próbka muzyki z tempem z cięć (reżyser 20.11): zmiany tematu na cięciu, szybkie i wolne odcinki, przystanki na gagach
+FRAGMENTY_TEMPO = [("indyki", "kawiarnia"), ("areszt", "eastham"), ("hamer", "dzien20"), ("dzien20", "petle")]
 MIKS = {"muzyka": 0.8, "efekty": 1.0}  # jak głośności ścieżek w Studio (studio_film.dzwiek)
 
 
@@ -192,7 +194,9 @@ def same_nowe():
 
 if __name__ == "__main__":
     OUT.mkdir(exist_ok=True)
-    if sys.argv[1:2] == ["gagi"]:
+    if sys.argv[1:2] == ["tempo"]:
+        film(FRAGMENTY_TEMPO, "probka_tempo")
+    elif sys.argv[1:2] == ["gagi"]:
         same_nowe()
         film(FRAGMENTY_GAGI, "probka_gagi")
     elif sys.argv[1:2] == ["glosy"]:
