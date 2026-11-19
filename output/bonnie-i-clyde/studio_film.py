@@ -319,14 +319,11 @@ def dzwiek(lektor=False):
     call(f"/projects/{pid}/flow/log", {"entry": {
         "who": "studio_film.py", "kind": "wgranie", "summary": "Dźwięk wgrany: " + ", ".join(([f"lektor {n1} kwestii"] if lektor else []) + [f"{x} na cały film" for x in wgrane]
                                                  or ["nic (brak plików)"]),
-        "details": ("Lektor EN roboczy (do rytmu, docelowo nagranie reżysera): klon głosu autora, Chatterbox Multilingual en, "
-                    "próbka pilot/assets/ref_en_teatr_nizej_0.25pt.wav, jedno podejście na kwestię, output/bonnie-i-clyde/lektor_en.py. "
-                    if EN else
-                    "Lektor: klon głosu autora (Chatterbox, próbka bez pogłosu pilot/assets/ref_studio.wav, 3 podejścia na kwestię, "
-                    "suche i z odbudowanym pasmem — Podręcznik → Lektor), output/bonnie-i-clyde/lektor.py. ")
-                   + "Muzyka i efekty: synteza w numpy, output/bonnie-i-clyde/efekty.py (pod kwestiami ściszone).",
-        "files": ["output/bonnie-i-clyde/lektor_en.py" if EN else "output/bonnie-i-clyde/lektor.py",
-                  "output/bonnie-i-clyde/efekty.py"]}})
+        "details": (("Lektor: nagrania z output/bonnie-i-clyde/lektor_en/ (nagrywa reżyser). " if lektor else "Bez lektora (nagrywa go reżyser na końcu). ")
+                    + "Muzyka i efekty: synteza w numpy, output/bonnie-i-clyde/efekty.py — tematy lat 30. (ragtime, blues, folk, temat łowcy, "
+                      "napięcie, pieśń przy pracy, walc, bluegrass, 8-bit), efekty z podsłuchu ujęć (silniki, kroki lalek, strzały, tabliczki), "
+                      "cisza przed szczytami; pod kwestiami ściszone. Próbkę zatwierdził reżyser 19.11.2026 („Zatwierdzam, wgraj”)."),
+        "files": (["output/bonnie-i-clyde/lektor_en/"] if lektor else []) + ["output/bonnie-i-clyde/efekty.py"]}})
     print(f"lektor: {n1} klipów | {', '.join(wgrane) or 'bez muzyki i efektów'} | rewizja {p['revision']}")
 
 
