@@ -322,7 +322,10 @@ def dzwiek(lektor=False):
         "details": (("Lektor: nagrania z output/bonnie-i-clyde/lektor_en/ (nagrywa reżyser). " if lektor else "Bez lektora (nagrywa go reżyser na końcu). ")
                     + "Muzyka i efekty: synteza w numpy, output/bonnie-i-clyde/efekty.py — tematy lat 30. (ragtime, blues, folk, temat łowcy, "
                       "napięcie, pieśń przy pracy, walc, bluegrass, 8-bit), efekty z podsłuchu ujęć (silniki, kroki lalek, strzały, tabliczki), "
-                      "cisza przed szczytami; pod kwestiami ściszone. Próbkę zatwierdził reżyser 19.11.2026 („Zatwierdzam, wgraj”)."),
+                      "cisza przed szczytami; pod kwestiami ściszone. Próbkę zatwierdził reżyser 19.11.2026 („Zatwierdzam, wgraj”). "
+                      + ("Bez głosów ludzi (BEZ_GLOSOW=1)." if os.environ.get("BEZ_GLOSOW") == "1" else
+                         "Głosy ludzi (okrzyki pod tabliczkami, gwar, śmiech widowni, wiwaty): glosy.py — syntetyczne głosy Kokoro + "
+                         "Chatterbox Turbo, bez głosu reżysera; próbkę głosów zatwierdził reżyser 19.11.2026 („Zatwierdzam, wgraj”).")),
         "files": (["output/bonnie-i-clyde/lektor_en/"] if lektor else []) + ["output/bonnie-i-clyde/efekty.py"]}})
     print(f"lektor: {n1} klipów | {', '.join(wgrane) or 'bez muzyki i efektów'} | rewizja {p['revision']}")
 
