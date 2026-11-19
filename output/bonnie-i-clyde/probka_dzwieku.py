@@ -18,6 +18,9 @@ sys.path.insert(0, str(HERE))
 OUT = HERE / "build"
 # (pierwsze ujęcie, ostatnie ujęcie) — przegląd brzmień: otwarcie, ucieczka z żartem, łowca i pościg, zasadzka
 FRAGMENTY = [("zap_wellington_most", "wprowadzenie2"), ("akt2", "kaufman"), ("hamer", "hak_teczka"), ("zasadzka_rano", "dym")]
+# próbka głosów (glosy.py): gwar i „EXTRA!”, śmiech Bonnie, krzyk przy Wellington, pamiątkarze, śmiech widowni, wiwaty
+FRAGMENTY_GLOSY = [("zap_wellington_most", "wagon"), ("kiosk", "darby_smiech"), ("wellington_most", "wellington_bonnie"), ("joplin_karty", "joplin_karty"), ("pamiatki", "pamiatki"),
+                   ("film_hamer", "film_hamer"), ("dzieki", "dzieki")]
 MIKS = {"muzyka": 0.8, "efekty": 1.0}  # jak głośności ścieżek w Studio (studio_film.dzwiek)
 
 
@@ -46,12 +49,12 @@ def _kawalek(arg):
     return path
 
 
-def film():
+def film(fragmenty=FRAGMENTY, nazwa="probka_dzwiek"):
     import multiprocessing as mp
     import render as R
     OUT.mkdir(exist_ok=True)
     idx = {k: i for i, k in enumerate(R.KOL)}
-    zakresy = [(R.SCENES[idx[a]][0], R.SCENES[idx[b]][1]) for a, b in FRAGMENTY]
+    zakresy = [(R.SCENES[idx[a]][0], R.SCENES[idx[b]][1]) for a, b in fragmenty]
     kaw = []
     for z, (a, b) in enumerate(zakresy):
         krok = (b - a) / max(1, round((b - a) / 6.0))
@@ -69,8 +72,9 @@ def film():
     lista.write_text("".join(f"file '{k[2].name}'\n" for k in kaw))
     obraz = OUT / "_obraz.mp4"
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(lista), "-c", "copy", str(obraz)], check=True)
-    mus, sr = czytaj(HERE / "dzwiek_en" / "muzyka.wav")
-    fx, _ = czytaj(HERE / "dzwiek_en" / "efekty.wav")
+    zrodlo = Path(os.environ.get("DZWIEK_Z", HERE / "dzwiek_en"))
+    mus, sr = czytaj(zrodlo / "muzyka.wav")
+    fx, _ = czytaj(zrodlo / "efekty.wav")
     m = mus * MIKS["muzyka"] + fx * MIKS["efekty"]
     fps = R.FPS
     czesci = []
@@ -84,7 +88,7 @@ def film():
         czesci.append(x)
     dzw = OUT / "_dzwiek.wav"
     zapisz(dzw, np.concatenate(czesci) * 0.95, sr)
-    wynik = OUT / "probka_dzwiek.mp4"
+    wynik = OUT / f"{nazwa}.mp4"
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(obraz), "-i", str(dzw), "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
                     "-shortest", str(wynik)], check=True)
     for k in kaw:
@@ -120,7 +124,24 @@ def sam_dzwiek():
     print(OUT / "probka_muzyka.wav", OUT / "probka_efekty.wav")
 
 
+def same_glosy():
+    import efekty as E
+    sr = E.SR
+    cisza = np.zeros(int(0.6 * sr))
+    czesci = []
+    for rodzaj in ("smiech_b", "krzyk_b", "ugh_b", "westchnienie_b", "brr_b", "au_b", "hej_b", "shh", "hej_m", "stop", "go", "ojnie", "au_c",
+                   "ouch", "bye", "thats_it", "gasp_m", "back_off", "extra"):
+        czesci += [E.glos(rodzaj, 0.8), cisza]
+    czesci += [E.smiech_tlum() * 1.3, cisza, E.gwar(6.0) * 2.5, cisza, E.wiwat_tlum(5.0) * 2.0]
+    zapisz(OUT / "probka_glosy.wav", np.tanh(np.concatenate(czesci) * 1.2) * 0.9, sr)
+    print(OUT / "probka_glosy.wav")
+
+
 if __name__ == "__main__":
     OUT.mkdir(exist_ok=True)
-    sam_dzwiek()
-    film()
+    if sys.argv[1:2] == ["glosy"]:
+        same_glosy()
+        film(FRAGMENTY_GLOSY, "probka_glosy")
+    else:
+        sam_dzwiek()
+        film()

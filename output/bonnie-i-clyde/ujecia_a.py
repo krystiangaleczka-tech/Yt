@@ -208,6 +208,7 @@ def s_obietnica(st, w, t, T):
 def s_wagon(st, w, t, T):
     """West Dallas: dymiące kominy, wiadukt, szałasy w błocie; pod wozem śpi rodzina, mały Clyde wyczołguje się spod koła i przeciąga."""
     kam(st, t, 10, 640, 380, lerp(0.96, 1.12, ease(t / T)), 0.72)
+    w.zawieszki = [("West Dallas, 1920s", 640, 150, pr(t, 1.4, 1.0))]  # miejsce i czas zamiast kurtyny aktu I (retrospekcja)
     west_dallas(st, t, w)
     for n, (x, key) in enumerate(((470, "matka_clyde"), (600, "dziecko1"))):
         lalka(st, t, key, x, 120, 1.0, y=708, flip=1, lean=88, p=P.drzewa + 0.002, rece=(0, 0))

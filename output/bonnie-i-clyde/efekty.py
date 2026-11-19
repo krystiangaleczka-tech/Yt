@@ -1527,6 +1527,87 @@ def silnik_jalowy(sec):
     return (sum(np.sin(k * ph) / k for k in range(1, 7)) * 0.02 + _szum(n, 80, 600, 49) * 0.01) * np.minimum(1, t / 0.5)
 
 
+# ---------- głos człowieka z modelu mowy (wytyczne 1.14), bez głosu reżysera ----------
+# glosy.py → dzwiek_probki/<rodzaj>_N.wav (Chatterbox Turbo na referencjach z syntetycznych głosów Kokoro); kolejne użycia
+# biorą kolejne próbki. Bez próbek — cisza i ostrzeżenie (nigdy szum udający człowieka).
+PROBKI = HERE / "dzwiek_probki"
+_GLOSY, _ILE = {}, {}
+
+
+def _probki(rodzaj):
+    if os.environ.get("BEZ_GLOSOW") == "1":  # wersja bez głosów (zanim reżyser zatwierdzi próbkę głosów)
+        return []
+    if rodzaj not in _GLOSY:
+        _GLOSY[rodzaj] = []
+        for f in sorted(PROBKI.glob(f"{rodzaj}_*.wav"), key=lambda f: int(f.stem.rsplit("_", 1)[1])):
+            with wave.open(str(f)) as w:
+                x = np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(np.float64) / 32768
+            _GLOSY[rodzaj].append(x / (np.abs(x).max() + 1e-9))
+        if not _GLOSY[rodzaj]:
+            print(f"UWAGA: brak próbek {rodzaj}_*.wav w {PROBKI} (glosy.py) — w tym miejscu cisza", flush=True)
+    return _GLOSY[rodzaj]
+
+
+def glos(rodzaj, g=0.5):
+    pr_ = _probki(rodzaj)
+    if not pr_:
+        return np.zeros(N(0.1))
+    n = _ILE.get(rodzaj, 0)
+    _ILE[rodzaj] = n + 1
+    return pr_[n % len(pr_)] * g
+
+
+def _sala(x, mokro=0.35):
+    """Pogłos sali (kilka odbić) i pasmo jak z drugiego planu."""
+    y = band(np.concatenate([x, np.zeros(N(0.4))]), 180, 3500)
+    out = y.copy()
+    for d, g in ((0.023, 0.5), (0.041, 0.4), (0.067, 0.32), (0.11, 0.22), (0.17, 0.15)):
+        i = N(d)
+        out[i:] += y[:len(y) - i] * g * mokro / 0.5
+    return out
+
+
+def gwar(sec, gestosc=2.2, g=0.16):
+    """Gwar tłumu: krótkie zdania różnymi głosami, gęsto i stłumione — słychać ludzi, nie słowa."""
+    pr_ = _probki("gwar")
+    n = N(sec)
+    out = np.zeros(n + N(6))
+    if not pr_:
+        return np.zeros(n)
+    r = _r(61 + int(sec * 10))
+    for _ in range(int(sec * gestosc)):
+        x = pr_[int(r.integers(len(pr_)))] * r.uniform(0.5, 1.0)
+        i = int(r.uniform(-0.5 * len(x), n))
+        a, b = max(0, i), min(len(out), i + len(x))
+        out[a:b] += x[a - i:b - i]
+    out = _sala(out[:n], 0.45)[:n]
+    t = tt(n)
+    return out / (np.abs(out).max() + 1e-9) * g * np.minimum(1, t / 0.6) * np.clip((sec - t) / 0.8, 0, 1)
+
+
+def smiech_tlum():
+    """Widownia się śmieje: kilka śmiechów naraz, z pogłosem sali."""
+    pr_ = _probki("smiech_m")
+    out = np.zeros(N(4.0))
+    r = _r(62)
+    for j, x in enumerate(pr_):
+        i = N(r.uniform(0, 0.45))
+        out[i:i + len(x)] += x[:len(out) - i] * r.uniform(0.35, 0.6)
+    return _sala(out, 0.5)[:N(4.0)] / (np.abs(out).max() + 1e-9) * 0.55
+
+
+def wiwat_tlum(sec):
+    pr_ = _probki("wiwat")
+    n = N(sec)
+    out = np.zeros(n + N(4))
+    r = _r(63)
+    for _ in range(int(sec * 1.4)) if pr_ else ():
+        x = pr_[int(r.integers(len(pr_)))] * r.uniform(0.4, 0.8)
+        i = int(r.uniform(0, max(1, n - N(1.0))))
+        out[i:i + len(x)] += x[:len(out) - i]
+    return _sala(out[:n], 0.5)[:n] / (np.abs(out).max() + 1e-9) * 0.3 * np.clip((sec - tt(n)) / 1.0, 0, 1)
+
+
 KROTKIE = {
     "tab": tab_snd, "podpis": podpis_snd, "zawieszka": zawieszka_snd, "stempel": stempel, "nitka": nitka, "wahwah": wahwah,
     "wahwah_k": lambda: wahwah(True), "smiech_p": smiech_p, "klakson": klakson, "beep": beep, "beep2": lambda: beep(2), "pisk": pisk,
@@ -1550,7 +1631,7 @@ DLUGIE = {
     "zgrzyt": zgrzyt, "tlum": tlum, "karuzela": karuzela, "podlewanie": podlewanie, "szum_ekranu": szum_ekranu,
     "gwizdanie": gwizdanie, "skrzyp": skrzyp, "nalewanie": nalewanie, "mieszanie": mieszanie, "zegar": zegar, "prasa": prasa,
     "projektor": projektor, "kola": kola, "bujak": bujak, "kopanie": kopanie, "silnik_jalowy": silnik_jalowy, "kopyta": hooves,
-    "olowek": lambda s: pisanie(s, 0.07), "gwiazdki": lambda s: dzwoneczki(s, int(s * 4), 51),
+    "olowek": lambda s: pisanie(s, 0.07), "gwar": gwar, "gwar_cichy": lambda s: gwar(s, 1.4, 0.09), "wiwat": wiwat_tlum, "gwiazdki": lambda s: dzwoneczki(s, int(s * 4), 51),
 }
 
 # Dźwięk tabliczki według napisu (słownik znaków 1.20): porażka → wah-wah, śmiech → chichot fortepianu, klakson…
@@ -1560,12 +1641,20 @@ TAB_DZWIEK = {"AGAIN?!": "wahwah", "THAT'S IT?": "wahwah", "OH NO": "wahwah", ".
               "NEVER AGAIN": "sting", "HE WON'T GO BACK": "sting", "NO MORE CHASING": "sting_l", "HOME": "sting", "AAAA!": "sting",
               "YAWN": "ziew", "SIGH…": "ziew", "BRRR!": "brr", "?": "pytanie", "♪": None, "STOP!": None}
 
+# Głos postaci pod tabliczką (napis → rodzaj z glosy.py); wyjątki dla ujęcia, gdy ten sam napis mówi kto inny.
+TAB_GLOS = {"HA HA!": "smiech_b", "AAAA!": "krzyk_b", "UGH!": "ugh_b", "SIGH…": "westchnienie_b", "BRRR!": "brr_b", "OW!": "au_b",
+            "HEY!": "hej_b", "SHHH!": "shh", "STOP!": "stop", "GO!": "go", "OH NO": "ojnie", "AW!": "au_c", "OUCH!": "ouch", "BYE!": "bye",
+            "THAT'S IT?": "thats_it", "BACK OFF!": "back_off", "EXTRA!": "extra", "HA HA HA!": "*smiech_tlum"}
+TAB_GLOS_UJ = {("darby_auto", "HEY!"): "hej_m"}
+TAB_DZWIEK.update({"HA HA!": "tab", "SIGH…": "tab", "BRRR!": "tab", "HA HA HA!": "tab"})  # śmiech i westchnienie robi teraz głos
+GLOS_G = {"extra": 0.35, "krzyk_b": 0.6, "smiech_b": 0.6}
+
 # =====================================================================================================================
 # ZDARZENIA RĘCZNE (sekunda od początku ujęcia, dźwięk, głośność — albo czas trwania dla dźwięków długich)
 # =====================================================================================================================
 
 ZDARZENIA = {
-    "tytul": [(0.1, "kurtyna_r", 1.0), (2.8, "klakson", 0.9)],
+    "tytul": [(0.1, "kurtyna_r", 1.0), (1.5, "klakson", 0.9)],
     "wprowadzenie": [(4.7, "whoosh", 0.25)],
     "wprowadzenie2": [(1.3, "zamek", 0.5)],
     "joplin_rzeczy": [(0.3, "drzwi", 0.8), (3.7, "aparat", 0.8), (4.6, "papier", 0.5)],
@@ -1601,10 +1690,10 @@ ZDARZENIA = {
     "joplin_karty": [(0.3, "saks", 1.0), (1.0, "karty", 0.9), (4.2, "saks", 1.0), (6.2, "karty", 0.8)],
     "joplin_walka": [(5.0, "thud", 0.6), (5.4, "thud", 0.6), (7.2, "pisk", 0.9)],
     "ciemnia": [(0.0, "woda", 10.0), (2.4, "sting_t", 0.9)],
-    "kiosk": [(1.0 + 1.25 * n, "plask", 0.5) for n in range(7)],
+    "kiosk": [(1.0 + 1.25 * n, "plask", 0.5) for n in range(7)] + [(0.0, "gwar", 12.0)],
     "cygaro_zlosc": [(2.2, "zgniot", 0.7), (2.6, "slide_down", 0.7)],
     "darby_auto": [(6.6, "drzwi", 0.6), (6.8, "drzwi", 0.5), (7.4, "pisk", 0.6)],
-    "darby_smiech": [(1.6, "slide_down", 0.5)],
+    "darby_smiech": [(1.6, "slide_down", 0.5), (1.7, "g:gasp_m", 0.45)],
     "darby_puszczeni": [(2.8, "papier", 0.5)],
     "teczka_zasiew": [(0.0, "zegar", 12.0)] + [(2.2 + 1.3 * n, "plask", 0.4) for n in range(7)],
     "plakaty": [(1.25 + 0.6 * n, "stuk", 0.7) for n in range(5)],
@@ -1633,33 +1722,34 @@ ZDARZENIA = {
     "grapevine": [(0.5, "dzwony", 6.0)],
     "grapevine_cien": [(2.0, "thud", 0.7), (2.3, "thud", 0.6), (2.5, "krach", 0.8), (2.6, "boom", 0.9)],
     "tullis": [(0.6, "dzwon", 1.0), (6.0, "dzwon", 0.8)],
-    "gazety_zle": [(2.4 + 0.4 * n, "zgniot", 0.6) for n in range(5)] + [(3.3 + 0.4 * n, "plask", 0.3) for n in range(5)],
+    "gazety_zle": [(2.4 + 0.4 * n, "zgniot", 0.6) for n in range(5)] + [(3.3 + 0.4 * n, "plask", 0.3) for n in range(5)] + [(0.0, "gwar", 10.0)],
     "listy_gon": [(0.8 + 1.0 * n, "stuk", 0.6) for n in range(4)] + [(0.8 + 1.0 * n, "papier", 0.4) for n in range(4)] + [(8.7, "zamek", 0.7)],
     "commerce": [(0.0, "bloto", 9.5)],
     "commerce_cien": [(2.6, "thud", 0.6), (5.6, "drzwi", 0.6)],
     "prasa_cygaro": [(0.0, "prasa", 7.6), (8.2, "zegar", 7.0), (9.8, "plask", 0.6)],
     "methvin": [(3.0, "papier", 0.7), (6.0, "krzeslo", 0.4)],
     "wiersz": [(0.6, "papier", 0.5), (0.0, "silnik_jalowy", 12.0)],
-    "shreveport": [(3.4, "drzwi", 0.7), (9.6, "drzwi", 0.5)],
+    "shreveport": [(3.4, "drzwi", 0.7), (9.6, "drzwi", 0.5), (0.0, "gwar_cichy", 13.5)],
     "noc": [(0.0, "komary", 12.5), (7.0, "klaps_reka", 0.7)],
     "zasadzka_rano": [(1.0, "lewarek", 1.5)],
     "kanapka": [(0.0, "papierek", 7.6)],
     "zwolnienie": [(0.6, "zwir", 1.6)],
     "zasadzka": [(0.5, "szklo", 0.8), (1.4, "szklo", 0.7), (2.6, "zgrzyt", 1.6), (3.7, "thud", 0.4)],
     "dym": [(1.5, "krzaki", 1.0), (6.6, "whoosh", 0.25)],
-    "pamiatki": [(0.0, "tlum", 13.5), (3.0, "nozyczki", 0.7), (4.2, "nozyczki", 0.7), (7.0, "gwizdek", 0.9)],
+    "pamiatki": [(0.0, "gwar", 13.5), (0.0, "tlum", 13.5), (3.0, "nozyczki", 0.7), (4.2, "nozyczki", 0.7), (7.0, "gwizdek", 0.9)],
     "darby_zaklad": [(1.6, "rekawiczka", 0.7), (3.0, "rekawiczka", 0.7), (0.0, "zegar", 8.5)],
     "pogrzeby": [(0.5, "dzwon", 1.0), (5.5, "dzwon", 0.8)],
-    "auto_jarmark": [(1.5, "coin", 0.5), (2.6, "coin", 0.5), (4.0, "coin", 0.4), (0.0, "tlum", 10.5), (0.0, "karuzela", 10.5)],
+    "auto_jarmark": [(1.5, "coin", 0.5), (2.6, "coin", 0.5), (4.0, "coin", 0.4), (0.0, "tlum", 10.5), (0.0, "karuzela", 10.5), (0.0, "gwar", 10.5)],
     "blanche_po": [(0.6, "podlewanie", 9.0)],
     "hamer_ganek": [(2.0, "papier", 0.6), (3.4, "whoosh", 0.3)],
     "gra": [(0.0, "szum_ekranu", 1.6), (1.6, "chip_start", 0.9)] + [(2.0 + 0.25 * n, "klik", 0.25) for n in range(22)],
     "koniec": [(3.0, "papier", 0.8), (4.6, "plask", 0.6), (4.9, "plask", 0.6), (7.0, "teczka", 0.9), (10.0, "kurtyna_z", 1.0)],
-    "dzieki": [(0.6, "oklaski", 7.8)] + [(1.2 + 0.45 * n, "stuk", 0.25) for n in range(8)],
+    "dzieki": [(0.6, "oklaski", 7.8), (1.0, "wiwat", 7.0)] + [(1.2 + 0.45 * n, "stuk", 0.25) for n in range(8)],
 }
 ZDARZENIA["hak_joplin_rzeczy"] = ZDARZENIA["joplin_rzeczy"]
 # Zapowiedź: każde cięcie akcentuje uderzenie (jak w zwiastunie), pierwsze mocniej.
-for _k in ("zap_wellington_most", "zap_zdjecie", "zap_prasa", "zap_boyd", "zap_petle", "zap_hamer", "zap_pamiatki"):
+for _k in ("zap_wellington_most", "zap_zdjecie", "zap_prasa", "zap_kiosk", "zap_kaufman", "zap_poscigi", "zap_boyd", "zap_sowers",
+           "zap_hamer", "zap_zasadzka"):
     ZDARZENIA.setdefault(_k, []).append((0.0, "boom", 0.55))
 ZDARZENIA["zap_wellington_most"].append((0.0, "whoosh", 0.6))
 
@@ -1945,16 +2035,18 @@ def main():
             evs += [e for e in ZDARZENIA.get(klucz, [])]
         g = R.GRANICE[idx]
         zam, dl, czekaj, otw = R.KURTYNA
-        if g["ostatnie_aktu"] and idx < len(R.SCENES) - 1:
+        if g["ostatnie_aktu"] and idx < len(R.SCENES) - 1 and g["akt"] + 1 not in R.BEZ_KURTYNY:
             evs += [(sec - zam, "kurtyna_z", 1.0), (sec - zam + dl - 0.05, "klaps", 0.8)]
-        elif g["pierwsze_aktu"] and idx > 0:
+        elif g["pierwsze_aktu"] and idx > 0 and g["akt"] not in R.BEZ_KURTYNY:
             evs += [(czekaj, "kurtyna_r", 1.0)]
         if klucz in R.BUDUJ and klucz not in R.WYCINEK:
             evs += [(dd, "whoosh", 0.3) for dd in (0.0, 0.25, 0.45, 0.65, 0.9)] + [(dd, "knock", 0.25) for dd in (0.75, 1.05, 1.4, 1.7)]
         for at, kind, gg in evs:
             if at >= sec or at < 0:
                 continue
-            if kind in DLUGIE:
+            if kind.startswith("g:"):
+                s = glos(kind[2:], gg)
+            elif kind in DLUGIE:
                 s = DLUGIE[kind](min(gg, sec - at))
             else:
                 s = KROTKIE[kind]() * gg
@@ -1965,9 +2057,13 @@ def main():
     for key, (at, rodzaj, extra, i) in jedno.items():
         if rodzaj == "tab":
             kind = TAB_DZWIEK.get(extra, "tab")
-            if kind is None:
-                continue
-            s = KROTKIE[kind]() * (0.9 if kind == "tab" else 1.0)
+            s = KROTKIE[kind]() * (0.9 if kind == "tab" else 1.0) if kind else np.zeros(1)
+            g_ = TAB_GLOS_UJ.get((R.KOL[i], extra)) or TAB_GLOS.get(extra)
+            if g_:
+                v = smiech_tlum() if g_ == "*smiech_tlum" else glos(g_, GLOS_G.get(g_, 0.5))
+                if kind in ("wahwah", "wahwah_k"):  # najpierw głos, potem puzon
+                    s = np.concatenate([np.zeros(N(0.7)), s])
+                s = _s(s, np.concatenate([np.zeros(N(0.05)), v]))
         elif rodzaj == "podpis":
             s = podpis_snd()
         elif rodzaj == "zawieszka":

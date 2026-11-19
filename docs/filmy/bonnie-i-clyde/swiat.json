@@ -260,7 +260,7 @@
       "id": "aparat",
       "name": "Aparat z kliszą",
       "place": "wnetrza",
-      "seeded": "d00_11~aparat",
+      "seeded": "d00_14~aparat",
       "uses": [
         "d03_03~aparat",
         "d03_04~klisza"
@@ -271,9 +271,9 @@
       "id": "cygaro",
       "name": "Pożyczone cygaro",
       "owner": "Bonnie",
-      "seeded": "d00_12~cygaro",
+      "seeded": "d00_15~cygaro",
       "uses": [
-        "d00_15~cigars",
+        "d00_18~cigars",
         "d03_06~cygaro",
         "d06_09~cigars"
       ]
@@ -449,10 +449,10 @@
       "id": "cygaro",
       "title": "Bonnie nie paliła cygar",
       "setup": [
-        "d00_12~cigar"
+        "d00_15~cigar"
       ],
       "clues": [
-        "d00_15~cigars",
+        "d00_18~cigars",
         "d03_06~cygaro"
       ],
       "payoff": [
@@ -463,7 +463,7 @@
       "id": "aparat",
       "title": "Klisza z Joplin",
       "setup": [
-        "d00_11~camera"
+        "d00_14~camera"
       ],
       "payoff": [
         "d03_03~camera"
@@ -535,7 +535,7 @@
       "id": "obietnica",
       "title": "Łowca, który nie gonił",
       "setup": [
-        "d00_16~without ever chasing"
+        "d00_19~without ever chasing"
       ],
       "clues": [
         "d05_05~ditch"
