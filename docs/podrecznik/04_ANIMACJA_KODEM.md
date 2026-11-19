@@ -52,6 +52,30 @@ Pliki w `output/pierwszy-cesarz/`, rozpiska i księga w `docs/filmy/pierwszy-ces
 **Nowy film teatru papierowego**: skopiuj `papier.py`, `render.py`, `na_zywo.py` i szkielet `efekty.py`; wytnij nową
 scenerię kraju i epoki oraz nową obsadę (`zestaw.py`); rozpisz `dane.py` i `ksiega.py`; opisz pliki w warsztacie filmu.
 
+
+### Lekcje z „Bonnie and Clyde” (19.11.2026, Ameryka lat 30.)
+
+Pliki w `output/bonnie-i-clyde/`: `zestaw_bc.py` (lalki lat 30. na tej samej geometrii arkusza co japońskie, Ford V8,
+radiowóz, motocykl, ciężarówka, fasady, wnętrza, rekwizyty, teatr oklejony gazetami), `scena.py` (scenografie
+i pomocnicze), `ujecia_a.py` / `ujecia_b.py`. Zasady, które dopisał silnik:
+
+| Zasada | Jak |
+|---|---|
+| Aktorzy i auta wchodzą dopiero, gdy dekoracja się zbuduje | `scena.BUDOWA` ustawia render przed ujęciem, `wejscie()` opóźnia lalki i auta; bez tego stały na pustym płótnie |
+| Pasażer auta nie ma nóg pod karoserią | `lalka(…, siedzi=True)` — korpus ucięty tuż pod biodrami; miejsce w oknie z `J.FORD_GLOWY` albo własne `(x, y)`, czwarty element `-1` = twarzą do tyłu |
+| Sylwetka teatru cieni jest całkiem czarna | `cien(…)` z `alpha=1`; przy przezroczystości ręce rysowały na tułowiu „X” |
+| Auto dachuje wokół własnego środka | `auto_srodek(st, t, cx, cy, h, rot)` — `auto()` obraca się wokół linii kół i przy 180° znikało pod sceną |
+| Pod ścianą wnętrza stały pas podłogi | `scena.spod()` — podczas budowy podłoga wjeżdża od dołu i przez chwilę prześwitywało płótno (kontrola końca świata) |
+| Wysokość z odbicia może być zerowa | `h=max(1.0, …*back(k))` — `back` daje 0 w jednej klatce i klatka się wywraca (wyłapał to przegląd dźwięku) |
+| Rzecz na ziemi i leżąca postać są nad rampą | rekwizyt ok. `y ≤ 690` albo plan przed rampą; leżąca lalka `lift` ok. 70; rzeka w przeprawie z górą ok. 590 |
+| Kamera nisko przy akcji przy ziemi | zbliżenia na ziemię `y` 480–520; inaczej akcja chowa się pod napisami |
+| Nic nie zasłania twarzy w oknie i nikt przypadkiem nie celuje w partnera | gazeta obok głowy, nie na niej; karabin czyszczony leży na kolanach |
+| Skrót w zapowiedzi bez zdradzających podpisów | `render.WYCINEK` od chwili akcji, ale po zjechaniu podpisu („Frank Hamer” jest tajemnicą do aktu V) |
+| Przejście bez kurtyny | `render.BEZ_KURTYNY = {1}` — prolog przechodzi w akt I ściemnieniem (Rytm, „jeden początek”) |
+
+**Przegląd po akcie.** Arkusz po 6 ujęć z miniaturami 400 px (`R.arkusz(zakres, plik, cols=3, tw=400)`), potem pełne
+klatki tylko tam, gdzie coś nie gra; poprawki od razu dla całej klasy błędu (w silniku), nie w jednym ujęciu.
+
 ## Zasady rysowania
 
 - Czasy wydarzeń liczy się od początku ujęcia (`t`), nie bezwzględnie.

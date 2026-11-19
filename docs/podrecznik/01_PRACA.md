@@ -138,3 +138,33 @@ JEZYK=en python3 -I output/pierwszy-cesarz/studio_pc.py --projekt prj_65a9a00a6f
 ```
 
 Render końcowy (reżyser, na PC): `output\pierwszy-cesarz\pc\renderuj_en.bat`.
+
+## Nowy film krok po kroku (wzór: „Bonnie and Clyde”, 18–19.11.2026)
+
+Cały film od tematu do Studio w półtora dnia. Kolejność, która się sprawdziła:
+
+1. **Temat i kąt.** Najpierw trendy i konkurencja na YouTube (TubeAlfred: zapytania, kanały, wyniki filmów; narzędzia
+   „batch” liczą 1 kredyt na element — partię dobieraj do salda). Dla wybranego tematu kilka różnych kątów opowieści
+   z dowodami popytu, potem tytuł (szukaj na YouTube, zanim go zaproponujesz).
+2. **Szkice ujęć.** Trzy różne scenariusze z hakami (`docs/filmy/<film>/szkice/buduj_szkice.py`, wspólna pula ujęć),
+   import do Studio (etap „Szkice ujęć”). Reżyser wybiera albo łączy („robimy A, ale wplatamy B” → szkic D) i zatwierdza.
+3. **Własna gałąź i worktree.** `git worktree add .claude/worktrees/<film> -b <film>`; w głównym katalogu dowiązania
+   symboliczne `docs/filmy/<film>` i `output/<film>` do worktree, bo Studio działa z głównego katalogu. Commit po każdym
+   etapie na gałęzi filmu.
+4. **Spójność scenariusza** przed rozpiską: fakty i daty, kto kiedy się pojawia, co jest tajemnicą do którego aktu
+   (np. łowca do aktu V), czy kwestie nie zdradzają zakończenia.
+5. **Rozpiska i księga.** `dane.py` raz wygenerowany ze szkicu, potem jedyne źródło; `ksiega.py` (świat, postaci,
+   rekwizyty, wątki, spoilery; `namedIn` to lista wzorców `["d05_*"]`); `buduj.py` → `ROZPISKA.md`;
+   `studio_film.py plan` → kontrola ciągłości bez błędów wagi 3 i 2.
+6. **Rysunek po aktach.** Zestaw kraju i epoki (lalki, dekoracje, pojazdy, rekwizyty), `scena.py` (scenografie
+   i pomocnicze), ujęcia `ujecia_a.py` / `ujecia_b.py`. Po każdym akcie arkusz klatek (rozdział „Animacja kodem”),
+   poprawki, commit.
+7. **Kontrole.** `render.py kontrola` (koniec świata) i przegląd dźwięku (`efekty.py` liczy każdą klatkę co 0,08 s —
+   wyłapuje też klatki, które się wywracają). Dopiero potem Studio.
+8. **Studio.** `studio_film.py plan`, potem `klatki` (po jednej klatce na ujęcie na oś v1 jako zapas; obraz rysuje
+   podgląd na żywo — sprawdź `/api/projects/<id>/teatr/stan`). Studio uruchamia `npm run dev` (konfiguracja „studio”,
+   API na porcie 8876).
+9. **Dźwięk** według rozdziału „Dźwięk”: próbka do akceptacji, dopiero potem `studio_film.py dzwiek`.
+10. **Dziennik** po każdym etapie (co, dlaczego, pliki, wynik kontroli), a w nim cytat zgody reżysera.
+11. **Lektora nagrywa reżyser na końcu**, render końcowy też należy do niego. Po każdej zmianie długości ujęć:
+    `plan`, `klatki` i ponownie dźwięk (muzyka i efekty idą jednym klipem na cały film).

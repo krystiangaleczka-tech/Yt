@@ -62,3 +62,13 @@ i opowieść się bronią. Miniatura klika się przyzwoicie.
 5. Tło bohatera krótko i z napięciem; nowa nazwa najwyżej co ok. 20 s i zawsze z podpisem; co 45–60 s nowe pytanie albo zwrot.
 6. Napisy, podpisy i tabliczki czytelne na telefonie; angielskie napisy także jako osobny plik.
 7. Wyniki czytać po źródłach ruchu; reklamę puszczać, gdy ruch organiczny trzyma po 30 s co najmniej ok. 60 %.
+
+**Jak skrócić akt tła (Bonnie and Clyde, akt I: 149 → 119 s, 19.11.2026).** Ujęcie, którego treść da się dopowiedzieć
+w sąsiedniej kwestii, wypada („szkoła” → „Bonnie Parker wrote poems…” w kwestii ślubu; więzienie Roya i obrączka →
+kawiarnia). Akcja, o której mówi lektor, idzie w krótkich niemych gagach 3,5–4,5 s z tabliczką (areszt „HEY!”, peron
+„OH NO”, brama „PAROLE”). Kwestie zwięzłe, z ironią na końcu („something exciting finally happened: … he was
+arrested”). Ostatnie ujęcie aktu zostawia pytanie.
+
+**Szybkie cięcia a zasada ¼ s.** Sąsiednie ujęcia różnią się co najmniej o 0,25 s, więc równe cięcia 0,6 s rozpiska
+sama wydłuża. Zapowiedź tnie się parami 0,4 / 0,7 s (różnica bez błędów zaokrągleń), a ostatnie ujęcie z wyciemnieniem
+jest dłuższe.
