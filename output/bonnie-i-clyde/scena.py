@@ -409,6 +409,7 @@ def wnetrze(st, t, w, sciana="kwiaty", podloga=(130, 96, 66), okna=(), drzwi=(),
     """Wnętrze: ściana z tapetą (plan ściany), okna i drzwi, podłoga, meble na planie mebli, wisząca żarówka.
     meble = [(klucz, x, wysokość, plan albo None)] — mebel stoi na podłodze (dół na linii STOPY)."""
     st.put(J.sciana(sciana), CX, 720, P.miasto, w=2200, anchor=(0.5, 1.0), shadow=None, tint=tint)
+    spod(st, podloga)
     noc = w.noc > 0.5 if noc_za_oknem is None else noc_za_oknem
     for n, x in enumerate(okna):
         J.hang(st, J.okno(noc), x, 150, P.miasto + 0.01, bk(w, 0.2 + 0.1 * n), t, 120 + n, h=300, drop=500, sway=0.3, strings=(0.1, 0.9))
@@ -503,6 +504,7 @@ def parawan(st, t, w, pw=1000, y0=700, p0=0.79, swiatlo_k=1.0):
 def drukarnia(st, t, w, obrot=0.0, kul=True):
     """Drukarnia gazety: ceglana ściana, maszyna z kręcącymi się wałkami, stos świeżych gazet."""
     st.put(J.sciana("cegla"), CX, 720, P.miasto, w=2200, anchor=(0.5, 1.0), shadow=None)
+    spod(st, (96, 90, 84))
     Z0.rise(st, J.podloga((96, 90, 84)), CX, 820, P.droga, bk(w, 0.2), t, 200, w=2200, wob=0.0, lift=220, anchor=(0.5, 1.0))
     k = bk(w, 0.3)
     Z0.rise(st, J.maszyna(), 600, 700, P.wzgorza, k, t, 201, h=470, wob=0.0)
@@ -520,9 +522,15 @@ def drukarnia(st, t, w, obrot=0.0, kul=True):
         kulisy(st, t, w, dol=False)
 
 
+def spod(st, kolor=(130, 96, 66)):
+    """Stały pas podłogi pod ścianą wnętrza: zanim wjedzie podłoga (budowa dekoracji), pod ścianą nie świeci puste płótno."""
+    st.put(J.podloga(kolor), CX, 700, P.miasto - 0.002, w=2200, anchor=(0.5, 0.0), shadow=None, tint=(0.7, 0.7, 0.7))
+
+
 def mapa_scena(st, t, w, k=1.0, x=640, y=40, wd=820, sciana="deski"):
     """Biuro Hamera: ściana z desek i mapa stanów na tablicy (zjeżdża na nitkach)."""
     st.put(J.sciana(sciana, 2), CX, 720, P.miasto, w=2200, anchor=(0.5, 1.0), shadow=None)
+    spod(st)
     J.hang(st, J.mapa_plansza(), x, y, P.wzgorza, min(k, bk(w, 0.2, 0.9)), t, 210, w=wd, drop=600, sway=0.4, strings=(0.08, 0.92))
     return x - wd / 2, y, wd / 1000.0  # lewy górny róg mapy i skala (do pinezek i nici)
 
