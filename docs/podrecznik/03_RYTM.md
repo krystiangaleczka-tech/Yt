@@ -72,3 +72,12 @@ arrested”). Ostatnie ujęcie aktu zostawia pytanie.
 **Szybkie cięcia a zasada ¼ s.** Sąsiednie ujęcia różnią się co najmniej o 0,25 s, więc równe cięcia 0,6 s rozpiska
 sama wydłuża. Zapowiedź tnie się parami 0,4 / 0,7 s (różnica bez błędów zaokrągleń), a ostatnie ujęcie z wyciemnieniem
 jest dłuższe.
+
+### Skracanie a pomosty (lekcja z 19.11.2026)
+
+Przy skracaniu aktu nie wycina się ujęcia, które przenosi opowieść do innej postaci albo miejsca, choćby było „tylko tłem”.
+W „Bonnie and Clyde” wypadło ujęcie szkoły Bonnie i po indykach Clyde'a od razu zaczynał się ślub Bonnie; reżyser: „to nie
+ma sensu”. Pomost wrócił jako krótkie ujęcie z łącznikiem w kwestii („Meanwhile, a few miles away…”), zawieszką miejsca
+i rzeczą, która przechodzi z ujęcia do ujęcia. Po każdym skróceniu wypisz granice scen (koniec i początek kwestii) i sprawdź
+łączniki (Wytyczne 1.27).
+

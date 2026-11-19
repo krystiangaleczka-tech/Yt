@@ -371,6 +371,11 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
   zbliżeń dłoni (wycinek 240 px wokół dłoni w kilku chwilach ujęcia).
 - **Postać niesiona leży na rękach niosącego**, po stronie, w którą wyciąga ręce; stojący trzyma karabin w dłoniach
   (`KARABIN()`), a nie „na kolanach” w powietrzu.
+- **Zmiana bohatera albo miejsca ma łącznik**: kiedy opowieść przechodzi od jednej postaci do drugiej (Clyde → Bonnie)
+  albo do innego miasta, pierwsza kwestia nowej sceny mówi, gdzie i kiedy jesteśmy („Meanwhile, a few miles away in Cement
+  City…”), zjeżdża zawieszka miejsca, a obraz łączy oba ujęcia (indyk, który uciekł w West Dallas, spada w Cement City).
+  Z indyków od razu w ślub było „bez sensu” (reżyser 19.11). Kontrola: wypisz wszystkie granice scen z końcem i początkiem
+  kwestii i sprawdź, czy każda ma łącznik czasu, miejsca albo osoby.
 - **To samo miejsce nie buduje się od zera**: kiedy następna scena dzieje się w tym samym miejscu (pole pod Waldo po
   śmiechu Darby'ego, rzeka zaraz po Dexfield, ta sama nocna droga, Kansas po jeździe z Boydem), jest zwykłe cięcie bez
   gaśnięcia i bez pustego płótna (`render.CIAGLOSC`); budowa od zera mówi widzowi „nowa historia”.
@@ -643,6 +648,7 @@ i błędy znalezione w kontroli.
 | Bonnie and Clyde, otwarcie (19.11, reżyser) | „jest 5 s spoiler, najlepiej zrób go 6 s i szybko zmieniaj ujęcia… a potem w tym filmie dowiecie się blablabla… i kurtyna i znowu od nowa tak jakby?” — trzy starty: długa kurtyna tytułu, lista obietnic, kurtyna aktu I z powrotem w czasie; w zapowiedzi podpis zdradzał łowcę | 1.26 |
 | Pierwszy cesarz EN, wyniki po 1 dniu 20 h (19.11, reżyser) | po 30 s ogląda 35 %, średnio 1:29 z 11:19: pusta rama z tytułem na starcie, chronologia „Long ago…” bez haka, pięć nazw w 40 s, kurtyna aktu w 1:18 | 1.26, Rytm |
 | Bonnie and Clyde, ślub (19.11, marker reżysera) | „znika to i po łuku napis pod tymi kwiatkami Happy Ever After” — tabliczka z sercami zjeżdżała na górę łuku z kwiatów i go zasłaniała; pod łukiem brakowało napisu | 1.27 |
+| Bonnie and Clyde, akt I (19.11, reżyser) | „dlaczego z ujęcia 21 o jakichś indykach robi się nagle w 22 ślub? to nie ma sensu” — przy skracaniu aktu I wypadło ujęcie szkoły, które było pomostem od Clyde'a do Bonnie; kwestia ślubu zaczynała się bez „tymczasem” | 1.27, Rytm |
 | Bonnie and Clyde, gagi (19.11, reżyser) | „więcej gagów i musisz poprawić ich umiejscowienie w rękach szczególnie” — karabiny łowców w X, gazety obok twarzy, łyżka obok garnka, laska w górę, miarka w powietrzu, kieszenie jako kwadraty, ręka maszynisty jak patyk, kapelusz nad maską | 1.27 |
 | Bonnie and Clyde, próbka głosów (19.11, reżyser) | „wygląda to jakby dwie historie nachodziły na siebie… na 2:48 jak kurtyna wjeżdża, pojawiają się dwie różne tabliczki po sobie” — próbka była zlepkiem fragmentów z różnych aktów bez plansz (kurtyna aktu III, zaraz potem akt VIII); w filmie cztery sceny w tym samym miejscu budowały się od pustego płótna | 1.27 |
 | Bonnie and Clyde, recenzja 114 ujęć (19.11, kontrola wykonawcy na prośbę reżysera) | lustrzane „EXTRA!” na przewracanej stronie i „SHERIFF” na aucie jadącym w lewo; „THE OUTLAWS MADE OF PAPER” i „BONNIE AND CLYDE” wystawały poza tablice; w zapowiedzi na 0,1 s mignął podpis Hamera; teczka, kapelusz, karabin, puszka i list wisiały nad pustym płótnem w czasie budowy; Bonnie „niesiona” wisiała za plecami Clyde'a; karabin „na kolanach” stojącego Clyde'a; podpis Buchera poza kadrem, W.D. podpisany już w aucie, „undertaker” w podpisie 8 s przed puentą; kanapka za karoserią, teczka i „HA HA HA!” pod napisem; nazwy cmentarzy za żałobnikami; „SEE THE DEATH CAR” biały na białym pasie | 1.27 |
