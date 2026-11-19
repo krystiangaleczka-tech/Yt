@@ -33,3 +33,32 @@ filmu. Zasady poniżej są wspólne.
    dekoracja i tak wjeżdża, a slajd wygląda jak program do prezentacji. Kod: `render.przejscie` filmu.
 8. **Tłum to osobne postacie** (opóźnienia, tempo, jeden spóźniony).
 9. **Dźwięk:** ciągłe tło pod całością, osobny dźwięk każdego wydarzenia, lektor.
+
+## Początek filmu i utrzymanie uwagi — lekcja z wyników „Pierwszego cesarza” (19.11.2026)
+
+**Liczby po 1 dniu 20 h.** 287 wyświetleń, 137 unikalnych widzów, 6,3 h oglądania. Średnio 1:24–1:29 z 11:19 (13 %), po
+30 s ogląda tylko 35 %, spadek trwa do ok. 3:45, potem równo 8–10 % do końca. Aż 206 z 287 wyświetleń przyszło z reklamy
+YouTube (zimny widz), miniatura: 392 wyświetlenia, CTR 5,4 %. Reakcje: +11 subskrypcji (8 % widzów), 15 polubień, 0 łapek w
+dół, 6 udostępnień, 4 komentarze. Telefon 56 %, tablet 17 %, komputer i TV po 14 %; napisy angielskie włącza 26 %; USA 49 %,
+Polska 12 %; kobiety 58 %.
+
+**Co działa.** Kto przetrwa ok. 4 minuty, zostaje do końca i reaguje (8 % subskrybuje, zero łapek w dół, udostępnienia) — teatr
+i opowieść się bronią. Miniatura klika się przyzwoicie.
+
+**Co zawiodło (wersja opublikowana).**
+1. Martwy start: ok. 3 s pustej ramy z tytułem i 3 s krajobrazu, zanim padło pierwsze słowo.
+2. Brak haka i pytania: „Long ago, this land was divided…” — tło chronologiczne od narodzin, widz nie wie, po co ogląda.
+3. Za dużo nazw na starcie: siedem królestw, Zheng, Handan, Qin, Lü Buwei w 40 s.
+4. Jedna dekoracja przez pierwszą minutę, a w 1:18 kurtyna z tytułem aktu — „koniec rozdziału” w chwili, gdy widz decyduje.
+5. 72 % ruchu z reklamy zaniża utrzymanie; bez rozbicia na źródła ruchu wykres miesza zimnego widza z prawdziwym.
+
+**Zasady od „Bonnie and Clyde”** (uzupełniają przepis na otwarcie z 18.11):
+1. Pierwsza klatka już w ruchu i na temat. Zapowiedź 6 s: ok. 10 cięć po 0,6 s na uderzeniach muzyki, na końcu ściemnienie.
+2. Kurtyna tytułu krótko (do 2,5 s), lektor zaczyna najpóźniej ok. 9 s od początku.
+3. **Jeden początek.** Po zapowiedzi i tytule opowieść już się toczy: hak (tajemnica) w pierwszych 15–30 s, a obietnica to jedno
+   pytanie, które prowadzi prosto w retrospekcję („It all starts…”) — bez listy „By the end, you'll know…”.
+4. Między prologiem a aktem I **bez kurtyny i tabliczki aktu** (wygląda jak drugi start filmu); zamiast niej ściemnienie i
+   zawieszka miejsca i czasu („West Dallas, 1920s”). Kurtyny z tytułami aktów od aktu II.
+5. Tło bohatera krótko i z napięciem; nowa nazwa najwyżej co ok. 20 s i zawsze z podpisem; co 45–60 s nowe pytanie albo zwrot.
+6. Napisy, podpisy i tabliczki czytelne na telefonie; angielskie napisy także jako osobny plik.
+7. Wyniki czytać po źródłach ruchu; reklamę puszczać, gdy ruch organiczny trzyma po 30 s co najmniej ok. 60 %.
