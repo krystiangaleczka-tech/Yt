@@ -33,6 +33,12 @@ DROGA_Y = 694  # linia kół aut na planie aut (P.auta)
 BUDOWA = {"t": None}  # render: sekundy od początku budowania dekoracji w bieżącym ujęciu (None — dekoracja już stoi)
 
 
+def dekoracja(st, *a, **kw):
+    """st.put dla kawałka dekoracji stawianego wprost w ujęciu (kurtyny przed ukłonami): stoi od początku budowy, nie czeka
+    jak rekwizyt (render.po_budowie)."""
+    st.put(*a, **kw)
+
+
 def wejscie(d=1.0, dur=0.6):
     """Aktorzy i auta wchodzą dopiero, gdy dekoracja się zbuduje (ujęcie otwierające scenę)."""
     b = BUDOWA["t"]
@@ -185,7 +191,7 @@ def auto(st, t, x, h=230, y=DROGA_Y, p=None, flip=1.0, kolor="szary", napis=None
     """Ford V8 z boku. (x, y) — środek między kołami na linii jezdni; h — wysokość auta w kadrze. droga — przejechana droga
     w px kadru (obraca koła; domyślnie z x). pasazerowie = [(klucz lalki, indeks miejsca 0 — tył, 1 — kierowca, ręce)]."""
     p = P.auta if p is None else p
-    spr = J.ford(kolor, napis, dziury, kurz)
+    spr = J.ford(kolor, napis, dziury, kurz, lustro=bool(napis) and flip < 0)  # napis na drzwiach nigdy lustrzany
     k = h / 360.0
     kb = wejscie(0.9)
     if kb <= 0:

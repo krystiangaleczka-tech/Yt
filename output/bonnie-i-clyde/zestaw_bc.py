@@ -586,7 +586,8 @@ def theatre():
     for shape in (R(-28, -28, 1308, -12), R(-28, 732, 1308, 748), R(-28, -28, -12, 748), R(1292, -28, 1308, 748)):
         im = glue(im, piece(w, h, shape, GOLD, "gnieciony", seed=40, contrast=0.9), shadow=0.5)
     # szyld z tytułem: czarna tablica ze złotymi stopniami i promieniami
-    stopnie = [(260, -150, 1020, -40), (330, -190, 950, -150), (420, -224, 860, -190)]
+    # tablica szersza od napisu (przegląd 19.11: „THE” i „PAPER” wystawały poza czarną tablicę)
+    stopnie = [(170, -150, 1110, -40), (330, -190, 950, -150), (420, -224, 860, -190)]
     for i, (x0, y0, x1, y1) in enumerate(stopnie):
         im = glue(im, piece(w, h, R(x0, y0, x1, y1), (24, 22, 24), "gladki", seed=50 + i, contrast=1.3), shadow=0.8, off=(6, 8), soft=8)
         for shape in (R(x0, y0, x1, y0 + 6), R(x0, y1 - 6, x1, y1)):
@@ -599,7 +600,12 @@ def theatre():
         im = glue(im, piece(w, h, poly(pts), GOLD, "gnieciony", seed=60 + k), shadow=0.3)
     title = glyphs("THE OUTLAWS MADE OF PAPER", 52, FONT_PL, PL_IDX, (640 + ox, -100 + oy), "mm")
     im = glue(im, piece(w, h, title, (236, 198, 110), "gladki", rough=0.6, contrast=1.2), shadow=0.7, off=(2, 3), soft=1.5)
-    sub = glyphs("BONNIE AND CLYDE", 24, FONT_PL, PL_IDX, (640 + ox, -170 + oy), "mm", spacing=6)
+    # glyphs ze spacing stawia każdą literę od punktu startu, więc środek liczymy sami (wcześniej napis zaczynał się
+    # na środku i wystawał za tablicę z prawej)
+    from PIL import ImageFont
+    f = ImageFont.truetype(FONT_PL, 24, index=PL_IDX)
+    szer = sum(f.getlength(ch) for ch in "BONNIE AND CLYDE") + 6 * 15
+    sub = glyphs("BONNIE AND CLYDE", 24, FONT_PL, PL_IDX, (640 - szer / 2 + ox, -170 + oy), "lm", spacing=6)
     im = glue(im, piece(w, h, sub, (214, 176, 100), "gladki", rough=0.5, contrast=1.2), shadow=0.6, off=(1, 2), soft=1)
     # rampa ze światłami u dołu
     im = glue(im, piece(w, h, R(-200, 760, 1480, 820), wood, "gnieciony", seed=70, contrast=0.9), shadow=0.6)
@@ -983,7 +989,7 @@ KOLO_R = 64
 
 
 @lru_cache(None)
-def ford(kolor="szary", napis=None, dziury=0, kurz=False):
+def ford(kolor="szary", napis=None, dziury=0, kurz=False, lustro=False):
     """Ford V8 z 1934 roku z boku (przodem w prawo): błotniki, maska z atrapą, kabina z oknami, stopień; koła osobno (kolo)."""
     c = FORDY.get(kolor, kolor) if isinstance(kolor, str) else kolor
     w, h = 900, 360
@@ -1019,7 +1025,14 @@ def ford(kolor="szary", napis=None, dziury=0, kurz=False):
     if napis:
         from PIL import ImageFont
         f = ImageFont.truetype(FONT_PL, 34, index=PL_IDX)
-        d.text((362, 220), napis, font=f, fill=(240, 236, 226, 255), anchor="mm")
+        if lustro:  # auto jedzie w lewo (sx=-1): napis rysujemy odbity, żeby po odbiciu auta czytał się normalnie
+            lay = Image.new("RGBA", im.size, (0, 0, 0, 0))
+            ImageDraw.Draw(lay).text((362, 220), napis, font=f, fill=(240, 236, 226, 255), anchor="mm")
+            lay = lay.transpose(Image.FLIP_LEFT_RIGHT)
+            im.alpha_composite(lay, (2 * 362 - im.size[0], 0)) if 2 * 362 - im.size[0] >= 0 else im.alpha_composite(
+                lay.crop((im.size[0] - 2 * 362, 0, im.size[0], im.size[1])), (0, 0))
+        else:
+            d.text((362, 220), napis, font=f, fill=(240, 236, 226, 255), anchor="mm")
     if dziury:
         r = random.Random(dziury)
         a = np.asarray(im.getchannel("A"))
@@ -1032,7 +1045,7 @@ def ford(kolor="szary", napis=None, dziury=0, kurz=False):
                 n += 1
     if kurz:
         d.rectangle([60, 240, 870, 290], fill=(190, 170, 130, 70))
-    return Sprite(im, f"ford-{c}-{napis}-{dziury}-{kurz}", rim=2, clean=False, crop=False)
+    return Sprite(im, f"ford-{c}-{napis}-{dziury}-{kurz}-{lustro}", rim=2, clean=False, crop=False)
 
 
 FORD_OKNA = [[(310, 88), (420, 88), (420, 160), (300, 160)], [(434, 88), (548, 88), (582, 160), (434, 160)],
@@ -1499,7 +1512,9 @@ def namiot_jarmark():
         x0 = 40 + k * 91
         parts.append((poly([(x0, 200), (x0 + 91, 200), (x0 + 91, 560), (x0, 560)]), (200, 50, 46) if k % 2 == 0 else (240, 232, 214), dict(edge=1)))
     parts += [(poly([(20, 210), (450, 20), (880, 210)]), (200, 50, 46), dict(edge=2)), (rect(330, 300, 570, 560), (40, 30, 26)),
-              _tekst("SEE THE DEATH CAR", 34, (450, 250), (250, 230, 170))]
+              # szyld pod napisem: biały napis ginął na białych pasach namiotu (przegląd 19.11)
+              (rect(250, 226, 650, 276), (40, 30, 26), dict(edge=2)),
+              _tekst("SEE THE DEATH CAR", 32, (450, 252), (250, 230, 170))]
     return Sprite(stack(w, h, parts, seed=640), "namiot-jarmark", rim=2, clean=False)
 
 
@@ -1586,6 +1601,49 @@ def tatuaz():
         lay.alpha_composite(sz, (int(x - 80), 28))
         im = glue(im, lay, shadow=0.4)
     return Sprite(im, "tatuaz", rim=2, clean=False)
+
+
+@lru_cache(None)
+def wstega_luk(txt="HAPPY EVER AFTER", w=520, h=160, cx=260, cy=232, rx=205, ry=205, a0=0.21, a1=0.79, size=29):
+    """Wstęga po łuku z napisem (ślub Bonnie i Roya: „HAPPY EVER AFTER” pod łukiem z kwiatów; marker reżysera 19.11).
+    Łuk to elipsa o środku (cx, cy); a0..a1 — część półokręgu (w ułamkach π) od lewej do prawej. Litery stoją wzdłuż łuku."""
+    from PIL import ImageChops, ImageFont
+    ss = 2
+    pt = lambda a, r=0.0: (cx - (rx + r) * math.cos(math.pi * a), cy - (ry + r) * math.sin(math.pi * a))
+
+    def band(d, s_):
+        n = 80
+        aa = [a0 - 0.03 + (a1 - a0 + 0.06) * i / n for i in range(n + 1)]
+        d.polygon([(x * s_, y * s_) for x, y in [pt(a, 22) for a in aa] + [pt(a, -22) for a in aa[::-1]]], fill=255)
+    im = stack(w, h, [(band, (240, 228, 204), dict(kind="gladki", edge=3, contrast=1.2))], seed=901)
+    # litery: równo po długości łuku, wyśrodkowane
+    f = ImageFont.truetype(FONT_PL, size * ss, index=PL_IDX)
+    szer = [f.getlength(ch) / ss + 3 for ch in txt]
+    aa = np.linspace(a0, a1, 2000)
+    pts = np.array([pt(a) for a in aa])
+    dl = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(pts, axis=0).T))])
+    start = (dl[-1] - sum(szer)) / 2
+    mask = Image.new("L", (w * ss, h * ss), 0)
+    pos = start
+    for ch, sw in zip(txt, szer):
+        c = pos + sw / 2
+        pos += sw
+        if ch == " ":
+            continue
+        a = float(np.interp(c, dl, aa))
+        x, y = pt(a)
+        dx, dy = rx * math.sin(math.pi * a), -ry * math.cos(math.pi * a)
+        kat = -math.degrees(math.atan2(dy, dx))
+        L = Image.new("L", (size * ss * 2, size * ss * 2), 0)
+        ImageDraw.Draw(L).text((size * ss, size * ss), ch, font=f, fill=255, anchor="mm")
+        L = L.rotate(kat, resample=Image.BICUBIC)
+        ox, oy = int(x * ss - size * ss), int(y * ss - size * ss)
+        tlo = Image.new("L", mask.size, 0)
+        tlo.paste(L, (ox, oy))
+        mask = ImageChops.lighter(mask, tlo)
+    litery = paper(mask.resize((w, h), Image.LANCZOS), (168, 40, 48), "gladki", seed=902, contrast=1.1)
+    im = glue(im, litery, shadow=0.25, off=(1, 1), soft=1)
+    return Sprite(im, f"wstega-{txt}", rim=2, clean=False, crop=False)  # bez przycięcia: w=520 to cały arkusz łuku
 
 
 @lru_cache(None)

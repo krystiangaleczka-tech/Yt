@@ -185,8 +185,8 @@ AKTY = [(0,
         'PP',
         'stat',
         None,
-        'Piętnastoletnia Bonnie i Roy Thornton stają pod łukiem z papierowych kwiatów; z góry zjeżdża tabliczka-tatuaż: dwa '
-        'serca „Bonnie” i „Roy”; podpis „Roy Thornton”',
+        'Piętnastoletnia Bonnie i Roy Thornton stają pod łukiem z papierowych kwiatów; pod kwiatami zjeżdża wstęga „Happy '
+        'Ever After” po łuku; podpis „Roy Thornton”; nad łukiem tabliczka-tatuaż: dwa serca „Bonnie” i „Roy”',
         'L: Bonnie Parker wrote poems and dreamed of the stage, but at fifteen she married a boy named Roy Thornton and had '
         'their names tattooed in two hearts, a very permanent decision.')])]),
    ('Kawiarnia w Dallas',

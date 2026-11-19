@@ -6,6 +6,7 @@ Akt V — łowca (Hamer), VI — Ameryka przestaje kibicować, VII — pułapka,
 import math
 import sys
 
+import scena as swiat  # noqa: E402
 from scena import (CX, DROGA_Y, J, OCZY, P, STOPY, Z0, auto, back, bk, blysk, cien, ciezarowka, cmentarz, drukarnia, ease, ease_out,
                    eastham, jazda, kam, kino, lalka, las, lerp, mapa_punkt, mapa_scena, miasto, motocykl, noise, parawan, podpis, pr,
                    preria, punkt, teatr_gazet, widownia, wnetrze)
@@ -412,7 +413,7 @@ def s_prasa_cygaro(st, w, t, T):
             if t < 0.6 + n * 0.15:
                 continue
             st.put(J.gazeta("BONNIE: NO CIGARS!", n % 4, 360, 480), 820 + f * 900 + 40 * math.sin(n), 300 - f * 520 + 80 * math.sin(f * 3 + n),
-                   P.drzewa + 0.02 * (n % 3), h=110, anchor=(0.5, 0.5), rot=f * 200 + n * 30, sx=math.cos(f * 6 + n), shadow=(4, 6, 6, 0.3))
+                   P.drzewa + 0.02 * (n % 3), h=110, anchor=(0.5, 0.5), rot=f * 200 + n * 30, sx=max(0.08, abs(math.cos(f * 6 + n))), shadow=(4, 6, 6, 0.3))  # bez lustrzanych napisów
     else:
         kam(st, t, 93, 520, 460, 1.3, 0.8)
         _biuro(st, t, w, kapelusz=True)
@@ -444,8 +445,9 @@ def s_wiersz(st, w, t, T):
     kam(st, t, 94, 680, 460, 1.2, 0.8)
     wnetrze(st, t, w, sciana="kwiaty", okna=(1000,), meble=(("stol", 520, 130, P.lalki + 0.02),), zarowki=(520,), noc_za_oknem=True)
     for n in range(2):
-        st.put(J.glow(r=128, color=(255, 240, 190)), 975 + 50 * n, 420, P.miasto + 0.03, w=70, anchor=(0.5, 0.5), mode="add", alpha=0.8,
-               shadow=None)
+        # światła Forda za oknem zapalają się dopiero, gdy stoi ściana (przegląd 19.11: świeciły na pustym płótnie)
+        st.put(J.glow(r=128, color=(255, 240, 190)), 975 + 50 * n, 420, P.miasto + 0.03, w=70, anchor=(0.5, 0.5), mode="add",
+               alpha=0.8 * bk(w, 0.9, 0.5), shadow=None)
     podala = t > 2.2
     zesz = (J.rek("zeszyt"), 40, (0.5, 0.5), 80, True)
     lalka(st, t, "matka_bonnie", 520, 290, flip=1, sink=0.12, lean=6 * podala, rece=(lerp(20, 80, ease(pr(t, 1.6, 0.6))), 60 * podala),
@@ -549,7 +551,8 @@ def s_kanapka(st, w, t, T):
     gryz = 0.5 + 0.5 * math.sin(t * 2.2)
     auto(st, t, x, h, droga=t * 300, pasazerowie=[("bonnie_czerwona", (372, 128), (lerp(70, 110, gryz), 70)), ("clyde", (505, 126), (60, 40))])
     k = h / 360.0
-    st.put(J.rek("kanapka"), x + (372 - 450) * k + 30 + 12 * gryz, DROGA_Y + (128 - 356) * k + 70 - 20 * gryz, P.auta - 0.002, h=26,
+    # kanapka przy ustach, w oknie przed szybą (przegląd 19.11: leżała za karoserią i nie było jej widać)
+    st.put(J.rek("kanapka"), x + (372 - 450) * k + 20 + 8 * gryz, DROGA_Y + (128 - 356) * k + 20 - 8 * gryz, P.auta + 0.0015, h=26,
            anchor=(0.5, 0.5), rot=-10)
     dh = h * 0.92
     sx_ = x + (505 - 450) * k
@@ -651,8 +654,10 @@ def s_pogrzeby(st, w, t, T):
     """Dwa osobne pogrzeby na dwóch cmentarzach, między nimi droga; tłumy przy obu; matka Bonnie odwraca się plecami."""
     kam(st, t, 106, 640, 440, lerp(1.1, 0.95, ease(t / T)), 0.79)
     cmentarz(st, t, w)
-    for n, (txt, x) in enumerate((("FISHTRAP CEMETERY", 150), ("WESTERN HEIGHTS", 1130))):
-        Z0.rise(st, J.tablica(txt), x, STOPY, P.wzgorza + 0.03, bk(w, 0.4 + 0.1 * n), t, 640 + n, h=170, wob=0.0)
+    # nazwy cmentarzy wiszą nad każdym z dwóch tłumów (przegląd 19.11: tablice na słupkach przy krawędziach kadru
+    # zasłaniali żałobnicy, a „buried in different cemeteries” to puenta ujęcia)
+    for n, (txt, x) in enumerate((("Fishtrap Cemetery", 370), ("Western Heights", 995))):
+        J.hang(st, J.tag(txt), x, 190, P.wzgorza + 0.03, bk(w, 0.5 + 0.15 * n), t, 640 + n, h=50, drop=420, sway=0.5)
     for x in (330, 980):
         if bk(w, 0.6) >= 1:
             st.put(J.rek("trumna"), x, 676, P.lalki + 0.07, w=240, anchor=(0.5, 1.0))
@@ -742,7 +747,7 @@ def s_film_hamer(st, w, t, T):
     if 5.4 < t < 5.8:
         st.dim = 0.3
     widownia(st, t)
-    tab(w, t, "HA HA HA!", 640, 560, 8.6, 2.6)
+    tab(w, t, "HA HA HA!", 780, 150, 8.6, 2.6)  # nad śmiejącą się aktorką; przy y 560 chował się pod napisami (przegląd 19.11)
     lalka(st, t, "hamer", 1200, 330, ease(pr(t, 9.6, 0.6)), flip=-1, rece=(20, 0))
     tab(w, t, "THAT'S NOT ME!", 1130, 240, 10.4, 4.0)
     koniec(st, w, t)
@@ -776,8 +781,10 @@ def s_koniec(st, w, t, T):
     lalka(st, t, "bonnie_cygaro", 470, 320, flip=1, lean=-85 * kl, sink=0.4 * kl, rece=(70 * (1 - kl), 10), trzyma=REV() if kl < 0.5 else None)
     lalka(st, t, "clyde", 980, 350, flip=-1, lean=85 * kl, sink=0.4 * kl, rece=(35 * (1 - kl), 20), trzyma=KARABIN() if kl < 0.5 else None)
     zam = t > 7.0
-    st.put(J.rek("teczka" if zam else "teczka_otwarta"), 640, STOPY + 30, P.rekwizyty, h=110 if zam else 90, anchor=(0.5, 1.0),
-           shadow=(5, 7, 8, 0.4))
+    # teczka zjeżdża na nitce nad maską auta, nad napisem (przegląd 19.11: leżała przy rampie pod napisem, a lektor mówi
+    # właśnie o niej — „a patient man reading their file”)
+    J.hang(st, J.rek("teczka" if zam else "teczka_otwarta"), 640, 330, P.rekwizyty, pr(t, 5.6, 1.0), t, 777, h=110 if zam else 90,
+           drop=420, sway=0.4, shadow=(5, 7, 8, 0.4))
     R = sys.modules.get("render") or sys.modules.get("__main__")
     if R is not None and hasattr(R, "kurtyna"):
         R.kurtyna(st, ease(pr(t, 10.0, 3.0)))
@@ -788,8 +795,8 @@ def s_dzieki(st, w, t, T):
     """Przed kurtyną wychodzą wszystkie lalki filmu i kłaniają się po kolei; Hamer zdejmuje kapelusz, Bonnie macha."""
     kam(st, t, 113, 640, 400, 1.0, 0.8, drift=0.4)
     for strona in (-1, 1):
-        st.put(Z0.kurtyna(strona), CX, -60, P.drzewa, h=1000, anchor=(1.0 if strona < 0 else 0.0, 0.0), shadow=None)
-    st.put(J.glow(), CX, 700, P.drzewa + 0.01, w=1800, anchor=(0.5, 0.5), mode="add", alpha=0.25, shadow=None, tint=(1.0, 0.85, 0.6))
+        swiat.dekoracja(st, Z0.kurtyna(strona), CX, -60, P.drzewa, h=1000, anchor=(1.0 if strona < 0 else 0.0, 0.0), shadow=None)
+    swiat.dekoracja(st, J.glow(), CX, 700, P.drzewa + 0.01, w=1800, anchor=(0.5, 0.5), mode="add", alpha=0.25, shadow=None, tint=(1.0, 0.85, 0.6))
     for n, key in enumerate(("buck", "blanche", "wd", "bonnie", "clyde", "hamer", "darby", "boyd")):
         x = 120 + 148 * n
         t0 = 1.2 + 0.45 * n
@@ -798,9 +805,9 @@ def s_dzieki(st, w, t, T):
         h = 330 if key in ("clyde", "hamer", "buck") else 300
         if key == "hamer":
             zdj = t > t0 - 0.3
-            lalka(st, t, "hamer_bez" if zdj else "hamer", x, h, flip=fl, lean=25 * fl * uklon, rece=(40, 0),
+            lalka(st, t, "hamer_bez" if zdj else "hamer", x, h, flip=fl, lean=16 * fl * uklon, rece=(40, 0),
                   trzyma=(J.rek("kapelusz_fedora"), 36, (0.5, 0.2), 90, True) if zdj else None)
         else:
             mach = key == "bonnie" and t > t0 + 1.0
-            lalka(st, t, key, x, h, flip=fl, lean=25 * fl * uklon, rece=(130 + 30 * math.sin(t * 8) if mach else 20, 10))
+            lalka(st, t, key, x, h, flip=fl, lean=16 * fl * uklon, rece=(130 + 30 * math.sin(t * 8) if mach else 20, 10))  # mniejszy ukłon: nie wpada na sąsiada
     koniec(st, w, t)

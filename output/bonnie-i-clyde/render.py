@@ -62,7 +62,7 @@ BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
 # lampa, szyld „SON OF THE SUN” widać, gdy kurtyna się rozsunie, bracia wysuwają się na polanę, kamera dojeżdża do 5 s).
 WYCINEK = {"zap_wellington_most": ("wellington_most", 1.2), "zap_zdjecie": ("zdjecie", 4.1), "zap_prasa": ("prasa", 2.0),
            "zap_kiosk": ("kiosk", 3.0), "zap_kaufman": ("kaufman", 4.8), "zap_poscigi": ("poscigi", 5.3), "zap_boyd": ("boyd", 2.6),
-           "zap_sowers": ("sowers", 3.3), "zap_hamer": ("hamer", 8.9), "zap_zasadzka": ("zasadzka", 0.6),
+           "zap_sowers": ("sowers", 3.3), "zap_hamer": ("hamer", 9.3), "zap_zasadzka": ("zasadzka", 0.6),
            "tytul": ("tytul", 1.0, 5.0)}
 # Kurtyna startu (reżyser 18.11.2026: „po spoilerze na końcu ściemnienie i kurtyna startu z pierwszym ujęciem”): ujęcie
 # zaczyna się zasuniętą kurtyną bez tytułu, która się rozsuwa (zapowiedź kończy się ściemnieniem — koniec swojej sceny).
@@ -180,6 +180,41 @@ def ziarno(i):
     return zlib.crc32(KOL[i].encode()) % 1000003
 
 
+# Rzeczy stawiane wprost w ujęciu (rekwizyt, zawieszka, nitka) czekają, aż dekoracja się zbuduje — tak jak lalki i auta
+# (scena.wejscie). Przegląd 19.11: teczka i kapelusz wisiały nad pustym płótnem, zanim wyrosło biurko; karabin, puszka
+# i list unosiły się w powietrzu w pierwszej sekundzie budowy.
+SCENOGRAFIA = {"niebo", "slonce", "ksiezyc", "chmury", "rampa", "kulisy", "pas", "teatr_gazet", "preria", "miasto", "wnetrze",
+               "eastham", "las", "wawoz", "ciemnosc", "parawan", "drukarnia", "spod", "mapa_scena", "cmentarz", "kino",
+               "widownia", "west_dallas", "dekoracja"}
+SAME_WCHODZA = SCENOGRAFIA | {"lalka", "auto", "motocykl", "ciezarowka", "cien", "rise"}  # mają własne wejście / wyrastanie
+
+
+def po_budowie(st):
+    k = swiat.wejscie(0.9, 0.4)
+    if k >= 1.0:
+        return
+
+    def wprost():
+        f = sys._getframe(2)
+        while f is not None and f.f_code.co_name != "uloz":
+            if f.f_code.co_name in SAME_WCHODZA:
+                return False
+            f = f.f_back
+        return True
+    put0, line0 = st.put, st.line
+
+    def put(spr, x, y, p, *a, **kw):
+        if 0.685 <= p < swiat.P.rampa and wprost():
+            kw["alpha"] = kw.get("alpha", 1.0) * k
+        return put0(spr, x, y, p, *a, **kw)
+
+    def line(pts, p, *a, **kw):
+        if 0.685 <= p < swiat.P.rampa and wprost():
+            kw["alpha"] = kw.get("alpha", 0.9) * k
+        return line0(pts, p, *a, **kw)
+    st.put, st.line = put, line
+
+
 def uloz(t, void=None):
     """Klatka w chwili t filmu, ułożona (wycinki, kamera, światło), jeszcze nie narysowana: (Stage, napis albo None).
     Z niej korzysta render i podgląd na żywo w Studio (na_zywo.py) — wzór: „Pierwszy cesarz” render.uloz."""
@@ -199,6 +234,7 @@ def uloz(t, void=None):
             w.build = od + lt
         swiat.BUDOWA["t"] = w.build
         st.T = Tj
+        po_budowie(st)
         FNS[j](st, w, od + lt, Tj)
         if not void:
             przejscie(st, i, lt, T)
@@ -211,6 +247,7 @@ def uloz(t, void=None):
             w.build = lt
         swiat.BUDOWA["t"] = w.build
         st.T = T
+        po_budowie(st)
         FNS[i](st, w, lt, T)
         if not void:
             przejscie(st, i, lt, T)

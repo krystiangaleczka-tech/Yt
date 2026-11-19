@@ -707,8 +707,14 @@ def s_chip(P, sec, r, o):
         bar += 1
 
 
-STYLE = {"rag": (s_rag, 1.0), "folk": (s_folk, 1.1), "blues": (s_blues, 1.1), "lowca": (s_lowca, 1.15), "napiecie": (s_napiecie, 1.2),
-         "mrok": (s_mrok, 1.1), "praca": (s_praca, 1.1), "jarmark": (s_jarmark, 1.0), "chip": (s_chip, 0.9)}
+# Styl → (funkcja, zamierzona różnica głośności w dB). Każdy temat jest najpierw wyrównany do tej samej głośności
+# (MUZYKA_DB), dopiero potem dostaje swoją różnicę: tematy różnią się najwyżej o ok. 3 dB i tylko celowo
+# (przegląd 19.11: „czemu muzyka raz gra ciszej, raz głośniej?” — rag grał o 6–7 dB głośniej od folku i mroku).
+STYLE = {"rag": (s_rag, 0.0), "folk": (s_folk, 0.0), "blues": (s_blues, 0.0), "lowca": (s_lowca, 0.0), "napiecie": (s_napiecie, 0.5),
+         "mrok": (s_mrok, -1.5), "praca": (s_praca, 0.0), "jarmark": (s_jarmark, 0.0), "chip": (s_chip, -0.5)}
+MUZYKA_DB = -19.5     # RMS tematu poza kwestią lektora
+CICHO_DB = -2.5       # opcja „cicho” (zasiew motywu łowcy)
+POD_KWESTIA_MUZYKA, POD_KWESTIA_EFEKTY = -8.0, -5.0
 
 # Od którego ujęcia gra który temat (do następnego wpisu). Opcje: bpm, key, fanfara, szybko, cicho, bez_harmonijki.
 CUES = [
@@ -749,12 +755,16 @@ def muzyka(total, starts, durs, voice):
         a0 = starts[klucz]
         nast = [starts[k] for k, _, _ in CUES[c + 1:] if k in starts]
         a1 = min(nast) if nast else total
-        fn, g = STYLE[styl]
+        fn, odchyl = STYLE[styl]
         sec = a1 - a0 + 0.6
         P = Pasmo(sec)
         fn(P, sec, np.random.default_rng(100 + c), o)
         x = P.x[:N(sec)]
         L = len(x)
+        # wyrównanie: każdy temat tak samo głośny (RMS bez cichych brzegów), plus zamierzona różnica stylu
+        srodek = x[N(0.5):max(N(0.5) + 1, L - N(0.6))]
+        rms = float(np.sqrt(np.mean(srodek ** 2))) + 1e-9
+        g = 10 ** ((MUZYKA_DB + odchyl + (CICHO_DB if o.get("cicho") else 0.0)) / 20) / rms
         tl = tt(L)
         fade = np.minimum(1, tl / 0.5) * np.clip((sec - tl) / 0.6, 0, 1)
         i0 = N(a0)
@@ -771,8 +781,37 @@ def muzyka(total, starts, durs, voice):
         j = min(n, i1 + N(2.5))
         gain[i1:j] = (np.linspace(1.5, 1.0, j - i1) if powrot else np.linspace(0, 1, j - i1))
     out *= gain
-    out *= np.where(voice, 10 ** (-8 / 20), 1.0)
+    out *= sciszanie(voice, POD_KWESTIA_MUZYKA)
     return out
+
+
+def sciszanie(voice, db, przerwa=3.0, przed=0.25, wejscie=0.3, wyjscie=0.9):
+    """Łagodne ściszenie pod kwestie lektora: przerwy krótsze niż `przerwa` s zostają ściszone (muzyka nie podskakuje
+    między zdaniami), ściszenie zaczyna się `przed` s przed kwestią i schodzi w `wejscie` s, wraca w `wyjscie` s.
+    Wcześniej był twardy przeskok o 8 dB na każdym brzegu kwestii (190 razy w filmie; przegląd 19.11)."""
+    krok = 441                                   # obwiednia co 10 ms
+    m = voice[::krok].astype(bool).copy()
+    k = len(m)
+    d = np.diff(m.astype(np.int8))
+    on, off = np.flatnonzero(d == 1) + 1, np.flatnonzero(d == -1) + 1
+    for o in off:                                # zasypanie krótkich przerw
+        nx = on[on > o]
+        if len(nx) and nx[0] - o < przerwa * 100:
+            m[o:nx[0]] = True
+    for o in np.flatnonzero(np.diff(m.astype(np.int8)) == 1) + 1:
+        m[max(0, o - int(przed * 100)):o] = True
+    cel = np.where(m, 10 ** (db / 20), 1.0)
+    g = np.empty(k)
+    v = 1.0
+    a_dol, a_gora = 1 / (wejscie * 100), 1 / (wyjscie * 100)
+    lo = 10 ** (db / 20)
+    for i in range(k):                          # liniowo w dół i w górę, bez skoków
+        if cel[i] < v:
+            v = max(cel[i], v - (1 - lo) * a_dol)
+        elif cel[i] > v:
+            v = min(cel[i], v + (1 - lo) * a_gora)
+        g[i] = v
+    return np.interp(np.arange(len(voice)), np.arange(k) * krok, g)
 
 
 # =====================================================================================================================
@@ -1684,7 +1723,7 @@ ZDARZENIA = {
     "cela": [(0.0, "pisanie", 11.0)] + [(2.0 + 0.9 * n, "trzepot", 0.7) for n in range(6)],
     "hillsboro": [(5.0, "thud", 0.6)],
     "atoka": [(7.4, "thud", 0.7)],
-    "wd": [(3.4, "drzwi", 0.8)],
+    "wd": [(5.9, "drzwi", 0.8)],
     "buck": [(0.3, "brama", 1.2)],
     "joplin_dom": [(4.6, "drzwi", 0.5), (5.0, "drzwi", 0.5), (6.9, "klik", 0.7)],
     "joplin_karty": [(0.3, "saks", 1.0), (1.0, "karty", 0.9), (4.2, "saks", 1.0), (6.2, "karty", 0.8)],
@@ -2080,7 +2119,7 @@ def main():
             events += 1
     fx += silniki(auta, n)
     fx += kroki(lalki, n)
-    fx *= np.where(voice, 10 ** (-5 / 20), 1.0)
+    fx *= sciszanie(voice, POD_KWESTIA_EFEKTY)
     mus = muzyka(total, starts, durs, voice)
     OUT.mkdir(exist_ok=True)
     zapisz(OUT / "efekty.wav", fx)

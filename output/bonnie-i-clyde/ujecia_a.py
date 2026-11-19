@@ -139,7 +139,9 @@ def s_hak_pomost(st, w, t, T):
     teatr_gazet(st, t, w)
     k = ease(pr(t, 0.1, T - 0.3))
     sx = math.cos(math.pi * k)
-    st.put(J.gazeta("EXTRA!", 50, 640, 760), CX, 760, 0.93, h=900, anchor=(0.0 if sx >= 0 else 0.0, 1.0), sx=sx if abs(sx) > 0.02 else 0.02,
+    # po przewróceniu widać drugą stronę (inną gazetę), nie lustrzane „EXTRA!” (przegląd 19.11)
+    strona = J.gazeta("EXTRA!", 50, 640, 760) if sx >= 0 else J.gazeta("WANTED", 51, 640, 760)
+    st.put(strona, CX, 760, 0.93, h=900, anchor=(0.0 if sx >= 0 else 1.0, 1.0), sx=max(0.02, abs(sx)),
            tint=(1.0 - 0.3 * abs(math.sin(math.pi * k)),) * 3)
     koniec(st, w, t)
 
@@ -156,7 +158,7 @@ def s_prasa(st, w, t, T):
         x = 820 + f * 900 + 40 * math.sin(n)
         y = 300 - f * 520 + 80 * math.sin(f * 3 + n)
         st.put(J.gazeta("OUTLAW GIRL WITH CIGAR", n % 4, 360, 480), x, y, P.drzewa + 0.02 * (n % 3), h=110, anchor=(0.5, 0.5),
-               rot=f * 200 + n * 30, sx=math.cos(f * 6 + n), shadow=(4, 6, 6, 0.3))
+               rot=f * 200 + n * 30, sx=max(0.08, abs(math.cos(f * 6 + n))), shadow=(4, 6, 6, 0.3))  # bez lustrzanych napisów
     koniec(st, w, t)
 
 
@@ -259,8 +261,10 @@ def s_szkola(st, w, t, T):
 
 
 def s_slub(st, w, t, T):
-    """Piętnastoletnia Bonnie i Roy Thornton pod łukiem z papierowych kwiatów; z góry zjeżdża tabliczka-tatuaż z dwoma sercami."""
-    kam(st, t, 13, 640, 380, lerp(1.0, 1.18, ease(t / T)), 0.8)
+    """Piętnastoletnia Bonnie i Roy Thornton pod łukiem z papierowych kwiatów; przy „married” pod kwiatami zjeżdża wstęga
+    „HAPPY EVER AFTER” po łuku, przy „tattooed in two hearts” nad łukiem tabliczka-tatuaż z dwoma sercami (marker reżysera
+    19.11: tabliczka zasłaniała górę łuku — „znika to i po łuku napis pod tymi kwiatkami Happy Ever After”)."""
+    kam(st, t, 13, 640, 360, lerp(1.0, 1.08, ease(t / T)), 0.8)
     wnetrze(st, t, w, sciana="kwiaty", okna=(240, 1040))
     for n in range(9):
         a = math.pi * (0.1 + 0.8 * n / 8)
@@ -268,8 +272,9 @@ def s_slub(st, w, t, T):
                drop=400, sway=0.6, string=False)
     lalka(st, t, "bonnie_slub", 560, 270, flip=1, rece=(30, 10))
     lalka(st, t, "roy", 730, 320, flip=-1, rece=(30, 10))
-    J.hang(st, J.tatuaz(), 640, 120, P.rekwizyty, pr(t, 3.2, 1.0), t, 450, w=300, drop=480)
-    podpis(w, t, "Roy Thornton", 730, 150, 1.2, 2.4)
+    J.hang(st, J.wstega_luk(), 640, 238, P.drzewa + 0.01, pr(t, 4.9, 1.0), t, 451, w=520, drop=420, sway=0.4)
+    J.hang(st, J.tatuaz(), 640, 34, P.rekwizyty, pr(t, 8.3, 1.0), t, 450, w=240, drop=420)
+    podpis(w, t, "Roy Thornton", 730, 150, 5.9, 1.9)  # przy „Roy Thornton”, zjeżdża, zanim spadnie tabliczka
     koniec(st, w, t)
 
 
@@ -519,7 +524,7 @@ def s_hillsboro(st, w, t, T):
     rx, _ = jazda(t, 0.6, 2.4, 1000, 800)
     cien(st, t, "clyde", rx, 300, y0 - 26, p0 + 0.002, flip=-1, rece=(90, 0), trzyma=REV())
     blysk(st, 760, y0 - 200, p0 + 0.003, t, 4.0, r=300)
-    podpis(w, t, "John Bucher", 540, 200, 5.4, 3.0)
+    podpis(w, t, "John Bucher", 540, 300, 5.4, 3.0)  # przy zbliżeniu 1,5 kadr zaczyna się ok. y 230 (przegląd 19.11)
     koniec(st, w, t, dim=0.9)
 
 
@@ -562,13 +567,15 @@ def s_wd(st, w, t, T):
     """Do auta wsiada chudy chłopak z nieśmiałym uśmiechem i zatrzaskuje drzwi; podpis „W.D. Jones, 16”."""
     kam(st, t, 32, 640, 440, 1.2, 0.79)
     preria(st, t, w, slupy=True)
-    w_srodku = t > 3.4
+    # chłopak stoi przy aucie, kiedy lektor go nazywa, i wsiada dopiero przy „joined them” (przegląd 19.11: podpis
+    # zjeżdżał, gdy był już w aucie)
+    w_srodku = t > 5.9
     auto(st, t, 640, pasazerowie=[("clyde", 1, (40, 0))] + ([("wd", 0, (0, 0))] if w_srodku else []))
     if not w_srodku:
-        x, _ = jazda(t, 0.4, 2.6, 1100, 640)
-        lalka(st, t, "wd", x, 280, 1.0 - ease(pr(t, 2.9, 0.5)), flip=-1, rece=(20, 0), hop=5)
-    podpis(w, t, "W.D. Jones, 16", 640, 220, 3.6, 3.0)
-    if 3.4 < t < 3.7:
+        x, _ = jazda(t, 0.4, 2.4, 1100, 640)
+        lalka(st, t, "wd", x, 280, 1.0 - ease(pr(t, 5.4, 0.5)), flip=-1, rece=(20, 0), hop=5 * (t < 2.4))
+    podpis(w, t, "W.D. Jones, 16", 640, 220, 2.6, 2.8)
+    if 5.9 < t < 6.2:
         st.dim = 1.0
     koniec(st, w, t)
 
@@ -721,8 +728,10 @@ def s_darby_tyl(st, w, t, T):
     obrot = -1 if t > 1.6 else 1
     auto(st, t, x, 300, droga=t * 400, pasazerowie=[("stone", (330, 132), (0, 0)), ("darby", (410, 126), (0, 0)),
                                                     ("bonnie", (505, 126), (60 * ease(pr(t, 2.0, 0.4)), 0), obrot)])
-    podpis(w, t, "Dillard Darby, undertaker", 560, 250, 1.0, 3.6)
+    podpis(w, t, "Dillard Darby", 560, 250, 1.0, 3.6)
     podpis(w, t, "Sophia Stone", 440, 320, 2.0, 2.8)
+    # puenta dopiero na „undertaker” (przegląd 19.11: podpis zdradzał ją 8 s wcześniej)
+    podpis(w, t, "Dillard Darby, undertaker", 560, 250, 8.7, 2.0)
     koniec(st, w, t)
 
 
@@ -898,7 +907,8 @@ def s_noszenie(st, w, t, T):
     auto(st, t, 220, 210, p=P.wzgorza + 0.03)
     x, _ = jazda(t, 0.4, 5.0, 300, 820)
     lalka(st, t, "clyde", x, 320, flip=1, rece=(90, 80), kuleje=1.0, hop=4)
-    lalka(st, t, "bonnie", x + 10, 260, flip=1, lean=-80, lift=150 + 6 * abs(math.sin(x / 26)), rece=(150, 20), p=P.lalki + 0.015)
+    # Bonnie leży na jego wyciągniętych rękach, przed nim (przegląd 19.11: wisiała za jego plecami, ręce trzymały powietrze)
+    lalka(st, t, "bonnie", x + 35, 260, flip=-1, lean=80, lift=150 + 6 * abs(math.sin(x / 26)), rece=(150, 20), p=P.lalki + 0.015)
     if int(x / 52) % 2 == 0:
         tab(w, t, "OW!", x, 260, 1.0, 0.6)
     koniec(st, w, t)
@@ -918,8 +928,10 @@ def s_oboz(st, w, t, T):
     st.put(J.rek("puszka"), 640, 640, P.lalki + 0.025, h=40, anchor=(0.5, 1.0))
     st.put(J.glow(), 640, 640, P.lalki + 0.03, w=600, anchor=(0.5, 0.5), mode="add", alpha=0.35, shadow=None)
     lalka(st, t, "bonnie", 420, 280, flip=1, lean=6, rece=(80 + 5 * math.sin(t * 8), 60), trzyma=(J.rek("zeszyt"), 40, (0.5, 0.5), 80, True), kuleje=0)
-    out = lalka(st, t, "clyde", 860, 320, flip=-1, lean=8, sink=0.15, rece=(60 + 14 * math.sin(t * 5), 40))
-    st.put(J.rek("karabin"), 860, 600, P.lalki + 0.02, w=250, anchor=(0.5, 0.5), rot=-4, sx=-1)  # karabin na kolanach, lufą w bok
+    # Clyde stoi, więc karabin trzyma w dłoni lufą w górę i przeciera ją szmatką (przegląd 19.11: karabin wisiał w powietrzu
+    # na wysokości kolan stojącego Clyde'a; lufa nie celuje w Bonnie)
+    out = lalka(st, t, "clyde", 860, 320, flip=-1, lean=8, sink=0.15, rece=(60 + 14 * math.sin(t * 5), 40),
+                trzyma=KARABIN(170))
     if out:
         st.put(J.rek("pranie"), out[0], out[1], P.lalki + 0.022, h=22, anchor=(0.5, 0.5), tint=(1.0, 1.0, 0.9))
     koniec(st, w, t)
