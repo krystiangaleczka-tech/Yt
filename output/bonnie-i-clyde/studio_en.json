@@ -1,1 +1,469 @@
-{"pid": "prj_dad935cf1d7446fa", "klipy": {}}
+{
+ "pid": "prj_dad935cf1d7446fa",
+ "klipy": {
+  "d00_01": {
+   "asset": "asset_77b053bb718c0c569c79",
+   "tryb": "klatka"
+  },
+  "d00_02": {
+   "asset": "asset_dae5a092d6b18b23bb52",
+   "tryb": "klatka"
+  },
+  "d00_03": {
+   "asset": "asset_532dbdc830b7b0c17748",
+   "tryb": "klatka"
+  },
+  "d00_04": {
+   "asset": "asset_322d5c1102291616a4c2",
+   "tryb": "klatka"
+  },
+  "d00_05": {
+   "asset": "asset_3c579dd4e401a6209520",
+   "tryb": "klatka"
+  },
+  "d00_06": {
+   "asset": "asset_1d21f4f5a0ae6568ee88",
+   "tryb": "klatka"
+  },
+  "d00_07": {
+   "asset": "asset_f3a5a667617c93992877",
+   "tryb": "klatka"
+  },
+  "d00_08": {
+   "asset": "asset_55ad5ac5eda3a2406358",
+   "tryb": "klatka"
+  },
+  "d00_09": {
+   "asset": "asset_3be2e5b3a55661aba77b",
+   "tryb": "klatka"
+  },
+  "d00_10": {
+   "asset": "asset_9efb2bb9fb99b1989d54",
+   "tryb": "klatka"
+  },
+  "d00_11": {
+   "asset": "asset_7bfe5fd61d1a9fb76c7d",
+   "tryb": "klatka"
+  },
+  "d00_12": {
+   "asset": "asset_aef864af5708645e4f9c",
+   "tryb": "klatka"
+  },
+  "d00_13": {
+   "asset": "asset_cbda38ab03aaaf8fea55",
+   "tryb": "klatka"
+  },
+  "d00_14": {
+   "asset": "asset_a1fba79667a7332aa302",
+   "tryb": "klatka"
+  },
+  "d00_15": {
+   "asset": "asset_6ec9451a3d7adbc15e22",
+   "tryb": "klatka"
+  },
+  "d00_16": {
+   "asset": "asset_ffc8d03bceb007e22f8f",
+   "tryb": "klatka"
+  },
+  "d01_01": {
+   "asset": "asset_20f927c14bb47df065fc",
+   "tryb": "klatka"
+  },
+  "d01_02": {
+   "asset": "asset_480ebbc3d560e2b7f522",
+   "tryb": "klatka"
+  },
+  "d01_03": {
+   "asset": "asset_788f74108e00b3e6c4a5",
+   "tryb": "klatka"
+  },
+  "d01_04": {
+   "asset": "asset_e4c72af67698ec404943",
+   "tryb": "klatka"
+  },
+  "d01_05": {
+   "asset": "asset_2579c92d3a5e0bbab83e",
+   "tryb": "klatka"
+  },
+  "d01_06": {
+   "asset": "asset_b8682b38c9c84b0f6815",
+   "tryb": "klatka"
+  },
+  "d01_07": {
+   "asset": "asset_c1feacc8e42cbae6a19e",
+   "tryb": "klatka"
+  },
+  "d01_08": {
+   "asset": "asset_17e4ae0c3a35c038bd18",
+   "tryb": "klatka"
+  },
+  "d01_09": {
+   "asset": "asset_16b8c144e18e84a8b2e4",
+   "tryb": "klatka"
+  },
+  "d01_10": {
+   "asset": "asset_355128e480366051913b",
+   "tryb": "klatka"
+  },
+  "d01_11": {
+   "asset": "asset_c8d6fc460872bcf76f1b",
+   "tryb": "klatka"
+  },
+  "d01_12": {
+   "asset": "asset_738bde01c0999b9596f2",
+   "tryb": "klatka"
+  },
+  "d01_13": {
+   "asset": "asset_71384d22a579c0d343c8",
+   "tryb": "klatka"
+  },
+  "d01_14": {
+   "asset": "asset_f8f33eeb49c8b4cf2940",
+   "tryb": "klatka"
+  },
+  "d01_15": {
+   "asset": "asset_71384d22a579c0d343c8",
+   "tryb": "klatka"
+  },
+  "d02_01": {
+   "asset": "asset_ce9ab145ab29603ef1df",
+   "tryb": "klatka"
+  },
+  "d02_02": {
+   "asset": "asset_637bdc99bc45bb5d0fc4",
+   "tryb": "klatka"
+  },
+  "d02_03": {
+   "asset": "asset_3127913da6028beae319",
+   "tryb": "klatka"
+  },
+  "d02_04": {
+   "asset": "asset_c3290f2b04fd4c42c03e",
+   "tryb": "klatka"
+  },
+  "d02_05": {
+   "asset": "asset_016b47255879dc0b5661",
+   "tryb": "klatka"
+  },
+  "d02_06": {
+   "asset": "asset_15a2fb893b78d87f8fc1",
+   "tryb": "klatka"
+  },
+  "d02_07": {
+   "asset": "asset_caa0e9d9eebfad4d3060",
+   "tryb": "klatka"
+  },
+  "d02_08": {
+   "asset": "asset_88a7dce9d78161671a72",
+   "tryb": "klatka"
+  },
+  "d02_09": {
+   "asset": "asset_f8bde5ba65901332430a",
+   "tryb": "klatka"
+  },
+  "d02_10": {
+   "asset": "asset_0051041bf5c340029468",
+   "tryb": "klatka"
+  },
+  "d02_11": {
+   "asset": "asset_b7915717f342f492ab70",
+   "tryb": "klatka"
+  },
+  "d03_01": {
+   "asset": "asset_c2de2924f5182e45456b",
+   "tryb": "klatka"
+  },
+  "d03_02": {
+   "asset": "asset_ce3ee710fdf76d988076",
+   "tryb": "klatka"
+  },
+  "d03_03": {
+   "asset": "asset_472fd3217bbb589bef45",
+   "tryb": "klatka"
+  },
+  "d03_04": {
+   "asset": "asset_6d5de96c768cd6f9a3c2",
+   "tryb": "klatka"
+  },
+  "d03_05": {
+   "asset": "asset_63146b259ae5041a3650",
+   "tryb": "klatka"
+  },
+  "d03_06": {
+   "asset": "asset_0f144fbe87b9efb0e105",
+   "tryb": "klatka"
+  },
+  "d03_07": {
+   "asset": "asset_45a1e17b908ef3b150e3",
+   "tryb": "klatka"
+  },
+  "d03_08": {
+   "asset": "asset_320ccbea2cd3f82278af",
+   "tryb": "klatka"
+  },
+  "d03_09": {
+   "asset": "asset_7b118aa08a42eb724e63",
+   "tryb": "klatka"
+  },
+  "d03_10": {
+   "asset": "asset_32632afc5f98770272ba",
+   "tryb": "klatka"
+  },
+  "d03_11": {
+   "asset": "asset_72065997e29a2b2eab33",
+   "tryb": "klatka"
+  },
+  "d03_12": {
+   "asset": "asset_50b3cdacf471c4723177",
+   "tryb": "klatka"
+  },
+  "d04_01": {
+   "asset": "asset_9a66c70403c7dfc6669b",
+   "tryb": "klatka"
+  },
+  "d04_02": {
+   "asset": "asset_ece2f0f31e172e1468ce",
+   "tryb": "klatka"
+  },
+  "d04_03": {
+   "asset": "asset_a0c915662eaedc82a2d0",
+   "tryb": "klatka"
+  },
+  "d04_04": {
+   "asset": "asset_4026e13ced4509eadb6d",
+   "tryb": "klatka"
+  },
+  "d04_05": {
+   "asset": "asset_16bcfbea934229e2a695",
+   "tryb": "klatka"
+  },
+  "d04_06": {
+   "asset": "asset_992551352939b14815cd",
+   "tryb": "klatka"
+  },
+  "d04_07": {
+   "asset": "asset_38900c109227f23bcea3",
+   "tryb": "klatka"
+  },
+  "d04_08": {
+   "asset": "asset_1530fb061394dd4b9249",
+   "tryb": "klatka"
+  },
+  "d04_09": {
+   "asset": "asset_7e8c1e8930ac221a7c49",
+   "tryb": "klatka"
+  },
+  "d04_10": {
+   "asset": "asset_f4f4a07ffd6ba082f265",
+   "tryb": "klatka"
+  },
+  "d04_11": {
+   "asset": "asset_c266df32f9f470913968",
+   "tryb": "klatka"
+  },
+  "d04_12": {
+   "asset": "asset_98eac51c7c8a59bf6453",
+   "tryb": "klatka"
+  },
+  "d04_13": {
+   "asset": "asset_11b91603df35ad0b62e8",
+   "tryb": "klatka"
+  },
+  "d04_14": {
+   "asset": "asset_142d178b8737d5c57e39",
+   "tryb": "klatka"
+  },
+  "d04_15": {
+   "asset": "asset_f7763addf12b43680391",
+   "tryb": "klatka"
+  },
+  "d05_01": {
+   "asset": "asset_d1b40954fa646fa8420a",
+   "tryb": "klatka"
+  },
+  "d05_02": {
+   "asset": "asset_4725714ffbd812293b6f",
+   "tryb": "klatka"
+  },
+  "d05_03": {
+   "asset": "asset_76d1da44b3ec280eead4",
+   "tryb": "klatka"
+  },
+  "d05_04": {
+   "asset": "asset_da9915b24d32900cbc8c",
+   "tryb": "klatka"
+  },
+  "d05_05": {
+   "asset": "asset_80d544982a3ecd1ff53f",
+   "tryb": "klatka"
+  },
+  "d05_06": {
+   "asset": "asset_ad2f9b60f880a899513d",
+   "tryb": "klatka"
+  },
+  "d05_07": {
+   "asset": "asset_280d3616a6983a7b6785",
+   "tryb": "klatka"
+  },
+  "d05_08": {
+   "asset": "asset_27d17b58edbd5bf232ca",
+   "tryb": "klatka"
+  },
+  "d05_09": {
+   "asset": "asset_cc7997703d929aaa4e15",
+   "tryb": "klatka"
+  },
+  "d05_10": {
+   "asset": "asset_8666bdcef3d9f13279da",
+   "tryb": "klatka"
+  },
+  "d05_11": {
+   "asset": "asset_6cea4a01f00d5d0a13aa",
+   "tryb": "klatka"
+  },
+  "d05_12": {
+   "asset": "asset_f0a44c271e3702229ae4",
+   "tryb": "klatka"
+  },
+  "d05_13": {
+   "asset": "asset_bbd1b756ef1fd0be0359",
+   "tryb": "klatka"
+  },
+  "d06_01": {
+   "asset": "asset_0aef945a6b448f1b3b27",
+   "tryb": "klatka"
+  },
+  "d06_02": {
+   "asset": "asset_46b358b1d25af50ff5b5",
+   "tryb": "klatka"
+  },
+  "d06_03": {
+   "asset": "asset_5bc43ba65d6f6e93566d",
+   "tryb": "klatka"
+  },
+  "d06_04": {
+   "asset": "asset_368160315dd9f9692e16",
+   "tryb": "klatka"
+  },
+  "d06_05": {
+   "asset": "asset_61a091b90221d46b692d",
+   "tryb": "klatka"
+  },
+  "d06_06": {
+   "asset": "asset_0092f485e291258446d9",
+   "tryb": "klatka"
+  },
+  "d06_07": {
+   "asset": "asset_efcbf2eaff02cc019719",
+   "tryb": "klatka"
+  },
+  "d06_08": {
+   "asset": "asset_93ba8199ec39a824fcb1",
+   "tryb": "klatka"
+  },
+  "d06_09": {
+   "asset": "asset_aea81516846d880824ed",
+   "tryb": "klatka"
+  },
+  "d06_10": {
+   "asset": "asset_931e18269ffe8cffa8c9",
+   "tryb": "klatka"
+  },
+  "d07_01": {
+   "asset": "asset_7dc14f907c36176b8c80",
+   "tryb": "klatka"
+  },
+  "d07_02": {
+   "asset": "asset_86325ba6570d29b94ae2",
+   "tryb": "klatka"
+  },
+  "d07_03": {
+   "asset": "asset_41fbf9d3cbd90ee0fea5",
+   "tryb": "klatka"
+  },
+  "d07_04": {
+   "asset": "asset_ee9b07b940f273e9aa6c",
+   "tryb": "klatka"
+  },
+  "d07_05": {
+   "asset": "asset_d7eafc581b8858f0516b",
+   "tryb": "klatka"
+  },
+  "d07_06": {
+   "asset": "asset_b6b7c27175ef6eecf170",
+   "tryb": "klatka"
+  },
+  "d07_07": {
+   "asset": "asset_2f73b84951fddd0d730e",
+   "tryb": "klatka"
+  },
+  "d07_08": {
+   "asset": "asset_16c92160af00d522940f",
+   "tryb": "klatka"
+  },
+  "d07_09": {
+   "asset": "asset_85d9622e1a77c86841f9",
+   "tryb": "klatka"
+  },
+  "d07_10": {
+   "asset": "asset_b11d175edaf83173f525",
+   "tryb": "klatka"
+  },
+  "d07_11": {
+   "asset": "asset_a45d7e34b161f310d083",
+   "tryb": "klatka"
+  },
+  "d08_01": {
+   "asset": "asset_8de03cb07e657db3c307",
+   "tryb": "klatka"
+  },
+  "d08_02": {
+   "asset": "asset_ccde60b4931ab5d71a82",
+   "tryb": "klatka"
+  },
+  "d08_03": {
+   "asset": "asset_3a353a7684d1f30c19e2",
+   "tryb": "klatka"
+  },
+  "d08_04": {
+   "asset": "asset_68ff567df19b7813811a",
+   "tryb": "klatka"
+  },
+  "d08_05": {
+   "asset": "asset_d6ebb7a944610a1e3a1b",
+   "tryb": "klatka"
+  },
+  "d08_06": {
+   "asset": "asset_7cdec2e2651fcb675486",
+   "tryb": "klatka"
+  },
+  "d08_07": {
+   "asset": "asset_e110dd030e938bcc561c",
+   "tryb": "klatka"
+  },
+  "d08_08": {
+   "asset": "asset_80a91f61e856a74b5a35",
+   "tryb": "klatka"
+  },
+  "d08_09": {
+   "asset": "asset_ba69ead2da22549f2287",
+   "tryb": "klatka"
+  },
+  "d08_10": {
+   "asset": "asset_6578f76271473cf1cdbb",
+   "tryb": "klatka"
+  },
+  "d00_17": {
+   "asset": "asset_ae6b90403990d29eef4c",
+   "tryb": "klatka"
+  },
+  "d00_18": {
+   "asset": "asset_1402b7c749e5ccdf5a7a",
+   "tryb": "klatka"
+  },
+  "d00_19": {
+   "asset": "asset_37123a4d9d64f424cc5c",
+   "tryb": "klatka"
+  }
+ }
+}
