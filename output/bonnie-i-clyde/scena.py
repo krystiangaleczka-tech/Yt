@@ -158,7 +158,10 @@ def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink
                    z=0.09 if math.sin(a) > 0 else -0.09)
     if trzyma and out:
         spr, ph, anc, orot, follow = trzyma
-        st.put(spr, out[0], out[1], p, h=ph, anchor=anc, rot=(out[2] if follow else rot) + orot * flip, sx=flip, z=0.08, **kw)
+        # rzecz z napisem (gazeta, zdjęcie, list) nie odbija się razem z lalką zwróconą w lewo — napis byłby lustrzany
+        # (przegląd 19.11: „TEXAS TRIBUNE” i „DEPRESSION DEEPENS” od tyłu w rękach klienta kawiarni)
+        napis = spr.name.startswith(("gazeta", "zdjecie", "rek-list", "rek-pardon", "rek-parole", "rek-plakat"))
+        st.put(spr, out[0], out[1], p, h=ph, anchor=anc, rot=(out[2] if follow else rot) + orot * flip, sx=1.0 if napis else flip, z=0.08, **kw)
     return out
 
 

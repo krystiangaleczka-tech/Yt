@@ -117,8 +117,9 @@ SWIAT = {
         {"id": "buck_zyje", "name": "Buck żyje i jest z gangiem", "from": r("buck", "Buck"), "to": r("dexfield", "Buck")},
         {"id": "wd_w_gangu", "name": "W.D. jest z gangiem", "from": r("wd", "W.D."), "to": r("wd_odchodzi", "W.D.")},
         {"id": "hamer_poluje", "name": "Hamer prowadzi pościg", "from": r("hamer", "took the job"), "to": r("dym", "rounds")},
-        {"id": "powaga", "name": "ton poważny (bez żartów)", "from": r("grapevine", "Easter"), "to": r("pogrzeby", "cemeteries"),
-         "note": "D2: od Grapevine do pogrzebów bez gagów; tabliczka z cygarami to ironia o Bonnie, nie o ofiarach."},
+        {"id": "powaga", "name": "ton poważny (bez żartów z ofiar)", "from": r("grapevine", "Easter"), "to": r("pogrzeby", "cemeteries"),
+         "note": "D2 i D6: od Grapevine do pogrzebów żadnego gagu w ujęciach śmierci i żałoby; wolno tylko gagi o micie i łowcach "
+                 "(listy_gon, prasa_cygaro, noc, kanapka) — reżyser 19.11: „gagi robimy wszystkie”."},
     ],
     "events": [
         {"at": r("joplin_karty", "cards"), "note": "Buck i Blanche w mieszkaniu w Joplin", "needs": ["buck_zyje"]},
@@ -147,6 +148,13 @@ SWIAT = {
         {"id": "obietnica", "title": "Łowca, który nie gonił", "setup": [r("obietnica", "without ever chasing")],
          "clues": [r("poscigi", "ditch")], "payoff": [r("hak_szuflada", "stopped chasing")]},
         {"id": "methvin", "title": "Henry Methvin", "setup": [r("odbicie", "free his friends")], "payoff": [r("methvin", "Henry Methvin")]},
+        # gagi powracające (D6, Podręcznik → Humor i gagi: zasiew, powtórka, zwrot)
+        {"id": "gag_kasa", "title": "W1 · Pusta kasa (ćma)", "setup": [r("stacja", "ćma")], "clues": [r("kiosk", "ćma")],
+         "payoff": [r("auto_jarmark", "kasetka")]},
+        {"id": "gag_row", "title": "W2 · Rów", "setup": [r("poscigi", "ditch")], "clues": [r("commerce", "ditch")],
+         "payoff": [r("gra", "rowie")]},
+        {"id": "gag_nitka", "title": "W3 · Nitka teatru", "setup": [r("slub", "nitka")], "clues": [r("mapa", "nić")],
+         "payoff": [r("dzieki", "kurtyna")]},
     ],
     "spoilers": [
         {"pattern": "Hamer", "notBefore": r("hamer", "Frank Hamer"), "why": "Łowca jest tajemnicą do aktu V (obietnica mówi „a retired Ranger”)."},
@@ -165,6 +173,10 @@ SWIAT = {
          "Chin i Japonii (zasada sceneria-na-film).", "at": "2026-11-19", "by": "reżyser"},
         {"id": "D5", "text": "Fakty z relacji wtórnych mają w kwestii zastrzeżenie: „reportedly”, „local historians say”, „according to local "
          "accounts”; wiersz Bonnie tylko parafrazowany; list do Forda jako niepewny.", "at": "2026-11-19", "by": "Claude"},
+        {"id": "D6", "text": "Groteska jak w „Shreku”: 30 gagów z GAGI.md, w tym trzy powracające (W1 pusta kasa, W2 rów, W3 nitka "
+         "teatru) i gagi w strefie powagi (łowcy nagród, drukarz z cygarem, komary zasadzki, sałata w aucie) oraz czarny humor "
+         "z miarką grabarza. Granica z D2 zostaje: bez gagów w ujęciach śmierci i żałoby, z ofiar się nie żartuje. Reżyser "
+         "19.11.2026: „tak gagi robimy wszystkie”.", "at": "2026-11-19", "by": "reżyser"},
     ],
 }
 

@@ -1229,6 +1229,25 @@ REKWIZYTY = {
                                   (ell(60, 40, 22, 12), (236, 226, 200)), (ell(100, 38, 20, 12), (200, 150, 90))]),
     "pranie": (180, 140, lambda: [(poly([(10, 4), (170, 4), (160, 136), (20, 136)]), (236, 226, 206), dict(kind="gladki", edge=2))]),
     "mapa_zwoj": (300, 200, lambda: [(rect(4, 4, 296, 196), (230, 216, 180), dict(edge=2))]),
+    # gagi (reżyser 19.11.2026: „gagi robimy wszystkie”, docs/filmy/bonnie-i-clyde/GAGI.md)
+    "cma": (130, 90, lambda: [(ell(38, 44, 34, 26), (156, 146, 126), dict(edge=2)), (ell(92, 44, 34, 26), (156, 146, 126), dict(edge=2)),
+                              (ell(65, 46, 9, 24), (92, 82, 70)), (_band((60, 22), (50, 6), 3), (92, 82, 70)), (_band((70, 22), (80, 6), 3), (92, 82, 70))]),
+    "zielsko": (170, 170, lambda: [(ell(85, 85, 80, 76), (176, 146, 96), dict(edge=2)), (ell(85, 85, 58, 54), (146, 116, 72)),
+                                   (ell(85, 85, 36, 34), (176, 146, 96)), (_band((20, 70), (150, 100), 5), (120, 92, 58)),
+                                   (_band((40, 140), (130, 30), 5), (120, 92, 58)), (_band((85, 10), (85, 160), 4), (120, 92, 58))]),
+    "miarka": (320, 50, lambda: [(rect(40, 16, 316, 34), (232, 202, 72), dict(edge=1))] + [(rect(x, 16, x + 2, 24), (60, 50, 30)) for x in range(52, 312, 16)]
+                                + [(ell(26, 25, 24, 22), (196, 60, 52), dict(edge=2)), (ell(26, 25, 8, 8), (120, 40, 36))]),
+    "salata": (100, 70, lambda: [(ell(50, 35, 46, 28), (130, 190, 86), dict(edge=2)), (_band((10, 36), (92, 32), 3), (96, 150, 62)),
+                                 (_band((40, 34), (30, 14), 2), (96, 150, 62)), (_band((60, 34), (72, 56), 2), (96, 150, 62))]),
+    "plama": (70, 60, lambda: [(ell(35, 26, 24, 18), (246, 246, 240)), (ell(16, 38, 9, 8), (246, 246, 240)), (ell(54, 40, 8, 7), (246, 246, 240)),
+                               (ell(36, 50, 6, 8), (246, 246, 240))]),
+    "kasetka": (190, 120, lambda: [(rect(8, 36, 182, 116), (112, 72, 50), dict(edge=2)), (rect(8, 18, 182, 40), (134, 88, 62), dict(edge=2)),
+                                   (rect(78, 56, 112, 72), (222, 200, 120))]),
+    "woz_siano": (440, 280, lambda: [(ell(220, 92, 200, 86), (222, 192, 102), dict(edge=2)), (rect(30, 140, 410, 190), (132, 92, 60), dict(edge=2)),
+                                     (_band((410, 170), (480, 150), 10), (110, 76, 50)), (ell(104, 214, 52, 52), (92, 66, 46), dict(edge=2)),
+                                     (ell(330, 214, 52, 52), (92, 66, 46), dict(edge=2)), (ell(104, 214, 14, 14), (162, 132, 92)),
+                                     (ell(330, 214, 14, 14), (162, 132, 92))]),
+    "laska": (40, 220, lambda: [(_band((20, 214), (20, 30), 8), (96, 64, 42)), (_band((20, 30), (34, 10), 8), (96, 64, 42))]),
 }
 
 
@@ -1601,6 +1620,15 @@ def tatuaz():
         lay.alpha_composite(sz, (int(x - 80), 28))
         im = glue(im, lay, shadow=0.4)
     return Sprite(im, "tatuaz", rim=2, clean=False)
+
+
+@lru_cache(None)
+def ramka(w=620, h=280, b=22):
+    """Złota rama zdjęcia rodzinnego z pustym środkiem (gag „normal family” w Joplin)."""
+    zl = (206, 168, 84)
+    parts = [(rect(0, 0, w, b), zl, dict(edge=2)), (rect(0, h - b, w, h), zl, dict(edge=2)), (rect(0, 0, b, h), zl, dict(edge=2)),
+             (rect(w - b, 0, w, h), zl, dict(edge=2))]
+    return Sprite(stack(w, h, parts, seed=905), "ramka-zdjecia", rim=2, clean=False, crop=False)
 
 
 @lru_cache(None)

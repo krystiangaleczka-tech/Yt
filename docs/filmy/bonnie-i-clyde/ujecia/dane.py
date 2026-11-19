@@ -1149,6 +1149,49 @@ PAUZA_PO = {"ujecie": 1.1, "beat": 1.4, "scena": 1.8, "akt": 2.3}
 HAK_PAUZA = 1.0  # w haku szybciej (szkic D)
 
 
+# Gagi (reżyser 19.11.2026: „tak, gagi robimy wszystkie” — 30 propozycji z docs/filmy/bonnie-i-clyde/GAGI.md; zasady:
+# Podręcznik → Humor i gagi). Gag dopisuje się do opisu ujęcia; GAG_CZAS to sekundy, o które gag wydłuża ujęcie.
+GAGI = {
+    "zdjecie": "po kwestii Bonnie kręci rewolwerem na palcu, za trzecim obrotem wylatuje, łapie go w ostatniej chwili, w tej "
+               "klatce błyska flesz; Bonnie mruga",
+    "hak_cygaro": "na „didn't smoke cigars” cygaro w ustach Bonnie smętnie opada jak zwiędły kwiat (puzon w dół)",
+    "indyki": "po „stolen turkeys” indyk ląduje na czapce policjanta i zostaje; policjant stoi godnie dalej",
+    "slub": "na „a very permanent decision” pęka prawa nitka wstęgi HAPPY EVER AFTER, wstęga zwisa krzywo; Roy zerka w górę "
+            "(W3: nitka teatru)",
+    "kawiarnia": "na „something exciting” przez kawiarnię toczy się kula stepowego zielska; Bonnie odprowadza ją wzrokiem",
+    "kuchnia": "na „he was arrested” serduszka odjeżdżają w górę, na tej samej nitce zjeżdżają kajdanki",
+    "akt2": "na „keep driving” auto odjeżdża bez Bonnie, wraca tyłem, Bonnie wsiada z miną „serio?”",
+    "stacja": "na „only a few dollars” z otwartej kasy wylatuje ćma; sprzedawca rozkłada ręce (W1: pusta kasa)",
+    "wd": "po „sounded exciting” W.D. wskakuje do auta przez okno, nogi machają w powietrzu",
+    "joplin_dom": "na „normal family” w oknach pięć uśmiechów jak na zdjęciu rodzinnym; z okna wysuwa się lufa, Bonnie ją wpycha",
+    "ciemnia": "kiedy na odbitce pojawia się Bonnie z cygarem, wywołującemu wypada papieros z ust, „O!”",
+    "kiosk": "mężczyzna w kolejce wywraca puste kieszenie, wylatuje ćma; i tak kupuje gazetę za ostatnią monetę (W1)",
+    "darby_auto": "skradziony Ford gaśnie: kaszel, kaszel; Darby prawie dobiega, auto rusza z piskiem tuż przed jego ręką",
+    "darby_tyl": "na „undertaker” Darby wyjmuje miarkę i mierzy Bonnie od głowy do pasa; Bonnie patrzy na miarkę (czarny humor, "
+                 "zasiew klamry z ujęcia darby_zaklad)",
+    "darby_puszczeni": "na „five dollars” wiatr porywa banknot z ręki Darby'ego, Darby goni go jak przedtem auto",
+    "oboz": "na „glamorous” złote iskry i blask jak w Hollywood; na „cold beans” iskry gasną, a łyżka stoi w zimnej fasoli na "
+            "baczność",
+    "list_ford": "na „fine getaway car” Ford mruga reflektorem i nieśmiało trąbi",
+    "wd_odchodzi": "W.D. wymyka się na palcach jak w kreskówce; z prawej krawędzi ręka matki wyciąga go za ucho",
+    "rodziny": "na „bringing laundry” Bonnie podaje matce stos prania wyższy od auta, matka oddaje maleńki talerzyk z ciastem",
+    "dzien1": "Hamer jedzie tak wolno, że wyprzedza go starsza pani z laską; Hamer uchyla kapelusza",
+    "hamer_motel": "na „a pile of empty cans” Hamer dotyka jednej puszki, cała piramida się rozsypuje; Hamer nawet nie mrugnie",
+    "dzien20": "szeryf przy STATE LINE: przelatuje ptak, plask na kapeluszu; szeryf zastyga i powoli patrzy w górę, „…”",
+    "mapa": "Hamer naciąga czerwoną nić po mapie, nić pęka, on bez patrzenia zawiązuje supeł (W3)",
+    "listy_gon": "farmer z wiatrówką na widok pojazdu robi musztrę jak na paradzie w takt werbla — a to wóz z sianem i koniem",
+    "prasa_cygaro": "drukarz czyta świeży nagłówek BONNIE: NO CIGARS! i zapala sobie cygaro",
+    "noc": "na „swatting mosquitoes” szeryfowie po kolei klepią komary, jeden klepie sąsiada w policzek; obaj zastygają, „SHHH!”",
+    "kanapka": "liść sałaty z kanapki Bonnie spada na okulary Clyde'a; Clyde go nie zdejmuje i prowadzi dalej",
+    "auto_jarmark": "kasetka „10¢ A LOOK” pęka od monet, które sypią się na trawę (W1: puenta)",
+    "gra": "pikselowe auto podskakuje i ląduje w pikselowym rowie; zjeżdża „AGAIN?!” (W2: puenta)",
+    "dzieki": "kurtyna zacina się w połowie, Bonnie i Clyde szarpią ją razem, spada im na głowy; zza kulis macha ręka "
+              "maszynisty (W3: puenta)",
+}
+GAG_CZAS = {"zdjecie": 1.0, "kuchnia": 0.8, "wd": 0.5, "darby_auto": 1.0, "darby_tyl": 0.8, "darby_puszczeni": 1.0,
+            "wd_odchodzi": 1.0, "hamer_motel": 0.5, "listy_gon": 1.0, "noc": 1.0, "gra": 0.8, "dzieki": 1.0}
+
+
 def ujecia(akt=None):
     """Płaska lista ujęć: (akt, nr w akcie, klucz, kadr, ruch, sekundy, opis, dźwięk). Długość ujęcia z kwestią liczy się
     z kwestii: oddech + nagranie (albo tempo) + pauza po (PAUZA_PO według granicy; w haku HAK_PAUZA) + WYDLUZ; sąsiednie
@@ -1166,6 +1209,9 @@ def ujecia(akt=None):
                                    else "scena" if si < len(sceny) - 1 else "akt")
                         start, mowa = okno_kwestii(dzwiek, hak)
                         sec = round(start + mowa + (HAK_PAUZA if hak else PAUZA_PO[granica]) + WYDLUZ.get(klucz, 0.0), 1)
+                    sec = round(sec + GAG_CZAS.get(klucz, 0.0), 1)
+                    if klucz in GAGI:
+                        opis = f"{opis}. Gag: {GAGI[klucz]}"
                     for _ in range(3):
                         if prev is not None and abs(sec - prev) < 0.25:
                             sec = round(sec + 0.3, 1)

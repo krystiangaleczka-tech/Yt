@@ -1647,6 +1647,38 @@ def wiwat_tlum(sec):
     return _sala(out[:n], 0.5)[:n] / (np.abs(out).max() + 1e-9) * 0.3 * np.clip((sec - tt(n)) / 1.0, 0, 1)
 
 
+def kaszel_silnika():
+    """Gag 13: Ford gaśnie — trzy niskie kaszlnięcia silnika i pyknięcie z rury."""
+    n = N(0.6)
+    t = tt(n)
+    out = np.zeros(n)
+    r = np.random.default_rng(1301)
+    for i, c in enumerate((0.0, 0.15, 0.31)):
+        j, m = N(c), N(0.13)
+        seg = band(r.normal(0, 1, m), 45, 480) * np.exp(-tt(m) / 0.045) * (1.0 - 0.25 * i)
+        seg += np.sin(2 * math.pi * (58 - 6 * i) * tt(m)) * np.exp(-tt(m) / 0.06) * 0.9
+        out[j:j + m] += seg[:n - j]
+    out += band(r.normal(0, 1, n), 300, 2600) * np.exp(-((t - 0.47) / 0.05) ** 2) * 0.35
+    return out / (np.abs(out).max() + 1e-9) * 0.7
+
+
+def zapalka():
+    """Gag 25: pocieranie zapałki o draskę i krótki płomień."""
+    n = N(0.6)
+    t = tt(n)
+    r = np.random.default_rng(2501)
+    drask = band(r.normal(0, 1, n), 2200, 9000) * np.clip(t / 0.02, 0, 1) * np.exp(-np.clip(t - 0.03, 0, None) / 0.05) * (t < 0.16)
+    plomien = band(r.normal(0, 1, n), 250, 1800) * np.clip((t - 0.12) / 0.04, 0, 1) * np.exp(-np.clip(t - 0.16, 0, None) / 0.18)
+    out = drask * 0.8 + plomien * 0.6
+    return out / (np.abs(out).max() + 1e-9) * 0.55
+
+
+# Nowe rodzaje dźwięku gagów (reżyser 19.11: „gagi robimy wszystkie”). Zgodnie z zasadą „nowy rodzaj dźwięku → próbka”
+# są w filmie dopiero po akceptacji reżysera: NOWE_DZWIEKI=1 (próbka) albo wpis do NOWE_ZATWIERDZONE.
+NOWE = {"kaszel_silnika", "werbel_fx", "zapalka"}
+NOWE_ZATWIERDZONE = set()
+
+
 KROTKIE = {
     "tab": tab_snd, "podpis": podpis_snd, "zawieszka": zawieszka_snd, "stempel": stempel, "nitka": nitka, "wahwah": wahwah,
     "wahwah_k": lambda: wahwah(True), "smiech_p": smiech_p, "klakson": klakson, "beep": beep, "beep2": lambda: beep(2), "pisk": pisk,
@@ -1663,6 +1695,7 @@ KROTKIE = {
     "whoosh": whoosh, "thud": thud, "knock": knock, "coin": coin, "splash": splash, "plusk": lambda: splash(0.8) * 0.8,
     "kurtyna_z": kurtyna_zasuwa, "kurtyna_r": kurtyna_rozsuwa, "klaps": klaps, "skok": lambda: thud(0.3) * 0.5,
     "papier": lambda: whoosh(0.5, 1200, 7000) * 0.6, "strona": lambda: whoosh(1.4, 500, 6000) * 0.9,
+    "kaszel_silnika": kaszel_silnika, "werbel_fx": lambda: werbel(0.9) * 1.3, "zapalka": zapalka,
 }
 DLUGIE = {
     "ogien": fire, "woda": woda, "brodzenie": brodzenie, "bloto": bloto, "pisanie": pisanie, "oklaski": oklaski, "brama": brama,
@@ -1678,7 +1711,9 @@ TAB_DZWIEK = {"AGAIN?!": "wahwah", "THAT'S IT?": "wahwah", "OH NO": "wahwah", ".
               "THAT'S NOT ME!": "wahwah", "NOT MY STATE...": "wahwah_k", "UGH!": "wahwah_k", "HA HA!": "smiech_p", "HA HA HA!": "smiech_p",
               "BEEP": "beep", "BEEP BEEP!": "beep2", "SCREECH!": "pisk", "AW!": "boing", "OW!": "boing_m", "OUCH!": "boing",
               "NEVER AGAIN": "sting", "HE WON'T GO BACK": "sting", "NO MORE CHASING": "sting_l", "HOME": "sting", "AAAA!": "sting",
-              "YAWN": "ziew", "SIGH…": "ziew", "BRRR!": "brr", "?": "pytanie", "♪": None, "STOP!": None}
+              "YAWN": "ziew", "SIGH…": "ziew", "BRRR!": "brr", "?": "pytanie", "♪": None, "STOP!": None,
+              # gagi (GAGI.md)
+              "SERIOUSLY?": "wahwah_k", "OOF!": "thud", "O!": "pytanie", "…": "wahwah_k", "beep": "beep"}
 
 # Głos postaci pod tabliczką (napis → rodzaj z glosy.py); wyjątki dla ujęcia, gdy ten sam napis mówi kto inny.
 TAB_GLOS = {"HA HA!": "smiech_b", "AAAA!": "krzyk_b", "UGH!": "ugh_b", "SIGH…": "westchnienie_b", "BRRR!": "brr_b", "OW!": "au_b",
@@ -1723,7 +1758,7 @@ ZDARZENIA = {
     "cela": [(0.0, "pisanie", 11.0)] + [(2.0 + 0.9 * n, "trzepot", 0.7) for n in range(6)],
     "hillsboro": [(5.0, "thud", 0.6)],
     "atoka": [(7.4, "thud", 0.7)],
-    "wd": [(5.9, "drzwi", 0.8)],
+    "wd": [(5.6, "whoosh", 0.4)],  # gag 9: skok przez okno (OOF! → thud z tabliczki)
     "buck": [(0.3, "brama", 1.2)],
     "joplin_dom": [(4.6, "drzwi", 0.5), (5.0, "drzwi", 0.5), (6.9, "klik", 0.7)],
     "joplin_karty": [(0.3, "saks", 1.0), (1.0, "karty", 0.9), (4.2, "saks", 1.0), (6.2, "karty", 0.8)],
@@ -1731,7 +1766,7 @@ ZDARZENIA = {
     "ciemnia": [(0.0, "woda", 10.0), (2.4, "sting_t", 0.9)],
     "kiosk": [(1.0 + 1.25 * n, "plask", 0.5) for n in range(7)] + [(0.0, "gwar", 12.0)],
     "cygaro_zlosc": [(2.2, "zgniot", 0.7), (2.6, "slide_down", 0.7)],
-    "darby_auto": [(6.6, "drzwi", 0.6), (6.8, "drzwi", 0.5), (7.4, "pisk", 0.6)],
+    "darby_auto": [(7.1, "drzwi", 0.6), (7.3, "drzwi", 0.5), (7.7, "pisk", 0.6)],
     "darby_smiech": [(1.6, "slide_down", 0.5), (1.7, "g:gasp_m", 0.45)],
     "darby_puszczeni": [(2.8, "papier", 0.5)],
     "teczka_zasiew": [(0.0, "zegar", 12.0)] + [(2.2 + 1.3 * n, "plask", 0.4) for n in range(7)],
@@ -1740,7 +1775,7 @@ ZDARZENIA = {
     "wellington_bonnie": [(0.0, "ogien", 10.0), (1.0, "syk", 1.6)],
     "farma": [(0.4, "wiadro", 0.5), (2.0, "wiadro", 0.5), (3.6, "lanie", 1.0)],
     "drzewo": [(0.3, "drut", 0.7), (3.0, "klakson", 0.9)],
-    "oboz": [(0.0, "ogien", 12.0)] + [(1.0 + 1.6 * n, "metal", 0.35) for n in range(6)],
+    "oboz": [(1.0 + 1.6 * n, "metal", 0.35) for n in range(6)],  # bez ogniska: zimna fasola
     "rzeka": [(0.0, "woda", 3.0), (0.6, "plusk", 0.9), (1.1, "plusk", 0.6)],
     "platte": [(4.4, "szklo", 1.0)],
     "dexfield": [(1.6, "krzaki", 0.7), (3.0, "zamek", 0.6), (3.4, "zamek", 0.5)],
@@ -1785,6 +1820,38 @@ ZDARZENIA = {
     "koniec": [(3.0, "papier", 0.8), (4.6, "plask", 0.6), (4.9, "plask", 0.6), (7.0, "teczka", 0.9), (10.0, "kurtyna_z", 1.0)],
     "dzieki": [(0.6, "oklaski", 7.8), (1.0, "wiwat", 7.0)] + [(1.2 + 0.45 * n, "stuk", 0.25) for n in range(8)],
 }
+# Gagi (docs/filmy/bonnie-i-clyde/GAGI.md; reżyser 19.11: „gagi robimy wszystkie”): dźwięk w tej samej chwili co gag.
+GAGI_DZWIEK = {
+    "zdjecie": [(5.8, "whoosh", 0.22), (6.15, "whoosh", 0.2), (6.6, "whoosh", 0.3), (7.1, "klik", 0.6)],
+    "hak_cygaro": [(1.1, "slide_down", 0.45)],
+    "indyki": [(5.0, "indyk", 0.9)],
+    "slub": [(10.9, "nitka", 1.0), (11.05, "wahwah_k", 0.45)],
+    "kawiarnia": [(7.0 + 0.55 * n, "papier", 0.45) for n in range(5)],
+    "kuchnia": [(8.2, "slide_up", 0.4), (9.5, "kajdanki", 0.7)],
+    "akt2": [(9.05, "klakson", 0.6)],
+    "stacja": [(6.6, "trzepot", 0.7)],
+    "joplin_dom": [(9.25, "slide_up", 0.4), (9.85, "slide_down", 0.4)],
+    "ciemnia": [(5.6, "plusk", 0.6)],
+    "kiosk": [(9.6, "papier", 0.3), (9.9, "trzepot", 0.6), (11.4, "coin", 0.7)],
+    "darby_auto": [(1.6, "klik", 0.4)] + [(c, "kaszel_silnika", 0.9) for c in (2.0, 2.7, 3.4, 4.6)] + [(6.0, "pisk", 0.8)],
+    "darby_tyl": [(9.6, "slide_up", 0.5)],
+    "darby_puszczeni": [(5.3, "whoosh", 0.5), (5.6, "whoosh", 0.3)],
+    "oboz": [(1.5, "gwiazdki", 2.9), (4.4, "slide_down", 0.5), (4.7, "boing", 0.7)],
+    "rodziny": [(9.0, "papier", 0.5), (10.6, "klik", 0.3)],
+    "hamer_motel": [(8.85 + 0.15 * n, "metal", 0.7 - 0.06 * n) for n in range(6)],
+    "dzien20": [(10.6, "skrzydla", 0.6), (11.45, "plask", 0.8)],
+    "mapa": [(6.1, "nitka", 0.7), (6.6, "klik", 0.4)],
+    "listy_gon": [(8.8, "kopyta", 4.0), (8.8, "kola", 4.0)] + [(c, "werbel_fx", 0.8) for c in (9.4, 9.85, 10.3)],
+    "prasa_cygaro": [(3.0, "papier", 0.4), (5.6, "zapalka", 0.8)],
+    "noc": [(9.7 + 0.3 * n, "plask", 0.45) for n in range(3)] + [(10.6, "plask", 0.95)],
+    "kanapka": [(5.3, "plask", 0.3)],
+    "auto_jarmark": [(c + 0.5, "coin", 0.45) for c in (3.9, 4.5, 5.1, 5.6, 6.0, 6.4, 6.7, 7.0)] + [(8.0, "kasa", 0.6)]
+                    + [(8.0 + 0.04 * n, "coin", 0.35) for n in range(14)],
+    "gra": [(6.3, "chip_start", 0.6), (6.85, "thud", 0.4)],
+    "dzieki": [(6.2, "kurtyna_z", 0.9), (6.8, "zgrzyt", 1.3), (8.2, "kurtyna_z", 0.8), (8.45, "lomot", 0.8)],
+}
+for _k, _ev in GAGI_DZWIEK.items():
+    ZDARZENIA.setdefault(_k, []).extend(_ev)
 ZDARZENIA["hak_joplin_rzeczy"] = ZDARZENIA["joplin_rzeczy"]
 # Zapowiedź: każde cięcie akcentuje uderzenie (jak w zwiastunie), pierwsze mocniej.
 for _k in ("zap_wellington_most", "zap_zdjecie", "zap_prasa", "zap_kiosk", "zap_kaufman", "zap_poscigi", "zap_boyd", "zap_sowers",
@@ -2083,6 +2150,8 @@ def main():
         for at, kind, gg in evs:
             if at >= sec or at < 0:
                 continue
+            if kind in NOWE and kind not in NOWE_ZATWIERDZONE and os.environ.get("NOWE_DZWIEKI") != "1":
+                continue  # nowy rodzaj dźwięku czeka na zgodę reżysera (próbka)
             if kind.startswith("g:"):
                 s = glos(kind[2:], gg)
             elif kind in DLUGIE:

@@ -378,10 +378,10 @@
     },
     {
       "id": "powaga",
-      "name": "ton poważny (bez żartów)",
+      "name": "ton poważny (bez żartów z ofiar)",
       "from": "d06_01~Easter",
       "to": "d08_03~cemeteries",
-      "note": "D2: od Grapevine do pogrzebów bez gagów; tabliczka z cygarami to ironia o Bonnie, nie o ofiarach."
+      "note": "D2 i D6: od Grapevine do pogrzebów żadnego gagu w ujęciach śmierci i żałoby; wolno tylko gagi o micie i łowcach (listy_gon, prasa_cygaro, noc, kanapka) — reżyser 19.11: „gagi robimy wszystkie”."
     }
   ],
   "events": [
@@ -553,6 +553,45 @@
       "payoff": [
         "d07_01~Henry Methvin"
       ]
+    },
+    {
+      "id": "gag_kasa",
+      "title": "W1 · Pusta kasa (ćma)",
+      "setup": [
+        "d02_02~ćma"
+      ],
+      "clues": [
+        "d03_05~ćma"
+      ],
+      "payoff": [
+        "d08_04~kasetka"
+      ]
+    },
+    {
+      "id": "gag_row",
+      "title": "W2 · Rów",
+      "setup": [
+        "d05_05~ditch"
+      ],
+      "clues": [
+        "d06_06~ditch"
+      ],
+      "payoff": [
+        "d08_08~rowie"
+      ]
+    },
+    {
+      "id": "gag_nitka",
+      "title": "W3 · Nitka teatru",
+      "setup": [
+        "d01_03~nitka"
+      ],
+      "clues": [
+        "d05_12~nić"
+      ],
+      "payoff": [
+        "d08_10~kurtyna"
+      ]
     }
   ],
   "spoilers": [
@@ -602,6 +641,12 @@
       "text": "Fakty z relacji wtórnych mają w kwestii zastrzeżenie: „reportedly”, „local historians say”, „according to local accounts”; wiersz Bonnie tylko parafrazowany; list do Forda jako niepewny.",
       "at": "2026-11-19",
       "by": "Claude"
+    },
+    {
+      "id": "D6",
+      "text": "Groteska jak w „Shreku”: 30 gagów z GAGI.md, w tym trzy powracające (W1 pusta kasa, W2 rów, W3 nitka teatru) i gagi w strefie powagi (łowcy nagród, drukarz z cygarem, komary zasadzki, sałata w aucie) oraz czarny humor z miarką grabarza. Granica z D2 zostaje: bez gagów w ujęciach śmierci i żałoby, z ofiar się nie żartuje. Reżyser 19.11.2026: „tak gagi robimy wszystkie”.",
+      "at": "2026-11-19",
+      "by": "reżyser"
     }
   ]
 }

@@ -1,4 +1,10 @@
-# Bonnie and Clyde — propozycje gagów (do wyboru przez reżysera)
+# Bonnie and Clyde — gagi
+
+**Stan 19.11.2026:** reżyser: „tak, gagi robimy wszystkie” — wszystkie 30 narysowane (rozpiska `dane.GAGI`, księga D6 i wątki
+W1–W3, kod ujęć „gag N (GAGI.md)”). Dźwięk gagów z odgłosów już zatwierdzonych jest w Studio; trzy nowe rodzaje (kaszel
+silnika — gag 13, werbel — gag 24, zapałka — gag 25) czekają na zgodę po próbce `build/probka_gagi.mp4`. Zmiany względem
+propozycji: gag 16 bez ogniska (kwestia mówi o zimnej fasoli — łyżka stoi w niej na sztorc), gag 22 plama na szybie
+radiowozu (szeryf siedzi w aucie), gag 5 zielsko podskakuje nad ladą (przy podłodze chowało się pod napisami).
 
 Zasady: Podręcznik pracowni → „Humor i gagi”. Odpowiedź skrótem, np. „tak 1–8, 12; nie 14; 22 inaczej: …”.
 Wybrane gagi idą do rozpiski (opis i długość ujęcia), gagi powracające do księgi świata, nowe dźwięki najpierw jako próbka.

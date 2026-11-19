@@ -125,12 +125,22 @@ def s_zdjecie(st, w, t, T):
         st.put(J.figura("wd").arm, lerp(1000, 760, podaje), 470, P.lalki + 0.03, h=150, anchor=(0.5, 0.1), rot=95)
         st.put(J.rek("cygaro"), lerp(900, 660, podaje), 476, P.lalki + 0.04, h=14, anchor=(0.5, 0.5))
     ma = t > 2.1
+    # gag 1 (GAGI.md): po kwestii Bonnie kręci rewolwerem na palcu, za trzecim obrotem rewolwer wylatuje, łapie go w ostatniej
+    # chwili i w tej klatce błyska flesz — groźna poza wyszła przypadkiem
+    kr, lot = pr(t, 5.8, 0.8), pr(t, 6.6, 0.5)
+    rv = REV()
+    w_locie = 0 < lot < 1
+    trz = None if w_locie else (rv[0], rv[1], rv[2], rv[3] + 720 * ease(kr) * (lot <= 0), rv[4])
     out = lalka(st, t, "bonnie_cygaro" if ma else "bonnie", 560, 300, flip=1, lean=-8, lift=12,
-                rece=(30 + 90 * ease(pr(t, 2.4, 0.6)), 20 + 30 * ease(pr(t, 0.8, 0.5))), trzyma=REV())
+                rece=(30 + 90 * ease(pr(t, 2.4, 0.6)) + 25 * math.sin(math.pi * lot), 20 + 30 * ease(pr(t, 0.8, 0.5))), trzyma=trz)
+    if w_locie and out:
+        st.put(rv[0], out[0], out[1] - 85 * math.sin(math.pi * lot), P.lalki + 0.03, h=rv[1], anchor=(0.5, 0.5), rot=540 * lot)
     blysk(st, 640, 360, 0.95, t, 4.4, r=2200, kolor=(1.0, 1.0, 0.95), dl=0.18)
-    if 4.4 <= t < 4.62:
+    blysk(st, 640, 360, 0.95, t, 7.1, r=2200, kolor=(1.0, 1.0, 0.95), dl=0.18)
+    fl = 4.4 <= t < 4.62 or 7.1 <= t < 7.32
+    if fl:
         st.dim = 1.6
-    koniec(st, w, t, dim=1.0 if not (4.4 <= t < 4.62) else 1.7)
+    koniec(st, w, t, dim=1.0 if not fl else 1.7)
 
 
 def s_hak_pomost(st, w, t, T):
@@ -174,10 +184,13 @@ def s_hak_cygaro(st, w, t, T):
     if out:
         st.put(J.gazeta("OUTLAW GIRL WITH CIGAR", 2, 360, 480), out[0] + 30, out[1] - 20, P.lalki + 0.03, h=lerp(150, 50, gniot),
                anchor=(0.3, 0.6), rot=-8 + 40 * gniot, sx=lerp(1.0, 0.5, gniot))
+    # gag 2 (GAGI.md): cygaro z gazetowej legendy smętnie opada w jej ustach jak zwiędły kwiat, potem Bonnie je wypluwa
     f = pr(t, 2.6, 0.7)
+    ux, uy = punkt("bonnie", 600, 300, 176, 160)
+    if t < 2.6:
+        st.put(J.rek("cygaro"), ux - 2, uy, P.lalki + 0.04, h=12, anchor=(0.04, 0.5), rot=4 + 62 * ease(pr(t, 1.0, 1.4)))
     if 0 < f < 1:
-        ux, uy = punkt("bonnie", 600, 300, 176, 160)
-        st.put(J.rek("papieros"), ux + 60 * f, uy + 200 * f * f, P.lalki + 0.04, h=8, anchor=(0.5, 0.5), rot=400 * f)
+        st.put(J.rek("cygaro"), ux + 60 * f, uy + 200 * f * f, P.lalki + 0.04, h=12, anchor=(0.5, 0.5), rot=400 * f)
     tab(w, t, "I DON'T SMOKE CIGARS!", 640, 260, 4.2, 3.6)
     koniec(st, w, t)
 
@@ -228,13 +241,19 @@ def s_indyki(st, w, t, T):
     west_dallas(st, t, w, woz=False)
     x, _ = jazda(t, 0.0, 4.5, 300, 560)
     ciezarowka(st, t, x, 210)
+    px, _ = jazda(t, 1.6, 1.2, 1400, 1080)
     for n in range(4):
         uc = ease(pr(t, 3.4 + 0.2 * n, 1.2))
-        st.put(J.zwierze("indyk"), x - 110 + 40 * n + 300 * uc * (1 if n % 2 else -0.6), 600 - 30 * math.sin(t * 9 + n) * (uc > 0) - 260 * uc,
-               P.auta + 0.004, h=70, anchor=(0.5, 1.0), rot=20 * uc * (1 if n % 2 else -1) + 6 * math.sin(t * 7 + n))
+        ix, iy = x - 110 + 40 * n + 300 * uc * (1 if n % 2 else -0.6), 600 - 30 * math.sin(t * 9 + n) * (uc > 0) - 260 * uc
+        irot, ip = 20 * uc * (1 if n % 2 else -1) + 6 * math.sin(t * 7 + n), P.auta + 0.004
+        if n == 3:  # gag 3 (GAGI.md): ten indyk ląduje na czapce policjanta i zostaje
+            lad = ease(pr(t, 4.5, 0.6))
+            hx, hy = punkt("policjant", px, 320, 150, 0)
+            ix, iy = lerp(ix, hx - 4, lad), lerp(iy, hy + 36, lad) - 60 * math.sin(math.pi * lad)
+            irot, ip = lerp(irot, 4 * math.sin(t * 5), lad), (P.lalki + 0.03 if lad > 0.5 else ip)
+        st.put(J.zwierze("indyk"), ix, iy, ip, h=70, anchor=(0.5, 1.0), rot=irot)
     lalka(st, t, "clyde_nastolatek", x - 250, 270, flip=1, lean=12, rece=(90, 80), hop=4)
     lalka(st, t, "buck", x - 340, 300, flip=1, lean=14, rece=(90, 80), hop=4)
-    px, _ = jazda(t, 1.6, 1.2, 1400, 1080)
     out = lalka(st, t, "policjant", px, 320, flip=-1, rece=(40 + 90 * ease(pr(t, 2.7, 0.3)), 10), hop=5 * (t < 2.9))
     if out and t > 2.7:
         st.put(J.rek("gwizdek"), out[0] - 10, out[1] - 30, P.lalki + 0.03, h=16, anchor=(0.5, 0.5))
@@ -272,7 +291,12 @@ def s_slub(st, w, t, T):
                drop=400, sway=0.6, string=False)
     lalka(st, t, "bonnie_slub", 560, 270, flip=1, rece=(30, 10))
     lalka(st, t, "roy", 730, 320, flip=-1, rece=(30, 10))
-    J.hang(st, J.wstega_luk(), 640, 238, P.drzewa + 0.01, pr(t, 4.9, 1.0), t, 451, w=520, drop=420, sway=0.4)
+    # gag 4 (GAGI.md, W3 „nitka teatru”, pomysł reżysera): na „a very permanent decision” pęka prawa nitka, wstęga obraca się
+    # na lewej i zwisa krzywo do końca; Roy zerka w górę
+    peka = pr(t, 10.9, 0.7)
+    J.hang(st, J.wstega_luk(), 640 - 0.3 * 520, 238, P.drzewa + 0.01, pr(t, 4.9, 1.0), t, 451, w=520, drop=420, sway=0.4,
+           anchor=(0.2, 0.0), strings=(0.2,) if peka > 0 else (0.2, 0.8), rot0=16 * back(peka, 1.4))
+    tab(w, t, "?", 760, 200, 11.3, 1.6)
     J.hang(st, J.tatuaz(), 640, 34, P.rekwizyty, pr(t, 8.3, 1.0), t, 450, w=240, drop=420)
     podpis(w, t, "Roy Thornton", 730, 150, 5.9, 1.9)  # przy „Roy Thornton”, zjeżdża, zanim spadnie tabliczka
     koniec(st, w, t)
@@ -295,9 +319,16 @@ def s_kawiarnia(st, w, t, T):
     kam(st, t, 15, 640, 390, 1.15, 0.8, shake=3.0 * hk)
     wnetrze(st, t, w, sciana="paski", okna=(260, 1020), meble=(("lada", 640, 150, P.drzewa),))
     lalka(st, t, "przechodzien2", 820, 300, flip=-1, rece=(90, 90), trzyma=(J.gazeta("DEPRESSION DEEPENS", 5, 360, 480), 130, (0.5, 0.7), 90, True))
-    lalka(st, t, "bonnie_kelnerka", 520, 290, flip=1, lean=-6 * ease(pr(t, 0.6, 0.5)) * (1 - ease(pr(t, 2.6, 0.4))),
+    patrzy = -1 if 7.2 < t < 8.0 else 1  # odprowadza wzrokiem toczące się zielsko
+    lalka(st, t, "bonnie_kelnerka", 520, 290, flip=patrzy, lean=-6 * ease(pr(t, 0.6, 0.5)) * (1 - ease(pr(t, 2.6, 0.4))),
           rece=(80 + 10 * ease(pr(t, 0.6, 0.5)) - 30 * ease(pr(t, 2.9, 0.3)), 10), trzyma=(J.rek("dzbanek"), 60, (0.5, 0.2), 30 * (t < 2.6), True))
     st.put(J.rek("kubek"), 700, 610, P.drzewa + 0.01, h=30, anchor=(0.5, 1.0))
+    # gag 5 (GAGI.md): na „something exciting” przez kawiarnię toczy się kula stepowego zielska; Bonnie odprowadza ją wzrokiem
+    tz = pr(t, 7.0, 2.6)
+    if 0 < tz < 1:
+        zx = lerp(-120, 1400, tz)
+        # podskakuje z wiatrem nad ladą — przy podłodze chował się pod pasem napisów
+        st.put(J.rek("zielsko"), zx, 566 - 90 * abs(math.sin(tz * 9)), P.lalki + 0.03, h=86, anchor=(0.5, 1.0), rot=tz * 900)
     tab(w, t, "SIGH…", 520, 230, 2.4, 1.8)
     koniec(st, w, t)
 
@@ -312,7 +343,10 @@ def s_kuchnia(st, w, t, T):
     cx, _ = jazda(t, 1.2, 1.8, 1180, 900)
     lalka(st, t, "clyde", cx, 320, flip=-1, rece=(lerp(0, 160, ease(pr(t, 3.2, 0.4))) * (1 - ease(pr(t, 4.2, 0.4))), 0), hop=5 * (t < 3.0))
     for n in range(2):
-        J.hang(st, J.serce(), 620 + 90 * n, 160 + 20 * n, P.rekwizyty, pr(t, 4.4 + 0.3 * n, 1.0), t, 460 + n, h=60, drop=420)
+        # gag 6 (GAGI.md): na „he was arrested” serduszka odjeżdżają w górę, a na tej samej nitce zjeżdżają kajdanki
+        J.hang(st, J.serce(), 620 + 90 * n, 160 + 20 * n, P.rekwizyty, pr(t, 4.4 + 0.3 * n, 1.0) * (1 - pr(t, 8.2 + 0.1 * n, 0.5)), t,
+               460 + n, h=60, drop=420)
+    J.hang(st, J.rek("kajdanki"), 665, 170, P.rekwizyty, pr(t, 8.7, 0.9), t, 470, h=64, drop=420)
     koniec(st, w, t)
 
 
@@ -449,7 +483,13 @@ def s_akt2(st, w, t, T):
     preria(st, t, w, slupy=True, wiatrak=True)
     Z0.rise(st, J.fasada("stacja"), 960, 650, P.most, bk(w, 0.9, 0.9), t, 470, h=330, wob=0.0)
     x, k = jazda(t, 1.4, 4.0, -300, 640)
-    auto(st, t, x, pasazerowie=[("clyde", 1, (40, 0))])
+    # gag 7 (GAGI.md): na „keep driving” auto rusza bez Bonnie — zostaje tam, gdzie siedziała — i wraca po nią tyłem
+    x += 1100 * ease(pr(t, 6.9, 0.6)) - 1100 * ease(pr(t, 8.0, 0.9))
+    bez_niej = 6.9 < t < 9.0
+    auto(st, t, x, pasazerowie=[("clyde", 1, (40, 0))] + ([] if bez_niej else [("bonnie", 0, (0, 0))]))
+    if bez_niej:
+        lalka(st, t, "bonnie", 560, 290, flip=1, rece=(10 + 60 * ease(pr(t, 7.3, 0.3)), 0), siedzi=False)
+        tab(w, t, "SERIOUSLY?", 560, 240, 7.3, 1.5)
     koniec(st, w, t)
 
 
@@ -457,7 +497,9 @@ def s_stacja(st, w, t, T):
     """Clyde wpada do budki stacji z rewolwerem; kasjer otwiera szufladę: kilka monet i guzik; „THAT'S IT?”."""
     kam(st, t, 26, 640, 450, 1.25, 0.8)
     miasto(st, t, w, fasady=(("stacja", 640),), tyl=(), chodnik=True)
-    out_k = lalka(st, t, "kasjer", 760, 300, flip=-1, rece=(lerp(10, 80, ease(pr(t, 2.4, 0.6))), 60 * ease(pr(t, 1.2, 0.3))))
+    rozklada = ease(pr(t, 6.9, 0.4))
+    out_k = lalka(st, t, "kasjer", 760, 300, flip=-1, rece=(lerp(10, 80, ease(pr(t, 2.4, 0.6))) + 70 * rozklada,
+                                                         60 * ease(pr(t, 1.2, 0.3)) + 80 * rozklada))
     cx, _ = jazda(t, 0.2, 1.4, 200, 520)
     lalka(st, t, "clyde", cx, 330, flip=1, rece=(90, 0), trzyma=REV(), hop=6 * (t < 1.6))
     if out_k and t > 2.9:
@@ -465,6 +507,11 @@ def s_stacja(st, w, t, T):
             st.put(Z0.coin(), out_k[0] - 20 + 14 * n, out_k[1] - 6, P.lalki + 0.03, h=12, anchor=(0.5, 0.5))
         st.put(J.rek("pinezka"), out_k[0] + 26, out_k[1] - 4, P.lalki + 0.03, h=10, anchor=(0.5, 0.5), tint=(0.5, 0.4, 0.3))
     tab(w, t, "THAT'S IT?", 560, 250, 3.4, 2.6)
+    # gag 8 (GAGI.md, W1 „pusta kasa”): na „only a few dollars” z kasy wylatuje ćma; kasjer rozkłada ręce
+    fc = pr(t, 6.6, 2.2)
+    if out_k and 0 < fc < 1:
+        st.put(J.rek("cma"), out_k[0] + 160 * fc + 30 * math.sin(fc * 20), out_k[1] - 20 - 300 * fc, P.rekwizyty, h=50,
+               anchor=(0.5, 0.5), sx=0.3 + 0.7 * abs(math.sin(t * 22)), rot=10 * math.sin(t * 7))
     koniec(st, w, t)
 
 
@@ -569,14 +616,16 @@ def s_wd(st, w, t, T):
     preria(st, t, w, slupy=True)
     # chłopak stoi przy aucie, kiedy lektor go nazywa, i wsiada dopiero przy „joined them” (przegląd 19.11: podpis
     # zjeżdżał, gdy był już w aucie)
-    w_srodku = t > 5.9
+    # gag 9 (GAGI.md): po „sounded exciting” W.D. tak się spieszy, że wskakuje do auta szczupakiem przez okno
+    w_srodku = t > 6.4
     auto(st, t, 640, pasazerowie=[("clyde", 1, (40, 0))] + ([("wd", 0, (0, 0))] if w_srodku else []))
     if not w_srodku:
-        x, _ = jazda(t, 0.4, 2.4, 1100, 640)
-        lalka(st, t, "wd", x, 280, 1.0 - ease(pr(t, 5.4, 0.5)), flip=-1, rece=(20, 0), hop=5 * (t < 2.4))
+        x, _ = jazda(t, 0.4, 2.4, 1100, 760)
+        f = pr(t, 5.6, 0.8)
+        lalka(st, t, "wd", lerp(x, 600, ease(f)), 280, flip=-1, rece=(20 + 140 * f, 10 + 120 * f), hop=5 * (t < 2.4),
+              lean=-95 * ease(f), lift=200 * math.sin(math.pi * min(1.0, f * 1.15)), p=P.auta - 0.004 if f > 0.55 else None)
     podpis(w, t, "W.D. Jones, 16", 640, 220, 2.6, 2.8)
-    if 5.9 < t < 6.2:
-        st.dim = 1.0
+    tab(w, t, "OOF!", 560, 300, 6.4, 1.2)
     koniec(st, w, t)
 
 
@@ -604,6 +653,17 @@ def s_joplin_dom(st, w, t, T):
     auto(st, t, x1, 220, pasazerowie=[("bonnie", 0, (0, 0)), ("clyde", 1, (40, 0))])
     auto(st, t, x2, 210, kolor="bordo", p=P.auta + 0.005, pasazerowie=[("blanche", 0, (0, 0)), ("buck", 1, (40, 0))])
     w.zawieszki = [("Joplin, Missouri, 1933", 640, 120, pr(t, 2.0, 1.0))]
+    # gag 10 (GAGI.md): na „normal family” zjeżdża rama zdjęcia rodzinnego, w niej pięć uśmiechów; z boku wsuwa się lufa
+    # karabinu, Bonnie ją wypycha, uśmiechy zostają
+    kr = pr(t, 7.8, 0.8) * (1 - pr(t, 11.0, 0.5))
+    if kr > 0:
+        J.hang(st, J.ramka(), 640, 250, P.rekwizyty + 0.01, kr, t, 480, w=620, drop=420, sway=0.3, strings=(0.1, 0.9))
+        for n, key in enumerate(("buck", "blanche", "bonnie", "clyde", "wd")):
+            lalka(st, t, key, 420 + 110 * n, 150, ease(pr(t, 8.3 + 0.08 * n, 0.4)) * (1 - pr(t, 11.0, 0.3)), y=505,
+                  p=P.rekwizyty, flip=1 if n < 2 else -1, rece=(10 + 60 * (key == "bonnie") * ease(pr(t, 9.7, 0.2)), 0))
+        lufa = ease(pr(t, 9.2, 0.4)) * (1 - ease(pr(t, 9.8, 0.3)))
+        if lufa > 0:
+            st.put(J.rek("karabin"), lerp(1060, 880, lufa), 420, P.rekwizyty + 0.005, w=200, anchor=(0.0, 0.5), sx=-1)
     koniec(st, w, t)
 
 
@@ -665,6 +725,12 @@ def s_ciemnia(st, w, t, T):
     for n, x in enumerate((260, 420, 900, 1060)):  # suszące się odbitki na sznurku
         st.put(J.rek("klisza"), x, 154, P.wzgorza + 0.001, h=110, anchor=(0.5, 0.0), rot=3 * math.sin(t + n))
     lalka(st, t, "fotograf", 1010, 330, flip=-1, lean=-14, rece=(70, 30))
+    # gag 11 (GAGI.md): kiedy na odbitce wyłania się Bonnie z cygarem, wywołującemu wypada papieros z ust prosto do kuwety, „O!”
+    ux, uy = punkt("fotograf", 1010, 330, 176, 160, flip=-1, rot=-14)
+    fp = pr(t, 5.0, 0.6)
+    if fp < 1:
+        st.put(J.rek("papieros"), ux - 10 - 50 * fp, uy + 230 * fp * fp, P.lalki + 0.03, h=10, anchor=(0.9, 0.5), rot=-10 - 300 * fp)
+    tab(w, t, "O!", 1010, 280, 5.1, 1.6)
     st.put(J.rek("kuweta"), 600, 790, P.rekwizyty, w=760, anchor=(0.5, 1.0))
     f = ease(pr(t, 1.2, 4.5))
     plyw = 4 * math.sin(t * 1.3)
@@ -684,6 +750,19 @@ def s_kiosk(st, w, t, T):
         x = 560 + 120 * n - 60 * ease(pr(t, 2.0 + n * 0.3, 1.0))
         lalka(st, t, key, x, 300 - 6 * (n % 2), flip=-1, rece=(30 + 40 * (n == 0) * (t > 3), 0), hop=3 * (1 < t < 4))
     tab(w, t, "EXTRA!", 380, 240, 1.0, 3.0)
+    # gag 12 (GAGI.md, W1 „pusta kasa”): pierwszy w kolejce wywraca puste kieszenie — wylatuje ćma — i i tak płaci ostatnią monetą
+    kx = 500
+    kies = ease(pr(t, 9.6, 0.3)) * (1 - ease(pr(t, 11.0, 0.3)))
+    for strona in (-1, 1):
+        if kies > 0:
+            st.put(J.rek("pranie"), kx + 26 * strona, 560, P.lalki + 0.02, h=22 * kies, anchor=(0.5, 0.0), tint=(1.0, 1.0, 0.95))
+    fc = pr(t, 9.9, 2.0)
+    if 0 < fc < 1:
+        st.put(J.rek("cma"), kx + 30 + 120 * fc + 25 * math.sin(fc * 18), 560 - 320 * fc, P.rekwizyty, h=46, anchor=(0.5, 0.5),
+               sx=0.3 + 0.7 * abs(math.sin(t * 22)), rot=10 * math.sin(t * 7))
+    fm = pr(t, 11.4, 0.6)
+    if 0 < fm < 1:
+        st.put(Z0.coin(), lerp(kx - 20, 410, fm), 470 - 80 * math.sin(math.pi * fm), P.lalki + 0.03, h=16, anchor=(0.5, 0.5), sx=abs(math.cos(fm * 12)))
     koniec(st, w, t)
 
 
@@ -707,15 +786,25 @@ def s_darby_auto(st, w, t, T):
     """Gang odjeżdża cudzym autem sprzed domu; z domu wybiegają młody mężczyzna w garniturze i kobieta i wskakują do drugiego auta."""
     kam(st, t, 41, 640, 430, 1.0, 0.78)
     miasto(st, t, w, fasady=(("dom", 380), ("dom", 1000)), tyl=(("dom", 700),))
-    x1, _ = jazda(t, 1.6, 3.4, 700, 1700)
-    auto(st, t, x1, 210, kolor="granat", pasazerowie=[("bonnie", 0, (0, 0)), ("clyde", 1, (40, 0))])
+    # gag 13 (GAGI.md, pomysł reżysera „auto robi wrr wrr”): skradziony Ford gaśnie i kaszle, Darby wybiega i prawie dobiega,
+    # auto rusza z piskiem tuż przed jego ręką; potem Darby i Stone biegną do swojego auta i ruszają w pościg
+    x1 = 700 + 1000 * ease(pr(t, 6.0, 0.8))
+    kaszel = sum(max(0.0, 1 - abs(t - c) / 0.15) for c in (2.0, 2.7, 3.4, 4.6))
+    auto(st, t, x1, 210, kolor="granat", pasazerowie=[("bonnie", 0, (0, 0)), ("clyde", 1, (40, 0))], lift=10 * kaszel,
+         przechyl=2 * kaszel)
+    for c in (2.0, 2.7, 3.4, 4.6):
+        f = pr(t, c, 0.9)
+        if 0 < f < 1:
+            st.put(J.glow(r=256, color=(96, 92, 90)), x1 - 270 - 60 * f, 600 - 90 * f, P.auta + 0.02, w=120 + 260 * f, anchor=(0.5, 0.5),
+                   alpha=0.9 * (1 - f), shadow=None)
     for n, key in enumerate(("darby", "stone")):
-        x, _ = jazda(t, 4.2 + 0.3 * n, 1.8, 380, 220 - 60 * n)
-        lalka(st, t, key, x, 300 - 10 * n, ease(pr(t, 4.0 + 0.3 * n, 0.4)) * (1.0 - ease(pr(t, 6.6 + 0.2 * n, 0.4))), flip=-1,
-              rece=(120 * (n == 0), 0), hop=6)
-    x2, _ = jazda(t, 7.4, 3.4, 160, 1700)
-    auto(st, t, x2, 200, kolor="zielony", p=P.auta + 0.004, pasazerowie=([("stone", 0, (0, 0)), ("darby", 1, (60, 0))] if t > 7.0 else []))
-    tab(w, t, "HEY!", 360, 300, 4.4, 2.2)
+        dobieg = lerp(380, 610 - 90 * n, ease(pr(t, 4.2 + 0.3 * n, 1.6)))
+        x = lerp(dobieg, 220 - 60 * n, ease(pr(t, 6.4 + 0.2 * n, 0.8)))
+        lalka(st, t, key, x, 300 - 10 * n, ease(pr(t, 4.0 + 0.3 * n, 0.4)) * (1.0 - ease(pr(t, 7.0 + 0.2 * n, 0.4))),
+              flip=1 if t < 6.4 else -1, rece=(150 * (n == 0) * (t < 6.5), 0), hop=6)
+    x2, _ = jazda(t, 7.6, 3.4, 160, 1700)
+    auto(st, t, x2, 200, kolor="zielony", p=P.auta + 0.004, pasazerowie=([("stone", 0, (0, 0)), ("darby", 1, (60, 0))] if t > 7.3 else []))
+    tab(w, t, "HEY!", 600, 300, 6.1, 1.6)
     koniec(st, w, t)
 
 
@@ -732,6 +821,14 @@ def s_darby_tyl(st, w, t, T):
     podpis(w, t, "Sophia Stone", 440, 320, 2.0, 2.8)
     # puenta dopiero na „undertaker” (przegląd 19.11: podpis zdradzał ją 8 s wcześniej)
     podpis(w, t, "Dillard Darby, undertaker", 560, 250, 8.7, 2.0)
+    # gag 14 (GAGI.md, czarny humor za zgodą reżysera): na „undertaker” Darby z nawyku rozwija miarkę i mierzy Bonnie od czubka
+    # głowy w dół; Bonnie patrzy na miarkę („…”). Zasiew klamry z ujęcia darby_zaklad.
+    mi = ease(pr(t, 9.6, 0.8))
+    if mi > 0:
+        k = 300 / 360.0
+        bx, by = x + (505 - 450) * k, DROGA_Y + (126 - 356) * k
+        st.put(J.rek("miarka"), bx + 8, by - 64, P.auta + 0.0015, w=lerp(30, 150, mi), anchor=(0.08, 0.5), rot=-90)
+        tab(w, t, "…", bx + 70, by - 120, 10.4, 1.3)
     koniec(st, w, t)
 
 
@@ -759,10 +856,16 @@ def s_darby_puszczeni(st, w, t, T):
             st.put(J.glow(r=256, color=(200, 180, 140)), x - 200 - 120 * f * n, 660 - 40 * f, P.auta + 0.01, w=160 + 180 * f, anchor=(0.5, 0.5),
                    alpha=0.5 * (1 - f), shadow=None)
     d = ease(pr(t, 0.4, 0.8))
-    out = lalka(st, t, "darby", 380, 300, d, flip=1, rece=(lerp(0, 90, ease(pr(t, 2.2, 0.5))), 0))
+    # gag 15 (GAGI.md): na „five dollars” wiatr porywa banknot z ręki Darby'ego, a Darby goni go tak, jak przedtem gonił auto
+    fb = pr(t, 5.3, 2.6)
+    dx = lerp(380, 1180, ease(pr(t, 5.6, 2.6)))
+    out = lalka(st, t, "darby", dx, 300, d, flip=1, rece=(lerp(0, 90, ease(pr(t, 2.2, 0.5))) + 50 * (t > 5.4), 0), hop=6 * (t > 5.6))
     lalka(st, t, "stone", 250, 290, d, flip=1, rece=(10, 0))
-    if out and t > 2.8:
+    if out and 2.8 < t and fb <= 0:
         st.put(J.rek("banknot"), out[0], out[1], P.lalki + 0.03, h=22, anchor=(0.3, 0.5), rot=-8)
+    elif 0 < fb < 1:
+        st.put(J.rek("banknot"), lerp(420, 1450, fb), 450 - 120 * math.sin(math.pi * fb) + 30 * math.sin(fb * 17), P.lalki + 0.03, h=22,
+               anchor=(0.5, 0.5), rot=fb * 720, sx=abs(math.cos(fb * 11)) * 0.8 + 0.2)
     koniec(st, w, t)
 
 
@@ -915,7 +1018,7 @@ def s_noszenie(st, w, t, T):
 
 
 def s_oboz(st, w, t, T):
-    """Wieczór przy drodze: auto, pranie na sznurku, puszka fasoli na ognisku, Bonnie pisze, Clyde czyści karabin."""
+    """Wieczór przy drodze: auto, pranie na sznurku, zimna puszka fasoli, Bonnie pisze, Clyde czyści karabin."""
     w.noc = 0.7
     kam(st, t, 53, 640, 440, 1.05, 0.79)
     preria(st, t, w, slupy=False, noc=1.0)
@@ -923,10 +1026,20 @@ def s_oboz(st, w, t, T):
     st.line([(200, 470), (480, 486), (760, 470)], P.wzgorza + 0.035, width=1.4, color=(80, 70, 60))
     for n, x in enumerate((280, 380, 560, 660)):
         st.put(J.rek("pranie"), x, 474 + 6 * math.sin(n), P.wzgorza + 0.036, h=60, anchor=(0.5, 0.0), rot=3 * math.sin(t * 2 + n), tint=((0.9, 0.85, 1.0), (1.0, 0.8, 0.8))[n % 2])
-    for n in range(3):
-        st.put(Z0.flame(int(t * 12 + 3 * n) % 10), 622 + 18 * n, 694, P.lalki + 0.02, h=90, anchor=(0.5, 1.0), shadow=None)
+    # zimna fasola (kwestia: „eating cold beans”): bez ogniska — puszka stoi na kamieniu
     st.put(J.rek("puszka"), 640, 640, P.lalki + 0.025, h=40, anchor=(0.5, 1.0))
-    st.put(J.glow(), 640, 640, P.lalki + 0.03, w=600, anchor=(0.5, 0.5), mode="add", alpha=0.35, shadow=None)
+    # gag 16 (GAGI.md): na „glamorous” złote iskry i blask jak w Hollywood; na „cold beans” blask gaśnie, a łyżka staje
+    # w zimnej fasoli na sztorc
+    gl = ease(pr(t, 1.5, 0.4)) * (1 - ease(pr(t, 4.4, 0.35)))
+    if gl > 0:
+        st.put(J.glow(), 640, 380, P.rekwizyty, w=1600, anchor=(0.5, 0.5), mode="add", alpha=0.28 * gl, shadow=None, tint=(1.0, 0.85, 0.45))
+        for n in range(14):
+            mig = 0.5 + 0.5 * math.sin(t * 9 + n * 1.7)
+            st.put(Z0.prop("gwiazdka"), 160 + (n * 173) % 980, 160 + (n * 97) % 380, P.rekwizyty + 0.01, h=(22 + 10 * (n % 3)) * gl * mig,
+                   anchor=(0.5, 0.5), rot=t * 60 + n * 30, tint=(1.0, 0.86, 0.4), shadow=None)
+    ly = back(pr(t, 4.7, 0.35), 2.0)
+    if ly > 0:
+        st.put(J.rek("lyzka"), 640, 622, P.lalki + 0.024, h=64 * ly, anchor=(0.5, 1.0), rot=0)  # trzon w puszce
     lalka(st, t, "bonnie", 420, 280, flip=1, lean=6, rece=(80 + 5 * math.sin(t * 8), 60), trzyma=(J.rek("zeszyt"), 40, (0.5, 0.5), 80, True), kuleje=0)
     # Clyde stoi, więc karabin trzyma w dłoni lufą w górę i przeciera ją szmatką (przegląd 19.11: karabin wisiał w powietrzu
     # na wysokości kolan stojącego Clyde'a; lufa nie celuje w Bonnie)
@@ -959,6 +1072,12 @@ def s_list_ford(st, w, t, T):
     st.put(J.rek("list"), 800, 512, P.auta + 0.004, h=80, anchor=(0.5, 1.0), rot=-70)
     podpis(w, t, "Clyde?", 800, 300, 1.4, 4.0)
     tab(w, t, "?", 920, 330, 3.0, 4.0)
+    # gag 17 (GAGI.md): na „such a fine getaway car” Ford mruga reflektorem, jakby się zawstydził, i nieśmiało trąbi
+    for c in (6.4, 6.8):
+        if c <= t < c + 0.22:
+            st.put(J.glow(), 640 + (842 - 450) * 300 / 360, DROGA_Y + (214 - 356) * 300 / 360, P.auta + 0.01, w=170, anchor=(0.5, 0.5),
+                   mode="add", alpha=0.9 * math.sin(math.pi * (t - c) / 0.22), shadow=None, tint=(1.0, 0.95, 0.7))
+    tab(w, t, "beep", 1060, 380, 7.2, 1.2)
     koniec(st, w, t)
 
 
@@ -1002,7 +1121,7 @@ def s_dexfield(st, w, t, T):
 def s_przeprawa(st, w, t, T):
     """Clyde, Bonnie i W.D. brną przez rzekę; Clyde ciągnie Bonnie za rękę; na brzegu za nimi błyski."""
     kam(st, t, 58, 640, 480, 1.1, 0.79)
-    las(st, t, w, rodzaj="liscie", droga=0.0, krzaki=True)
+    las(st, t, w, rodzaj="liscie", droga=0.0, krzaki=True, swit=0.8)  # zaraz po obławie w Dexfield, o świcie (ciągłe cięcie)
     x, _ = jazda(t, 0.0, T, 300, 900)
     for n, (key, dx, h) in enumerate((("clyde", 0, 320), ("bonnie", -120, 280), ("wd", -230, 280))):
         lalka(st, t, key, x + dx + 8 * math.sin(t * 3 + n), h, flip=1, sink=0.32, lean=-6, rece=(70 if n < 2 else 40, 50 if n == 1 else 20))
@@ -1013,13 +1132,21 @@ def s_przeprawa(st, w, t, T):
 
 
 def s_wd_odchodzi(st, w, t, T):
-    """Nocą W.D. wysiada po cichu i odchodzi w ciemność; Bonnie patrzy za nim przez szybę."""
+    """Nocą W.D. wymyka się na palcach; ręka matki wyciąga go z kadru za ucho; Bonnie patrzy za nim przez szybę."""
     w.noc, w.moon = 1.0, 1.0
     kam(st, t, 59, 640, 450, 1.2, 0.79)
     preria(st, t, w, slupy=True, noc=1.0)
     auto(st, t, 520, 240, pasazerowie=[("bonnie", 0, (0, 0)), ("clyde", 1, (40, 0))], tint=(0.7, 0.72, 0.85))
-    x, _ = jazda(t, 0.6, T - 1.0, 720, 1300)
-    lalka(st, t, "wd", x, 270, 1.0, flip=1, rece=(10, 0), hop=4, alpha=1.0 - 0.8 * ease(pr(t, 3.0, 3.0)), tint=(0.7, 0.72, 0.85))
+    # gag 18 (GAGI.md): W.D. wymyka się na palcach przesadnym krokiem z kreskówki; z prawej krawędzi wysuwa się ręka matki
+    # i wyciąga go z kadru za ucho
+    x = lerp(720, 1060, ease(pr(t, 0.6, 5.0))) + 420 * ease(pr(t, 6.4, 0.7))
+    krok = abs(math.sin(t * 3.2)) * (0.6 < t < 6.2)
+    lalka(st, t, "wd", x, 270, 1.0, flip=1, rece=(60 + 30 * krok, 40), lean=14 * (t < 6.3), lift=36 * krok, tint=(0.7, 0.72, 0.85))
+    ra = ease(pr(t, 5.6, 0.6))
+    if ra > 0:
+        st.put(J.figura("farmerka").arm, lerp(1420, x + 120, ra) + 420 * ease(pr(t, 6.4, 0.7)) * 0, 385, P.lalki + 0.03, h=160,
+               anchor=(0.5, 0.1), rot=95, tint=(0.75, 0.75, 0.88))
+    tab(w, t, "AW!", 1000, 300, 6.4, 1.4)
     koniec(st, w, t)
 
 
@@ -1035,9 +1162,17 @@ def s_rodziny(st, w, t, T):
         out = lalka(st, t, key, x, 280, flip=-1, rece=(90 * d, 20), tint=(0.75, 0.75, 0.88))
         if out:
             st.put(J.rek("koszyk"), out[0], out[1], P.lalki + 0.03, h=36, anchor=(0.5, 0.2), tint=(0.8, 0.8, 0.9))
-    if t > 4.0:
-        f = ease(pr(t, 4.0, 1.4))
-        st.put(J.rek("pranie"), lerp(500, 640, f), 520 + 30 * math.sin(math.pi * f), P.lalki + 0.03, h=40, anchor=(0.5, 0.5), tint=(0.8, 0.8, 0.9))
+    # gag 19 (GAGI.md): na „bringing laundry” Bonnie podaje matce stos prania wyższy od auta, matka oddaje maleńki talerzyk
+    fs = ease(pr(t, 8.9, 1.3))
+    if t > 8.9:
+        lean_m = 8 * math.sin(t * 5) * (fs >= 1)
+        for n in range(10):
+            st.put(J.rek("pranie"), lerp(400, 650, fs) + 6 * math.sin(n * 1.7) + lean_m * n * 0.6, 560 - 26 * n, P.lalki + 0.03 + 0.0005 * n, h=34,
+                   anchor=(0.5, 1.0), rot=4 * math.sin(n * 2.1), tint=((0.82, 0.8, 0.92), (0.9, 0.78, 0.8), (0.8, 0.86, 0.8))[n % 3])
+    ft = pr(t, 10.6, 0.8)
+    if ft > 0:
+        st.put(J.rek("kanapka"), lerp(650, 430, ease(ft)), 470 - 30 * math.sin(math.pi * min(1, ft)), P.lalki + 0.03, h=12, anchor=(0.5, 0.5),
+               tint=(0.85, 0.8, 0.9))
     koniec(st, w, t)
 
 

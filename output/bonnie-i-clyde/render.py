@@ -79,6 +79,11 @@ for _n, _tyt, _o, _sceny in AKTY:
                                 pierwsze_aktu=_si == 0 and _ui == 0, ostatnie_aktu=_si == len(_sceny) - 1 and _ui == len(_shots) - 1))
 assert len(GRANICE) == len(UJ)
 BUDUJ |= {KOL[_i] for _i, _g in enumerate(GRANICE) if _g["pierwsze_sceny"]}
+# Ta sama dekoracja co w poprzednim ujęciu (to samo miejsce, czas leci dalej): bez gaśnięcia i bez budowy od zera, zwykłe cięcie.
+# Przegląd 19.11 („ujęcie po ujęciu zbytnio nie kontynuowało poprzedniego”): pole pod Waldo po śmiechu Darby'ego, rzeka po
+# Dexfield, nocna droga po odejściu W.D., Kansas po jeździe z Boydem budowały się od pustego płótna jak nowa historia.
+CIAGLOSC = {"darby_puszczeni", "przeprawa", "rodziny", "boyd_tab"}
+BUDUJ -= CIAGLOSC
 KURTYNA = (1.5, 0.8, 0.25, 0.85)  # zamykanie 1,5 s przed końcem aktu, trwa 0,8 s; w nowym akcie po 0,25 s otwiera się 0,85 s
 CIEMNO = 0.35  # ściemnienie: tyle sekund gaśnie na końcu sceny i tyle zapala się na początku następnej
 # Akty bez kurtyny na wejściu (Podręcznik → Rytm, 19.11.2026: „jeden początek”): prolog przechodzi w akt I ściemnieniem, bo
@@ -137,9 +142,9 @@ def przejscie(st, i, lt, T):
     elif g["pierwsze_aktu"] and i > 0 and g["akt"] not in BEZ_KURTYNY:
         kurtyna(st, 1 - pr_(lt, czekaj, otw), tytul_aktu(g["akt"]), 1 - pr_(lt, 0.0, czekaj + 0.15))
     else:
-        if (g["ostatnie_sceny"] or g["ostatnie_aktu"]) and i < len(UJ) - 1:
+        if (g["ostatnie_sceny"] or g["ostatnie_aktu"]) and i < len(UJ) - 1 and KOL[i + 1] not in CIAGLOSC:
             st.dim *= 1 - ease(pr_(lt, T - CIEMNO, CIEMNO))
-        if (g["pierwsze_sceny"] or g["pierwsze_aktu"]) and i > 0:
+        if (g["pierwsze_sceny"] or g["pierwsze_aktu"]) and i > 0 and KOL[i] not in CIAGLOSC:
             st.dim *= ease(pr_(lt, 0.0, CIEMNO))
 
 
