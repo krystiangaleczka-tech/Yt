@@ -110,13 +110,13 @@
       "id": "clyde",
       "name": "Clyde Barrow",
       "role": "złodziej z West Dallas, kierowca",
-      "look": "szczupły, ciemne włosy, fedora, garnitur; od d01_13~siekiery kuleje (obcięte palce u stopy)",
+      "look": "szczupły, ciemne włosy, fedora, garnitur; od d01_11~siekiery kuleje (obcięte palce u stopy)",
       "namedIn": [
         "d*"
       ],
       "states": [
         {
-          "from": "d01_13~siekiery",
+          "from": "d01_11~siekiery",
           "state": "kuleje"
         },
         {
@@ -166,7 +166,7 @@
       "name": "Roy Thornton",
       "role": "mąż Bonnie",
       "look": "młody, zaczesane włosy, walizka",
-      "leaves": "d01_05~Roy"
+      "leaves": "d01_04~Roy"
     },
     {
       "id": "hamer",
@@ -347,7 +347,7 @@
       "id": "obraczka",
       "name": "Obrączka Roya",
       "owner": "Bonnie",
-      "seeded": "d01_05~ring"
+      "seeded": "d01_04~ring"
     }
   ],
   "resources": [],
@@ -355,7 +355,7 @@
     {
       "id": "clyde_wolny",
       "name": "Clyde na wolności",
-      "from": "d01_14~parole",
+      "from": "d01_12~parole",
       "to": "d07_10~papierowy Ford"
     },
     {
@@ -507,7 +507,7 @@
       "id": "przysiega",
       "title": "Clyde nie wróci do Eastham",
       "setup": [
-        "d01_15~swore"
+        "d01_13~swore"
       ],
       "clues": [
         "d05_01~Eastham"

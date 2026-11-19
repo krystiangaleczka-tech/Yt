@@ -71,7 +71,7 @@ SWIAT = {
                                                                                        "state": "ślepa na jedno oko (od " "Platte City)"}]},
         {"id": "wd", "name": "W.D. Jones", "role": "szesnastolatek z sąsiedztwa", "look": "chudy chłopak w kaszkiecie",
          "joins": r("wd", "W.D. Jones"), "leaves": r("wd_odchodzi", "W.D.")},
-        {"id": "roy", "name": "Roy Thornton", "role": "mąż Bonnie", "look": "młody, zaczesane włosy, walizka", "leaves": r("roy", "Roy")},
+        {"id": "roy", "name": "Roy Thornton", "role": "mąż Bonnie", "look": "młody, zaczesane włosy, walizka", "leaves": r("kawiarnia", "Roy")},
         {"id": "hamer", "name": "Frank Hamer", "role": "emerytowany strażnik Teksasu (Ranger), łowca", "look": "wysoki, ciężki, kapelusz "
          "Stetson, kamizelka, długi płaszcz", "namedIn": ["d05_*", "d06_*", "d07_*", "d08_*"]},
         {"id": "simmons", "name": "Lee Simmons", "role": "szef więziennictwa Teksasu", "look": "garnitur, okulary, łysina"},
@@ -109,7 +109,7 @@ SWIAT = {
          "uses": [r("zwolnienie", "ciężarówce")]},
         {"id": "wiersz", "name": "Wiersz dla matki („The Trail's End”)", "owner": "Bonnie", "seeded": r("wiersz", "poem"),
          "uses": [r("pogrzeby", "poem")], "note": "Tylko parafraza; prawa autorskie niesprawdzone."},
-        {"id": "obraczka", "name": "Obrączka Roya", "owner": "Bonnie", "seeded": r("roy", "ring")},
+        {"id": "obraczka", "name": "Obrączka Roya", "owner": "Bonnie", "seeded": r("kawiarnia", "ring")},
     ],
     "resources": [],
     "rules": [

@@ -224,19 +224,19 @@ def s_indyki(st, w, t, T):
     """Nastoletni Clyde i Buck pchają ciężarówkę z gdaczącymi indykami; wchodzi policjant z gwizdkiem, indyki wyfruwają; „STOP!”."""
     kam(st, t, 11, 640, 380, 1.0, 0.76)
     west_dallas(st, t, w, woz=False)
-    x, _ = jazda(t, 0.0, 6.0, 300, 560)
+    x, _ = jazda(t, 0.0, 4.5, 300, 560)
     ciezarowka(st, t, x, 210)
     for n in range(4):
-        uc = ease(pr(t, 6.5 + 0.2 * n, 1.2))
+        uc = ease(pr(t, 3.4 + 0.2 * n, 1.2))
         st.put(J.zwierze("indyk"), x - 110 + 40 * n + 300 * uc * (1 if n % 2 else -0.6), 600 - 30 * math.sin(t * 9 + n) * (uc > 0) - 260 * uc,
                P.auta + 0.004, h=70, anchor=(0.5, 1.0), rot=20 * uc * (1 if n % 2 else -1) + 6 * math.sin(t * 7 + n))
     lalka(st, t, "clyde_nastolatek", x - 250, 270, flip=1, lean=12, rece=(90, 80), hop=4)
     lalka(st, t, "buck", x - 340, 300, flip=1, lean=14, rece=(90, 80), hop=4)
-    px, _ = jazda(t, 4.8, 1.4, 1400, 1080)
-    out = lalka(st, t, "policjant", px, 320, flip=-1, rece=(40 + 90 * ease(pr(t, 5.8, 0.4)), 10), hop=5 * (t < 6.2))
-    if out and t > 5.8:
+    px, _ = jazda(t, 1.6, 1.2, 1400, 1080)
+    out = lalka(st, t, "policjant", px, 320, flip=-1, rece=(40 + 90 * ease(pr(t, 2.7, 0.3)), 10), hop=5 * (t < 2.9))
+    if out and t > 2.7:
         st.put(J.rek("gwizdek"), out[0] - 10, out[1] - 30, P.lalki + 0.03, h=16, anchor=(0.5, 0.5))
-    tab(w, t, "STOP!", 1080, 220, 6.0, 2.0)
+    tab(w, t, "STOP!", 1080, 220, 2.9, 2.0)
     koniec(st, w, t)
 
 
@@ -316,13 +316,14 @@ def s_areszt(st, w, t, T):
     kam(st, t, 17, 700, 390, 1.1, 0.8)
     wnetrze(st, t, w, sciana="kwiaty", okna=(300,), drzwi=(1060,), meble=(("kuchenka", 420, 220, None), ("stol", 760, 140, None)))
     lalka(st, t, "bonnie", 500, 290, flip=1, rece=(60, 0), trzyma=(J.rek("lyzka"), 50, (0.5, 0.9), 180, True))
-    px, _ = jazda(t, 0.2, 1.4, 1200, 1000)
-    wyprow = ease(pr(t, 3.4, 2.2))
-    lalka(st, t, "policjant", px + 160 * wyprow, 320, flip=-1 if wyprow == 0 else 1, rece=(80, 0), hop=5 * (t < 1.6))
-    out = lalka(st, t, "clyde", 880 + 180 * wyprow, 320, 1.0 - ease(pr(t, 5.2, 0.4)), flip=1 if wyprow > 0 else -1, rece=(40, 40))
-    if out and t > 1.8:
+    px, _ = jazda(t, 0.0, 0.8, 1200, 1000)
+    wyprow = ease(pr(t, 1.8, 1.4))
+    lalka(st, t, "policjant", px + 160 * wyprow, 320, flip=-1 if wyprow == 0 else 1, rece=(80, 0), hop=5 * (t < 0.8 or 1.8 < t < 3.2))
+    out = lalka(st, t, "clyde", 880 + 180 * wyprow, 320, 1.0 - ease(pr(t, 3.0, 0.4)), flip=1 if wyprow > 0 else -1, rece=(40, 40),
+                hop=5 * (1.8 < t < 3.2))
+    if out and t > 0.9:
         st.put(J.rek("kajdanki"), out[0], out[1], P.lalki + 0.03, h=26, anchor=(0.5, 0.5))
-    tab(w, t, "HEY!", 500, 240, 2.2, 2.0)
+    tab(w, t, "HEY!", 500, 240, 1.0, 2.0)
     koniec(st, w, t)
 
 
@@ -345,14 +346,14 @@ def s_ohio(st, w, t, T):
     kam(st, t, 19, 640, 380, 1.0, 0.76)
     miasto(st, t, w, fasady=(("dworzec", 640),), tyl=(("dom", 160), ("dom", 1120)))
     cx = 560 + 70 * math.sin(t * 0.8)
-    lalka(st, t, "clyde", cx, 320, flip=math.copysign(1, math.cos(t * 0.8)), rece=(10, 0), hop=4 * (t < 4.0))
-    if t < 4.0:
-        tab(w, t, "♪", cx + 40, 230, 0.6, 3.0)
-    lx, _ = jazda(t, 3.4, 1.6, -100, 300)
-    rx, _ = jazda(t, 3.6, 1.6, 1400, 840)
-    lalka(st, t, "policjant", lx, 320, flip=1, rece=(60, 0), hop=5 * (t < 5.0))
-    lalka(st, t, "policjant2", rx, 330, flip=-1, rece=(60, 0), hop=5 * (t < 5.2))
-    tab(w, t, "OH NO", cx, 210, 5.0, 2.2)
+    lalka(st, t, "clyde", cx, 320, flip=math.copysign(1, math.cos(t * 0.8)), rece=(10, 0), hop=4 * (t < 2.4))
+    if t < 2.4:
+        tab(w, t, "♪", cx + 40, 230, 1.0, 1.6)
+    lx, _ = jazda(t, 1.4, 1.2, -100, 300)
+    rx, _ = jazda(t, 1.5, 1.2, 1400, 840)
+    lalka(st, t, "policjant", lx, 320, flip=1, rece=(60, 0), hop=5 * (t < 2.6))
+    lalka(st, t, "policjant2", rx, 330, flip=-1, rece=(60, 0), hop=5 * (t < 2.7))
+    tab(w, t, "OH NO", cx, 210, 2.6, 1.8)
     koniec(st, w, t)
 
 
@@ -414,9 +415,9 @@ def _brama(st, w, t, otw):
 def s_parol(st, w, t, T):
     """Brama się otwiera; Clyde wychodzi o kulach; strażnik macha za nim kartką „PAROLE”; Clyde patrzy na bandaż na stopie."""
     kam(st, t, 23, 640, 400, 1.15, 0.8)
-    _brama(st, w, t, pr(t, 0.4, 1.6))
-    cx, _ = jazda(t, 1.6, 3.6, 640, 900)
-    lalka(st, t, "clyde", cx, 320, flip=1, rece=(30, 30), trzyma=(J.rek("kula"), 210, (0.5, 0.1), 0, False), kuleje=1.0, hop=6 * (1.6 < t < 5.2))
+    _brama(st, w, t, pr(t, 0.2, 1.0))
+    cx, _ = jazda(t, 0.9, 3.0, 640, 900)
+    lalka(st, t, "clyde", cx, 320, flip=1, rece=(30, 30), trzyma=(J.rek("kula"), 210, (0.5, 0.1), 0, False), kuleje=1.0, hop=6 * (0.9 < t < 3.9))
     lalka(st, t, "straznik", 560, 320, flip=1, rece=(120 + 30 * math.sin(t * 8), 0), trzyma=(J.rek("parole"), 70, (0.5, 0.2), 70, True))
     koniec(st, w, t)
 
