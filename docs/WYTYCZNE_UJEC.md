@@ -344,6 +344,8 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 
 ### 1.27 Teatr, który się buduje, i to, co przed rampą
 - Lalki i auta wchodzą dopiero, kiedy dekoracja się zbuduje (`scena.wejscie`); na pustym płótnie nikt nie stoi.
+  To samo dotyczy rzeczy: rekwizyt, zawieszka i nitka postawione wprost w ujęciu pojawiają się po zbudowaniu dekoracji
+  (`render.po_budowie`), a światło za oknem zapala się, gdy stoi ściana — teczka nie wisi nad pustym płótnem przed biurkiem.
 - Pasażer auta jest widoczny w oknie od pasa w górę; nogi nie wystają spod karoserii (`siedzi=True`). Rzecz w oknie
   (gazeta) stoi obok głowy, nie na niej.
 - Rzecz leżąca na ziemi, leżąca postać i woda, w której ktoś brodzi, są nad rampą — inaczej rampa i napisy je chowają
@@ -351,7 +353,20 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 - Broń w ręce celuje tam, gdzie ma celować: kto czyści karabin, trzyma go na kolanach, a nie w stronę partnera.
 - Sylwetka w teatrze cieni jest jednolicie czarna; prześwitujące ręce rysują na tułowiu „X”.
 - Auto, które dachuje, obraca się wokół swojego środka i ląduje widoczne; płomień wychodzi z auta, nie zasłania go.
-- Akcja przy ziemi w zbliżeniu: kamera niżej, żeby nie chowała się pod napisem.
+- Akcja przy ziemi w zbliżeniu: kamera niżej, żeby nie chowała się pod napisem. Rzecz, o której mówi kwestia (teczka
+  Hamera, kanapka Bonnie), stoi nad pasem napisów i przed karoserią, nie za nią; reakcja („HA HA HA!”) wisi nad głową, nie
+  na twarzy i nie pod napisem.
+- **Żaden napis nie jest lustrzany**: przewracana strona gazety pokazuje drugą stronę (inną gazetę), lecące gazety obracają
+  się bez odbicia, napis na drzwiach auta jadącego w lewo rysuje się odbity w arkuszu (`ford(lustro=True)`), żeby po odbiciu
+  auta czytał się normalnie.
+- **Napis mieści się na swojej tablicy**: tablica jest szersza od napisu; napis z odstępami liter liczy środek sam
+  (`glyphs(spacing=…)` stawia litery od punktu startu). Napis na pasiastym płótnie ma własny szyld, inaczej ginie na jasnym pasie.
+- **Nazwa, którą mówi lektor, jest do przeczytania**: tabliczka miejsca (nazwy cmentarzy) wisi nad głowami, nie za postaciami
+  przy krawędzi kadru; nowa tabliczka nie zasłania dekoracji, o której jest ujęcie (serca nad łukiem z kwiatów, nie na nim).
+- **Postać niesiona leży na rękach niosącego**, po stronie, w którą wyciąga ręce; stojący trzyma karabin w dłoniach
+  (`KARABIN()`), a nie „na kolanach” w powietrzu.
+- **Podpis i puenta na słowo**: podpis zjeżdża, kiedy lektor nazywa postać i postać jest widać (W.D. stoi przy aucie, wsiada
+  potem); puenta kwestii („undertaker”) nie stoi w podpisie wcześniej niż w kwestii.
 
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
@@ -616,6 +631,8 @@ i błędy znalezione w kontroli.
 | Bonnie and Clyde, kontrola końca świata i przegląd dźwięku (19.11) | przy budowie wnętrza pod ścianą świeciło puste płótno (14 ujęć); wyrastające domki i pinezki miały w jednej klatce wysokość 0 i klatka się wywracała | 1.3, Animacja kodem |
 | Bonnie and Clyde, otwarcie (19.11, reżyser) | „jest 5 s spoiler, najlepiej zrób go 6 s i szybko zmieniaj ujęcia… a potem w tym filmie dowiecie się blablabla… i kurtyna i znowu od nowa tak jakby?” — trzy starty: długa kurtyna tytułu, lista obietnic, kurtyna aktu I z powrotem w czasie; w zapowiedzi podpis zdradzał łowcę | 1.26 |
 | Pierwszy cesarz EN, wyniki po 1 dniu 20 h (19.11, reżyser) | po 30 s ogląda 35 %, średnio 1:29 z 11:19: pusta rama z tytułem na starcie, chronologia „Long ago…” bez haka, pięć nazw w 40 s, kurtyna aktu w 1:18 | 1.26, Rytm |
+| Bonnie and Clyde, ślub (19.11, marker reżysera) | „znika to i po łuku napis pod tymi kwiatkami Happy Ever After” — tabliczka z sercami zjeżdżała na górę łuku z kwiatów i go zasłaniała; pod łukiem brakowało napisu | 1.27 |
+| Bonnie and Clyde, recenzja 114 ujęć (19.11, kontrola wykonawcy na prośbę reżysera) | lustrzane „EXTRA!” na przewracanej stronie i „SHERIFF” na aucie jadącym w lewo; „THE OUTLAWS MADE OF PAPER” i „BONNIE AND CLYDE” wystawały poza tablice; w zapowiedzi na 0,1 s mignął podpis Hamera; teczka, kapelusz, karabin, puszka i list wisiały nad pustym płótnem w czasie budowy; Bonnie „niesiona” wisiała za plecami Clyde'a; karabin „na kolanach” stojącego Clyde'a; podpis Buchera poza kadrem, W.D. podpisany już w aucie, „undertaker” w podpisie 8 s przed puentą; kanapka za karoserią, teczka i „HA HA HA!” pod napisem; nazwy cmentarzy za żałobnikami; „SEE THE DEATH CAR” biały na białym pasie | 1.27 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

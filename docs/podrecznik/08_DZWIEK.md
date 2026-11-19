@@ -16,7 +16,15 @@ na cały film. Lektora nagrywa reżyser (rozdział „Lektor”). Wzór: „Bonn
    to teczka.
 4. **Cisza przed szczytem** (`CISZA`: od, do, czy muzyka wraca głośniej): most w Wellington, Grapevine, zasadzka —
    zostają same efekty. Dwa–trzy szczyty na film.
-5. **Pod kwestią lektora** muzyka ciszej o 8 dB, efekty o 5 dB (okna kwestii z `dane.okno_kwestii`).
+5. **Pod kwestią lektora** muzyka ciszej o 8 dB, efekty o 5 dB (okna kwestii z `dane.okno_kwestii`) — **łagodnie**
+   (`efekty.sciszanie`): w dół w 0,3 s, zaczyna 0,25 s przed kwestią, w górę w 0,9 s, a przerwy między zdaniami krótsze niż
+   3 s zostają ściszone. Twardy przeskok na brzegach kwestii (190 razy w filmie, połowa przerw krótsza niż 3 s) słychać jako
+   muzykę, która „raz gra ciszej, raz głośniej” — zwłaszcza zanim jest lektor, bo wtedy ściszenie nie ma powodu (reżyser
+   19.11, „Bonnie and Clyde”).
+6. **Tematy wyrównane**: każdy temat ma tę samą głośność (`MUZYKA_DB`, RMS bez brzegów), a różnica stylu jest zamierzona
+   i mała (`STYLE`: mrok −1,5 dB, napięcie +0,5 dB, opcja „cicho” −2,5 dB). Bez tego ragtime grał o 6–7 dB głośniej od folku
+   i mroku. Miara po zmianie: rozrzut tematów (10.–90. centyl) 9,1 → 4,3 dB; zostają tylko celowe zmiany — cisza przed
+   szczytem i powrót muzyki w dłuższej pauzie lektora.
 
 ## Efekty
 
