@@ -365,6 +365,11 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
   przy krawędzi kadru; nowa tabliczka nie zasłania dekoracji, o której jest ujęcie (serca nad łukiem z kwiatów, nie na nim).
 - **Postać niesiona leży na rękach niosącego**, po stronie, w którą wyciąga ręce; stojący trzyma karabin w dłoniach
   (`KARABIN()`), a nie „na kolanach” w powietrzu.
+- **To samo miejsce nie buduje się od zera**: kiedy następna scena dzieje się w tym samym miejscu (pole pod Waldo po
+  śmiechu Darby'ego, rzeka zaraz po Dexfield, ta sama nocna droga, Kansas po jeździe z Boydem), jest zwykłe cięcie bez
+  gaśnięcia i bez pustego płótna (`render.CIAGLOSC`); budowa od zera mówi widzowi „nowa historia”.
+- **Próbka z fragmentów ma plansze**: przed każdym fragmentem plansza z numerem, aktem, ujęciem i minutą filmu
+  (`probka_dzwieku._karta`) — zlepek bez plansz wygląda jak jeden film, w którym historie nachodzą na siebie.
 - **Podpis i puenta na słowo**: podpis zjeżdża, kiedy lektor nazywa postać i postać jest widać (W.D. stoi przy aucie, wsiada
   potem); puenta kwestii („undertaker”) nie stoi w podpisie wcześniej niż w kwestii.
 
@@ -632,6 +637,7 @@ i błędy znalezione w kontroli.
 | Bonnie and Clyde, otwarcie (19.11, reżyser) | „jest 5 s spoiler, najlepiej zrób go 6 s i szybko zmieniaj ujęcia… a potem w tym filmie dowiecie się blablabla… i kurtyna i znowu od nowa tak jakby?” — trzy starty: długa kurtyna tytułu, lista obietnic, kurtyna aktu I z powrotem w czasie; w zapowiedzi podpis zdradzał łowcę | 1.26 |
 | Pierwszy cesarz EN, wyniki po 1 dniu 20 h (19.11, reżyser) | po 30 s ogląda 35 %, średnio 1:29 z 11:19: pusta rama z tytułem na starcie, chronologia „Long ago…” bez haka, pięć nazw w 40 s, kurtyna aktu w 1:18 | 1.26, Rytm |
 | Bonnie and Clyde, ślub (19.11, marker reżysera) | „znika to i po łuku napis pod tymi kwiatkami Happy Ever After” — tabliczka z sercami zjeżdżała na górę łuku z kwiatów i go zasłaniała; pod łukiem brakowało napisu | 1.27 |
+| Bonnie and Clyde, próbka głosów (19.11, reżyser) | „wygląda to jakby dwie historie nachodziły na siebie… na 2:48 jak kurtyna wjeżdża, pojawiają się dwie różne tabliczki po sobie” — próbka była zlepkiem fragmentów z różnych aktów bez plansz (kurtyna aktu III, zaraz potem akt VIII); w filmie cztery sceny w tym samym miejscu budowały się od pustego płótna | 1.27 |
 | Bonnie and Clyde, recenzja 114 ujęć (19.11, kontrola wykonawcy na prośbę reżysera) | lustrzane „EXTRA!” na przewracanej stronie i „SHERIFF” na aucie jadącym w lewo; „THE OUTLAWS MADE OF PAPER” i „BONNIE AND CLYDE” wystawały poza tablice; w zapowiedzi na 0,1 s mignął podpis Hamera; teczka, kapelusz, karabin, puszka i list wisiały nad pustym płótnem w czasie budowy; Bonnie „niesiona” wisiała za plecami Clyde'a; karabin „na kolanach” stojącego Clyde'a; podpis Buchera poza kadrem, W.D. podpisany już w aucie, „undertaker” w podpisie 8 s przed puentą; kanapka za karoserią, teczka i „HA HA HA!” pod napisem; nazwy cmentarzy za żałobnikami; „SEE THE DEATH CAR” biały na białym pasie | 1.27 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,

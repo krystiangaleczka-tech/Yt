@@ -106,3 +106,16 @@ idzie jako próbka do reżysera (rozdział „Dźwięk”).
 - Czy gag nie przykrywa słowa lektora ani rzeczy, o której jest kwestia?
 - Czy nie dotyczy ofiary ani śmierci i czy mieści się w granicy tonu aktu?
 - Czy nie stoją trzy gagi z rzędu bez oddechu?
+
+## Lekcje z „Bonnie and Clyde” (19.11.2026, 30 gagów)
+
+| Co poszło źle | Zasada |
+|---|---|
+| Kula zielska toczyła się po podłodze — pod pasem napisów jej nie było widać | Gag leci nad pasem napisów: zielsko podskakuje nad ladą (1.27) |
+| Zasuwana kurtyna na tle czerwonej kurtyny — zacięcia nie było widać | Rzecz gagu odcina się od tła: tło przyciemnione albo w innym kolorze |
+| „Cold beans”, a w kadrze ognisko pod puszką | Gag i kwestia mówią to samo: zimna fasola bez ognia, łyżka stoi w niej na sztorc |
+| Wstęga po pęknięciu prawej nitki obracała się w złą stronę | Fizyka gagu jak w teatrze: po pęknięciu nitki rzecz obraca się wokół tej, która trzyma |
+| Rewolwer w locie wylatywał poza kadr przy zbliżeniu | Tor rzeczy w gagu mieści się w kadrze przy tej kamerze, jaką ma ujęcie |
+| Ptak „na kapelusz” szeryfa, który siedzi w aucie | Gag dopasowany do pozycji postaci: plama na szybie tuż przed jego nosem |
+| Trzy dźwięki gagów były nowe (kaszel silnika, werbel, zapałka) | Gag z istniejącymi dźwiękami idzie od razu; nowy rodzaj czeka na próbkę (`efekty.NOWE`) |
+
