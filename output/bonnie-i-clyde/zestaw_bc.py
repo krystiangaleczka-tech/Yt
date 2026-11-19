@@ -214,6 +214,9 @@ LALKI = {
 }
 
 
+LALKI["hamer_bez"] = dict(LALKI["hamer"], kapelusz=None)  # Hamer z kapeluszem w ręce (po zasadzce, ukłon)
+
+
 def spec(key):
     out = dict(BAZA)
     out.update(LALKI[key])
@@ -490,7 +493,7 @@ class Figura:
         if self._siedzi is None:
             im = _korpus_img(self.s).copy()
             a = im.getchannel("A")
-            a.paste(0, (0, BIODRO + 40, im.size[0], im.size[1]))
+            a.paste(0, (0, BIODRO + 10, im.size[0], im.size[1]))
             im.putalpha(a)
             self._siedzi = Sprite(im, f"lalka-siedzi-{self.key}", rim=2, clean=False, crop=False)
         return self._siedzi
@@ -1599,3 +1602,34 @@ def zdjecie_bonnie(w=420, h=320):
     sep = np.dstack([g * 1.05, g * 0.95, g * 0.8, np.full_like(g, 255)]).clip(0, 255).astype(np.uint8)
     im.alpha_composite(Image.fromarray(sep, "RGBA"), (20, 20))
     return Sprite(im, "zdjecie-bonnie", rim=2, clean=False)
+
+
+@lru_cache(None)
+def platek(kolor=(244, 200, 210)):
+    """Płatek kwiatu (spadające płatki na cmentarzu w Alto, kwitnące drzewa w Grapevine)."""
+    return Sprite(stack(40, 24, [(ell(20, 12, 18, 9), kolor)], seed=780), f"platek-{kolor}", rim=1, clean=False)
+
+
+@lru_cache(None)
+def gra_piksele():
+    """Gra wideo 2026 na ekranie kina: pikselowe auto i para uciekinierów w jaskrawych kolorach."""
+    px = [
+        "..........RRRRRR..........",
+        ".........R.YY.BB.R........",
+        "........R..YY.BB..R.......",
+        "..KKKKKKKKKKKKKKKKKKKKK...",
+        ".KKKKKKKKKKKKKKKKKKKKKKKW.",
+        ".KKKKKKKKKKKKKKKKKKKKKKKK.",
+        "...GG............GG.......",
+        "..GGGG..........GGGG......",
+        "...GG............GG.......",
+    ]
+    kol = {"R": (230, 60, 70), "Y": (250, 220, 80), "B": (80, 160, 240), "K": (40, 200, 230), "W": (255, 250, 200), "G": (60, 60, 70)}
+    c = 24
+    im = Image.new("RGBA", (len(px[0]) * c, len(px) * c), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    for y, row in enumerate(px):
+        for x, ch in enumerate(row):
+            if ch in kol:
+                d.rectangle([x * c, y * c, x * c + c - 2, y * c + c - 2], fill=kol[ch] + (255,))
+    return Sprite(im, "gra-piksele", rim=0, clean=False)

@@ -220,12 +220,13 @@ def motocykl(st, t, x, h=150, y=DROGA_Y, p=None, flip=1.0, jezdziec=None, droga=
     k = h / 300.0
     if jezdziec:
         dh = h * 1.55
-        lalka(st, t, jezdziec, x - 30 * k * flip, dh, y=y - 40 * k, p=p - 0.004, flip=flip, rece=(70, 60), shadow=None, tint=tint,
-              alpha=alpha, blur=blur)
+        lalka(st, t, jezdziec, x - 30 * k * flip, dh, y=y + 0.25 * h - 40 * k, p=p - 0.004, flip=flip, rece=(70, 60), shadow=None, tint=tint,
+              alpha=alpha, blur=blur, siedzi=True)
     st.put(J.motocykl(), x, y, p, h=h, anchor=(0.5, 296 / 300.0), rot=rot, sx=flip, tint=tint, alpha=alpha, blur=blur)
     dr = x if droga is None else droga
     for kx, ky in J.MOTO_KOLA:
-        st.put(J.kolo(46), x + (kx - 260) * k * flip, y + (ky - 296) * k, p + 0.002, h=92 * k, anchor=(0.5, 0.5),
+        ox, oy = _off((kx - 260) * k * flip, (ky - 296) * k, rot)
+        st.put(J.kolo(46), x + ox, y + oy, p + 0.002, h=92 * k, anchor=(0.5, 0.5),
                rot=-dr / (46 * k) * 57.3 * flip, tint=tint, alpha=alpha, blur=blur)
 
 
