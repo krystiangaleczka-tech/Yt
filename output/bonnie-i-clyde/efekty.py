@@ -1713,7 +1713,9 @@ TAB_DZWIEK = {"AGAIN?!": "wahwah", "THAT'S IT?": "wahwah", "OH NO": "wahwah", ".
               "NEVER AGAIN": "sting", "HE WON'T GO BACK": "sting", "NO MORE CHASING": "sting_l", "HOME": "sting", "AAAA!": "sting",
               "YAWN": "ziew", "SIGH…": "ziew", "BRRR!": "brr", "?": "pytanie", "♪": None, "STOP!": None,
               # gagi (GAGI.md)
-              "SERIOUSLY?": "wahwah_k", "OOF!": "thud", "O!": "pytanie", "…": "wahwah_k", "beep": "beep"}
+              "SERIOUSLY?": "wahwah_k", "OOF!": "thud", "O!": "pytanie", "…": "wahwah_k", "beep": "beep",
+              "MMPH!": "wahwah_k", "YAP!": "boing_m", "!": "pytanie", "OVER HERE!": "tab", "SNAP!": "boing_m", "HMM…": "wahwah_k",
+              "GOBBLE!": "indyk"}
 
 # Głos postaci pod tabliczką (napis → rodzaj z glosy.py); wyjątki dla ujęcia, gdy ten sam napis mówi kto inny.
 TAB_GLOS = {"HA HA!": "smiech_b", "AAAA!": "krzyk_b", "UGH!": "ugh_b", "SIGH…": "westchnienie_b", "BRRR!": "brr_b", "OW!": "au_b",
@@ -1730,7 +1732,7 @@ GLOS_G = {"extra": 0.35, "krzyk_b": 0.6, "smiech_b": 0.6}
 ZDARZENIA = {
     "tytul": [(0.1, "kurtyna_r", 1.0), (1.5, "klakson", 0.9)],
     "wprowadzenie": [(4.7, "whoosh", 0.25)],
-    "wprowadzenie2": [(1.3, "zamek", 0.5)],
+    "wprowadzenie2": [(1.3, "zamek", 0.5), (0.5, "kula", 0.7), (0.95, "kula", 0.7), (1.6, "metal", 0.7), (1.65, "lanie", 3.5)],
     "joplin_rzeczy": [(0.3, "drzwi", 0.8), (3.7, "aparat", 0.8), (4.6, "papier", 0.5)],
     "zdjecie": [(0.7, "whoosh", 0.3), (2.5, "whoosh", 0.25)],
     "hak_pomost": [(0.1, "strona", 1.0)],
@@ -1738,21 +1740,23 @@ ZDARZENIA = {
     "hak_cygaro": [(2.6, "pff", 0.6), (3.6, "zgniot", 0.9)],
     "obietnica": [(0.2, "papier", 0.6), (3.6, "sting_l", 0.8)],
     "wagon": [(4.0, "whoosh", 0.25)],
-    "indyki": [(0.0, "skrzyp", 4.5), (0.3, "indyk", 0.8), (1.3, "indyk", 0.7), (2.2, "indyk", 0.8), (2.7, "gwizdek", 1.0),
+    "indyki": [(0.3, "indyk", 0.8), (1.3, "indyk", 0.7), (2.2, "indyk", 0.8), (2.7, "gwizdek", 1.0),
                (3.4, "skrzydla", 1.0), (3.5, "indyk", 1.0), (3.8, "indyk", 0.9), (4.1, "indyk", 0.8)],
     "szkola": [(2.6, "boing_m", 0.8), (3.0, "oklaski", 3.2), (4.4, "gwiazdka", 1.0)],
-    "slub": [(3.2, "gwiazdka", 0.8)],
+    "slub": [(5.5, "gwiazdka", 0.8)],
+    "poezja": [(1.6, "whoosh", 0.4), (2.3, "thud", 0.5), (2.4, "indyk", 0.7)],
     "roy": [(3.0, "drzwi", 0.7)],
-    "kawiarnia": [(0.6, "nalewanie", 2.0), (2.95, "lomot", 0.9)],
+    "kawiarnia": [(1.45, "nalewanie", 0.85), (2.95, "lomot", 0.9)],
     "kuchnia": [(0.0, "mieszanie", 3.0), (1.2, "drzwi", 0.6), (3.3, "whoosh", 0.25)],
-    "areszt": [(0.85, "kajdanki", 1.0)],
-    "waco": [(2.4, "whoosh", 0.3), (3.4, "metal", 0.6)],
+    "areszt": [(0.85, "kajdanki", 1.0), (4.75, "drzwi", 0.9)],
+    "waco": [(0.4, "whoosh", 0.3), (1.2, "metal", 0.6), (2.2, "skrzyp", 0.6), (6.3, "boing_m", 0.5)],
+    "waco_przed": [(3.6, "papier", 0.3), (6.3, "drzwi", 0.6)],
     "ohio": [(1.0, "gwizdanie", 1.6)],
-    "eastham": [(0.0, "kopyta", 12.0)],
+    "eastham": [(0.0, "kopyta", 12.0)] + [(0.8 + 0.9 * n, "chop", 0.22) for n in range(9)],
     "eastham_rura": [(4.7, "cios", 1.0), (6.4, "thud", 0.8)],
     "palce": [(1.0, "whoosh", 0.5), (1.45, "chop", 1.0), (1.6, "gwiazdki", 2.4)],
     "parol": [(0.2, "brama", 1.0)] + [(1.0 + 0.5 * n, "kula", 0.6) for n in range(6)],
-    "przysiega": [(1.6, "brama", 0.6), (2.2, "brama_hit", 1.0)],
+    "przysiega": [(1.6, "brama", 0.6), (2.2, "brama_hit", 1.0)] + [(5.2 + 0.62 * n, "kula", 0.5) for n in range(8)],
     "stacja": [(2.4, "kasa", 1.0), (2.95, "coin", 0.5)],
     "kaufman": [(1.4, "bloto", 2.2), (3.7, "drzwi", 0.5), (6.6, "osiol", 1.0), (8.6, "osiol", 0.7)],
     "cela": [(0.0, "pisanie", 11.0)] + [(2.0 + 0.9 * n, "trzepot", 0.7) for n in range(6)],
@@ -1818,14 +1822,14 @@ ZDARZENIA = {
     "hamer_ganek": [(2.0, "papier", 0.6), (3.4, "whoosh", 0.3)],
     "gra": [(0.0, "szum_ekranu", 1.6), (1.6, "chip_start", 0.9)] + [(2.0 + 0.25 * n, "klik", 0.25) for n in range(22)],
     "koniec": [(3.0, "papier", 0.8), (4.6, "plask", 0.6), (4.9, "plask", 0.6), (7.0, "teczka", 0.9), (10.0, "kurtyna_z", 1.0)],
-    "dzieki": [(0.6, "oklaski", 7.8), (1.0, "wiwat", 7.0)] + [(1.2 + 0.45 * n, "stuk", 0.25) for n in range(8)],
+    "dzieki": [(0.6, "oklaski", 5.6), (1.0, "wiwat", 5.2)] + [(1.2 + 0.45 * n, "stuk", 0.25) for n in range(8)],
 }
 # Gagi (docs/filmy/bonnie-i-clyde/GAGI.md; reżyser 19.11: „gagi robimy wszystkie”): dźwięk w tej samej chwili co gag.
 GAGI_DZWIEK = {
-    "zdjecie": [(5.8, "whoosh", 0.22), (6.15, "whoosh", 0.2), (6.6, "whoosh", 0.3), (7.1, "klik", 0.6)],
-    "hak_cygaro": [(1.1, "slide_down", 0.45)],
-    "indyki": [(5.0, "indyk", 0.9)],
-    "slub": [(10.9, "nitka", 1.0), (11.05, "wahwah_k", 0.45)],
+    "zdjecie": [(2.05, "papier", 0.2), (3.6, "whoosh", 0.22), (3.85, "whoosh", 0.2), (4.25, "klik", 0.6)],
+    "hak_cygaro": [(1.1, "slide_down", 0.45), (5.05, "whoosh", 0.4), (6.1, "boing_m", 0.6)],
+    "indyki": [(5.0, "indyk", 0.9), (3.9, "skok", 0.8), (4.05, "skok", 0.8)],
+    "slub": [(7.7, "nitka", 1.0), (7.85, "wahwah_k", 0.45), (4.4, "gwiazdka", 0.35)],
     "kawiarnia": [(7.0 + 0.55 * n, "papier", 0.45) for n in range(5)],
     "kuchnia": [(8.2, "slide_up", 0.4), (9.5, "kajdanki", 0.7)],
     "akt2": [(9.05, "klakson", 0.6)],
@@ -1848,7 +1852,24 @@ GAGI_DZWIEK = {
     "auto_jarmark": [(c + 0.5, "coin", 0.45) for c in (3.9, 4.5, 5.1, 5.6, 6.0, 6.4, 6.7, 7.0)] + [(8.0, "kasa", 0.6)]
                     + [(8.0 + 0.04 * n, "coin", 0.35) for n in range(14)],
     "gra": [(6.3, "chip_start", 0.6), (6.85, "thud", 0.4)],
-    "dzieki": [(6.2, "kurtyna_z", 0.9), (6.8, "zgrzyt", 1.3), (8.2, "kurtyna_z", 0.8), (8.45, "lomot", 0.8)],
+    "dzieki": [(6.4, "kurtyna_z", 0.9), (7.0, "zgrzyt", 1.0), (8.0, "kurtyna_z", 0.8), (8.25, "lomot", 0.8), (8.4, "whoosh", 0.3)],
+    # druga seria gagów 31–46 (reżyser 19.11: „więcej gagów”) — same zatwierdzone rodzaje dźwięku
+    "wagon": [(11.2, "klik", 0.5), (11.3, "trzepot", 0.6)],
+    "prasa": [(6.5, "whoosh", 0.4), (6.9, "plask", 0.8), (8.0, "papier", 0.5)],
+    "cela": [(1.6 + 0.55 * n, "zgniot", 0.35) for n in range(12)],
+    "matka_obietnica": [(8.3 + 0.45 * n, "zawieszka", 0.5) for n in range(3)] + [(9.8, "whoosh", 0.5), (10.25, "drzwi", 0.5)],
+    "buck": [(11.0, "whoosh", 0.4)],
+    "joplin_karty": [(10.0, "karty", 0.6), (10.45, "knock", 0.3)],
+    "plakaty": [(5.0, "boing", 0.7)],
+    "farma": [(5.15, "wiadro", 0.7)],
+    "drzewo": [(8.3, "skrzydla", 0.6)],
+    "simmons": [(3.25, "nitka", 0.8)],
+    "hamer": [(4.2, "bujak", 4.6)],
+    "podkreslenie": [(6.2, "klik", 0.7)],
+    "methvin": [(11.3, "papier", 0.4)],
+    "pozegnanie": [(3.8, "nitka", 0.4)],
+    "shreveport": [(11.1, "drzwi", 0.5)],
+    "posse": [(11.7, "knock", 0.5)],
 }
 for _k, _ev in GAGI_DZWIEK.items():
     ZDARZENIA.setdefault(_k, []).extend(_ev)

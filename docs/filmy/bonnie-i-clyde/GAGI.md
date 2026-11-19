@@ -1,6 +1,6 @@
 # Bonnie and Clyde — gagi
 
-**Stan 19.11.2026:** reżyser: „tak, gagi robimy wszystkie” — wszystkie 30 narysowane (rozpiska `dane.GAGI`, księga D6 i wątki
+**Stan 19.11.2026:** reżyser: „tak, gagi robimy wszystkie” — wszystkie 30 narysowane, potem druga seria 31–46 (rozpiska `dane.GAGI`, księga D6 i wątki
 W1–W3, kod ujęć „gag N (GAGI.md)”). Dźwięk gagów z odgłosów już zatwierdzonych jest w Studio; trzy nowe rodzaje (kaszel
 silnika — gag 13, werbel — gag 24, zapałka — gag 25) czekają na zgodę po próbce `build/probka_gagi.mp4`. Zmiany względem
 propozycji: gag 16 bez ogniska (kwestia mówi o zimnej fasoli — łyżka stoi w niej na sztorc), gag 22 plama na szybie
@@ -113,6 +113,34 @@ Kolumna „+s” mówi, o ile gag wydłuża ujęcie (gdy pauza po kwestii jest z
     radiowozach. 8-bitowe „bum”. **+0,8 s**.
 30. **Kurtyna (114, `dzieki`)** — *W3 puenta*: kurtyna zasuwa się i zacina w połowie; Bonnie i Clyde szarpią ją razem,
     kurtyna spada im na głowy, zza kulis macha ręka maszynisty. Zgrzyt, szarpnięcie, łup. **+1,0 s**.
+
+## Druga seria (reżyser 19.11: „więcej gagów i musisz poprawić ich umiejscowienie w rękach”)
+
+Narysowane od razu, z dźwiękami już zatwierdzonymi. Zasada granicy bez zmian (bez gagów przy śmierci i żałobie).
+
+31. **West Dallas (20, `wagon`)** — W1 zasiew: na „almost nothing” mały Clyde otwiera blaszane pudełko na obiad, wylatuje ćma. Słaby punkt otwarcia (1:21) dostaje gag.
+32. **Prasa (17, `prasa`)** — gazeta wraca z wiatrem i przykleja się drukarzowi do twarzy, „MMPH!”.
+33. **Cela (36, `cela`)** — stos zgniecionych kartek z wierszem rośnie do kolan Bonnie.
+34. **Obietnica (38, `matka_obietnica`)** — WEEK 1 → 2 → 3, klakson, Bonnie biegnie do Forda, matka zostaje z otwartymi ramionami.
+35. **Buck (41, `buck`)** — piesek Blanche obszczekuje Bucka, „YAP!”.
+36. **Karty (43, `joplin_karty`)** — Buckowi wypada as z rękawa, „!”.
+37. **Plakaty (55, `plakaty`)** — ostatni list gończy wisi do góry nogami, przekręca się z „boing”.
+38. **Farma (59, `farma`)** — farmerka upuszcza wiadro i macha na radiowóz, „OVER HERE!”.
+39. **Drzewo (60, `drzewo`)** — ptak siada przywiązanemu szeryfowi na kapeluszu.
+40. **Simmons (73, `simmons`)** — W3: pęka nitka szyldu TEXAS PRISON SYSTEM.
+41. **Hamer (74, `hamer`)** — pusty fotel buja się dalej sam, Hamer się ogląda.
+42. **Podkreślenie (78, `podkreslenie`)** — łamie się grafit, „SNAP!”.
+43. **Methvin (94, `methvin`)** — Ivy ogląda PARDON pod światło jak banknot, „HMM…” (+0,8 s).
+44. **Pożegnanie (96, `pozegnanie`)** — HOME SWEET HOME w tylnej szybie Forda.
+45. **Shreveport (97, `shreveport`)** — Henry wychodzi z kawiarni z kanapkami, Forda nie ma (+0,8 s).
+46. **Obsada zasadzki (99, `posse`)** — podpis stuka Oakleya w kapelusz, „OUCH!”.
+
+**Chwyt rzeczy w dłoniach (poprawione w całym filmie, arkusz zbliżeń dłoni):** karabin łowców pionowo przy boku, lufą
+w górę (`KARABIN_PION`, było: karabiny sąsiadów w X); gazeta czytana przed twarzą, dłoń przy bliższym brzegu (`GAZETA`:
+klient kawiarni, drukarz, Hamer na ganku); łyżka w garnku (niższa kuchenka, garnek przed łyżką); laska do ziemi; musztra
+z karabinem pionowo (prezentuj, w górę, baczność); miarka w dłoni Darby'ego, taśma wzdłuż twarzy Bonnie; kieszenie
+wywinięte przy biodrach; maszynista wychyla się cały zza kulis; Hamer w aucie unosi kapelusz w dłoni (pasażer auta może
+teraz trzymać rzecz).
 
 ## Co trzeba dorobić
 

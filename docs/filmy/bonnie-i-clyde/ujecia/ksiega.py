@@ -61,8 +61,8 @@ SWIAT = {
                     {"from": r("zasadzka", "papierowy Ford"), "state": "nie żyje"}]},
         {"id": "bonnie_mala", "name": "mała Bonnie", "role": "Bonnie w szkole", "look": "dziewczynka w sukience z kokardą"},
         {"id": "clyde", "name": "Clyde Barrow", "role": "złodziej z West Dallas, kierowca", "look": "szczupły, ciemne włosy, fedora, "
-         "garnitur; od " + r("palce", "siekiery") + " kuleje (obcięte palce u stopy)", "namedIn": ["d*"],
-         "states": [{"from": r("palce", "siekiery"), "state": "kuleje"}, {"from": r("zasadzka", "papierowy Ford"), "state": "nie żyje"}]},
+         "garnitur; od " + r("palce", "siekiera") + " kuleje (obcięte palce u stopy)", "namedIn": ["d*"],
+         "states": [{"from": r("palce", "siekiera"), "state": "kuleje"}, {"from": r("zasadzka", "papierowy Ford"), "state": "nie żyje"}]},
         {"id": "clyde_maly", "name": "mały Clyde", "role": "Clyde jako dziecko pod wozem", "look": "chłopiec w łatanych ogrodniczkach"},
         {"id": "buck", "name": "Buck Barrow", "role": "starszy brat Clyde'a", "look": "krępy, kaszkiet, kamizelka",
          "joins": r("buck", "Buck"), "leaves": r("dexfield", "Buck")},
@@ -149,11 +149,11 @@ SWIAT = {
          "clues": [r("poscigi", "ditch")], "payoff": [r("hak_szuflada", "stopped chasing")]},
         {"id": "methvin", "title": "Henry Methvin", "setup": [r("odbicie", "free his friends")], "payoff": [r("methvin", "Henry Methvin")]},
         # gagi powracające (D6, Podręcznik → Humor i gagi: zasiew, powtórka, zwrot)
-        {"id": "gag_kasa", "title": "W1 · Pusta kasa (ćma)", "setup": [r("stacja", "ćma")], "clues": [r("kiosk", "ćma")],
+        {"id": "gag_kasa", "title": "W1 · Pusta kasa (ćma)", "setup": [r("wagon", "ćma")], "clues": [r("stacja", "ćma"), r("kiosk", "ćma")],
          "payoff": [r("auto_jarmark", "kasetka")]},
         {"id": "gag_row", "title": "W2 · Rów", "setup": [r("poscigi", "ditch")], "clues": [r("commerce", "ditch")],
          "payoff": [r("gra", "rowie")]},
-        {"id": "gag_nitka", "title": "W3 · Nitka teatru", "setup": [r("slub", "nitka")], "clues": [r("mapa", "nić")],
+        {"id": "gag_nitka", "title": "W3 · Nitka teatru", "setup": [r("slub", "nitka")], "clues": [r("simmons", "nitka"), r("mapa", "nić")],
          "payoff": [r("dzieki", "kurtyna")]},
     ],
     "spoilers": [
@@ -176,7 +176,11 @@ SWIAT = {
         {"id": "D6", "text": "Groteska jak w „Shreku”: 30 gagów z GAGI.md, w tym trzy powracające (W1 pusta kasa, W2 rów, W3 nitka "
          "teatru) i gagi w strefie powagi (łowcy nagród, drukarz z cygarem, komary zasadzki, sałata w aucie) oraz czarny humor "
          "z miarką grabarza. Granica z D2 zostaje: bez gagów w ujęciach śmierci i żałoby, z ofiar się nie żartuje. Reżyser "
-         "19.11.2026: „tak gagi robimy wszystkie”.", "at": "2026-11-19", "by": "reżyser"},
+         "19.11.2026: „tak gagi robimy wszystkie”, potem „więcej gagów” — druga seria 31–46.", "at": "2026-11-19", "by": "reżyser"},
+        {"id": "D7", "text": "Pomost między historią Clyde'a a historią Bonnie: ujęcie „poezja” w Cement City („Meanwhile, a few miles "
+         "away…”), w które spada indyk z poprzedniego ujęcia. Reżyser 19.11.2026: „dlaczego z ujęcia o indykach robi się nagle ślub? "
+         "… pomiędzy te dwa daj jedno przechodzące do tego weddingu, o ile ma to pokrycie w scenariuszu”. Pokrycie: Bonnie w Cement "
+         "City pisała wiersze i marzyła o scenie (Biblia, miejsce cement_city), ślub 1926.", "at": "2026-11-19", "by": "reżyser"},
     ],
 }
 

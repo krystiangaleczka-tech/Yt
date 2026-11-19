@@ -106,23 +106,25 @@ AKTY = [(0,
         'PP',
         'odj',
         None,
-        "Kamera odjeżdża na Clyde'a; podpis „Clyde Barrow”; za nimi z nitek zjeżdżają nagłówki gazet jeden za drugim",
+        "Kamera odjeżdża na Clyde'a; podpis „Clyde Barrow”; za nimi z nitek zjeżdżają nagłówki gazet jeden za drugim. Gag "
+        "(marker reżysera 19.11): Bonnie strzela, kula odbija się od brzegów kadru jak w grze i po chwili trafia w bak Forda; "
+        "z baku cieknie paliwo pod auto",
         'L: Together with Clyde Barrow, she spent two years robbing gas stations and corner shops, while the papers turned two '
         'broke kids from Dallas into legends.'),
        ('hak_joplin_rzeczy',
         'D',
         'stat',
         None,
-        'Policjant chodzi po opuszczonym pokoju: walizki, karabiny, zeszyt z wierszem; podnosi z podłogi aparat, z kasety wysuwa '
-        'się klisza',
+        'Policjant chodzi po opuszczonym pokoju: walizki, karabiny, zeszyt z wierszem; podnosi z podłogi aparat wysoko, do oczu, '
+        'a z dołu aparatu wysuwa się w dół klisza',
         'L: In April 1933, police raided their hideout in Joplin, Missouri, and found the one thing outlaws should never leave '
         'behind: a camera full of film.'),
        ('zdjecie',
         'PŚ',
         'naj',
         None,
-        'Ożywa klatka z kliszy: Bonnie opiera nogę o zderzak Forda, ktoś zza kadru podaje jej cygaro, ona wkłada je do ust i '
-        'pozuje z rewolwerem; błyska flesz',
+        'Ożywa klatka z kliszy: przy Fordzie stoi chłopak z cygarem; Bonnie podchodzi, bierze mu cygaro z ręki, wraca, kręci '
+        'rewolwerem i wsuwa go za pasek, wkłada cygaro do ust i pozuje; błyska flesz',
         'L: On one frame, Bonnie posed with a pistol and a borrowed cigar, just for fun.'),
        ('hak_pomost',
         'D',
@@ -140,8 +142,8 @@ AKTY = [(0,
         'Z',
         'stat',
         None,
-        "Bonnie w aucie czyta gazetę ze swoim zdjęciem, wypuszcza z ust papierosa i zgniata gazetę; tabliczka „I DON'T SMOKE "
-        'CIGARS!”',
+        "Bonnie przy aucie czyta gazetę ze swoim zdjęciem; cygaro wypada jej z ust; gazeta znika, a w dłoni jest zgnieciona "
+        "kulka, którą Bonnie wyrzuca; tabliczka „I DON'T SMOKE CIGARS!”; Bonnie podskakuje z przerażenia",
         "L: There was just one problem: Bonnie didn't smoke cigars, and she spent the rest of her short life trying to tell "
         'everyone.')])]),
    ('Obietnica — teatr z gazet',
@@ -175,20 +177,32 @@ AKTY = [(0,
         'PP',
         'stat',
         None,
-        'Nastoletni Clyde i brat Buck pchają ciężarówkę pełną gdaczących indyków; zza rogu wychodzi policjant z gwizdkiem, '
-        'indyki wyfruwają; tabliczka „STOP!”',
+        'Nastoletni Clyde i brat Buck siedzą na pace ciężarówki między gdaczącymi indykami; zza rogu wychodzi policjant '
+        'z gwizdkiem, „STOP!”; chłopcy zeskakują i podnoszą ręce, indyki wyfruwają',
         'L: As a teenager, he got arrested for a truck full of stolen turkeys.')])]),
    ('Cement City',
     'Cement City',
     [('Cement City',
-      [('slub',
+      # Pomost z historii Clyde'a do historii Bonnie (reżyser 19.11: „dlaczego z ujęcia o indykach robi się nagle ślub? to nie
+      # ma sensu … pomiędzy te dwa daj jedno przechodzące do tego weddingu, o ile ma to pokrycie w scenariuszu”). Pokrycie:
+      # Bonnie dorastała w Cement City, kilka mil od West Dallas, pisała wiersze i marzyła o scenie (księga: miejsce cement_city,
+      # „szkoła z podium”); ślub w 1926. Ujęcie szkoły wypadło przy skracaniu aktu I i z nim zniknęło „tymczasem”.
+      [('poezja',
+        'PŚ',
+        'stat',
+        None,
+        'Cement City: drewniane domki, w tle kominy cementowni; zawieszka „Cement City, 1926”; piętnastoletnia Bonnie na '
+        'szkolnym podium recytuje z zeszytu, wolną rękę wznosi jak aktorka; z góry kadru spada indyk, który uciekł Clyde\'owi, '
+        'i siada przed podium jako jedyna widownia',
+        'L: Meanwhile, a few miles away in Cement City, Bonnie Parker wrote poems and dreamed of the stage.'),
+       ('slub',
         'PP',
         'stat',
         None,
         'Piętnastoletnia Bonnie i Roy Thornton stają pod łukiem z papierowych kwiatów; pod kwiatami zjeżdża wstęga „Happy '
         'Ever After” po łuku; podpis „Roy Thornton”; nad łukiem tabliczka-tatuaż: dwa serca „Bonnie” i „Roy”',
-        'L: Bonnie Parker wrote poems and dreamed of the stage, but at fifteen she married a boy named Roy Thornton and had '
-        'their names tattooed in two hearts, a very permanent decision.')])]),
+        'L: But at fifteen she married a boy named Roy Thornton and had their names tattooed in two hearts, a very permanent '
+        'decision.')])]),
    ('Kawiarnia w Dallas',
     'kawiarnia w Dallas',
     [('Kawiarnia w Dallas',
@@ -196,8 +210,8 @@ AKTY = [(0,
         'PŚ',
         'naj',
         None,
-        'Bonnie w fartuszku nalewa kawę; klient za gazetą nie podnosi wzroku; Bonnie przewraca oczami i odstawia dzbanek z '
-        'hukiem',
+        'Bonnie w fartuszku trzyma dzbanek za ucho i nalewa kawę do filiżanki na ladzie; klient czyta gazetę trzymaną '
+        'w dłoniach i nie podnosi wzroku; Bonnie odstawia dzbanek z hukiem',
         'L: Roy soon landed in prison, so at nineteen she was a waitress still wearing his ring, waiting for something '
         'exciting to happen.')])]),
    ('Kuchnia przyjaciółki',
@@ -214,28 +228,36 @@ AKTY = [(0,
        ('areszt',
         'PŚ',
         'naj',
-        3.6,
-        "Nieme, szybkie: do kuchni wpada policjant i zakuwa Clyde'a w kajdanki; Bonnie zostaje z łyżką w ręce; tabliczka „HEY!”",
+        5.6,
+        "Nieme: do kuchni wpada policjant i zakuwa Clyde'a w kajdanki; Bonnie z łyżką woła „HEY!”, biegnie za nimi, drzwi "
+        "trzaskają jej przed nosem",
         'kajdanki, okrzyk Bonnie')])]),
    ('Areszt w Waco',
     'areszt w Waco',
     [('Areszt w Waco',
-      [('waco',
+      [('waco_przed',
+        'PŚ',
+        'naj',
+        None,
+        'Ujęcie pośrednie: ulica w Waco przed aresztem „COUNTY JAIL”, zawieszka „Waco, Texas, 1930”; Bonnie podchodzi, rozgląda '
+        'się, chowa rewolwer pod płaszcz i z niewinną miną wchodzi do środka',
+        'L: Bonnie smuggled a pistol into the Waco jail.'),
+       ('waco',
         'D',
         'stat',
         None,
-        'Przy kratach Bonnie wyjmuje spod płaszcza pistolet i podaje go przez pręty; strażnik w tle ziewa i patrzy w drugą '
-        'stronę',
-        'L: Bonnie smuggled a pistol into the Waco jail, Clyde broke out, and a week later he was caught again in Ohio.')])]),
+        'W areszcie Bonnie podaje Clyde\'owi przez kraty pistolet spod płaszcza; strażnik ziewa i zasypia; Clyde otwiera drzwi '
+        'celi i wychodzi z kadru; Bonnie odchodzi; strażnik budzi się przed pustą celą, „?!”',
+        'L: Clyde broke out, and a week later he was caught again in Ohio.')])]),
    ('Peron w Ohio',
     'peron w Ohio',
     [('Peron w Ohio',
       [('ohio',
         'PP',
         'stat',
-        4.4,
-        'Nieme, szybkie: Clyde w nowym kapeluszu przechadza się po peronie i gwiżdże; z obu stron wchodzą policjanci; tabliczka '
-        '„OH NO”',
+        6.4,
+        'Nieme: zawieszka „One week later”; Clyde przechadza się po peronie w Middletown (Ohio) i gwiżdże; z obu stron wchodzą '
+        'policjanci, „OH NO”; policjant wskazuje więźniarkę z kratami, „BACK TO TEXAS!”, i prowadzą go do niej',
         'gwizdana melodyjka, kroki, „Oh no”')])]),
    ('Eastham',
     'Eastham',
@@ -244,8 +266,8 @@ AKTY = [(0,
         'PO',
         'odj',
         None,
-        'Za bramą farmy więziennej Eastham więźniowie w pasiakach tną bawełnę, każdy w swoim rytmie; strażnik na koniu jedzie '
-        'wzdłuż rzędu; słońce praży',
+        'Za bramą farmy więziennej Eastham więźniowie w pasiakach okopują bawełnę motykami, każdy w swoim rytmie; strażnik '
+        'siedzi na koniu i jedzie wzdłuż rzędu; słońce praży',
         'L: This time he was sent to Eastham, one of the harshest prison farms in Texas.'),
        ('eastham_rura',
         'PŚ',
@@ -259,8 +281,8 @@ AKTY = [(0,
         'D',
         'stat',
         None,
-        'Na polu cień siekiery opada poza kadrem; Clyde łapie się za but i podskakuje na jednej nodze; tabliczka „AW!”, gwiazdki '
-        'nad głową',
+        'Na polu Clyde podnosi ręce; z góry spada siekiera na jego stopę i wbija się w ziemię; Clyde łapie się za but '
+        'i podskakuje na jednej nodze; tabliczka „AW!”, gwiazdki nad głową',
         'L: Desperate to get out of the fields, he had two toes cut off with an axe, and six days later he was paroled anyway.'),
        ('parol',
         'PP',
@@ -272,9 +294,11 @@ AKTY = [(0,
         'Z',
         'stat',
         None,
-        'Clyde o kulach odwraca się do bramy, która zamyka się za nim z hukiem; tabliczka „NEVER AGAIN”',
-        'L: He limped for the rest of his life, and he swore he would die before going back, but how do you stay free when every '
-        'policeman in Texas knows your face?')])])]),
+        'Brama zamyka się za Clyde\'em z hukiem; Clyde o kulach odwraca się do niej, tabliczka „NEVER AGAIN”; potem idzie '
+        'powoli o kulach od lewej do prawej przez kadr',
+        # reżyser 19.11: „skróć ten kadr do 10 s” — kuleje widać na obrazie, więc kwestia bez „He limped for the rest of his life”
+        'L: He swore he would die before going back, but how do you stay free when every policeman in Texas knows your '
+        'face?')])])]),
  (2,
   "How do you become America's most wanted?",
   "Plan Clyde'a, drobne napady, muły w Kaufman, wiersz o Suicide Sal, pierwsze ofiary, W.D. Jones, Buck i Blanche, mieszkanie "
@@ -414,8 +438,8 @@ AKTY = [(0,
         'D',
         'stat',
         None,
-        'Policjant chodzi po opuszczonym pokoju: walizki, karabiny, zeszyt z wierszem; podnosi z podłogi aparat, z kasety wysuwa '
-        'się klisza',
+        'Policjant chodzi po opuszczonym pokoju: walizki, karabiny, zeszyt z wierszem; podnosi z podłogi aparat wysoko, do oczu, '
+        'a z dołu aparatu wysuwa się w dół klisza',
         "L: Remember that camera? It was lying on the floor, next to their guns, their clothes and one of Bonnie's poems.")])]),
    ('Redakcja Joplin Globe',
     'redakcja Joplin Globe',
@@ -1152,8 +1176,10 @@ HAK_PAUZA = 1.0  # w haku szybciej (szkic D)
 # Gagi (reżyser 19.11.2026: „tak, gagi robimy wszystkie” — 30 propozycji z docs/filmy/bonnie-i-clyde/GAGI.md; zasady:
 # Podręcznik → Humor i gagi). Gag dopisuje się do opisu ujęcia; GAG_CZAS to sekundy, o które gag wydłuża ujęcie.
 GAGI = {
-    "zdjecie": "po kwestii Bonnie kręci rewolwerem na palcu, za trzecim obrotem wylatuje, łapie go w ostatniej chwili, w tej "
-               "klatce błyska flesz; Bonnie mruga",
+    "zdjecie": "Bonnie kręci rewolwerem na palcu i wsuwa go za pasek jak rewolwerowiec, a cygaro bierze od chłopaka "
+               "(marker reżysera 19.11)",
+    "wprowadzenie2": "Bonnie strzela, kula odbija się od brzegów kadru jak w grze i trafia w bak Forda; paliwo cieknie pod "
+                     "auto (marker reżysera 19.11)",
     "hak_cygaro": "na „didn't smoke cigars” cygaro w ustach Bonnie smętnie opada jak zwiędły kwiat (puzon w dół)",
     "indyki": "po „stolen turkeys” indyk ląduje na czapce policjanta i zostaje; policjant stoi godnie dalej",
     "slub": "na „a very permanent decision” pęka prawa nitka wstęgi HAPPY EVER AFTER, wstęga zwisa krzywo; Roy zerka w górę "
@@ -1185,11 +1211,33 @@ GAGI = {
     "kanapka": "liść sałaty z kanapki Bonnie spada na okulary Clyde'a; Clyde go nie zdejmuje i prowadzi dalej",
     "auto_jarmark": "kasetka „10¢ A LOOK” pęka od monet, które sypią się na trawę (W1: puenta)",
     "gra": "pikselowe auto podskakuje i ląduje w pikselowym rowie; zjeżdża „AGAIN?!” (W2: puenta)",
-    "dzieki": "kurtyna zacina się w połowie, Bonnie i Clyde szarpią ją razem, spada im na głowy; zza kulis macha ręka "
-              "maszynisty (W3: puenta)",
+    "dzieki": "kurtyna zacina się w połowie, Bonnie i Clyde szarpią ją razem, spada im na głowy; zza kulis wychyla się "
+              "maszynista i macha (W3: puenta)",
+    # druga seria (reżyser 19.11: „więcej gagów”)
+    "wagon": "na „almost nothing” mały Clyde otwiera blaszane pudełko na obiad, wylatuje z niego ćma (W1: zasiew)",
+    "poezja": "z góry kadru spada indyk, który uciekł w ujęciu z indykami, i siada przed podium jako jedyna widownia; na „stage” "
+              "Bonnie się kłania, indyk gulgocze (pomost obrazem między historią Clyde'a i Bonnie)",
+    "prasa": "po „gun girl” jedna gazeta wraca z wiatrem i przykleja się drukarzowi do twarzy, „MMPH!”, odkleja ją",
+    "cela": "wiersz nie wychodzi: stos zgniecionych kartek przy pryczy rośnie aż do kolan Bonnie",
+    "matka_obietnica": "na „for a few weeks” zawieszka WEEK 1 → 2 → 3, klakson, Bonnie biegnie do Forda; matka zostaje z "
+                       "otwartymi ramionami",
+    "buck": "po „family visit” piesek Blanche wyskakuje z jej rąk i obszczekuje Bucka, „YAP!”, Buck odskakuje",
+    "joplin_karty": "Buckowi wypada z rękawa as i ląduje na stole; Blanche pochyla się do niego, „!”",
+    "plakaty": "ostatni list gończy zjeżdża do góry nogami i po chwili przekręca się z „boing”",
+    "farma": "na „somebody called the sheriff” farmerka upuszcza wiadro i macha na radiowóz, „OVER HERE!”",
+    "drzewo": "przywiązanemu szeryfowi siada na kapeluszu ptak i zostaje; szeryf: „…”",
+    "simmons": "po trzecim uderzeniu w biurko pęka prawa nitka szyldu TEXAS PRISON SYSTEM, szyld zwisa krzywo (W3)",
+    "hamer": "kiedy Hamer odchodzi, pusty fotel buja się dalej sam, coraz mocniej; Hamer ogląda się na niego",
+    "podkreslenie": "przy drugim podkreśleniu łamie się grafit, ołówek podskakuje, czubek odlatuje, „SNAP!”",
+    "methvin": "po „pardoned” Ivy podnosi papier PARDON pod żarówkę i sprawdza go jak banknot, „HMM…”",
+    "pozegnanie": "na „the only home” w tylnej szybie Forda kołysze się tabliczka HOME SWEET HOME",
+    "shreveport": "Henry wchodzi do kawiarni, a kiedy wychodzi z dwiema kanapkami, Forda już nie ma; rozgląda się, „...?”",
+    "posse": "ostatni podpis spada za nisko i stuka młodego Oakleya w kapelusz; Oakley się kuli, „OUCH!”",
 }
 GAG_CZAS = {"zdjecie": 1.0, "kuchnia": 0.8, "wd": 0.5, "darby_auto": 1.0, "darby_tyl": 0.8, "darby_puszczeni": 1.0,
-            "wd_odchodzi": 1.0, "hamer_motel": 0.5, "listy_gon": 1.0, "noc": 1.0, "gra": 0.8, "dzieki": 1.0}
+            "wd_odchodzi": 1.0, "hamer_motel": 0.5, "listy_gon": 1.0, "noc": 1.0, "gra": 0.8, "dzieki": 1.8,
+            "methvin": 0.8, "shreveport": 0.8, "poezja": 0.6,
+            "waco": 1.6, "waco_przed": 3.2}
 
 
 def ujecia(akt=None):

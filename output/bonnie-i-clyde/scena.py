@@ -157,12 +157,50 @@ def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink
                    h=30 * sc * gwiazdki, anchor=(0.5, 0.5), rot=t * 200 + n * 40, shadow=(2, 3, 3, 0.35),
                    z=0.09 if math.sin(a) > 0 else -0.09)
     if trzyma and out:
-        spr, ph, anc, orot, follow = trzyma
+        spr, ph, anc, orot, follow = trzyma[:5]
+        zz = trzyma[5] if len(trzyma) > 5 else 0.08  # 0.08: przed ręką; 0.02: za dłonią (dłoń widać na rzeczy — gazeta)
         # rzecz z napisem (gazeta, zdjęcie, list) nie odbija się razem z lalką zwróconą w lewo — napis byłby lustrzany
         # (przegląd 19.11: „TEXAS TRIBUNE” i „DEPRESSION DEEPENS” od tyłu w rękach klienta kawiarni)
         napis = spr.name.startswith(("gazeta", "zdjecie", "rek-list", "rek-pardon", "rek-parole", "rek-plakat"))
-        st.put(spr, out[0], out[1], p, h=ph, anchor=anc, rot=(out[2] if follow else rot) + orot * flip, sx=1.0 if napis else flip, z=0.08, **kw)
+        st.put(spr, out[0], out[1], p, h=ph, anchor=anc, rot=(out[2] if follow else rot) + orot * flip, sx=1.0 if napis else flip, z=zz, **kw)
     return out
+
+
+# ---- biomechanika lalki (Wytyczne 1.28): ręka to jeden odcinek od barku do dłoni, więc dłoń sięga tylko punktów w odległości
+# długości ręki od barku. Najpierw punkt (filiżanka, blat, dłoń partnera), potem kąt ręki z tego punktu — nigdy odwrotnie.
+def bark(key, x, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0, ktora="przod"):
+    """Bark lalki w kadrze i długość ręki do dłoni: (x, y, L)."""
+    f = J.figura(key)
+    sc = h / f.wys
+    yy = y + ease(sink) * h * 1.12 - lift
+    af = (f.cw / 2, f.stopa)
+    bx, by = f.bark[ktora]
+    dx, dy = _off((bx - af[0]) * sc * flip, (by - af[1]) * sc, lean)
+    return x + dx, yy + dy, f.dlon * sc
+
+
+def siegnij(key, x, cel, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0, ktora="przod"):
+    """Kąt ręki (do `rece`), przy którym dłoń wskazuje punkt `cel`; drugi wynik: czy dłoń go dosięga (odległość ≤ ręka)."""
+    sx, sy, L = bark(key, x, h, y, flip, lean, sink, lift, ktora)
+    dx, dy = cel[0] - sx, cel[1] - sy
+    arot = math.degrees(math.atan2(-dx, dy))
+    return (lean - arot) * flip, math.hypot(dx, dy) <= L * 1.06
+
+
+def dlon(key, x, kat, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0, ktora="przod"):
+    """Położenie dłoni przy kącie ręki `kat` (także dla ręki tylnej, która nie ma `trzyma`)."""
+    sx, sy, L = bark(key, x, h, y, flip, lean, sink, lift, ktora)
+    hx, hy = _off(0, L, lean - flip * kat)
+    return sx + hx, sy + hy
+
+
+def stan_przy(key, cel, kat, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0):
+    """x lalki, przy którym dłoń wyciągnięta pod kątem `kat` trafia w x punktu `cel` (lalka podchodzi do rzeczy,
+    a nie rzecz przyskakuje do dłoni)."""
+    sx, sy, L = bark(key, 0.0, h, y, flip, lean, sink, lift)
+    arot = lean - flip * kat
+    hx, _ = _off(0, L, arot)
+    return cel[0] - sx - hx
 
 
 def punkt(key, x, h, u, v, y=STOPY, flip=1.0, rot=0.0, lift=0.0):
@@ -209,7 +247,7 @@ def auto(st, t, x, h=230, y=DROGA_Y, p=None, flip=1.0, kolor="szary", napis=None
         glowa_y = yb + (hy - 356) * k
         stopy = glowa_y + (676 - 128) / 614.0 * dh
         lalka(st, t, key, sx_, dh, y=stopy, p=p - 0.004, flip=flip * (poz[3] if len(poz) > 3 else 1), rece=rece, lean=przechyl, shadow=None,
-              siedzi=True, **kw)
+              siedzi=True, trzyma=poz[4] if len(poz) > 4 else None, **kw)
     st.put(spr, x, yb, p, h=h, anchor=(0.5, 356 / 360.0), rot=przechyl, sx=flip, shadow=shadow, **kw)
     if szyby:
         st.put(J.ford_szyby(), x, yb, p + 0.001, h=h, anchor=(0.5, 356 / 360.0), rot=przechyl, sx=flip, shadow=None, alpha=0.42 * alpha,

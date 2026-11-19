@@ -110,13 +110,13 @@
       "id": "clyde",
       "name": "Clyde Barrow",
       "role": "złodziej z West Dallas, kierowca",
-      "look": "szczupły, ciemne włosy, fedora, garnitur; od d01_11~siekiery kuleje (obcięte palce u stopy)",
+      "look": "szczupły, ciemne włosy, fedora, garnitur; od d01_12~siekiera kuleje (obcięte palce u stopy)",
       "namedIn": [
         "d*"
       ],
       "states": [
         {
-          "from": "d01_11~siekiery",
+          "from": "d01_12~siekiera",
           "state": "kuleje"
         },
         {
@@ -166,7 +166,7 @@
       "name": "Roy Thornton",
       "role": "mąż Bonnie",
       "look": "młody, zaczesane włosy, walizka",
-      "leaves": "d01_04~Roy"
+      "leaves": "d01_05~Roy"
     },
     {
       "id": "hamer",
@@ -347,7 +347,7 @@
       "id": "obraczka",
       "name": "Obrączka Roya",
       "owner": "Bonnie",
-      "seeded": "d01_04~ring"
+      "seeded": "d01_05~ring"
     }
   ],
   "resources": [],
@@ -355,7 +355,7 @@
     {
       "id": "clyde_wolny",
       "name": "Clyde na wolności",
-      "from": "d01_12~parole",
+      "from": "d01_13~parole",
       "to": "d07_10~papierowy Ford"
     },
     {
@@ -507,7 +507,7 @@
       "id": "przysiega",
       "title": "Clyde nie wróci do Eastham",
       "setup": [
-        "d01_13~swore"
+        "d01_14~swore"
       ],
       "clues": [
         "d05_01~Eastham"
@@ -558,9 +558,10 @@
       "id": "gag_kasa",
       "title": "W1 · Pusta kasa (ćma)",
       "setup": [
-        "d02_02~ćma"
+        "d01_01~ćma"
       ],
       "clues": [
+        "d02_02~ćma",
         "d03_05~ćma"
       ],
       "payoff": [
@@ -584,9 +585,10 @@
       "id": "gag_nitka",
       "title": "W3 · Nitka teatru",
       "setup": [
-        "d01_03~nitka"
+        "d01_04~nitka"
       ],
       "clues": [
+        "d05_03~nitka",
         "d05_12~nić"
       ],
       "payoff": [
@@ -644,7 +646,13 @@
     },
     {
       "id": "D6",
-      "text": "Groteska jak w „Shreku”: 30 gagów z GAGI.md, w tym trzy powracające (W1 pusta kasa, W2 rów, W3 nitka teatru) i gagi w strefie powagi (łowcy nagród, drukarz z cygarem, komary zasadzki, sałata w aucie) oraz czarny humor z miarką grabarza. Granica z D2 zostaje: bez gagów w ujęciach śmierci i żałoby, z ofiar się nie żartuje. Reżyser 19.11.2026: „tak gagi robimy wszystkie”.",
+      "text": "Groteska jak w „Shreku”: 30 gagów z GAGI.md, w tym trzy powracające (W1 pusta kasa, W2 rów, W3 nitka teatru) i gagi w strefie powagi (łowcy nagród, drukarz z cygarem, komary zasadzki, sałata w aucie) oraz czarny humor z miarką grabarza. Granica z D2 zostaje: bez gagów w ujęciach śmierci i żałoby, z ofiar się nie żartuje. Reżyser 19.11.2026: „tak gagi robimy wszystkie”, potem „więcej gagów” — druga seria 31–46.",
+      "at": "2026-11-19",
+      "by": "reżyser"
+    },
+    {
+      "id": "D7",
+      "text": "Pomost między historią Clyde'a a historią Bonnie: ujęcie „poezja” w Cement City („Meanwhile, a few miles away…”), w które spada indyk z poprzedniego ujęcia. Reżyser 19.11.2026: „dlaczego z ujęcia o indykach robi się nagle ślub? … pomiędzy te dwa daj jedno przechodzące do tego weddingu, o ile ma to pokrycie w scenariuszu”. Pokrycie: Bonnie w Cement City pisała wiersze i marzyła o scenie (Biblia, miejsce cement_city), ślub 1926.",
       "at": "2026-11-19",
       "by": "reżyser"
     }
