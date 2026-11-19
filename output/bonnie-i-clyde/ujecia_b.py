@@ -221,7 +221,7 @@ def s_mapa(st, w, t, T):
     for n, (px, py) in enumerate(pkt):
         k = pr(t, 1.4 + 1.2 * n, 0.3)
         if k > 0:
-            st.put(J.rek("pinezka"), px, py, P.wzgorza + 0.02, h=18 * back(k, 1.6), anchor=(0.5, 0.5))
+            st.put(J.rek("pinezka"), px, py, P.wzgorza + 0.02, h=max(1.0, 18 * back(k, 1.6)), anchor=(0.5, 0.5))
         if n > 0:
             f = ease(pr(t, 1.6 + 1.2 * n, 0.8))
             if f > 0:
@@ -255,7 +255,7 @@ def s_petle(st, w, t, T):
     for n in range(2):
         k = ease(pr(t, 9.6 + 0.3 * n, 0.6))
         if k > 0:
-            st.put(J.fasada("dom"), dx - 16 + 32 * n, dy, P.wzgorza + 0.021, h=34 * back(k, 1.5), anchor=(0.5, 1.0), shadow=(2, 3, 3, 0.3))
+            st.put(J.fasada("dom"), dx - 16 + 32 * n, dy, P.wzgorza + 0.021, h=max(1.0, 34 * back(k, 1.5)), anchor=(0.5, 1.0), shadow=(2, 3, 3, 0.3))
     tab(w, t, "HOME", dx, dy - 120, 11.0, 3.4)
     koniec(st, w, t)
 
@@ -344,7 +344,7 @@ def s_listy_gon(st, w, t, T):
     for n, (x, y, nag) in enumerate(((556, 230, "$500"), (650, 300, "$1000"), (560, 400, "$1000"), (648, 470, "$2500"))):
         k = pr(t, 0.8 + 1.0 * n, 0.4)
         if k > 0:
-            s_ = back(k, 1.6)
+            s_ = max(0.02, back(k, 1.6))
             st.put(J.rek("plakat"), x, y, P.lalki - 0.008 + 0.0005 * n, h=120 * s_, anchor=(0.5, 0.5), rot=-4 + 3 * n)
             st.put(J.tag("REWARD " + nag), x, y + 70 * s_, P.lalki - 0.007 + 0.0005 * n, h=24 * s_, anchor=(0.5, 0.5), shadow=None)
     fx = jazda(t, 3.4, 3.0, 1400, 800, ease_out)[0]
