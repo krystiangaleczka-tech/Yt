@@ -191,6 +191,10 @@ Przy podmianie zsyntezowanego dźwięku na próbkę stara synteza liczy się dal
   ok. 2–3 s i odjeżdża w górę, kiedy postać jest już cała widoczna (`swiat.podpis(w, t, "kupiec Lü Buwei", x, y, t0)`;
   reżyser 15.11: „za 1. razem zrzuć nad nim na chwilę tabliczki, kto kim jest, jak się pierwszy raz pojawiają”).
   Podpis jest w języku wersji (1.13) i nie wisi nad kimś, o kim lektor właśnie nie mówi.
+- Kamera i podpis pokazują tego, o kim jest kwestia, w chwili, gdy lektor go nazywa. Wprowadzenie „to historia
+  pierwszego cesarza” z najazdem na brata, który za chwilę ginie, myli widza (reżyser 18.11, „Syn słońca”) — najazd
+  obejmuje bohatera, podpis „Iwarebiko, the future emperor” zjeżdża przy jego imieniu, drugi podpis („Itsuse, eldest
+  brother”) dopiero przy „trzech braciach”. Kilka podpisów w jednym ujęciu idzie po kolei, za kwestią.
 - Kwestia mówi jednoznacznie, o kim jest: „ojciec Zhenga”, a nie „ojciec” (reżyser 15.11: „mówi, że father is dead,
   ale kogo father?”).
 - Jedna postać = jedna lalka przez cały film; zmiana wieku albo godności to inna wersja tej samej lalki (chłopiec →
@@ -291,12 +295,63 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 - Uderzenie, wybuch i upadek mają wyraźną siłę: mocny wstrząs kamery, duży płomień (meteoryt, reżyser 15.11: „bardziej
   zatrzęś kamerą i większy płomień meteorytu”), drżenie budowli („zrób shaking tej tomb”).
 - Pożar i zniszczenie rosną do końca ujęcia („spal ją bardziej na końcu”), a nie stoją na jednym poziomie.
+- Przed szczytem muzyka milknie, zostają same efekty (syk głów węża, grad), na szczycie pada uderzenie (bęben, gong),
+  a muzyka wraca głośniej i opada przez ok. 3 s (`efekty.CISZA`; przegląd 18.11: „za mało ciszy i muzyki przy
+  szczytach”). Cisza jest krótka i rzadka: dwa–trzy szczyty na film.
 
 ### 1.24 Szczegół w skali planu
 - Oczy, usta i kreska twarzy w planie ogólnym są proporcjonalnie małe; duże oczy działają tylko w zbliżeniu (reżyser
   4.11: „popraw te oczy, jak są ujęcia z daleka, bo one są za duże”).
 - Postać w otworze ma skalę otworu: w okienku widać ją od ramion w górę, a nie całą, małą jak mrówka, wiszącą
   w powietrzu (pilot 29.10). Postać w lokacji ma skalę sąsiadów; olbrzym tylko z powodu fabuły (1.15).
+
+### 1.25 Każdy w kadrze gra, a każda rzecz jest tam, gdzie trzeba
+- Co ma pracować, pracuje u wszystkich: każda łódź wiosłuje we własnym rytmie, nie tylko łódź bohatera (reżyser 18.11:
+  „każda łódź ma wiosłować”).
+- Na mocnej chwili postać reaguje gestem i okrzykiem ze słownika znaków (1.20): ścięta głowa woła „HELP!”, tonący
+  „AAAA!”, brat „BROTHER!”, umierający „I can't…”, osamotniony bohater podnosi ręce, wódz „NO WAY!”, straż „STOP!” z ręką
+  w górze, niedźwiedź „BOO!”. Radość widać ruchem (brat podskakuje), zamiar czynem (zamiast wskazać góry — strzela w nie).
+- Rekwizyt, który postać bierze, trafia do jej dłoni; nie wisi obok ręki (miecz Ninigiego). Rzecz, o której mówi
+  kwestia albo gest (słońce, na które wskazuje Itsuse), jest w kadrze cała i żyje, a nie ucięta krawędzią.
+- Zwrot postaci zaczyna się od przeciwnego kierunku, żeby był widoczny (Iwarebiko najpierw patrzy w lewo, potem
+  zwraca się ku słońcu). Ujęcie przejścia albo przybycia ma końcówkę „już na miejscu” (Ninigi stoi na szczycie, wojsko
+  wchodzi w las) — 1.18.
+
+### 1.26 Otwarcie, skróty i kurtyny
+- **Zapowiedź (6 s)** składa się z ok. 10 skrótów najmocniejszych ujęć filmu (`render.WYCINEK`: oryginał od jego
+  najlepszej chwili, ze stanem świata z jego miejsca w filmie), cięte parami 0,4 / 0,7 s (sąsiednie różne co najmniej
+  o ¼ s), bez przejść, z uderzeniem na każdym cięciu; kończy się ściemnieniem (reżyser 18.11: „mini spoiler 5 s, co
+  będzie w filmie (najlepsze akcje)”; 19.11: „najlepiej zrób go 6 s i szybko zmieniaj ujęcia”). Skrót bierze chwilę akcji,
+  ale nie podpis, który zdradza tajemnicę późniejszego aktu.
+- **Kurtyna startu** trwa krótko (do 2,5 s, lektor zaczyna najpóźniej ok. 9 s) i rozsuwa się na tytuł teatru, a na
+  scenie stoi już bohater haka (`KURTYNA_START`); następne
+  ujęcie najeżdża na niego i lektor mówi, o czym jest film — **wprowadzenie przed akcją** (reżyser 18.11: „z dupy jest
+  wprowadzenie: strzelają, potem 3 giną, a nie ma info, co się dowiemy”).
+- **Hak** nie skacze z miejsca na miejsce bez pomostu: między dwoma ujęciami haka z różnych dekoracji stoi ujęcie
+  przejściowe (teatr cieni za parawanem między strzałą a burzą; reżyser 18.11: „po 1 ujęciu nie może być od razu ta
+  woda, tylko coś pomiędzy”). Po obietnicy, przed pierwszym aktem, ujęcie-pomost mówi, po co cofamy się w czasie
+  („To see why these brothers believed they came from the sun, we go back to the beginning…”).
+- **Jeden początek** (reżyser 19.11, „Bonnie and Clyde”: „a potem w tym filmie dowiecie się blablabla… i kurtyna
+  i znowu od nowa tak jakby? tak ma być?” — nie): obietnica to jedno pytanie, które prowadzi prosto w retrospekcję
+  („So how does a joke turn two broke kids into…?” → „It all starts in West Dallas…”), a nie lista „By the end, you'll
+  know…”. Między prologiem a aktem I nie ma kurtyny ani tabliczki aktu (`render.BEZ_KURTYNY`), tylko ściemnienie
+  i zawieszka miejsca i czasu; kurtyny z pytaniami od aktu II. Liczby i powód: Podręcznik → Rytm, „Początek filmu”.
+- W pierwszej minucie dekoracja zmienia się co najmniej 3 razy (licznik w `buduj_szkice.zmiany_scenerii`).
+- **Powrót do sceny z haka** w ciele filmu ma inne słowa niż hak („Remember that arrow?”), a nie powtórkę kwestii.
+- **Kurtyna aktu** pokazuje tytuł-pytanie w dwóch rzędach: mała tabliczka „Act N”, pod nią pytanie, na które akt
+  odpowiada (`render.kurtyna`); żadna tabliczka nie jest szersza od kadru. Akt przed zwrotem fabuły kończy się
+  pytaniem w kwestii, a nie zdaniem, które brzmi jak koniec filmu („But did he ever really exist?”).
+
+### 1.27 Teatr, który się buduje, i to, co przed rampą
+- Lalki i auta wchodzą dopiero, kiedy dekoracja się zbuduje (`scena.wejscie`); na pustym płótnie nikt nie stoi.
+- Pasażer auta jest widoczny w oknie od pasa w górę; nogi nie wystają spod karoserii (`siedzi=True`). Rzecz w oknie
+  (gazeta) stoi obok głowy, nie na niej.
+- Rzecz leżąca na ziemi, leżąca postać i woda, w której ktoś brodzi, są nad rampą — inaczej rampa i napisy je chowają
+  (czapki zabitych, trumna, rzeka, ranny Buck).
+- Broń w ręce celuje tam, gdzie ma celować: kto czyści karabin, trzyma go na kolanach, a nie w stronę partnera.
+- Sylwetka w teatrze cieni jest jednolicie czarna; prześwitujące ręce rysują na tułowiu „X”.
+- Auto, które dachuje, obraca się wokół swojego środka i ląduje widoczne; płomień wychodzi z auta, nie zasłania go.
+- Akcja przy ziemi w zbliżeniu: kamera niżej, żeby nie chowała się pod napisem.
 
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
@@ -465,7 +520,7 @@ i rozjaśnienie półtonów `JASNOSC=0.07` (czerń i biel bez zmian). Czysty obr
 
 ## 6. Skąd te zasady
 
-Od pilota (29.10.2026) i „Oddziału C” (3.11) do „Pierwszego cesarza” EN (16.11); wiersze w kolejności dat. Źródła:
+Od pilota (29.10.2026) i „Oddziału C” (3.11) przez „Pierwszego cesarza” EN (16.11) do „Syna słońca” EN (18.11); wiersze w kolejności dat. Źródła:
 uwagi w ujęciach i markery na klatkach w Studio (`scripts/uwagi_rezysera.py`), rozmowy z reżyserem przy pracy
 i błędy znalezione w kontroli.
 
@@ -507,6 +562,7 @@ i błędy znalezione w kontroli.
 | Syn słońca (13.11, arkusz) | Ninigi i łodzie stały, zanim wysunęła się rampa i fale (zmiana dekoracji) | 1.2 |
 | Syn słońca (13.11, pełna jakość) | w lesie Kumano (las, wrona) wojsko szło za rzędami cedrów, a wojsko Nagasunehiko za bliższym pasmem wzgórz — lektor mówił o wojsku, a widać było tylko czubki włóczni; na małym arkuszu szkicu tego nie wyłapano, dopiero na klatce 1280 × 720 | 1.5, 3.1 |
 | Syn słońca (13.11, dekoracja) | Japonia stała na tych samych chińskich górach, sosnach i kulisie z gałęzią co „Pierwszy cesarz” — reżyser: nie kopiować scenerii poprzedniego filmu; każdy kraj i epoka dostaje własny krajobraz (tu Fudżi, łagodne wzgórza z polanami, wiśnie, bambus) | Podręcznik 04 |
+| Syn słońca (17.11, przegląd według przepisu i zasad 1.15–1.24, znalezione w kontroli) | film zrobiony przed tymi zasadami: żadna postać nie miała tabliczki z imieniem; Izanami, Itsuse, Nagasunehiko i cesarz znikali bez śmierci (bez X, bez ciosu); lektor mówił o synu, którego nie było w kadrze; „flota” to jedna łódź, w Naniwie dwie lalki zamiast łodzi i wojska, w lesie Kumano same włócznie bez ludzi; śmiech bogów z syntezy szumu; pisarz kroniki schowany za stołem; cesarz z 2019 roku nieobecny na własnej koronacji; brak kurtyny między aktami; napisy tylko po polsku. Poprawione we wszystkich ujęciach z tą rzeczą (dwa rzędy wojowników w Kumano: padanie, Takakuraji, przebudzenie; syn także w ujęciu „pusto”) | 1.6, 1.11, 1.13, 1.14, 1.15, 1.17, 1.20, 1.21, Rytm 7 |
 | Pierwszy cesarz EN (14.11, Studio) | cięcie padało 0,6 s po ostatnim słowie lektora, bo zaraz zaczynało się następne ujęcie — reżyser: „obcina zaraz po kwestii ujęcie […] i jest to nienaturalne”; obraz trwa jeszcze po kwestii: 1,1 s w środku beatu, 1,4 s na końcu beatu, 1,8 s na końcu sceny, 2,3 s na końcu aktu (dane.py, PAUZA_PO) | Podręcznik 03 (2) |
 | Pierwszy cesarz EN (15.11, reżyser, Studio) | uwaga na klatce ujęcia 6: „ten powóz musi ciągnąć koń!” — żaden wóz w filmie nie miał konia; reżyser pytał też, czemu w ujęciu 6 są trzy postacie: chłopca grała zmniejszona lalka cesarza w koronie, więc wyglądał jak trzeci dorosły, a ojciec, zamiast wsiąść na wóz, zapadał się pod scenę | 1.6 |
 | Pierwszy cesarz EN (15.11, przegląd obsady) | gliniana armia stała na scenie od budowy grobowca do świtu, także przy spisku, u Fusu pod murem i w powstaniu, i zasłaniała powóz; Jing Ke, o którym lektor mówi „zginął pod kolumną”, w ogóle nie był widoczny | 1.6 |
@@ -551,6 +607,15 @@ i błędy znalezione w kontroli.
 | Miniaturka Pierwszego cesarza (16.11, reżyser) | z dwóch koncepcji wygrało zbliżenie; plan ogólny miał za drobne postacie; cesarz bez obrysu ginął na tle miasta; tabliczka „NO WAY?!” prosta i za wysoko | 5.1 |
 | Miniaturka (16.11, znalezione w kontroli) | ostrze łopaty ucięte krawędzią arkusza wyglądało jak grot; grudy ziemi na żołnierzu jak dziury; szyld z tytułem EN dotykał krawędzi kadru; meteoryt nachodził na ostrze łopaty | 5.2 |
 | Miniaturka (16.11, reżyser) | Fujifilm o sile 1,8 „za mocny”, 0,8 nadal za dużo → 0,5 i minimalne rozjaśnienie; spirale na oczach z białym tłem → grube czarne wprost na skórze | 5.1, 5.4 |
+| Syn słońca EN, otwarcie (18.11, reżyser) | po zapowiedzi brak ściemnienia i kurtyny startu; hak zaczynał się od akcji bez słowa, o czym jest film („z dupy jest wprowadzenie”); po strzale od razu woda bez ujęcia pomiędzy; najazd z kwestią o pierwszym cesarzu pokazywał brata, który ginie (przegląd scenariusza); kurtyny aktów bez pytań | 1.26, 1.15 |
+| Syn słońca EN, przegląd scenariusza (18.11, wykonawca, zatwierdzone przez reżysera) | hak i ciało filmu powtarzały te same zdania; śmierć cesarza brzmiała jak koniec filmu; brak pomostu z haka do mitu; brak ciszy przed szczytami | 1.26, 1.23 |
+| Syn słońca EN, akty 3–5 (18.11, reżyser: 3 uwagi, 16 markerów) | brak reakcji na mocnych chwilach (tabliczki „help”, „hmm..”, „stop!” z ręką do góry, „no way!”, „aaa!”, „I can't..”, „aaaa”, „brother!”, „boo!”); leżąca głowa i brat bez ruchu („porusz go”, „niech skacze”); wiosłuje tylko część łodzi; miecz obok dłoni Ninigiego („miecz ma być tutaj”); słońce ucięte krawędzią; zwrot ku słońcu niewidoczny; Iwarebiko tylko wskazuje góry („strzel tu strzałą”); po stracie braci stoi bez gestu („podnosi ręce”); za krótkie końcówki zejścia Ninigiego i wejścia w las Kumano | 1.25, 1.20, 1.18 |
+| Syn słońca EN, ujęcia 58–85 (19.11, kontrola na prośbę reżysera) | bitwa: lektor mówi o walce Iwarebiko z Nagasunehiko, a widać same czubki włóczni za pasmem wzgórz, bez ludzi i bez obu wodzów; błysk złotego ptaka prawie niewidoczny; po przestawieniu śledztwa mapa wysp wisiała już w tle pieczęci, a w następnym ujęciu zjeżdżała drugi raz; „restored in 1966” bez śladu w obrazie | 1.5, 1.17, 1.19, 1.2, 1.23 |
+
+| Bonnie and Clyde, arkusze aktów II–VIII (19.11, kontrola wykonawcy) | lalki i auta stały na płótnie, zanim wyrosła dekoracja; nogi pasażerów pod Fordem; sylwetki tancerzy z „X” na tułowiu; Ford w błocie zasłonięty pasem błota, a muły bez jeźdźców; cela zakryta gęstymi kratami; czapki zabitych, trumny i rzeka schowane za rampą; gazeta na twarzy Bonnie; Clyde „czyścił” karabin wycelowany w Bonnie; Ford z mostu znikał pod sceną po obrocie i za płomieniami; wycinki do teczki leciały poza kadrem | 1.27, 1.2, 1.1 |
+| Bonnie and Clyde, kontrola końca świata i przegląd dźwięku (19.11) | przy budowie wnętrza pod ścianą świeciło puste płótno (14 ujęć); wyrastające domki i pinezki miały w jednej klatce wysokość 0 i klatka się wywracała | 1.3, Animacja kodem |
+| Bonnie and Clyde, otwarcie (19.11, reżyser) | „jest 5 s spoiler, najlepiej zrób go 6 s i szybko zmieniaj ujęcia… a potem w tym filmie dowiecie się blablabla… i kurtyna i znowu od nowa tak jakby?” — trzy starty: długa kurtyna tytułu, lista obietnic, kurtyna aktu I z powrotem w czasie; w zapowiedzi podpis zdradzał łowcę | 1.26 |
+| Pierwszy cesarz EN, wyniki po 1 dniu 20 h (19.11, reżyser) | po 30 s ogląda 35 %, średnio 1:29 z 11:19: pusta rama z tytułem na starcie, chronologia „Long ago…” bez haka, pięć nazw w 40 s, kurtyna aktu w 1:18 | 1.26, Rytm |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
