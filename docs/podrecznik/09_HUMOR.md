@@ -90,7 +90,8 @@ Większość gagów to ruchy, które silnik już zna; nowy rekwizyt albo znak do
 ## Dźwięk gagu
 
 Każdy gag ma dźwięk w tej samej klatce (1.12): plask, brzdęk nitki, puzon wah-wah, werbel, kaszel silnika, gwizdek.
-Muzyka na gagu robi krótki przystanek albo akcent (jedna nuta, stopka), a potem gra dalej. Nowy rodzaj dźwięku najpierw
+Muzyka na puencie gagu robi krótki przystanek (−9 dB na 0,6 s, `efekty.GAG_PUENTA`), a potem gra dalej — puentę
+gagu zapisuje się w sekundach od początku ujęcia razem z gagiem. Nowy rodzaj dźwięku najpierw
 idzie jako próbka do reżysera (rozdział „Dźwięk”).
 
 ## Kolejność pracy

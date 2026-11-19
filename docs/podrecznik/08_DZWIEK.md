@@ -26,6 +26,16 @@ na cały film. Lektora nagrywa reżyser (rozdział „Lektor”). Wzór: „Bonn
    i mroku. Miara po zmianie: rozrzut tematów (10.–90. centyl) 9,1 → 4,3 dB; zostają tylko celowe zmiany — cisza przed
    szczytem i powrót muzyki w dłuższej pauzie lektora.
 
+7. **Tempo z montażu** (reżyser 20.11: „powinno liczyć tempo cięć”): w obrębie tematu tempo idzie za długością ujęć —
+   60 / długość bieżącego ujęcia, wygładzone gaussem (σ 5 s), względem mediany filmu, mnożnik ×0,85…×1,2 (wykładnik 0,5).
+   Nuty nie zmieniają wysokości: temat układa się w „czasie muzycznym”, a mapa czasu (`Pasmo.mapa`) rozciąga go albo ściska
+   na osi filmu. W obrębie ujęcia tempo stoi — liczenie cięć w okienku kołysało tempem od cięcia do cięcia.
+8. **Zmiana tematu na cięciu**: stary temat kończy się na cięciu (0,12 s wyciszenia), nowy wchodzi na nim mocną częścią
+   taktu z akcentem stopy (`CIECIE_WYJSCIE`, `CIECIE_WEJSCIE`) — bez półsekundowego przenikania, które rozmywało zmianę.
+9. **Przystanek na gagu**: na puencie gagu (`GAG_PUENTA`, sekunda od początku ujęcia) muzyka cichnie o 9 dB na 0,6 s
+   i wraca w 0,5 s, żeby dźwięk gagu wybrzmiał. Bez muzycznego podkreślania każdego ruchu — przy kilkudziesięciu gagach
+   muzyka by się jąkała.
+
 ## Efekty
 
 1. **Z rysunku, nie z pamięci.** `efekty.skan()` przegląda cały film (`render.uloz` co 0,08 s) z podsłuchem funkcji
