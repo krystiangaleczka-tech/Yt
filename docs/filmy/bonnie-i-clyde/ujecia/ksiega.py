@@ -204,7 +204,9 @@ WARSZTAT = {
                 "więzienie, las, parawan teatru cieni.\n"
                 "- **Świat** (`output/bonnie-i-clyde/scena.py`): stan sceny i scenografie.\n"
                 "- **Ujęcia** (`ujecia_a.py` — akty 0–4, `ujecia_b.py` — akty 5–8): funkcja `s_<klucz>(st, w, t, T)`.\n"
-                "- **Podgląd na żywo** (`na_zywo.py`): Studio rysuje ujęcia z kodu (legacy.teatr), klipów mp4 nie rysuje się.",
+                "- **Podgląd na żywo** (`na_zywo.py`): Studio rysuje ujęcia z kodu (legacy.teatr), klipów mp4 nie rysuje się.\n"
+                "- **Dźwięk** (`efekty.py`, `glosy.py`, `probka_dzwieku.py`): tematy muzyczne lat 30., efekty z podsłuchu ujęć, głosy "
+                "z syntetycznych głosów Kokoro + Chatterbox Turbo (bez głosu reżysera) — Podręcznik → Dźwięk.",
     "method": "## Kolejność pracy\n\n"
               "1. Rozpiska: `docs/filmy/bonnie-i-clyde/ujecia/dane.py` (z zatwierdzonego szkicu D).\n"
               "2. Księga świata: `ujecia/ksiega.py`.\n"
@@ -212,7 +214,10 @@ WARSZTAT = {
               "4. Rysunek: funkcja ujęcia; `python3 output/bonnie-i-clyde/render.py arkusz 12,13` — arkusz klatek.\n"
               "5. `python3 output/bonnie-i-clyde/render.py kontrola` — test „końca świata”.\n"
               "6. Podgląd na żywo w Studio (zakładka Ujęcia); `studio_film.py klatki` — zapasowe klatki na osi.\n"
-              "7. Recenzja aktu i wpis w dzienniku. Lektor tylko za zgodą reżysera (reżyser nagrywa sam na końcu).",
+              "7. Dźwięk: `python3 -I output/bonnie-i-clyde/efekty.py` (przegląd filmu, muzyka i efekty), nowy rodzaj dźwięku → "
+              "`probka_dzwieku.py` i zgoda reżysera, potem `studio_film.py dzwiek`; po każdej zmianie długości ujęć: `plan`, "
+              "`klatki`, dźwięk od nowa.\n"
+              "8. Recenzja aktu i wpis w dzienniku. Lektor tylko za zgodą reżysera (reżyser nagrywa sam na końcu).",
     "files": [
         {"path": "docs/filmy/bonnie-i-clyde/szkice/buduj_szkice.py", "role": "szkice A–D (D zatwierdzony)"},
         {"path": "docs/filmy/bonnie-i-clyde/ujecia/dane.py", "role": "rozpiska: akty, sceny, ujęcia, kwestie EN"},
@@ -223,7 +228,10 @@ WARSZTAT = {
         {"path": "output/bonnie-i-clyde/ujecia_b.py", "role": "ujęcia aktów 5–8"},
         {"path": "output/bonnie-i-clyde/render.py", "role": "klatka, arkusz, kontrola, klipy"},
         {"path": "output/bonnie-i-clyde/na_zywo.py", "role": "podgląd na żywo w Studio"},
-        {"path": "output/bonnie-i-clyde/studio_film.py", "role": "plan, księga i klatki do Studio"},
+        {"path": "output/bonnie-i-clyde/studio_film.py", "role": "plan, księga, klatki i dźwięk do Studio"},
+        {"path": "output/bonnie-i-clyde/efekty.py", "role": "muzyka (tematy, CUES, CISZA) i efekty (podsłuch ujęć, ZDARZENIA, głosy)"},
+        {"path": "output/bonnie-i-clyde/glosy.py", "role": "głosy ludzi: referencje Kokoro, nagrania Turbo, wybór podejść"},
+        {"path": "output/bonnie-i-clyde/probka_dzwieku.py", "role": "próbka do akceptacji: fragmenty filmu z miksem i sam dźwięk"},
     ],
 }
 

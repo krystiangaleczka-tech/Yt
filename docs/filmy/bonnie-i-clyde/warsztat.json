@@ -1,6 +1,6 @@
 {
-  "pipeline": "## Technika\n\nUjęcia są **rysowane kodem** w Pythonie (PIL + numpy) jako teatr papierowy — ten sam silnik co „Pierwszy cesarz” i „Syn słońca”.\n\n- **Silnik** (`output/pierwszy-cesarz/papier.py`, wspólny): plany głębi, kamera, cienie, głębia ostrości, światło.\n- **Papiery i wycinki wspólne** (`output/pierwszy-cesarz/zestaw.py`): faktury, darte krawędzie, chmury, nitki, wysuwanie.\n- **Zestaw filmu** (`output/bonnie-i-clyde/zestaw_bc.py`): lalki lat 30. z rękami na zawiasie, rama teatru z gazet, Ford V8, radiowóz, motocykl, ciężarówka, stacja, drukarnia, gazety, aparat, mapa, preria, miasteczko, wnętrza, więzienie, las, parawan teatru cieni.\n- **Świat** (`output/bonnie-i-clyde/scena.py`): stan sceny i scenografie.\n- **Ujęcia** (`ujecia_a.py` — akty 0–4, `ujecia_b.py` — akty 5–8): funkcja `s_<klucz>(st, w, t, T)`.\n- **Podgląd na żywo** (`na_zywo.py`): Studio rysuje ujęcia z kodu (legacy.teatr), klipów mp4 nie rysuje się.",
-  "method": "## Kolejność pracy\n\n1. Rozpiska: `docs/filmy/bonnie-i-clyde/ujecia/dane.py` (z zatwierdzonego szkicu D).\n2. Księga świata: `ujecia/ksiega.py`.\n3. `python3 output/bonnie-i-clyde/studio_film.py plan` — plan, księga i warsztat do Studio + kontrola ciągłości.\n4. Rysunek: funkcja ujęcia; `python3 output/bonnie-i-clyde/render.py arkusz 12,13` — arkusz klatek.\n5. `python3 output/bonnie-i-clyde/render.py kontrola` — test „końca świata”.\n6. Podgląd na żywo w Studio (zakładka Ujęcia); `studio_film.py klatki` — zapasowe klatki na osi.\n7. Recenzja aktu i wpis w dzienniku. Lektor tylko za zgodą reżysera (reżyser nagrywa sam na końcu).",
+  "pipeline": "## Technika\n\nUjęcia są **rysowane kodem** w Pythonie (PIL + numpy) jako teatr papierowy — ten sam silnik co „Pierwszy cesarz” i „Syn słońca”.\n\n- **Silnik** (`output/pierwszy-cesarz/papier.py`, wspólny): plany głębi, kamera, cienie, głębia ostrości, światło.\n- **Papiery i wycinki wspólne** (`output/pierwszy-cesarz/zestaw.py`): faktury, darte krawędzie, chmury, nitki, wysuwanie.\n- **Zestaw filmu** (`output/bonnie-i-clyde/zestaw_bc.py`): lalki lat 30. z rękami na zawiasie, rama teatru z gazet, Ford V8, radiowóz, motocykl, ciężarówka, stacja, drukarnia, gazety, aparat, mapa, preria, miasteczko, wnętrza, więzienie, las, parawan teatru cieni.\n- **Świat** (`output/bonnie-i-clyde/scena.py`): stan sceny i scenografie.\n- **Ujęcia** (`ujecia_a.py` — akty 0–4, `ujecia_b.py` — akty 5–8): funkcja `s_<klucz>(st, w, t, T)`.\n- **Podgląd na żywo** (`na_zywo.py`): Studio rysuje ujęcia z kodu (legacy.teatr), klipów mp4 nie rysuje się.\n- **Dźwięk** (`efekty.py`, `glosy.py`, `probka_dzwieku.py`): tematy muzyczne lat 30., efekty z podsłuchu ujęć, głosy z syntetycznych głosów Kokoro + Chatterbox Turbo (bez głosu reżysera) — Podręcznik → Dźwięk.",
+  "method": "## Kolejność pracy\n\n1. Rozpiska: `docs/filmy/bonnie-i-clyde/ujecia/dane.py` (z zatwierdzonego szkicu D).\n2. Księga świata: `ujecia/ksiega.py`.\n3. `python3 output/bonnie-i-clyde/studio_film.py plan` — plan, księga i warsztat do Studio + kontrola ciągłości.\n4. Rysunek: funkcja ujęcia; `python3 output/bonnie-i-clyde/render.py arkusz 12,13` — arkusz klatek.\n5. `python3 output/bonnie-i-clyde/render.py kontrola` — test „końca świata”.\n6. Podgląd na żywo w Studio (zakładka Ujęcia); `studio_film.py klatki` — zapasowe klatki na osi.\n7. Dźwięk: `python3 -I output/bonnie-i-clyde/efekty.py` (przegląd filmu, muzyka i efekty), nowy rodzaj dźwięku → `probka_dzwieku.py` i zgoda reżysera, potem `studio_film.py dzwiek`; po każdej zmianie długości ujęć: `plan`, `klatki`, dźwięk od nowa.\n8. Recenzja aktu i wpis w dzienniku. Lektor tylko za zgodą reżysera (reżyser nagrywa sam na końcu).",
   "files": [
     {
       "path": "docs/filmy/bonnie-i-clyde/szkice/buduj_szkice.py",
@@ -40,7 +40,19 @@
     },
     {
       "path": "output/bonnie-i-clyde/studio_film.py",
-      "role": "plan, księga i klatki do Studio"
+      "role": "plan, księga, klatki i dźwięk do Studio"
+    },
+    {
+      "path": "output/bonnie-i-clyde/efekty.py",
+      "role": "muzyka (tematy, CUES, CISZA) i efekty (podsłuch ujęć, ZDARZENIA, głosy)"
+    },
+    {
+      "path": "output/bonnie-i-clyde/glosy.py",
+      "role": "głosy ludzi: referencje Kokoro, nagrania Turbo, wybór podejść"
+    },
+    {
+      "path": "output/bonnie-i-clyde/probka_dzwieku.py",
+      "role": "próbka do akceptacji: fragmenty filmu z miksem i sam dźwięk"
     }
   ]
 }
