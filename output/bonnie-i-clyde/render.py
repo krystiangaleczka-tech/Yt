@@ -60,8 +60,8 @@ BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
 # miejsca w filmie i z jego długością (kamera i zdarzenia liczą się tak jak w oryginale) — to skrót, a nie nowa scena.
 # Trzeci element: długość, z jaką liczy się oryginał, gdy ujęcie skraca samo siebie (teatr: od 1 s, za kurtyną zapala się
 # lampa, szyld „SON OF THE SUN” widać, gdy kurtyna się rozsunie, bracia wysuwają się na polanę, kamera dojeżdża do 5 s).
-WYCINEK = {"zap_wellington_most": ("wellington_most", 0.6), "zap_zdjecie": ("zdjecie", 3.2), "zap_prasa": ("prasa", 2.0),
-           "zap_boyd": ("boyd", 2.0), "zap_petle": ("petle", 3.0), "zap_hamer": ("hamer", 1.5), "zap_pamiatki": ("pamiatki", 3.0),
+WYCINEK = {"zap_wellington_most": ("wellington_most", 0.9), "zap_zdjecie": ("zdjecie", 3.2), "zap_prasa": ("prasa", 2.0),
+           "zap_boyd": ("boyd", 2.0), "zap_petle": ("petle", 3.0), "zap_hamer": ("hamer", 5.6), "zap_pamiatki": ("pamiatki", 3.0),
            "tytul": ("tytul", 1.0, 5.0)}
 # Kurtyna startu (reżyser 18.11.2026: „po spoilerze na końcu ściemnienie i kurtyna startu z pierwszym ujęciem”): ujęcie
 # zaczyna się zasuniętą kurtyną bez tytułu, która się rozsuwa (zapowiedź kończy się ściemnieniem — koniec swojej sceny).
