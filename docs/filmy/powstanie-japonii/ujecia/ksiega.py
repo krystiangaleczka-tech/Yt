@@ -235,6 +235,15 @@ SWIAT = {
          "ujęcie, start, co widać, kwestia, „mów ok.”, „maks.”). Przy liczeniu: po „Only one of them survived.” w kurtynie 2,5 s "
          "zostawało 0,1 s obrazu przed cięciem — kurtyna startu ma 3,0 s, a lektor zaczyna w niej po 0,2 s (dane.ODDECH), więc "
          "po kwestii zostaje ponad 1 s (Podręcznik, Rytm 2). Film 11:42.", "at": "2026-11-20", "by": "wykonawca (reżyser: „zrób dobrze”)"},
+        {"id": "D17", "text": "Lektor reżysera (20.11 wieczorem): „Sun.m4a” (dom, ujęcia 1–44) i „Głos 261120_201902.m4a” (auto, ujęcia "
+         "44–88), pocięte po słowach Whispera (ostatnie dobre podejście, falstarty i powtórki wycięte, w 66 sklejone dwa podejścia), "
+         "auto odszumione resemble-enhance, pauzy w kwestii z zakresów (pauzy_lektora), kwestie wolniejsze niż 2,5 słowa/s "
+         "przyspieszone najwyżej o 8 %, ten sam głos co klon (niżej o 0,25 półtonu, ciepła korekcja) — narzędzie "
+         "output/powstanie-japonii/autor_lektor.py. 64 kwestie głosem reżysera, 6 klonem (13, 16, 29, 35, 40, 41: zawahanie, "
+         "zacięcie, złe słowo, ucięty początek w nagraniu), klon jednym podejściem i innym ziarnem tylko przy błędzie (reżyser: "
+         "„rób jedno podejście”). Odstępstwa od skryptu bez napisów: w 81 podejście z „half a kilometre” (ostatnie mówiło „half "
+         "mile”), w 87 bez „However, today,”, w 88 bez „peace out”. Długości z czytania reżysera: film 12:35; ujęcie 65 8,8 s "
+         "(najmniej z kwestią), 16 tymczasowo 6,7 s z klonem.", "at": "2026-11-20", "by": "reżyser"},
     ],
 }
 
