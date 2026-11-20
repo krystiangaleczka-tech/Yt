@@ -14,15 +14,16 @@ EN = {
     "hak_rana": "But an arrow struck the eldest brother, Prince Itsuse.",
     "hak_cien": "Itsuse died of that wound, far from home.",
     "hak_burza": "A storm took two more, leaving only Iwarebiko.",
-    "hak_koronacja": "In 2019, the hundred and twenty-sixth emperor of his line received a sword no one alive has seen.",
+    "hak_koronacja": "In 2019, the hundred and twenty-sixth emperor of his line received a sword no one alive has seen. "
+                     "So where did it come from?",
     # cien: ujęcie z pierwszej wersji filmu (parawan z cieniem władcy), dziś poza filmem — kwestia jak w nagraniu lektora
     "cien": "The chronicles call him a great-great-great-grandson of the sun goddess, and historians "
             "still argue whether he ever lived.",
     # reżyser 18.11.2026: ujęcie 14 krótsze o 4 s — obietnica bez wrony (wrona i tak wraca w tytule aktu V)
     "luty": "By the end, you'll know where that sword came from and why Japan's birthday was made up.",
     # akt 1 · Kropla z włóczni
-    "meduza": "To see why these brothers believed they came from the sun, we go back to the beginning, when the young "
-              "earth drifted like a jellyfish.",
+    "meduza": "It all starts at the very beginning of the world, when the young earth drifted like a jellyfish, and "
+              "these brothers' ancestors were gods.",
     "most": "Then two gods, Izanagi and Izanami, stepped onto the Floating Bridge of Heaven with orders "
             "to give it shape.",
     "wlocznia": "They dipped a jewelled spear into the sea and stirred until the salt water began to "
@@ -157,7 +158,7 @@ EN = {
 # napisy na wycinkach (szyld teatru, zawieszki, tabliczki z imionami, tytuły aktów na kurtynie)
 ETYKIETY = {
     "SYN SŁOŃCA": "SON OF THE SUN", "POWSTANIE JAPONII": "THE BIRTH OF JAPAN", "LUTEGO": "FEBRUARY",
-    "11 lutego": "11 February", "Hyūga": "Hyūga", "660 p.n.e.": "660 BC", "127 lat": "127 years", "− 1260 lat": "− 1260 years",
+    "11 lutego": "11 February", "Hyūga": "Hyūga", "660 p.n.e.": "660 BC", "127 lat": "Lived 127 years!",  # marker 20.11: „ma być napisane lived 127 years!” "− 1260 lat": "− 1260 years",
     "57 r.": "AD 57", "126": "126",
     # nazwy pisane znakami, o których mówi lektor — pod znakami podpis w języku wersji (wytyczne 1.13)
     "Jimmu — boska waleczność": "Jimmu — 'divine valour'", "Wa": "Wa", "Nihon — źródło słońca": "Nihon — 'origin of the sun'",
@@ -166,7 +167,7 @@ ETYKIETY = {
     "bóg księżyca": "the moon god", "Susanoo, bóg burzy": "Susanoo, god of storms", "Uzume": "Uzume",
     "najsilniejszy z bogów": "the strongest god", "starcy z Izumo": "the old couple", "ostatnia córka": "their last daughter",
     "Ninigi, wnuk Amaterasu": "Ninigi, her grandson", "księżniczka kwiatów": "Princess of Blossoms",
-    "księżniczka skał": "Princess of Rocks", "książę Iwarebiko": "Prince Iwarebiko", "Itsuse, najstarszy brat": "Itsuse, eldest brother", "Iwarebiko, przyszły cesarz": "Iwarebiko, the future emperor",
+    "księżniczka skał": "Princess of Rocks", "książę Iwarebiko": "Prince Iwarebiko", "Itsuse, najstarszy brat": "Itsuse, eldest brother", "Iwarebiko, przyszły cesarz": "Iwarebiko, the future emperor", "Wiek bogów": "The Age of the Gods",
     "bogini tańca": "a goddess of dance", "miejscowy człowiek": "a local man", "Kiusiu": "Kyushu",
     "wódz Nagasunehiko": "Chief Nagasunehiko", "Takakuraji": "Takakuraji", "Yatagarasu": "Yatagarasu",
     "Nigihayahi": "Nigihayahi", "córka miejscowego boga": "daughter of a local god", "syn cesarza": "his son",
@@ -177,6 +178,14 @@ ETYKIETY = {
     # okrzyki z markerów reżysera 18.11.2026
     "POMOCY!": "HELP!", "HMM…": "HMM…", "STOP!": "STOP!", "NIE MA MOWY!": "NO WAY!", "AAA!": "AAA!", "Nie mogę…": "I can't…",
     "AAAA!": "AAAA!", "BRACIE!": "BROTHER!", "BU!": "BOO!",
+    # gagi 20.11.2026 (GAGI.md)
+    "BLUB!": "BLUB!", "UFF…": "PHEW…", "TA-DA!": "TA-DA!", "KUKURYKU!": "COCK-A-DOODLE-DOO!", "OCH!": "WOW!", "HIK!": "HIC!",
+    "EJ!": "HEY!", "KRA!": "CAW!", "MOJE!": "MINE!", "TAKA SAMA?!": "SAME ARROW?!", "ZRÓB TO STARSZE!": "MAKE IT OLDER!",
+    "PRAWDZIWE ZŁOTO?": "REAL GOLD?", "UPS!": "OOPS!", "OJEJ!": "WHOA!", "BUM!": "BUMP!", "ZACZEKAJCIE!": "WAIT FOR ME!",
+    "MNIAM!": "YUM!",
+    # markery i uwagi reżysera 20.11.2026
+    "KŁAP!": "CHOMP!", "HAJA!": "HI-YAH!", "CZEMU JA?!": "WHY ME?!", "HA!": "HA!", "ZA MNĄ, CHŁOPAKI!": "FOLLOW ME, GUYS!",
+    "GOL?!": "GOAL?!", "CHODŹ!": "COME IN!", "SKRZYP…": "CREAK…", "RZĄDZĘ WAMI!": "I RULE YOU!", "DZIŚ, W 2019 ROKU": "NOWADAYS, IN 2019",
     # tytuły aktów na kurtynie (przejście między aktami)
     # przegląd 18.11.2026 (szkic D): tytuły aktów to pytania, na które akt odpowiada; kurtyna rysuje „Act N” i pytanie
     # w dwóch rzędach (render.kurtyna)

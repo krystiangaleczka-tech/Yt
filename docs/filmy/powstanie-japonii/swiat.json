@@ -280,10 +280,7 @@
       "id": "choragiewki",
       "name": "Chorągiewki z czerwonym słońcem",
       "place": "kraj",
-      "seeded": "d00_14~chorągiewki",
-      "uses": [
-        "d09_05~chorągiewki"
-      ]
+      "seeded": "d09_05~chorągiewki"
     }
   ],
   "resources": [],
@@ -436,10 +433,10 @@
       "id": "swieto",
       "title": "11 lutego: urodziny państwa",
       "setup": [
-        "d00_14~lutego"
+        "d07_02~nowego roku"
       ],
       "clues": [
-        "d07_02~nowego roku"
+        "d08_02~wróżby"
       ],
       "payoff": [
         "d09_05~lutego"
@@ -449,7 +446,7 @@
       "id": "czy_zyl",
       "title": "Czy pierwszy cesarz żył?",
       "setup": [
-        "d00_09~istniał"
+        "d00_12~istniał"
       ],
       "clues": [
         "d07_03~później",
@@ -496,7 +493,7 @@
       "id": "slonce",
       "title": "Potomek słońca walczy pod słońce",
       "setup": [
-        "d01_01~słońca",
+        "d01_01~bogami",
         "d02_03~przodkini"
       ],
       "clues": [
@@ -512,7 +509,7 @@
       "id": "bracia",
       "title": "Czterech braci wyrusza, wraca jeden",
       "setup": [
-        "d00_09~braćmi",
+        "d00_12~braćmi",
         "d04_03~braćmi"
       ],
       "clues": [
@@ -553,7 +550,7 @@
       "id": "ptak",
       "title": "Złoty ptak na łuku",
       "setup": [
-        "d00_07~ptaka"
+        "d00_10~ptaka"
       ],
       "clues": [
         "d06_04~złoty"
@@ -566,7 +563,7 @@
       "id": "nihon",
       "title": "Kraj od słońca",
       "setup": [
-        "d00_08~słońce"
+        "d00_11~słońce"
       ],
       "clues": [
         "d02_03~Amaterasu"
@@ -580,7 +577,7 @@
       "id": "teatr",
       "title": "To wszystko było w papierowym teatrze",
       "setup": [
-        "d00_08~teatru"
+        "d00_11~teatru"
       ],
       "payoff": [
         "d09_07~teatru"
@@ -670,6 +667,12 @@
       "id": "D12",
       "text": "Poprawki z przeglądu scenariusza (reżyser 18.11: „tak, wszystkie oprócz lektora, lektora dodam na końcu”). Film idzie według szkicu D: wypadają księżniczki kwiatów i skał, postoje w portach, pola ryżowe i żona cesarza (11:59 przy tempie lektora EN). Wprowadzenie nazywa Iwarebiko i pokazuje go z podpisem „przyszły cesarz”; meduza to pomost do mitu („żeby zrozumieć, czemu bracia wierzyli, że pochodzą od słońca…”); Amaterasu to przodkini braci; koronacja z 2019 to „cesarz z jego rodu”. Fakty: miecz z ogona węża według tradycji ukryty w chramie, cesarz dostał zastępczy; haniwa — prawdziwi władcy Yamato, nie „pierwsi, o których wiemy”; święto 11 lutego zniesione po wojnie i przywrócone w 1966; ryż na południowym zachodzie; „inny miecz” w Kumano; 127 lat „według kroniki”. Śledztwo: chłop → pieczęć → odcisk → chińskie zapiski. Powrót do sceny z haka innymi słowami („Pamiętasz tę strzałę?”), hak przed aktem VIII („Ale czy on w ogóle istniał?”), tytuły aktów to pytania, mniej imion (bez Uzume, Takakuraji, Hyūga, Kii, Unebi), cisza muzyki przed szczytami (wąż, wrona, złoty ptak). Kwestie bez nagrania czekają na lektora reżysera.",
       "at": "2026-11-18",
+      "by": "reżyser"
+    },
+    {
+      "id": "D13",
+      "text": "Zmiany od „Bonnie and Clyde” (reżyser 20.11: „dołóż głosy, efekty, gagi i inne rzeczy na film, patrząc na nowe zmiany od Bonnie i Clyde”). Jeden początek (Podręcznik, Rytm): zapowiedź 6 s z 10 cięciami na uderzeniach, kurtyna tytułu 2,5 s, lektor od ok. 9 s, obietnica „By the end…” wypada — hak kończy się jednym pytaniem („So where did it come from?”), a prolog przechodzi w akt I bez kurtyny (ściemnienie i zawieszka „The Age of the Gods”). Gagi według rozdziału „Humor i gagi” (GAGI.md: 16 zrobionych, 9 do wyboru; silnik humoru: legenda kontra rzeczywistość, gag powracający: królowa przed lustrem; bez gagów przy śmierci i żałobie). Głosy postaci z modelu mowy (Kokoro + Chatterbox Turbo, bez głosu reżysera) pod tabliczkami, łagodne ściszanie pod lektorem, przystanek muzyki na puencie gagu, uderzenie na każdym cięciu zapowiedzi.",
+      "at": "2026-11-20",
       "by": "reżyser"
     }
   ]

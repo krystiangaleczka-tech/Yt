@@ -328,6 +328,10 @@ SFX = {"gong": gong, "whoosh": whoosh, "knock": knock, "drum": drum, "crack": cr
        "crow": crow_call, "rooster": rooster, "growl": growl, "chime": chime, "slurp": slurp,
        "kurtyna_z": kurtyna_zasuwa, "kurtyna_r": kurtyna_rozsuwa, "klaps": klaps, "buzz": buzz, "rattle": rattle, "shout": shout,
        "smiech": lambda: glos("smiech", 0.6), "jek": lambda: glos("jek", 0.55), "okrzyk": lambda: glos("okrzyk", 0.5)}
+# głosy postaci z modelu mowy (glosy.py, rodzaje z NAGRANIA) pod tabliczkami: rodzaj „g:<rodzaj>”
+for _r in ("au", "aaa", "nie_moge", "pomocy", "hmm", "stop", "nie_ma_mowy", "aaaa", "bracie", "bu", "oh", "pulapka", "placz", "gasp",
+           "hura", "uff", "tada", "wow", "au_s", "hik", "ej", "moje", "taka_sama", "starsze", "zloto", "ups"):
+    SFX["g:" + _r] = (lambda r: lambda: glos(r, 0.6))(_r)
 
 
 # ---------- tło miejsca ----------
@@ -407,7 +411,8 @@ ZDARZENIA = {
     "postoje": [(0.0, "water", 9.0), (1.0, "dig", 8.0)],
     "naniwa": [(0.4, "water", 5.0), (0.6, "oars", 3.5), (2.6, "march", 7.0), (2.6, "drum", 0.7), (3.4, "shout", 0.8)],
     "nagasune": [(0.5, "thud", 0.6), (1.6, "march", 6.0), (1.6, "drum", 0.9), (2.2, "whoosh", 0.3)] + [(a, "shout", 0.9) for a in B_NAGA_RYTM] + [(a + 0.3, "drum", 0.8) for a in B_NAGA_RYTM],
-    "strzaly": [(0.0, "whoosh", 0.9), (0.15, "whoosh", 0.8), (0.3, "whoosh", 0.8), (0.9, "thud", 0.6), (1.1, "thud", 0.5)],
+    "strzaly": [(0.0, "whoosh", 0.9), (0.15, "whoosh", 0.8), (0.3, "whoosh", 0.8), (0.9, "thud", 0.6), (1.1, "thud", 0.5),
+                (0.0, "fire", 2.2)],  # płonące strzały (reżyser 20.11.2026)
     "rana": [(0.4, "whoosh", 0.7), (0.9, "thud", 0.9), (0.95, "jek", 1.0), (0.95, "whoosh", 0.25)],
     "pod_slonce": [(0.8, "whoosh", 0.3), (4.6, "knock", 0.3)],
     "itsuse": [(0.0, "water", 8.0), (B.ITSUSE_SMIERC - 0.2, "jek", 1.0), (B.ITSUSE_SMIERC + 0.9, "thud", 0.4)],
@@ -542,7 +547,10 @@ def zapisz(path, x):
 
 
 # Dźwięki dokładane do skrótów (akt 0, render.WYCINEK): mocne uderzenie na start zapowiedzi i gong pod tytuł teatru.
-DODATKI = {"zap_jaskinia": [(0.0, "gong", 1.0), (0.0, "drum", 0.9)], "zap_blysk": [(0.0, "drum", 0.9)],
+DODATKI = {"zap_jaskinia": [(0.0, "gong", 1.0), (0.0, "drum", 0.9)], "zap_blysk": [(0.0, "drum", 0.9), (0.0, "gong", 0.8)],
+           # zapowiedź ma uderzenie na każdym cięciu, jak zwiastun (Podręcznik, Dźwięk; 20.11.2026)
+           **{k: [(0.0, "drum", 0.8)] for k in ("zap_orochi", "zap_miecz", "zap_strzaly", "zap_uzume", "zap_burza", "zap_niedzwiedz",
+                                              "zap_wrona", "zap_bitwa")},
            "teatr": [(0.1, "kurtyna_r", 1.0), (0.9, "gong", 0.9), (1.9, "whoosh", 0.4)] + [(1.6 + 0.3 * n, "knock", 0.35) for n in range(4)],
            "hak_najazd": [(0.3, "whoosh", 0.25), (1.6, "whoosh", 0.2), (4.1, "whoosh", 0.2)],  # podpisy Iwarebiko i Itsuse
            # szczyty (przegląd 18.11.2026): po ciszy muzyki mocne uderzenie — ósma głowa węża, pierwsze krakanie wrony
@@ -551,6 +559,105 @@ DODATKI = {"zap_jaskinia": [(0.0, "gong", 1.0), (0.0, "drum", 0.9)], "zap_blysk"
            "wschod": [(3.6, "whoosh", 0.55), (4.15, "thud", 0.4)], "luty2": [(7.0, "whoosh", 0.4), (8.6, "whoosh", 0.4), (8.8, "knock", 0.4)], "bracia": [(6.5, "knock", 0.4), (7.15, "knock", 0.4), (7.8, "knock", 0.4)],
            "hak_cien": [(0.2, "knock", 0.4), (0.35, "whoosh", 0.3), (1.35, "whoosh", 0.6), (1.65, "thud", 0.7), (1.65, "crack", 0.35),
                         (2.75, "whoosh", 0.4), (3.4, "thud", 0.5)]}
+
+
+# Głos pod tabliczką i dźwięk gagu (Podręcznik, „Dźwięk”, Głosy ludzi 4; „Humor i gagi”, Dźwięk gagu): sekunda od początku
+# ujęcia = chwila, gdy tabliczka zaczyna zjeżdżać, + ok. 0,3 s. Klucz to ujęcie źródłowe — skróty (render.WYCINEK) biorą to,
+# co wypada w ich fragmencie. Reżyser 20.11.2026: „dołóż głosy, efekty, gagi”.
+GLOSY_UJ = {
+    "wschod": [(2.1, "g:hmm", 1.0)],
+    "itsuse": [(1.7, "g:nie_moge", 1.0)],
+    "starcy": [(1.2, "g:placz", 1.0), (3.0, "g:placz", 0.8)],
+    "bitwa": [(3.0, "g:hura", 0.7), (3.3, "g:hura", 0.6), (7.5, "g:hura", 0.5)],
+    "blysk": [(0.3, "g:gasp", 1.0)],
+    # gagi (GAGI.md)
+    "meduza": [(A.MEDUZA_HOP, "splash", 0.5), (A.MEDUZA_HOP + 0.7, "knock", 0.4)],
+    "wlocznia": [(5.9, "g:uff", 1.0)],
+    "kropla": [(4.7, "g:tada", 1.0), (4.6, "chime", 0.6)],
+    "lustro": [(2.9, "g:wow", 1.0)],
+    "wygnanie": [(3.5, "g:au_s", 1.0), (3.45, "chime", 0.35)],
+    "pije": [(1.2, "g:hik", 1.0)],
+    "yamato": [(2.9, "g:moje", 1.0), (3.5, "g:moje", 1.0), (4.1, "g:moje", 1.0)],
+    "strzala_nieba": [(3.2, "g:taka_sama", 1.0)],
+    "kronika": [(4.6, "g:starsze", 1.0), (4.4, "whoosh", 0.3)],
+    "haniwa": [(B.HANIWA_UPADEK + 0.45, "thud", 0.8), (B.HANIWA_UPADEK + 0.7, "g:ups", 1.0)],
+    # gagi 17–25 (GAGI.md, 20.11.2026): dźwięki z istniejących rodzajów
+    "most": [(A.MOST_LAD, "thud", 0.6), (A.MOST_LAD + 0.2, "whoosh", 0.3), (A.MOST_LAD + 0.5, "knock", 0.3)],
+    "uzume": [(A.UZUME_SPADA + 0.35, "thud", 0.7), (A.UZUME_SPADA + 1.4, "whoosh", 0.3)],
+    "kadzie": [(A.KADZIE_MRUG + 0.2, "chime", 0.5)],
+    "naniwa": [(A.NANIWA_WJAZD, "thud", 0.9), (A.NANIWA_WJAZD + 0.05, "crack", 0.5), (10.8, "g:stop", 1.0)],
+    "wrona": [(B.WRONA_ZGUBA, "steps", 3.0)],
+    "order": [(B.ORDER_MRUG + 0.2, "chime", 0.6)],
+    "jomon": [(B.JOMON_WACH + 0.2, "whoosh", 0.2)],
+    "rachunek": [(B.RACHUNEK_PEK, "knock", 0.5), (B.RACHUNEK_PEK + 0.05, "whoosh", 0.2)],
+    "kofun": [(2.2, "whoosh", 0.3), (4.6, "whoosh", 0.5), (4.65, "knock", 0.3), (B.KOFUN_POCHOWEK, "steps", 3.0)],
+    # markery i uwagi reżysera 20.11.2026
+    "orochi": [(A.OROCHI_GRYZ[0] + 0.2, "clash", 0.5), (A.OROCHI_GRYZ[1] + 0.2, "clash", 0.5), (A.OROCHI_GRYZ[0] + 0.3, "growl", 1.0)],
+    "miecz": [(1.0, "whoosh", 0.4), (1.2, "growl", 0.8), (2.0, "chime", 0.8), (1.8, "g:pomocy", 1.0)],
+    "skarby": [(A.SKARBY_MACH + 0.2 * n, "sword", 0.6) for n in range(6)] + [(A.SKARBY_MACH + 0.3, "g:hura", 0.8)],
+    "flota": [(A.FLOTA_PIORUN, "thunder", 1.0), (A.FLOTA_PIORUN + 0.1, "fire", 2.8), (A.FLOTA_PIORUN + 1.2, "splash", 0.8),
+              (A.FLOTA_MEWA, "whoosh", 0.5), (A.FLOTA_MEWA + 0.9, "g:ej", 1.0)],
+    "nagasune": [(A.NAGA_SZTYLET, "sword", 0.6)] + [(A.NAGA_SZTYLET + 0.5 + 0.45 * i, "whoosh", 0.4) for i in range(3)] + [(5.6, "g:nie_ma_mowy", 1.0)],
+    "rana": [(0.3, "fire", 2.4), (5.5, "g:aaa", 1.0)],
+    "pod_slonce": [(0.0, "fire", 11.0)],
+    "burza": [(B.BURZA_PIORUN[0], "thunder", 1.0), (B.BURZA_PIORUN[1], "thunder", 1.0), (2.8, "g:aaaa", 1.0), (B.BURZA_PIORUN[1] + 0.4, "g:bracie", 1.0)],
+    "sam": [(1.1, "chime", 0.6), (B.SAM_PIORUN, "thunder", 1.0), (B.SAM_PIORUN + 0.05, "gong_s", 0.8), (B.SAM_PIORUN + 0.4, "g:hmm", 0.6)],
+    "las": [(B.LAS_WIEWIORKA + 0.3 * n, "knock", 0.15) for n in range(8)],
+    "niedzwiedz": [(B.NIEDZ_STAJE, "growl", 1.6), (B.NIEDZ_STAJE + 1.0, "g:bu", 1.0)],
+    "przebudzenie": [(B.PRZEB_MIECZ[0], "sword", 0.4), (B.PRZEB_MIECZ[1], "whoosh", 0.8), (B.PRZEB_MIECZ[2], "knock", 0.5), (B.PRZEB_MIECZ[2] + 0.05, "chime", 0.9)],
+    "trzy_nogi": [(B.WRONA_PILKA[0] + 0.4 * n, "chime", 0.35) for n in range(3)] + [(B.WRONA_PILKA[1], "knock", 0.7), (B.WRONA_PILKA[1] + 0.05, "whoosh", 0.5),
+                  (B.WRONA_PILKA[2], "whoosh", 0.5), (B.WRONA_PILKA[2] + 0.45, "thud", 0.7), (B.WRONA_PILKA[2] + 0.5, "crow", 0.9)]
+                 + [(B.WRONA_PILKA[2] + 0.9 + 0.5 * n, "chime", 0.3) for n in range(3)],
+    "pulapka": [(B.PULAPKA_BELKA + 0.3, "thud", 1.0), (B.PULAPKA_BELKA + 0.7, "thud", 0.5), (3.1, "g:pulapka", 1.0)],
+    "zdrada": [(B.ZDRADA_RZUT, "whoosh", 0.6)],
+    "palac": [(8.3, "g:tada", 1.0), (8.2, "chime", 0.6), (B.PALAC_FILAR, "knock", 0.6), (B.PALAC_FILAR + 0.1, "thud", 0.4)],
+    "imie": [(1.6, "chime", 0.8)],
+    "pusto": [(0.6, "chime", 0.4)],
+    "chlop": [(3.9, "g:oh", 1.0), (5.8, "g:zloto", 1.0), (3.2, "chime", 0.6)],
+    "himiko": [(6.9, "g:wow", 1.0), (0.6, "whoosh", 0.4)],
+    "nihon": [(6.3, "gong_s", 0.6)],
+    "luty2": [(B.LUTY2_WULKAN, "thud", 0.5), (B.LUTY2_WULKAN + 0.05, "crack", 0.3)],
+    "koronacja": [(0.6, "whoosh", 0.3)],
+}
+# Puenta gagu: muzyka cichnie o 9 dB na 0,6 s i wraca w 0,5 s, żeby dźwięk gagu wybrzmiał (Podręcznik, „Dźwięk”, Muzyka 9)
+GAG_PUENTA = {"meduza": A.MEDUZA_HOP + 0.6, "wlocznia": 5.9, "kropla": 4.6, "lustro": 2.9, "wygnanie": 3.4, "pije": 1.2,
+              "flota": A.FLOTA_MEWA + 0.9, "trzy_nogi": 2.4, "yamato": 4.1, "strzala_nieba": 3.2, "palac": 8.2, "kronika": 4.5,
+              "himiko": 6.9, "haniwa": B.HANIWA_UPADEK + 0.45, "miecz": 1.8, "niedzwiedz": 2.5, "chlop": 5.8, "nagasune": 5.6,
+              "naniwa": 10.8, "most": A.MOST_LAD, "uzume": A.UZUME_SPADA + 0.35, "kadzie": A.KADZIE_MRUG + 0.2,
+              "order": B.ORDER_MRUG + 0.2, "rachunek": B.RACHUNEK_PEK, "kofun": 4.6, "jomon": B.JOMON_WACH + 0.2}
+
+
+def sciszanie(voice, db, przed=0.25, w_dol=0.3, w_gore=0.9, przerwa=3.0):
+    """Łagodne ściszanie pod lektorem (Podręcznik, „Dźwięk”, Muzyka 5): w dół w 0,3 s, zaczyna 0,25 s przed kwestią, w górę
+    w 0,9 s; przerwy krótsze niż 3 s zostają ściszone. Liczone w 100 Hz i rozciągnięte na próbki."""
+    hop = SR // 100
+    m = voice[::hop].astype(float)
+    on = np.flatnonzero(np.diff(np.r_[0, m, 0]) == 1)
+    off = np.flatnonzero(np.diff(np.r_[0, m, 0]) == -1)
+    cel = np.zeros(len(m))
+    for i, (a, b) in enumerate(zip(on, off)):
+        a = max(0, a - int(przed * 100))
+        if i + 1 < len(on) and on[i + 1] - b < przerwa * 100:
+            b = on[i + 1]
+        cel[a:b] = 1.0
+    g, x = np.zeros(len(m)), 0.0
+    for i, c in enumerate(cel):
+        x += (c - x) * (1 - math.exp(-1 / (100 * (w_dol if c > x else w_gore) / 3)))
+        g[i] = x
+    return np.interp(np.arange(len(voice)) / hop, np.arange(len(m)), 10 ** (db * g / 20))
+
+
+def przystanki(n, starts):
+    hop = SR // 100
+    g = np.ones(n // hop + 1)
+    for klucz, sec in GAG_PUENTA.items():
+        if klucz not in starts:
+            continue
+        i = int((starts[klucz] + sec) * 100)
+        prof = np.r_[np.linspace(1, 0.355, 6), np.full(54, 0.355), np.linspace(0.355, 1, 50)]  # −9 dB na 0,6 s, powrót 0,5 s
+        j = min(len(g), i + len(prof))
+        g[i:j] = np.minimum(g[i:j], prof[:j - i])
+    return np.interp(np.arange(n) / hop, np.arange(len(g)), g)
 
 
 # Cisza muzyki przed szczytem (przegląd 18.11.2026: „za mało ciszy i muzyki przy szczytach”): w oknie (od, do) sekund od początku
@@ -595,12 +702,12 @@ def main():
         amb = ambient(place, sec + 0.3, idx)
         i = N(t0)
         fx[i:i + len(amb)] += amb[:n - i]
-        evs = [(at - od, kind, g) for at, kind, g in ZDARZENIA.get(src, []) if od <= at < od + sec] + DODATKI.get(klucz, [])
+        evs = [(at - od, kind, g) for at, kind, g in ZDARZENIA.get(src, []) + GLOSY_UJ.get(src, []) if od <= at < od + sec] + DODATKI.get(klucz, [])
         g = R.GRANICE[idx]  # przejścia: kurtyna między aktami (render.przejscie), klapki przy tytule aktu
         zam, dl, czekaj, otw = R.KURTYNA
-        if g["ostatnie_aktu"] and idx < len(us) - 1:
+        if g["ostatnie_aktu"] and idx < len(us) - 1 and g["akt"] + 1 not in R.BEZ_KURTYNY:
             evs += [(sec - zam, "kurtyna_z", 1.0), (sec - zam + dl - 0.05, "klaps", 0.8)]
-        elif g["pierwsze_aktu"] and idx > 0:
+        elif g["pierwsze_aktu"] and idx > 0 and g["akt"] not in R.BEZ_KURTYNY:
             evs += [(czekaj, "kurtyna_r", 1.0)]
         if klucz in R.BUDUJ and klucz not in R.WYCINEK:  # zmiana dekoracji: papier i drewno w rytm wjeżdżających elementów
             evs += [(d, "whoosh", 0.35) for d in (0.0, 0.25, 0.45, 0.65, 0.9)] + [(d, "knock", 0.3) for d in (0.75, 1.05, 1.4, 1.7)]
@@ -612,8 +719,9 @@ def main():
             fx[j:j + len(s)] += s[:n - j]
             events += 1
         t0 += sec
-    fx *= np.where(voice, 10 ** (-6 / 20), 1.0)
-    mus = muzyka(total, voice, [(a0, a1, AKT_NASTROJ[a]) for a0, a1, a in acts]) * cisza_muzyki(n, starts)
+    fx *= sciszanie(voice, -5.0)
+    mus = muzyka(total, np.zeros(n, bool), [(a0, a1, AKT_NASTROJ[a]) for a0, a1, a in acts]) * cisza_muzyki(n, starts) \
+        * sciszanie(voice, -8.0) * przystanki(n, starts)
     OUT.mkdir(exist_ok=True)
     zapisz(OUT / "efekty.wav", fx)
     zapisz(OUT / "muzyka.wav", mus)

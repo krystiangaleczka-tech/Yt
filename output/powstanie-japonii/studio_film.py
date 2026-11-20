@@ -291,6 +291,9 @@ def dzwiek(lektor=False):
         meta = json.loads(wav.with_suffix(".json").read_text())
         if meta["text"] != kwestia(r["snd"]):
             continue
+        if okno_kwestii(r["snd"])[0] + meta["duration"] > r["sec"] + 0.2:  # ujęcie skrócone pod nagranie: kwestia wchodziłaby na następne
+            print(f"  lektor {r['klucz']}: nagranie {meta['duration']:.1f} s dłuższe niż ujęcie {r['sec']:.1f} s — bez klipu (nagra reżyser)")
+            continue
         cached = st.setdefault("lektor", {}).get(r["klucz"])
         if not cached or cached["sha"] != _sha(wav):
             cached = {"asset": upload(pid, wav, f"lektor {r['ref']} {r['klucz']}.wav"), "sha": _sha(wav)}

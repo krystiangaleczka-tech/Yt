@@ -62,11 +62,15 @@ BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
 # Trzeci element: długość, z jaką liczy się oryginał, gdy ujęcie skraca samo siebie (teatr: od 1 s, za kurtyną zapala się
 # lampa, szyld „SON OF THE SUN” widać, gdy kurtyna się rozsunie, bracia wysuwają się na polanę, kamera dojeżdża do 5 s).
 WYCINEK = {"zap_jaskinia": ("jaskinia", 5.0), "zap_orochi": ("orochi", 6.0), "zap_miecz": ("miecz", 0.6),
-           "zap_strzaly": ("strzaly", 0.3), "zap_burza": ("burza", 2.6), "zap_wrona": ("wrona", 5.5), "zap_blysk": ("blysk", 0.1),
-           "hak_rana": ("rana", 0.0), "hak_burza": ("burza", 0.8), "hak_koronacja": ("koronacja", 1.0), "teatr": ("teatr", 1.0, 5.0)}
+           "zap_strzaly": ("strzaly", 0.5), "zap_uzume": ("uzume", 3.8), "zap_burza": ("burza", 2.6), "zap_niedzwiedz": ("niedzwiedz", 1.6),
+           "zap_wrona": ("wrona", 5.5), "zap_bitwa": ("bitwa", 3.2), "zap_blysk": ("blysk", 0.05),
+           "hak_rana": ("rana", 0.0), "hak_burza": ("burza", 0.8), "hak_koronacja": ("koronacja", 1.0), "teatr": ("teatr", 1.4, 4.4)}
 # Kurtyna startu (reżyser 18.11.2026: „po spoilerze na końcu ściemnienie i kurtyna startu z pierwszym ujęciem”): ujęcie
 # zaczyna się zasuniętą kurtyną bez tytułu, która się rozsuwa (zapowiedź kończy się ściemnieniem — koniec swojej sceny).
 KURTYNA_START = {"teatr"}
+# Akty bez kurtyny na początku (Podręcznik, Rytm, „jeden początek”, wzór: „Bonnie and Clyde”): prolog przechodzi w akt I
+# ściemnieniem i zawieszką czasu, a nie kurtyną z tabliczką aktu, która wyglądała jak drugi start filmu
+BEZ_KURTYNY = {1}
 
 # ---- przejścia między ujęciami (wzór: „Pierwszy cesarz” render.py; reżyser 15.11: kurtyna między aktami, ściemnienie przy
 # zmianie miejsca, Podręcznik „Rytm” 7) — nachodzą na pauzę po kwestii i na początek następnego ujęcia, film nie rośnie ----
@@ -128,14 +132,14 @@ def przejscie(st, i, lt, T):
     if KOL[i] in KURTYNA_START:
         kurtyna(st, 1 - pr_(lt, 0.1, otw))
         return
-    if g["ostatnie_aktu"] and i < len(UJ) - 1:
+    if g["ostatnie_aktu"] and i < len(UJ) - 1 and g["akt"] + 1 not in BEZ_KURTYNY:
         kurtyna(st, pr_(lt, T - zam, dl), tytul_aktu(g["akt"] + 1), pr_(lt, T - zam + dl - 0.1, 0.45))
-    elif g["pierwsze_aktu"] and i > 0:
+    elif g["pierwsze_aktu"] and i > 0 and g["akt"] not in BEZ_KURTYNY:
         kurtyna(st, 1 - pr_(lt, czekaj, otw), tytul_aktu(g["akt"]), 1 - pr_(lt, 0.0, czekaj + 0.15))
     else:
-        if g["ostatnie_sceny"] and i < len(UJ) - 1:
+        if (g["ostatnie_sceny"] or g["ostatnie_aktu"]) and i < len(UJ) - 1:
             st.dim *= 1 - ease(pr_(lt, T - CIEMNO, CIEMNO))
-        if g["pierwsze_sceny"] and i > 0:
+        if (g["pierwsze_sceny"] or g["pierwsze_aktu"]) and i > 0:
             st.dim *= ease(pr_(lt, 0.0, CIEMNO))
 
 

@@ -4,6 +4,7 @@ import random
 
 import zestaw_jp as J
 from papier import CX, CY, back, clamp, ease, ease_out, noise, settle
+from scena import piorun, plomien  # noqa: E402
 from scena import (FALE, P, STOPY, Z0, choragiewki, czubek_luku, gora_wyspy, iks, kam, kraj, lalka, lerp, lodz, mapa_scena,  # noqa: F401
                    morze, niebo_papier, podpis, poklad_lodzi, pr, punkt, rampa, slonce, swiatlo, ziemia, zawieszki)
 from ujecia_a import nad
@@ -53,24 +54,34 @@ def s_itsuse(st, w, t, T):
     swiatlo(st, w, t, extra=KII)
 
 
+BURZA_PIORUN = (2.15, 3.4)  # pioruny w łodzie braci (ten sam czas w efektach)
+
+
 def s_burza(st, w, t, T):
     """Burza: fale rosną, łodzie podskakują, dwie przechylają się i znikają za falą."""
     w.sun = 0.0
-    flash = max(settle((t - 1.0) / 0.5, 0.5, 1.0), settle((t - 3.3) / 0.5, 0.5, 1.0), 0.0)
+    flash = max(settle((t - BURZA_PIORUN[0]) / 0.5, 0.5, 1.0), settle((t - BURZA_PIORUN[1]) / 0.5, 0.5, 1.0), 0.0)
     kam(st, t, 39, 640, 430, 1.08, 0.6, shake=4.0)
     st.dof = 0.6
     morze(st, t, w, burza=1.0, tint=(0.6, 0.64, 0.78), chmury_k=(1.0, 1.0, 1.0))
-    for j, (x, b, d, key) in enumerate(((380, 1, 2.2, "brat2"), (880, 1, 3.0, "brat3"), (620, 2, 99.0, "iwarebiko"))):
+    # marker reżysera 20.11.2026: piorun wali w pierwszą łódź, potem w drugą — łodzie przewracają się od uderzenia
+    for j, (x, b, d, key) in enumerate(((380, 1, BURZA_PIORUN[0] + 0.05, "brat2"), (880, 1, BURZA_PIORUN[1] + 0.05, "brat3"),
+                                        (620, 2, 99.0, "iwarebiko"))):
         tip = ease(pr(t, d, 0.8))
         sink = ease(pr(t, d + 0.5, 1.2))
         lodz(st, t, x + 30 * math.sin(t * 1.3 + j), b, h=150 if b == 1 else 180, v=1, burza=1.0, seed=j, przechyl=38 * tip * (1 if j else -1),
              sink=sink, ladunek=[(key, 0, 110 if b == 1 else 128, (100 if key != "iwarebiko" else 60, 30))])
+    for n, (x, a) in enumerate(((380, BURZA_PIORUN[0]), (880, BURZA_PIORUN[1]))):
+        piorun(st, t, x - 40 + 80 * n, 20, x + 30 * math.sin(t * 1.3 + n), 520, 1 - pr(t, a, 0.3) if t >= a else 0.0, FALE[1][0] + 0.01, seed=20 + n)
     if flash > 0:
         st.put(J.glow(), 640, 120, 0.2, w=2600, anchor=(0.5, 0.5), mode="add", alpha=0.6 * flash, shadow=None, tint=(0.8, 0.85, 1.0))
     podpis(w, t, "AAAA!", 300, 300, 2.5, 1.6)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): brat w lewej łodzi krzyczy, kiedy łódź się przewraca
-    podpis(w, t, "BRACIE!", 960, 315, 3.3, 1.8)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): drugi brat woła, zanim zniknie za falą
+    podpis(w, t, "BRACIE!", 960, 315, BURZA_PIORUN[1] + 0.2, 1.8)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): drugi brat woła, zanim zniknie za falą
     zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(0.72, 0.76, 0.9), dim=1 + 0.5 * flash)
+
+
+SAM_PIORUN = 2.6  # piorun odbija się od bariery (ten sam czas w efektach)
 
 
 def s_sam(st, w, t, T):
@@ -82,17 +93,33 @@ def s_sam(st, w, t, T):
     for n, x in enumerate((420, 760, 1000)):
         J.hang(st, J.krazek("chmura"), x, 140 + 30 * n, P.chmury + 0.02, 1.0, t, 560 + n, w=260, sway=1.0, haze=0.2)
     px, py, rot, p = poklad_lodzi(t, 640, 3, 240, 0, 160, seed=4, burza=0.2)
-    rozpacz = ease(pr(t, 2.3, 0.7)) * (1 - ease(pr(t, 5.2, 0.9)))  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): „podnosi ręce” — rozpacz po braciach
+    rozpacz = ease(pr(t, 1.0, 0.6)) * (1 - ease(pr(t, 5.2, 0.9)))  # markery 18.11 i 20.11: podnosi ręce i stawia barierę
     lalka(st, t, "iwarebiko", px, 160, y=py, p=p, flip=1, lean=rot + 4 * math.sin(t * 0.7) - 4 * rozpacz,
           rece=(10 + 150 * rozpacz, 150 * rozpacz))
     lodz(st, t, 640, 3, h=240, v=1, seed=4, burza=0.2)
-    swiatlo(st, w, t, extra=(0.74, 0.78, 0.9))
+    # marker reżysera 20.11.2026: po 1 s nakłada na siebie barierę, piorun wali w nią, odbija się w bok i nic mu się nie dzieje
+    bar = ease(pr(t, 1.1, 0.6)) * (1 - ease(pr(t, 4.8, 0.8)))
+    if bar > 0:
+        drg = 1 + 0.6 * max(0.0, 1 - abs(t - SAM_PIORUN - 0.05) / 0.3)
+        st.put(J.glow(), px, py - 95, p + 0.004, w=330 * (0.9 + 0.1 * bar), anchor=(0.5, 0.5), mode="add", alpha=0.42 * bar * drg,
+               shadow=None, tint=(0.6, 0.85, 1.0))
+        st.put(J.glow(), px, py - 95, p + 0.0041, w=210, anchor=(0.5, 0.5), mode="add", alpha=0.18 * bar * drg, shadow=None, tint=(0.9, 1.0, 1.0))
+    if t >= SAM_PIORUN:
+        k = 1 - pr(t, SAM_PIORUN, 0.35)
+        piorun(st, t, px + 40, 40, px, py - 250, k, p + 0.005, seed=7)
+        piorun(st, t, px, py - 250, px + 420, py - 330, k * 0.9, p + 0.005, seed=8)  # odbity w bok
+    podpis(w, t, "HA!", px - 160, 260, SAM_PIORUN + 0.3, 1.6)
+    zawieszki(st, t, w)
+    swiatlo(st, w, t, extra=(0.74, 0.78, 0.9), dim=1 + 0.5 * max(0.0, 1 - abs(t - SAM_PIORUN) / 0.3))
 
 
 def mgla(st, t, alpha=0.18):
     for n in range(3):
         st.put(J.glow(), CX + 300 * math.sin(t * 0.13 + n * 2), 560 - 40 * n, 0.6 + 0.08 * n, w=1600, anchor=(0.5, 0.5), sy=0.25, mode="add",
                alpha=alpha, shadow=None, tint=(0.9, 0.92, 0.95))
+
+
+LAS_WIEWIORKA = 1.8  # wiewiórka zaczyna się wspinać
 
 
 def s_las(st, w, t, T):
@@ -108,6 +135,10 @@ def s_las(st, w, t, T):
         lalka(st, t, ("wojownik", "wojownik2")[n % 2], -110 - n * 105 + 560 * marsz, 220 - 6 * (n % 3), pr(t, 0.9 + 0.12 * n, 0.5), flip=1,
               rece=(15, 0), hop=6, seed=990 + n, trzyma=SPEAR(220))
     mgla(st, t, 0.2 * pr(t, 0.8, 1.0))
+    wsp = pr(t, LAS_WIEWIORKA, 2.6)  # marker reżysera 20.11.2026: ruda wiewiórka wchodzi od spodu na szczyt drzewa
+    if 0 < wsp < 1.2:
+        st.put(J.wiewiorka(int(t * 8) % 2), 612 + 6 * math.sin(t * 9), lerp(640, 170, ease(min(wsp, 1.0))), P.drzewa + 0.004, h=76,
+               anchor=(0.5, 0.5), shadow=(2, 3, 3, 0.3))
     swiatlo(st, w, t, extra=(0.92, 0.98, 0.95))
 
 
@@ -131,16 +162,22 @@ def _lezacy(st, t, fall, rise_=None, dim=1.0):
                   p=(P.lalki + 0.01) if row else (P.lalki - 0.02), gwiazdki=gw)
 
 
+NIEDZ_STAJE = 2.9  # niedźwiedź staje na tylnych łapach (ten sam czas w efektach)
+
+
 def s_niedzwiedz(st, w, t, T):
     """Spomiędzy cedrów wychodzi czarny niedźwiedź i znika; wojownicy przewracają się po kolei."""
     kam(st, t, 42, lerp(660, 700, ease(t / T)), 450, 1.15, 0.7)
     st.dof = 0.7
     kraj(st, t, w, cedry=1.0, sosny=(0.0, 0.0), tint=(0.88, 0.94, 0.9))
     bx = lerp(1150, 820, ease(pr(t, 0.6, 2.6)))
-    ba = 1 - pr(t, 4.0, 1.0)
+    ba = 1 - pr(t, 4.9, 0.8)
+    staje = ease(pr(t, NIEDZ_STAJE, 0.4)) * (1 - ease(pr(t, NIEDZ_STAJE + 1.7, 0.4)))  # marker reżysera 20.11.2026: staje na tylnych łapach i straszy
     if ba > 0:
-        st.put(J.niedzwiedz(), bx, ziemia("blisko", bx) + 86 + 4 * abs(math.sin(bx / 18)), P.droga + 0.034, w=300, alpha=ba, sx=-1)
-    podpis(w, t, "BU!", 800, 470, 2.2, 1.8)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): niedźwiedź straszy wojsko
+        # kontrola 20.11.2026: lektor mówi o niedźwiedziu, a chował się za szeregiem wojowników (1.5, 1.19) — idzie przed nimi
+        st.put(J.niedzwiedz(), bx, STOPY - 6 + 4 * abs(math.sin(bx / 18)), P.lalki + 0.015, w=330, alpha=ba, sx=-1, shadow=(6, 8, 10, 0.35),
+               rot=38 * staje + 4 * staje * math.sin(t * 14), anchor=(0.75, 1.0))
+    podpis(w, t, "BU!", 790, 400, NIEDZ_STAJE + 0.9, 1.6)  # # uwagi i markery reżysera 18.11.2026 (Studio, projekt EN): niedźwiedź straszy wojsko
     _lezacy(st, t, pr(t, 4.4, 2.4))
     lalka(st, t, "iwarebiko", 430, 290, flip=1, lean=-82 * ease(pr(t, 5.2, 0.6)), sink=0.22 * ease(pr(t, 5.2, 0.6)), trzyma=LUK(290),
           gwiazdki=pr(t, 5.6, 0.3) * (1 - pr(t, 7.1, 0.4)))
@@ -175,6 +212,9 @@ def s_takakuraji(st, w, t, T):
     swiatlo(st, w, t, extra=(0.88, 0.94, 0.9), dim=0.82)
 
 
+PRZEB_MIECZ = (1.6, 2.4, 3.4)  # podniesienie, rzut, złapanie (ten sam czas w efektach)
+
+
 def s_przebudzenie(st, w, t, T):
     """Iwarebiko podnosi się z mieczem, za nim wstają wojownicy, jeden po drugim; cienie lasu cofają się."""
     kam(st, t, 44, 640, 450, lerp(1.2, 1.12, ease(t / T)), 0.7)
@@ -182,12 +222,28 @@ def s_przebudzenie(st, w, t, T):
     light = ease(pr(t, 2.0, T - 3.0))
     kraj(st, t, w, cedry=1.0, sosny=(0.0, 0.0), tint=(lerp(0.86, 1.0, light), lerp(0.92, 1.0, light), lerp(0.88, 0.98, light)))
     up = ease(pr(t, 0.6, 1.4))
-    lalka(st, t, "iwarebiko", 430, 290, flip=1, lean=-82 * (1 - up), sink=0.22 * (1 - up), rece=(160 * ease(pr(t, 2.2, 0.8)), 0),
-          trzyma=MIECZ(290, True))
+    # marker reżysera 20.11.2026: podnosi miecz z ziemi, rzuca w górę, miecz kręci się w powietrzu, Iwarebiko go łapie i miecz zaczyna lśnić
+    a, b, c = PRZEB_MIECZ
+    lot = pr(t, b, c - b)
+    w_dloni = a <= t < b or t >= c
+    rece = 30 if t < a else (150 if t >= c else 120 + 40 * ease(pr(t, a, b - a)))
+    dlon = lalka(st, t, "iwarebiko", 430, 290, flip=1, lean=-82 * (1 - up), sink=0.22 * (1 - up), rece=(rece, 0),
+                 trzyma=MIECZ(290, t >= c) if w_dloni else None)
+    if t < a:  # miecz leży na ziemi przy Iwarebiko (przyniósł go Takakuraji)
+        st.put(J.miecz_jp(False), 520, STOPY - 8, P.lalki + 0.012, h=170, anchor=(0.5, 0.5), rot=92)
+    elif 0 < lot < 1 and dlon:
+        st.put(J.miecz_jp(True), dlon[0], dlon[1] - 170 * math.sin(math.pi * lot), P.lalki + 0.02, h=180, anchor=(0.5, 0.5), rot=900 * lot)
+    if t >= c and dlon:
+        lsn = 0.6 + 0.4 * math.sin(t * 6)
+        st.put(J.glow(), dlon[0] + 20, dlon[1] - 110, P.lalki + 0.021, w=300, anchor=(0.5, 0.5), mode="add", alpha=0.5 * lsn * ease(pr(t, c, 0.4)),
+               shadow=None, tint=(1.0, 0.95, 0.7))
     lalka(st, t, "takakuraji", 620, 270, flip=-1, rece=(10, 0), lean=-6 * ease(pr(t, 2.4, 0.8)))
     _lezacy(st, t, 3.0, rise_=pr(t, 3.0, T - 3.6))
     mgla(st, t, 0.2 * (1 - light))
     swiatlo(st, w, t, dim=lerp(0.82, 1.0, light))
+
+
+WRONA_ZGUBA = 5.0  # gag: zgubiony żołnierz biegnie za wojskiem
 
 
 def s_wrona(st, w, t, T):
@@ -203,9 +259,18 @@ def s_wrona(st, w, t, T):
     _wojsko(st, t, cx - 1000, BIALE, p=P.wzgorza + 0.044, band="przod", h=200, seed=13)
     st.put(J.wrona(int(t * 5) % 2), cx, 250 + 30 * math.sin(t * 1.6), 0.52, w=190, anchor=(0.5, 0.5), rot=-4 + 6 * math.sin(t * 1.6),
            shadow=(8, 12, 12, 0.3))
-    podpis(w, t, "Yatagarasu", cx - 20, 120, 0.3 * T, 3.0)  # tabliczka leci razem z wroną
+    podpis(w, t, "Yatagarasu", cx - 20, 120, 0.3 * T, 2.0)  # tabliczka leci razem z wroną
+    podpis(w, t, "ZA MNĄ, CHŁOPAKI!", cx - 20, 120, 6.2, 2.8)  # marker reżysera 20.11.2026
+    # gag (GAGI.md, reżyser 20.11.2026: „wykonaj wszystkie poprawki w ujęciach”): jeden żołnierz zgubił się w lesie — wybiega zza kulisy i pędzi za kolumną z podskokami
+    kamx = lerp(420, 880, f)  # biegnie od lewej krawędzi kadru w głąb kolumny — cały czas w kadrze
+    zx = lerp(kamx - 720, kamx - 250, ease(pr(t, WRONA_ZGUBA, T - WRONA_ZGUBA)))
+    lalka(st, t, "wojownik2", zx, 220, flip=1, rece=(150, 0), lean=12, hop=14, seed=930, trzyma=SPEAR(220))
+    podpis(w, t, "ZACZEKAJCIE!", lerp(420, 880, (WRONA_ZGUBA + 1.4) / T) - 420, 330, WRONA_ZGUBA + 1.0, 1.8)
     zawieszki(st, t, w)
     swiatlo(st, w, t)
+
+
+WRONA_PILKA = (2.2, 6.1, 7.0)  # nogi lśnią od, kopnięcie, powrót piłki (ten sam czas w efektach)
 
 
 def s_trzy_nogi(st, w, t, T):
@@ -218,12 +283,44 @@ def s_trzy_nogi(st, w, t, T):
     for n, (x, y) in enumerate(((1180, 370), (1000, 384), (860, 396), (760, 404))):
         st.put(J.galazka(), x, y, 0.8, w=150, anchor=(0.1, 0.85), rot=-30 + 14 * n + 2 * noise(t, 590 + n, 0.5), sy=-1 if n % 2 else 1)
     land = pr(t, 0.2, 1.6)
+    kop, (lsn0, kopniecie, powrot) = 0.0, WRONA_PILKA
+    # marker reżysera 20.11.2026: na gałęzi leży piłka; nogi lśnią po kolei; wrona kopie piłkę, piłka wylatuje za kadr, wraca, trafia wronę,
+    # a ta przewraca się na plecy z gwiazdkami nad głową (zamroczenie)
+    upadek = ease(pr(t, powrot + 0.45, 0.4))
     if land < 1:
         x, y = lerp(300, 820, ease_out(land)), lerp(200, 330, ease_out(land)) - 60 * math.sin(math.pi * land)
         st.put(J.wrona(int(t * 7) % 2), x, y, 0.81, w=230, anchor=(0.5, 0.5), shadow=(6, 8, 8, 0.3))
     else:
         fold = settle((t - 1.8) / 1.0, 1.2, 1.0)
-        st.put(J.wrona(0, True), 820, 418, 0.81, w=230, anchor=(0.55, 0.88), rot=2 * fold + 1.5 * noise(t, 595, 0.6), shadow=(6, 8, 8, 0.3))
+        kop = math.sin(math.pi * pr(t, kopniecie - 0.15, 0.3))
+        st.put(J.wrona(0, True), 820, 418 + 10 * upadek, 0.81, w=230, anchor=(0.55, 0.88),
+               rot=2 * fold + 1.5 * noise(t, 595, 0.6) - 12 * kop + 160 * upadek, shadow=(6, 8, 8, 0.3))
+    for n in range(3):  # trzy nogi lśnią jedna po drugiej
+        g = math.sin(math.pi * pr(t, lsn0 + 0.4 * n, 0.4))
+        if g > 0 and upadek <= 0:
+            st.put(Z0.prop("gwiazdka"), 796 + 14 * n, 410, 0.812, h=34 * g, anchor=(0.5, 0.5), rot=90 * g, shadow=None)
+            st.put(J.glow(), 796 + 14 * n, 410, 0.8115, w=70, anchor=(0.5, 0.5), mode="add", alpha=0.6 * g, shadow=None, tint=(1.0, 0.95, 0.7))
+    fk, fp = pr(t, kopniecie, 0.6), pr(t, powrot, 0.45)
+    if t < kopniecie:
+        bx, by = 935, 378
+    elif fk < 1:
+        bx, by = lerp(935, 1500, fk), lerp(378, 150, fk) - 60 * math.sin(math.pi * fk)
+    elif t < powrot:
+        bx, by = 2000, -200
+    elif fp < 1:
+        bx, by = lerp(1450, 880, fp), lerp(80, 330, fp)
+    else:
+        f2 = pr(t, powrot + 0.45, 0.7)
+        bx, by = lerp(880, 620, f2), lerp(330, 300, f2) + 260 * f2 * f2
+    st.put(J.pilka(), bx, by, 0.813, w=56, anchor=(0.5, 0.5), rot=-600 * t, shadow=(3, 4, 4, 0.3))
+    if upadek > 0:
+        for n in range(4):
+            a = t * 6.0 + n * math.pi / 2
+            st.put(Z0.prop("gwiazdka"), 790 + math.cos(a) * 60, 470 + math.sin(a) * 14, 0.814, h=26 * upadek, anchor=(0.5, 0.5), rot=t * 200 + n * 40,
+                   shadow=(2, 3, 3, 0.35))
+    podpis(w, t, "GOL?!", 980, 250, powrot + 0.5, 1.8)
+    podpis(w, t, "KRA!", 700, 250, 2.3, 1.5)  # gag (reżyser 20.11.2026: „dołóż gagi”, Podręcznik „Humor i gagi”, lista w docs/filmy/powstanie-japonii/GAGI.md): wrona przedstawia się widzom
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
@@ -237,7 +334,7 @@ def _proporce(st, t, ks):
         if k <= 0:
             continue
         top = gora_wyspy(J.wzgorek(n), x, x, 606, wd)
-        Z0.rise(st, J.proporzec(n), x + 6, top + 26, P.miasto - 0.012 + 0.004 * n, k, t, 650 + n, h=130, wob=1.0)
+        Z0.rise(st, J.proporzec(n), x + 6, top + 30, P.miasto - 0.012 + 0.004 * n, k, t, 650 + n, h=190, wob=1.0)  # uwaga 20.11: większe
 
 
 def s_yamato(st, w, t, T):
@@ -247,10 +344,13 @@ def s_yamato(st, w, t, T):
     st.dof = 0.5
     kraj(st, t, w, niebieskie=1.0, wzgorza=1.0, gory=0.0)
     _proporce(st, t, [pr(t, 2.2 + 0.6 * n, 0.6) for n in range(3)])
+    for n, (x, wd) in enumerate(HILLS):  # gag (reżyser 20.11.2026: „dołóż gagi”, Podręcznik „Humor i gagi”, lista w docs/filmy/powstanie-japonii/GAGI.md): każdy wódz woła „MOJE!” nad swoim wzgórzem, jeden po drugim
+        podpis(w, t, "MOJE!", x + 6, 300 - 20 * n, 2.6 + 0.6 * n, 1.6)
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
-PULAPKA_BELKA = 7.2  # belka spada; te same czasy w efekty.ZDARZENIA (huk, X)
+PULAPKA_BELKA = 6.7  # belka spada; te same czasy w efekty.ZDARZENIA (huk, X)
 
 
 def s_pulapka(st, w, t, T):
@@ -263,22 +363,29 @@ def s_pulapka(st, w, t, T):
     hx = 860
     hy = ziemia("przod", hx) + 70
     st.put(J.dom(), hx, hy, P.wzgorza + 0.06, h=300)
-    inn = ease(pr(t, 6.2, 1.0))
-    lalka(st, t, "wodz", lerp(760, hx, inn), 270, flip=-1, rece=(70 * (1 - inn) * abs(math.sin(t * 2)) + 20, 0), alpha=1 - pr(t, 6.9, 0.4),
-          lean=-4)
+    # marker reżysera 20.11.2026: wódz zaprasza („CHODŹ!”), podchodzi pod chatę, belka spada mu na głowę, wódz przewraca się (nie znika),
+    # potem X na oczach i migający X nad nim
+    inn = ease(pr(t, 5.6, 1.0))
+    wx = lerp(760, hx - 70, inn)
+    pada = ease(pr(t, PULAPKA_BELKA + 0.3, 0.5))
+    lalka(st, t, "wodz", wx, 270, flip=-1, rece=(70 * (1 - inn) * abs(math.sin(t * 2)) + 20, 0), lean=-4 + 84 * pada, lift=70 * pada,
+          oczy_x=pr(t, PULAPKA_BELKA + 0.8, 0.35))
+    podpis(w, t, "CHODŹ!", 760, nad(270) - 10, 0.5, 2.0)
     warn = ease(pr(t, 2.6, 0.8))
     lalka(st, t, "brat_wodza", 560, 250, pr(t, 1.8, 1.0), flip=-1 if t < 4.6 else math.cos(math.pi * ease(pr(t, 4.6, 0.5))) * -1,
           rece=(110 * warn, 0), lean=-6 * warn)
     lalka(st, t, "iwarebiko", 330, 290, flip=1, trzyma=LUK(290), rece=(20, 0), lean=-3 * warn)
     podpis(w, t, "PUŁAPKA!", 560, nad(250), 2.8, 2.0)
     zawieszki(st, t, w)
-    iks(st, hx, hy - 170, t, PULAPKA_BELKA + 0.4, h=180)  # wódz zginął we własnej pułapce: X miga dwa razy
-    drop = pr(t, PULAPKA_BELKA, 0.35)
-    if drop > 0:
-        st.put(J.belka(), hx, lerp(hy - 300, hy - 30, drop * drop), P.wzgorza + 0.061, w=120, anchor=(0.5, 1.0), rot=6 * (1 - drop))
+    iks(st, hx - 70, STOPY - 320, t, PULAPKA_BELKA + 1.2, h=160)  # wódz zginął we własnej pułapce: X miga dwa razy
+    drop = pr(t, PULAPKA_BELKA, 0.3)
+    if drop > 0:  # belka spada z dachu na głowę wodza i odbija się na ziemię
+        glowa = STOPY - 270
+        by = lerp(hy - 300, glowa, drop * drop) if drop < 1 else lerp(glowa, STOPY - 10, ease(pr(t, PULAPKA_BELKA + 0.3, 0.4)))
+        st.put(J.belka(), hx - 70, by, P.lalki + 0.02, w=120, anchor=(0.5, 1.0), rot=6 * (1 - drop) + 70 * pr(t, PULAPKA_BELKA + 0.3, 0.4))
         if drop >= 1:
-            dust = pr(t, PULAPKA_BELKA + 0.35, 1.2)
-            st.put(J.glow(), hx, hy - 40, P.wzgorza + 0.062, w=300 * (0.6 + dust), anchor=(0.5, 0.5), mode="add", alpha=0.25 * (1 - dust),
+            dust = pr(t, PULAPKA_BELKA + 0.3, 1.2)
+            st.put(J.glow(), hx - 70, glowa, P.lalki + 0.021, w=260 * (0.6 + dust), anchor=(0.5, 0.5), mode="add", alpha=0.25 * (1 - dust),
                    shadow=None, tint=(0.8, 0.65, 0.45))
     swiatlo(st, w, t)
 
@@ -348,6 +455,12 @@ def s_ptak(st, w, t, T):
     st.dof = 1.2
     kraj(st, t, w, niebieskie=1.0, wzgorza=1.0, gory=0.0, tint=(0.8, 0.84, 0.95))
     _grad(st, t, 0.5 * (1 - pr(t, 2.0, 1.0)), n=40)
+    # marker reżysera 20.11.2026: „tu muszą być ci żołnierze z poprzedniego ujęcia” — obie linie z bitwy stoją dalej w gradzie
+    for n in range(4):
+        lalka(st, t, ("wojownik", "wojownik2")[n % 2], 120 + n * 70, 232 - 6 * (n % 3), flip=1, rece=(55, 0), seed=890 + n, trzyma=SPEAR(232),
+              lean=3 * math.sin(t * 2 + n))
+        lalka(st, t, ("wojownik2", "wojownik")[n % 2], 700 + n * 110, 232 - 6 * (n % 3), flip=-1, rece=(55, 0), seed=900 + n,
+              trzyma=SPEAR(232), tint=(0.62, 0.52, 0.48), lean=-3 * math.sin(t * 2 + n))
     tip = _iw_z_lukiem(st, t)
     land = pr(t, 0.4, 2.4)
     glow = ease(pr(t, 2.6, 1.6))
@@ -367,7 +480,7 @@ def s_blysk(st, w, t, T):
     """Błysk: ciemne włócznie chwieją się i cofają za wzgórze."""
     w.noc = 0.45
     fl = settle(t / 0.9, 0.5, 1.0) if t < 0.9 else 0.0
-    kam(st, t, 51, 760, 420, 1.15, 0.66, shake=6.0 * (t < 0.8))
+    kam(st, t, 51, 760, 420, 1.15, 0.66, shake=16.0 * (t < 0.9))  # uwaga 20.11: większe trzęsienie kadru
     st.dof = 0.6
     kraj(st, t, w, niebieskie=1.0, wzgorza=1.0, gory=0.0, tint=(0.82, 0.86, 0.96))
     back_ = ease(pr(t, 0.4, 1.4))
@@ -389,18 +502,31 @@ def s_blysk(st, w, t, T):
     swiatlo(st, w, t, extra=(0.86, 0.88, 0.96), dim=1 + 0.6 * max(fl, 0))
 
 
+ORDER_MRUG = 4.6  # gag: ptak na orderze mruga (ten sam czas w efektach)
+
+
 def s_order(st, w, t, T):
     """Detal: na nitce zjeżdża złoty order z ptakiem i kołysze się, aż stanie."""
-    kam(st, t, 52, 640, 380, 2.0, 0.84, lens=1.8)
+    zb = ease(pr(t, 4.0, 1.6))  # uwaga 20.11: od 4 s zbliżenie na order
+    kam(st, t, 52, 640, lerp(380, 340, zb), lerp(2.0, 3.0, zb), 0.84, lens=lerp(1.8, 2.4, zb))
     st.dof = 2.4
     kraj(st, t, w, niebieskie=1.0, wzgorza=1.0, gory=0.0, tint=(0.8, 0.76, 0.72), kul=False)
     J.hang(st, J.order(), 640, 230, 0.84, pr(t, 0.4, 1.6), t, 610, drop=600, sway=2.2, w=150)
     st.put(J.glow(), 640, 420, 0.841, w=380, anchor=(0.5, 0.5), mode="add", alpha=0.18 * pr(t, 1.5, 1.0), shadow=None, tint=(1.0, 0.85, 0.5))
+    mrug = math.sin(math.pi * pr(t, ORDER_MRUG, 0.5))  # gag (GAGI.md, reżyser 20.11.2026: „wykonaj wszystkie poprawki w ujęciach”): złoty ptak na orderze „mruga” błyskiem
+    if mrug > 0:
+        st.put(Z0.prop("gwiazdka"), 672, 400, 0.843, h=60 * mrug, anchor=(0.5, 0.5), rot=120 * mrug, shadow=None)
     swiatlo(st, w, t, extra=(0.86, 0.82, 0.78))
     st.spot = (640, 380, 0.84, 260, 0.6)
 
 
 NAGA_X = 900
+STRZALA_SILOWNIA = 4.0  # od tej chwili „siłownia” (ten sam czas w efektach)
+
+
+def SILOWNIA(t, t0, okres=0.9):
+    """Ruch ciężarów na siłowni: 0 = strzała w górze, 1 = opuszczona do barków; od t0 góra-dół w stałym takcie."""
+    return 0.5 - 0.5 * math.cos(2 * math.pi * max(0.0, t - t0) / okres) if t > t0 else 0.0
 
 
 def s_strzala_nieba(st, w, t, T):
@@ -412,14 +538,19 @@ def s_strzala_nieba(st, w, t, T):
     a1 = ease(pr(t, 0.8, 0.8))
     a2 = ease(pr(t, 2.2, 0.8))
     arrow = lambda h: (J.strzala_nieba(), h * 0.16, (0.5, 0.5), 0.0, False)
-    lalka(st, t, "nagasune", NAGA_X, 440, flip=-1, rece=(150 * a1, 0), trzyma=arrow(440) if a1 > 0.05 else None)
-    lalka(st, t, "iwarebiko", 380, 300, flip=1, rece=(150 * a2, 0), trzyma=arrow(300) if a2 > 0.05 else None)
+    sil = SILOWNIA(t, STRZALA_SILOWNIA)  # uwaga 20.11: od 4 s podnoszą strzały jak ciężary na siłowni, góra-dół
+    lalka(st, t, "nagasune", NAGA_X, 440, flip=-1, rece=(150 * a1 - 70 * sil, 150 * a1 - 70 * sil), trzyma=arrow(440) if a1 > 0.05 else None,
+          lift=-8 * sil)
+    lalka(st, t, "iwarebiko", 380, 300, flip=1, rece=(150 * a2 - 70 * sil, 150 * a2 - 70 * sil), trzyma=arrow(300) if a2 > 0.05 else None,
+          lift=-6 * sil)
     lalka(st, t, "nigihayahi", 1080, 300, pr(t, 4.4, 1.2), flip=-1, rece=(10, 0), p=P.lalki + 0.005)
     podpis(w, t, "Nigihayahi", 1080, nad(300), 5.3, 2.6)
+    podpis(w, t, "TAKA SAMA?!", NAGA_X - 40, 170, 2.9, 2.0)  # gag (reżyser 20.11.2026: „dołóż gagi”, Podręcznik „Humor i gagi”, lista w docs/filmy/powstanie-japonii/GAGI.md): obaj mają identyczne niebiańskie strzały
     zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
+ZDRADA_RZUT = 8.0  # Iwarebiko rzuca niebiańską strzałę poza kadr (uwaga reżysera 20.11.2026)
 ZDRADA_CIOS = 1.4  # miecz Nigihayahiego spada na Nagasunehiko; te same czasy w efekty.ZDARZENIA (świst, cios, X)
 
 
@@ -437,12 +568,28 @@ def s_zdrada(st, w, t, T):
     arm = 165 * raise_ - 140 * sw
     walk = ease(pr(t, c + 2.2, 1.6))
     bow_ = ease(pr(t, c + 3.9, 0.9))
+    arrow = lambda h: (J.strzala_nieba(), h * 0.16, (0.5, 0.5), 0.0, False)
+    # uwaga 20.11: dalej „siłownia” od początku, aż Nigihayahi tnie; strzała wodza wbija się w niego samego, kiedy pada;
+    # Iwarebiko w 8 s rzuca swoją strzałę poza kadr
+    sil_n = SILOWNIA(t + 4.0, 0.0) if t < c else 0.0
     lalka(st, t, "nagasune", NAGA_X, 440, flip=-1, lean=14 * ease(pr(t, c + 0.1, 0.8)) - 4 * math.sin(t * 10) * pr(t, c, 0.2) * (1 - pr(t, c + 0.7, 0.3)),
-          sink=pr(t, c + 1.1, 1.8), oczy_x=pr(t, c + 0.3, 0.3))
+          sink=pr(t, c + 1.1, 1.8), oczy_x=pr(t, c + 0.3, 0.3), rece=(150 - 70 * sil_n, 150 - 70 * sil_n) if t < c else (20, 0),
+          trzyma=arrow(440) if t < c else None)
+    wbita = pr(t, c + 0.6, 0.3)
+    if t >= c and pr(t, c + 1.1, 1.8) < 0.95:  # strzała spada i wbija się w pierś wodza
+        sx, sy = punkt("nagasune", NAGA_X, 440, 150, 150, flip=-1, rot=14 * ease(pr(t, c + 0.1, 0.8)))
+        sy += pr(t, c + 1.1, 1.8) * 440 * 1.12
+        st.put(J.strzala_nieba(), sx, lerp(sy - 260, sy, ease(wbita)), P.lalki + 0.014, h=440 * 0.09, anchor=(0.2, 0.5),
+               rot=lerp(0, -25, ease(wbita)))
     iks(st, NAGA_X - 20, 300, t, c + 0.35, h=200)
     lalka(st, t, "nigihayahi", lerp(1080, 760, walk), 300, flip=-1, rece=(arm if t < c + 2.0 else lerp(30, 70, bow_), 0), lean=-18 * bow_,
           trzyma=MIECZ(300), hop=5 * (0 < walk < 1))
-    lalka(st, t, "iwarebiko", 380, 300, flip=1, rece=(20, 0), trzyma=LUK(300))
+    rzut = pr(t, ZDRADA_RZUT, 0.6)
+    sil_i = SILOWNIA(t + 4.0, 0.0) if t < ZDRADA_RZUT - 0.4 else 0.0
+    lalka(st, t, "iwarebiko", 380, 300, flip=1, rece=(150 - 70 * sil_i if t < ZDRADA_RZUT else 150 - 120 * ease(rzut), 150 - 70 * sil_i if t < ZDRADA_RZUT else 20),
+          trzyma=arrow(300) if t < ZDRADA_RZUT else None)
+    if 0 < rzut < 1:
+        st.put(J.strzala_nieba(), lerp(380, -200, rzut), lerp(300, -150, rzut), P.lalki + 0.02, h=48, anchor=(0.5, 0.5), rot=720 * rzut)
     swiatlo(st, w, t)
 
 
@@ -455,8 +602,13 @@ def palac_baza():
     return ziemia("blisko", PAL[0]) + 70
 
 
-def palac(st, t, ks=(1.0,) * 5, k_all=1.0):
-    """Pałac Kashihara z części: słupy, podłoga, ściany (od dołu), dach i zwieńczenie (z góry na nitkach)."""
+FILAR_X = 205  # prawy przedni filar pałacu względem środka (gag: filar podupada; potem łatka z desek)
+
+
+def palac(st, t, ks=(1.0,) * 5, k_all=1.0, tilt=0.0, latka=True):
+    """Pałac Kashihara z części: słupy, podłoga, ściany (od dołu), dach i zwieńczenie (z góry na nitkach). tilt — pałac
+    przechyla się na prawo, kiedy prawy filar podupada (gag w „palac”); latka — od „tron” filar jest naprawiony kilkoma
+    deskami i gwoździami (marker reżysera 20.11.2026: „tu już pokaż naprawiony kilkoma deskami i gwoździami”)."""
     x, wd = PAL
     yb = palac_baza()
     sc = wd / J.PALAC_WH[0]
@@ -465,11 +617,19 @@ def palac(st, t, ks=(1.0,) * 5, k_all=1.0):
     for n, (cz, k, z) in enumerate((("slupy", ks[0], 0.0), ("sciany", ks[2], 0.1), ("podloga", ks[1], 0.6))):
         k = min(k, k_all)
         if k > 0:
-            st.put(J.palac(cz), x, yb + (1 - back(k, 1.2)) * (260 if cz != "slupy" else 200), p, w=wd, anchor=anc, z=z, shadow=(4, 6, 8, 0.4))
+            st.put(J.palac(cz), x, yb + (1 - back(k, 1.2)) * (260 if cz != "slupy" else 200), p, w=wd, anchor=anc, z=z, shadow=(4, 6, 8, 0.4),
+                   rot=tilt)
     for cz, k in (("dach", ks[3]), ("szczyt", ks[4])):
         k = min(k, k_all)
         if k > 0:
-            st.put(J.palac(cz), x, yb - (1 - back(k, 1.1)) * 600, p, w=wd, anchor=anc, z=0.3 if cz == "dach" else 0.35, shadow=(5, 7, 9, 0.45))
+            st.put(J.palac(cz), x, yb - (1 - back(k, 1.1)) * 600, p, w=wd, anchor=anc, z=0.3 if cz == "dach" else 0.35, shadow=(5, 7, 9, 0.45),
+                   rot=tilt)
+    if latka and k_all > 0.99 and min(ks) > 0.99:
+        fx = x + FILAR_X
+        for n, (dy, r) in enumerate(((-58, 24), (-34, -22))):
+            st.put(J.belka(), fx, yb + dy, p, w=54, anchor=(0.5, 0.5), rot=90 + r, z=0.65 + 0.01 * n, shadow=(2, 3, 3, 0.4))
+        for gx, gy in ((-12, -66), (12, -50), (-10, -40), (12, -26)):
+            st.line([(fx + gx, yb + gy), (fx + gx + 2, yb + gy + 4)], p, width=3.2, color=(40, 36, 34), alpha=1.0, z=0.7)
             if k < 1:
                 st.line([(x - wd * 0.3, -300), (x - wd * 0.3, yb - (1 - back(k, 1.1)) * 600 - 450 * sc)], p, width=1.1, color=(70, 56, 44), alpha=0.7)
                 st.line([(x + wd * 0.3, -300), (x + wd * 0.3, yb - (1 - back(k, 1.1)) * 600 - 450 * sc)], p, width=1.1, color=(70, 56, 44), alpha=0.7)
@@ -500,13 +660,25 @@ def skarby_nad(st, t, x, y, p, k=(1.0, 1.0, 1.0), sc=0.7):
     J.hang(st, J.miecz_jp(True), x + 90, y - 14, p, k[2], t, 622, drop=520, sway=0.8, h=150 * sc / 0.7)
 
 
+PALAC_FILAR = 9.4  # filar podupada (ten sam czas w efektach)
+
+
 def s_palac(st, w, t, T):
     """U stóp góry Unebi wysuwają się słupy, podłoga, ściany, zjeżdża dach i skrzyżowane belki."""
     k = ease(t / T)
     kam(st, t, 55, lerp(660, 700, k), lerp(430, 410, k), lerp(1.05, 1.14, k), 0.66, truck=0.6)
     st.dof = 0.6
     kraj(st, t, w, niebieskie=1.0, unebi=1.0, gory=0.0)
-    palac(st, t, (pr(t, 0.6, 1.0), pr(t, 1.8, 1.0), pr(t, 3.0, 1.0), pr(t, 4.4, 1.4), pr(t, 6.2, 1.4)))
+    # marker reżysera 20.11.2026: po „TA-DA!” prawy filar lekko podupada w ziemię jak teleskop, pałac się przechyla
+    pad = ease(pr(t, PALAC_FILAR, 0.5)) + 0.15 * math.sin(math.pi * pr(t, PALAC_FILAR + 0.5, 0.3))
+    palac(st, t, (pr(t, 0.6, 1.0), pr(t, 1.8, 1.0), pr(t, 3.0, 1.0), pr(t, 4.4, 1.4), pr(t, 6.2, 1.4)), tilt=-2.2 * pad, latka=False)
+    if pad > 0:
+        kurz = pr(t, PALAC_FILAR, 1.0)
+        st.put(J.glow(), PAL[0] + FILAR_X, palac_baza() - 10, P.droga + 0.031, w=180 * (0.6 + kurz), anchor=(0.5, 0.5), mode="add",
+               alpha=0.3 * (1 - kurz), shadow=None, tint=(0.8, 0.65, 0.45))
+    podpis(w, t, "TA-DA!", 700, 210, 8.0, 2.2)
+    podpis(w, t, "SKRZYP…", 960, 330, PALAC_FILAR + 0.2, 1.4)  # gag (reżyser 20.11.2026: „dołóż gagi”, Podręcznik „Humor i gagi”, lista w docs/filmy/powstanie-japonii/GAGI.md): pałac stoi
+    zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
@@ -534,6 +706,9 @@ def s_imie(st, w, t, T):
     palac(st, t)
     _ganek_z(st, lambda: na_ganku(st, t, "jimmu", 700, 170, flip=1, rece=(20, 0)))
     skarby_nad(st, t, 700, floor - 250, P.droga + 0.031)
+    moc = ease(pr(t, 1.6, 0.6)) * (0.65 + 0.35 * math.sin(t * 5.0))  # marker 20.11: „niech lśni ten miecz mocą”
+    st.put(J.glow(), 790, floor - 210, P.droga + 0.032, w=260, anchor=(0.5, 0.5), mode="add", alpha=0.55 * moc, shadow=None, tint=(1.0, 0.95, 0.7))
+    st.put(J.glow(), 790, floor - 210, P.droga + 0.0321, w=120, anchor=(0.5, 0.5), mode="add", alpha=0.4 * moc, shadow=None, tint=(1.0, 1.0, 0.95))
     J.hang(st, J.tag_zh("神武", 46), 640, floor - 170, 0.72, pr(t, 0.6, 1.2), t, 630, drop=500, sway=1.4, h=60, shadow=(4, 6, 6, 0.4))
     # lektor mówi, co znaczą znaki — widz wersji EN czyta to pod nimi (wytyczne 1.13)
     J.hang(st, J.tag("Jimmu — boska waleczność"), 640, floor - 104, 0.721, pr(t, 1.6, 1.0), t, 631, drop=500, sway=1.2, h=32,
@@ -601,14 +776,19 @@ def s_pusto(st, w, t, T):
     """Detal: lustro nad gankiem kołysze się na nitce i łapie ostatni promień słońca; pod skarbami stoi już syn (ciągłość
     z ujęciem „smierc”, wytyczne 1.6)."""
     floor = palac_baza() - (690 - 400) * PAL[1] / J.PALAC_WH[0]
-    kam(st, t, 61, 650, floor - 190, 2.6, 0.66, lens=2.2)
+    kam(st, t, 61, 660, floor - 170, 2.4, 0.66, lens=2.1)  # syn i lustro razem w kadrze
     st.dof = 1.6
     kraj(st, t, w, niebieskie=1.0, unebi=1.0, gory=0.0, tint=(1.06, 0.94, 0.84), kul=False)
     palac(st, t)
-    _ganek_z(st, lambda: na_ganku(st, t, "syn_cesarza", 700, 160, flip=1, rece=(70, 0)))
+    # marker 20.11: lustro mocniej się kołysze i odbija promień prosto w twarz syna, który mruży oczy i się odchyla
+    blik = max(0.0, math.sin(t * 2.4)) ** 3
+    _ganek_z(st, lambda: na_ganku(st, t, "syn_cesarza", 700, 160, flip=1, rece=(70 + 60 * blik, 50 * blik), lean=8 * blik))
     skarby_nad(st, t, 700, floor - 250, P.droga + 0.031)
-    st.put(J.glow(), 630, floor - 220, P.droga + 0.032, w=260, anchor=(0.5, 0.5), mode="add", alpha=0.45 * max(0.0, math.sin(t * 2.4)) ** 3,
-           shadow=None, tint=(1.0, 0.85, 0.55))
+    st.put(J.glow(), 630, floor - 220, P.droga + 0.032, w=260, anchor=(0.5, 0.5), mode="add", alpha=0.45 * blik, shadow=None, tint=(1.0, 0.85, 0.55))
+    if blik > 0.05:
+        twarz = (700, floor + 18 - 160 * 0.86)
+        st.line([(630, floor - 220), twarz], P.droga + 0.033, width=26, color=(255, 236, 170), alpha=0.35 * blik)
+        st.put(J.glow(), twarz[0], twarz[1], P.droga + 0.034, w=120, anchor=(0.5, 0.5), mode="add", alpha=0.6 * blik, shadow=None, tint=(1.0, 0.95, 0.75))
     swiatlo(st, w, t, extra=(1.06, 0.94, 0.86))
 
 
@@ -629,6 +809,11 @@ def s_linia(st, w, t, T):
             lalka(st, t, stroje[n % 4] if n else "jimmu", x, h, kk, y=ziemia(band, x) + h * 0.22, p=p + 0.0002 * n,
                   flip=-1 if band == "przod" else 1, seed=700 + n)
             n += 1
+    for m, x in enumerate(range(500, 1000, 100)):  # marker 20.11: na przodzie jeszcze cesarze, którzy stoją i tańczą
+        kk = pr(t, 2.6 + 0.2 * m, 0.6)
+        takt = math.floor(t / 0.5 + m)
+        lalka(st, t, stroje[(m + 1) % 4], x, 150, kk, flip=1 if takt % 2 else -1, rece=(150 if takt % 2 else 40, 40 if takt % 2 else 150),
+              lift=10 * abs(math.sin(t * math.pi / 0.5)) * (m % 2), seed=760 + m)
     swiatlo(st, w, t)
 
 
@@ -664,8 +849,12 @@ def s_kronika(st, w, t, T):
         st.put(J.zwoj_jp(), x, y, P.rekwizyty + 0.006, w=230, anchor=(0.0, 0.5), sx=max(0.04, ease(pr(t, 1.6, T - 3.0))), rot=-3,
                shadow=(3, 5, 5, 0.4))
     podpis(w, t, "pisarz dworu", 330, 380, 1.4, 2.4)
+    podpis(w, t, "ZRÓB TO STARSZE!", 690, 340, 4.3, 2.0)  # gag (reżyser 20.11.2026: „dołóż gagi”, Podręcznik „Humor i gagi”, lista w docs/filmy/powstanie-japonii/GAGI.md): rozkaz dworu — legenda kontra rzeczywistość
     zawieszki(st, t, w)
     swiatlo(st, w, t)
+
+
+RACHUNEK_PEK = 7.6  # gag: pęka nitka zawieszki (ten sam czas w efektach)
 
 
 def s_rachunek(st, w, t, T):
@@ -674,10 +863,18 @@ def s_rachunek(st, w, t, T):
     st.dof = 2.4
     kraj(st, t, w, niebieskie=1.0, unebi=1.0, gory=0.0, kul=False)
     palac(st, t)
-    stol(st, t)
+    on = stol(st, t)
+    x_, y_ = on(0.36, 0.30)  # marker 20.11: zwój pisarza leży na stole (ciągłość z „kronika”)
+    st.put(J.zwoj_jp(), x_, y_, P.rekwizyty + 0.006, w=230, anchor=(0.0, 0.5), rot=-3, shadow=(3, 5, 5, 0.4))
     for n, (txt, x) in enumerate((("601", 470), ("− 1260 lat", 640), ("660 p.n.e.", 830))):
-        J.hang(st, J.tag(txt), x, 330, 0.86, pr(t, 0.8 + 1.8 * n, 1.0), t, 640 + n, drop=480, sway=1.4, h=50, shadow=(4, 6, 6, 0.4))
+        # gag (GAGI.md, reżyser 20.11.2026: „wykonaj wszystkie poprawki w ujęciach”): wątpliwy rachunek — prawa nitka „− 1260 lat” pęka i zawieszka zwisa krzywo do końca ujęcia
+        pek = ease(pr(t, RACHUNEK_PEK, 0.5)) if n == 1 else 0.0
+        J.hang(st, J.tag(txt), x, 330, 0.86, pr(t, 0.8 + 1.8 * n, 1.0), t, 640 + n, drop=480, sway=1.4, h=50, shadow=(4, 6, 6, 0.4),
+               strings=(0.12,) if pek > 0 else (0.5,), anchor=(0.12, 0.0) if pek > 0 else (0.5, 0.0), rot0=28 * pek)
     swiatlo(st, w, t)
+
+
+JOMON_WACH = 8.4  # gag: myśliwy wącha garnek
 
 
 def s_jomon(st, w, t, T):
@@ -689,10 +886,15 @@ def s_jomon(st, w, t, T):
         k = pr(t, 1.6 + 0.3 * n, 0.6)
         if k > 0:
             st.put(J.garnek(n), x, 712 + (1 - back(k, 1.3)) * 120, P.rekwizyty, h=110 - 14 * n)
-    for n, (key, x0, sp) in enumerate((("mysliwy", -120, 110), ("mysliwy2", -340, 100))):
+    for n, (key, x0, sp) in enumerate((("mysliwy", -120, 160), ("mysliwy2", -340, 100))):
         x = x0 + sp * max(0.0, t - 2.4)
+        wach = 0.0
+        if n == 0:  # gag (GAGI.md, reżyser 20.11.2026: „wykonaj wszystkie poprawki w ujęciach”): pierwszy myśliwy staje przy garnku i wącha — „YUM!”
+            x = min(x, 900)
+            wach = ease(pr(t, JOMON_WACH, 0.4)) * (1 - ease(pr(t, JOMON_WACH + 1.6, 0.4)))
         if -200 < x < 1500:
-            lalka(st, t, key, x, 260, flip=1, hop=8, rece=(30, 0), trzyma=SPEAR(260), seed=720 + n)
+            lalka(st, t, key, x, 260, flip=1, hop=8 * (x < 900 or n), rece=(30, 0), trzyma=SPEAR(260), seed=720 + n, lean=24 * wach)
+    podpis(w, t, "MNIAM!", 930, 330, JOMON_WACH + 0.2, 1.6)
     swiatlo(st, w, t, extra=(0.97, 1.0, 0.95))
 
 
@@ -728,6 +930,8 @@ def s_pieczec(st, w, t, T):
     spin = math.cos(t * 1.6)
     J.hang(st, J.pieczec(), 640, 250, 0.86, pr(t, 0.3, 1.6), t, 650, drop=520, sway=1.0, w=170, sx=spin if abs(spin) > 0.06 else 0.06)
     st.put(J.glow(), 640, 340, 0.861, w=300, anchor=(0.5, 0.5), mode="add", alpha=0.16 * pr(t, 1.6, 1.0), shadow=None, tint=(1.0, 0.85, 0.4))
+    puls = pr(t, 2.0, 0.6) * (0.5 + 0.5 * math.sin(t * 5.5)) ** 2  # marker 20.11: wąż na uchwycie błyszczy pulsująco
+    st.put(J.glow(), 640, 290, 0.862, w=200, anchor=(0.5, 0.5), mode="add", alpha=0.7 * puls, shadow=None, tint=(1.0, 0.93, 0.6))
     J.hang(st, J.tag("57 r."), 860, 300, 0.87, pr(t, 2.0, 1.0), t, 651, drop=480, sway=1.4, h=50, shadow=(4, 6, 6, 0.4))
     swiatlo(st, w, t)
 
@@ -739,8 +943,8 @@ def s_odcisk(st, w, t, T):
     _mapa_tlo(st, t, w)
     st.put(J.parawan(), 640, 700, 0.85, w=520, shadow=(4, 6, 8, 0.4))
     down = ease(pr(t, 0.2, 0.4)) * (1 - ease(pr(t, 1.1, 0.6)))
-    if pr(t, 0.55, 0.01) > 0:
-        st.put(J.odcisk(), 640, 520, 0.851, w=120, anchor=(0.5, 0.5), alpha=0.92, shadow=None)
+    if t > 1.15:  # marker 20.11: pod opuszczoną pieczęcią odcisku nie widać — pokazuje się, gdy pieczęć się unosi
+        st.put(J.odcisk(), 640, 520, 0.851, w=120, anchor=(0.5, 0.5), alpha=0.92 * pr(t, 1.15, 0.15), shadow=None)
     st.put(J.pieczec(), 640, lerp(380, 590, down), 0.86, w=150, anchor=(0.5, 1.0), shadow=(4, 6 + 30 * (1 - down), 8, 0.4))
     swiatlo(st, w, t)
 
@@ -766,8 +970,11 @@ def s_chlop(st, w, t, T):
     k = pr(t, 3.0, 1.4)
     if k > 0:
         st.put(J.pieczec(), 700, 704 + (1 - back(k, 1.3)) * 120, P.rekwizyty, w=90)
-        st.put(J.glow(), 700, 640, P.rekwizyty + 0.001, w=240, anchor=(0.5, 0.5), mode="add", alpha=0.25 * k, shadow=None, tint=(1.0, 0.85, 0.4))
+        bl = 0.75 + 0.25 * math.sin(t * 4.0)  # marker 20.11: „niech bardziej świeci”
+        st.put(J.glow(), 700, 650, P.rekwizyty + 0.001, w=420, anchor=(0.5, 0.5), mode="add", alpha=0.5 * k * bl, shadow=None, tint=(1.0, 0.85, 0.4))
+        st.put(J.glow(), 700, 660, P.rekwizyty + 0.0012, w=160, anchor=(0.5, 0.5), mode="add", alpha=0.45 * k * bl, shadow=None, tint=(1.0, 0.97, 0.8))
     podpis(w, t, "O!", 480, 420, 3.6, 1.6)
+    podpis(w, t, "PRAWDZIWE ZŁOTO?", 520, 400, 5.5, 1.9)  # gag (reżyser 20.11.2026: „dołóż gagi”, Podręcznik „Humor i gagi”, lista w docs/filmy/powstanie-japonii/GAGI.md)
     zawieszki(st, t, w)
     swiatlo(st, w, t)
 
@@ -780,8 +987,18 @@ def s_himiko(st, w, t, T):
     kraj(st, t, w, niebieskie=1.0, wzgorza=1.0, gory=0.0, kul=False, tint=(0.96, 0.92, 0.88))
     st.put(J.parawan(), 640, 704 + (1 - back(pr(t, 0.2, 1.0), 1.2)) * 380, 0.78, w=720, shadow=(6, 8, 10, 0.45))
     st.put(J.parawan_rama(), 640, 704 + (1 - back(pr(t, 0.2, 1.0), 1.2)) * 380, 0.7805, w=720)
-    lalka(st, t, "himiko", 640, 320, pr(t, 1.0, 1.2), p=0.815, flip=1, rece=(60 * ease(pr(t, 2.4, 0.8)), 0))
+    # uwaga 20.11: mapa wysp w tle po prawej, za Himiko, i tabliczka „I RULE YOU!”
+    mk = pr(t, 0.6, 1.2)
+    if mk > 0:
+        sc = 300 / J.MAPA_WH[0]
+        my = 210 - (1 - back(mk, 1.1)) * 600
+        st.put(J.mapa_plansza(), 900, my, 0.812, w=300, anchor=(0.5, 0.0), shadow=(5, 7, 8, 0.4), blur=0)
+        for kk in J.WYSPY:
+            st.put(J.mapa_wyspa(kk), 900, my, 0.8121, w=300, anchor=(0.5, 0.0), shadow=(2, 3, 3, 0.3), blur=0)
+    lalka(st, t, "himiko", 640, 320, pr(t, 1.0, 1.2), p=0.815, flip=1, rece=(60 * ease(pr(t, 2.4, 0.8)) + 60 * ease(pr(t, 4.6, 0.5)), 0))
+    podpis(w, t, "RZĄDZĘ WAMI!", 470, 330, 4.7, 1.8)
     podpis(w, t, "królowa Himiko", 460, 400, 1.8, 2.6)
+    podpis(w, t, "OCH!", 820, 400, 6.6, 1.8)  # gag (reżyser 20.11.2026: „dołóż gagi”, Podręcznik „Humor i gagi”, lista w docs/filmy/powstanie-japonii/GAGI.md): druga królowa zachwycona lustrami (powrót gagu z Amaterasu)
     zawieszki(st, t, w)
     n = 0
     for row, y in enumerate((150, 230, 310)):
@@ -806,6 +1023,9 @@ def _kofun_tlo(st, t, w, k=1.0, y=70, wd=820, p=0.62):
     J.hang(st, J.kofun_plansza(), 640, y, p, k, t, 680, drop=640, sway=0.3, w=wd, strings=(0.12, 0.88))
 
 
+KOFUN_POCHOWEK = 5.4  # kondukt rusza do kurhanu
+
+
 def s_kofun(st, w, t, T):
     """Na nitkach zjeżdża plansza z kurhanem w kształcie dziurki od klucza; zawieszka „486 m”."""
     w.zawieszki = [("486 m", 980, 470, pr(t, 4.2, 1.0))]
@@ -813,12 +1033,31 @@ def s_kofun(st, w, t, T):
     kam(st, t, 71, 640, lerp(380, 360, k), lerp(1.05, 1.15, k), 0.8)
     st.dof = 0.6
     _kofun_tlo(st, t, w, pr(t, 0.6, 1.8), p=0.8)
+    # gag (GAGI.md, reżyser 20.11.2026: „wykonaj wszystkie poprawki w ujęciach”): ptak siada na kurhanie, a kiedy zjeżdża zawieszka „486 m”, zrywa się spłoszony
+    lot, ucieka = pr(t, 2.2, 1.0), pr(t, 4.6, 1.2)
+    if lot > 0 and ucieka < 1:
+        bx = lerp(-80, 700, ease_out(lot)) + 700 * ucieka
+        by = lerp(150, 330, ease_out(lot)) - 320 * ucieka
+        st.put(Z0.bird(int(t * 9) % 2 if (lot < 1 or ucieka > 0) else 0), bx, by, 0.81, w=70, sx=1, shadow=(3, 4, 4, 0.3))
+    # uwaga 20.11: „pokaż, że się chowią” — maleńki kondukt niesie trumnę do kurhanu i znika w nim
+    kon = pr(t, KOFUN_POCHOWEK, 3.0)
+    if 0 < kon < 1.3:
+        for n in range(4):
+            x = lerp(300, 620, ease(min(kon, 1.0))) + (n % 2) * 40 - 46 * (n // 2)
+            lalka(st, t, ("wojownik", "wojownik2")[n % 2], x, 70, flip=1, rece=(160, 0), hop=4, seed=980 + n, p=0.8012 + 0.0001 * n,
+                  y=lerp(560, 430, ease(min(kon, 1.0))) + 10 * (n // 2), sink=pr(kon, 1.0, 0.3), tint=(0.85, 0.82, 0.78))
+        tx = lerp(300, 620, ease(min(kon, 1.0))) - 3
+        if kon < 1.0:
+            st.put(J.skrzynka(), tx, lerp(560, 430, ease(kon)) - 76, 0.8016, h=36, anchor=(0.5, 0.5), shadow=(2, 3, 3, 0.3))
     rampa(st, pr(t, 0.0, 0.6))
     zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
 HANIWA = ["wojownik", "kon", "tancerz", "dom", "kobieta", "wojownik", "cylinder", "kon", "tancerz", "wojownik", "dom", "kobieta"]
+
+
+HANIWA_KON, HANIWA_UPADEK = 7, 11.0  # gag: koń w pierwszym rzędzie przewraca się (ten sam czas w efektach)
 
 
 def s_haniwa(st, w, t, T):
@@ -851,7 +1090,14 @@ def s_haniwa(st, w, t, T):
         if kk > 0:
             kind = HANIWA[n % len(HANIWA)]
             hh = (150 if kind in ("kon", "dom") else 210) * r.uniform(0.9, 1.05)
-            Z0.rise(st, J.haniwa(kind), x, 712, P.lalki + 0.002 * (n % 3), kk, t, 1550 + n, h=hh, wob=0.4)
+            if n == HANIWA_KON and kk >= 1:  # gag (reżyser 20.11.2026: „dołóż gagi”, Podręcznik „Humor i gagi”, lista w docs/filmy/powstanie-japonii/GAGI.md): gliniany koń przewraca się na bok
+                fall = ease(pr(t, HANIWA_UPADEK, 0.45))
+                st.put(J.haniwa(kind), x + 30 * fall, 712, P.lalki + 0.002 * (n % 3), h=hh, rot=-82 * fall + 6 * math.sin(math.pi * pr(t, HANIWA_UPADEK + 0.45, 0.3)),
+                       anchor=(0.85, 1.0))
+            else:
+                Z0.rise(st, J.haniwa(kind), x, 712, P.lalki + 0.002 * (n % 3), kk, t, 1550 + n, h=hh, wob=0.4)
+    podpis(w, t, "UPS!", 1000, 380, HANIWA_UPADEK + 0.4, 1.8)
+    zawieszki(st, t, w)
     rampa(st)
     swiatlo(st, w, t)
 
@@ -879,6 +1125,9 @@ def s_nihon(st, w, t, T):
     if sr > 0:
         st.put(J.glow(), 640, 420 - 180 * sr, P.slonce, w=900, anchor=(0.5, 0.5), mode="add", alpha=0.4 * sr, shadow=None, tint=(1.0, 0.7, 0.45))
         st.put(J.S("sun", 0.5), 640, 470 - 250 * sr, P.slonce + 0.002, w=230, anchor=(0.5, 0.5))
+        sw = ease(pr(t, 6.3, 0.8)) * (0.8 + 0.2 * math.sin(t * 3.0))  # marker 20.11: słońce w tle zaczyna świecić
+        st.put(J.glow(), 640, 470 - 250 * sr, P.slonce + 0.003, w=1300, anchor=(0.5, 0.5), mode="add", alpha=0.45 * sw, shadow=None, tint=(1.0, 0.75, 0.45))
+        st.put(J.glow(), 640, 470 - 250 * sr, P.slonce + 0.0031, w=420, anchor=(0.5, 0.5), mode="add", alpha=0.5 * sw, shadow=None, tint=(1.0, 0.92, 0.7))
     off = ease(pr(t, 2.8, 1.2))
     spin = math.cos(math.pi * 3 * pr(t, 2.2, 1.0))
     if off < 1:
@@ -891,7 +1140,7 @@ def s_nihon(st, w, t, T):
     swiatlo(st, w, t)
 
 
-LUTY2_ZNIESIONE, LUTY2_1966 = 7.0, 8.6  # „abolished after the war” / „restored in 1966” w kwestii; te same czasy w efektach
+LUTY2_ZNIESIONE, LUTY2_1966, LUTY2_WULKAN = 7.0, 8.6, 4.4  # „abolished after the war” / „restored in 1966” w kwestii; te same czasy w efektach
 
 
 def s_luty2(st, w, t, T):
@@ -901,6 +1150,16 @@ def s_luty2(st, w, t, T):
     st.dof = 0.5
     kraj(st, t, w, pola=1.0)
     # przegląd ujęć 58–85 (19.11.2026): lektor mówi, że święto po wojnie zniesiono i w 1966 przywrócono — chorągiewki chowają się i wracają, zjeżdża „1966”
+    wyb = pr(t, LUTY2_WULKAN, 2.2)  # marker 20.11: mikro wybuch wulkanu na szczycie Fudżi
+    if 0 < wyb < 1:
+        for n in range(6):
+            r = random.Random(1990 + n)
+            f = pr(wyb, 0.08 * n, 0.6)
+            if 0 < f < 1:
+                st.put(J.S("cloud_center", 0.5), 767 + r.uniform(-20, 20) + 30 * f * (n % 2 * 2 - 1), 150 - 120 * f, P.gory + 0.002,
+                       w=40 + 70 * f, anchor=(0.5, 0.5), alpha=0.85 * (1 - f), tint=(0.55, 0.52, 0.5), shadow=None)
+        if wyb < 0.4:
+            plomien(st, t, 767, 160, P.gory + 0.0025, 30 * math.sin(math.pi * wyb / 0.4), seed=5)
     choragiewki(st, t, [max(min(pr(t, 3.0 + 0.4 * n, 0.5), 1 - pr(t, LUTY2_ZNIESIONE + 0.05 * n, 0.4)), pr(t, LUTY2_1966 + 0.12 * n, 0.5))
                         for n in range(9)])
     J.hang(st, J.kalendarz(), 560, 200, 0.84, pr(t, 0.4, 1.2), t, 700, drop=520, sway=1.4, w=130, shadow=(4, 6, 6, 0.4))
@@ -913,6 +1172,7 @@ def s_koronacja(st, w, t, T):
     """Wyrasta tron pod baldachimem i staje w nim cesarz w szacie koronacyjnej; przed nim na stojakach stają dwie
     skrzynki owinięte płótnem (miecz i klejnoty); zawieszka „126”."""
     w.zawieszki = [("126", 1010, 280, pr(t, 5.0, 1.0))]
+    podpis(w, t, "DZIŚ, W 2019 ROKU", 340, 190, 0.6, 3.2)  # marker 20.11
     k = ease(t / T)
     kam(st, t, 76, 640, lerp(440, 420, k), lerp(1.2, 1.3, k), 0.8)
     st.dof = 1.0

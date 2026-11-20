@@ -18,36 +18,44 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))  # kwestie_en.py obok
 
 N = None
 AKTY = [
-    # Akt 0 · zapowiedź i hak (szkic D „Wszystko razem”, reżyser 18.11.2026: „na początku musi być taki mini spoiler 5 s, co będzie
-    # w filmie (najlepsze akcje)”; „w pierwszej minucie musi się dużo zmieniać, sceneria co najmniej 3 razy”). Ujęcia zap_* i hak_*
-    # to skróty innych ujęć filmu: render.WYCINEK rysuje oryginał od jego najlepszej chwili. Sąsiednie skróty różnią się ≥ ¼ s.
-    (0, "Zapowiedź i hak", "Pięć sekund najmocniejszych akcji filmu i ściemnienie; kurtyna startu rozsuwa się na teatr, na polanie "
-        "stoi czterech braci, kamera najeżdża na najstarszego, a lektor mówi, o czym jest film. Potem hak: strzała trafia Itsuse, "
+    # Akt 0 · zapowiedź i hak. Reżyser 18.11.2026: „mini spoiler 5 s, co będzie w filmie (najlepsze akcje)”, „w pierwszej minucie
+    # sceneria co najmniej 3 razy”; 20.11 według lekcji z wyników „Pierwszego cesarza” i z „Bonnie and Clyde” (Podręcznik, Rytm:
+    # „jeden początek”): zapowiedź 6 s z 10 cięciami na uderzeniach (pary 0,7 / 0,4 s), kurtyna tytułu do 2,5 s, lektor zaczyna
+    # ok. 9 s, obietnica to jedno pytanie prowadzące prosto w mit, a między prologiem a aktem I nie ma kurtyny (render.BEZ_KURTYNY).
+    # Ujęcia zap_* i hak_* to skróty innych ujęć filmu: render.WYCINEK rysuje oryginał od jego najlepszej chwili.
+    (0, "Zapowiedź i hak", "Sześć sekund najmocniejszych akcji filmu i ściemnienie; krótka kurtyna startu na teatr, na polanie "
+        "czterej bracia, kamera najeżdża na Iwarebiko i Itsuse, a lektor mówi, o czym jest film. Potem hak: strzała trafia Itsuse, "
         "w teatrze cieni Itsuse pada, burza zabiera dwóch braci, w 2019 roku cesarz dostaje miecz, którego nikt nie widział — "
-        "i obietnica filmu.", [
-        ("Zapowiedź", "skróty najmocniejszych ujęć filmu, cięte bez przejść; na końcu ściemnienie", [
+        "i jedno pytanie: skąd się wziął.", [
+        ("Zapowiedź", "skróty najmocniejszych ujęć filmu, cięte bez przejść na uderzeniach muzyki; na końcu ściemnienie", [
             ("Zapowiedź", [
-                ("zap_jaskinia", "PO", "stat", 0.8, "zapowiedź (skrót ujęcia „jaskinia” od 5,0 s): słońce odjeżdża w górę, scena gaśnie",
-                 "muzyka: jeden mocny akord na całą zapowiedź"),
-                ("zap_orochi", "PO", "naj", 0.5, "zapowiedź (skrót ujęcia „orochi” od 6,0 s): osiem głów węża stoi nad górami",
+                ("zap_jaskinia", "PO", "stat", 0.7, "zapowiedź (skrót ujęcia „jaskinia” od 5,0 s): słońce odjeżdża w górę, scena gaśnie",
+                 "uderzenie na cięciu"),
+                ("zap_orochi", "PO", "naj", 0.4, "zapowiedź (skrót ujęcia „orochi” od 6,0 s): osiem głów węża stoi nad górami",
                  "syk, uderzenie bębna"),
-                ("zap_miecz", "PŚ", "szarp", 0.9, "zapowiedź (skrót ujęcia „miecz” od 0,6 s): Susanoo tnie mieczem, szyje opadają",
+                ("zap_miecz", "PŚ", "szarp", 0.7, "zapowiedź (skrót ujęcia „miecz” od 0,6 s): Susanoo tnie mieczem, szyje opadają",
                  "świst miecza, cios"),
-                ("zap_strzaly", "PP", "szarp", 0.6, "zapowiedź (skrót ujęcia „strzaly” od 0,3 s): chmara strzał spod słońca",
-                 "świst strzał"),
-                ("zap_burza", "PO", "szarp", 0.9, "zapowiedź (skrót ujęcia „burza” od 2,6 s): łódź przechyla się za falę, błyska",
+                ("zap_strzaly", "PP", "szarp", 0.4, "zapowiedź (skrót ujęcia „strzaly” od 0,5 s): chmara płonących strzał spod słońca",
+                 "świst strzał, ogień"),
+                ("zap_uzume", "PP", "stat", 0.7, "zapowiedź (skrót ujęcia „uzume” od 3,8 s, po zjechaniu podpisu): bogini tańczy na kadzi, bogowie się śmieją",
+                 "śmiech bogów, bęben"),
+                ("zap_burza", "PO", "szarp", 0.4, "zapowiedź (skrót ujęcia „burza” od 2,6 s): łódź przechyla się za falę, błyska",
                  "grzmot, fale"),
-                ("zap_wrona", "PO", "jaz", 0.55, "zapowiedź (skrót ujęcia „wrona” od 5,5 s): wrona przelatuje nad górami",
+                ("zap_niedzwiedz", "PP", "stat", 0.7, "zapowiedź (skrót ujęcia „niedzwiedz” od 1,6 s): spomiędzy cedrów wychodzi czarny "
+                 "niedźwiedź", "pomruk"),
+                ("zap_wrona", "PO", "jaz", 0.4, "zapowiedź (skrót ujęcia „wrona” od 5,5 s): wrona przelatuje nad górami",
                  "krakanie, łopot skrzydeł"),
-                ("zap_blysk", "PP", "szarp", 0.85, "zapowiedź (skrót ujęcia „blysk” od 0,1 s): błysk złotego ptaka, włócznie się cofają",
-                 "grzmot, potem cisza"),
+                ("zap_bitwa", "PO", "jaz", 0.7, "zapowiedź (skrót ujęcia „bitwa” od 3,2 s): dwie linie wojowników zwierają się w gradzie",
+                 "szczęk, bęben"),
+                ("zap_blysk", "PP", "szarp", 1.0, "zapowiedź (skrót ujęcia „blysk” od 0,05 s): błysk złotego ptaka, wrogowie uciekają; "
+                 "na końcu ściemnienie", "grzmot, potem cisza"),
             ]),
         ]),
         ("Teatr i bracia", "front teatru i kraj na scenie, potem teatr cieni za parawanem", [
             ("Tytuł", [
-                ("teatr", "TYT", "naj", 4.5, "kurtyna startu rozsuwa się na front teatru w kształcie bramy torii z szyldem „SYN "
-                 "SŁOŃCA”: światło już się pali, czerwone słońce dojeżdża na nitce, od dołu wysuwa się kraj, a na polanie po kolei "
-                 "wysuwają się czterej bracia (pierwszy Itsuse); kamera wjeżdża do środka sceny (render.WYCINEK, KURTYNA_START)",
+                ("teatr", "TYT", "naj", 2.5, "krótka kurtyna startu (do 2,5 s) rozsuwa się na front teatru w kształcie bramy torii z "
+                 "szyldem „SYN SŁOŃCA”: światło już się pali, słońce dojeżdża na nitce, a na polanie wysuwają się czterej bracia; "
+                 "kamera wjeżdża do środka sceny (render.WYCINEK, KURTYNA_START)",
                  "kurtyna, gong, szelest papieru"),
             ]),
             ("Wprowadzenie", [
@@ -68,26 +76,22 @@ AKTY = [
                  "falą, zostaje łódź Iwarebiko", "L: Burza zabrała dwóch kolejnych i został tylko Iwarebiko."),
                 ("hak_koronacja", "PO", "naj", N, "hak (skrót ujęcia „koronacja” od 1,0 s): tron pod baldachimem, cesarz w szacie "
                  "koronacyjnej, przed nim wyrastają skrzynki owinięte płótnem, zjeżdża zawieszka „126”",
-                 "L: W 2019 roku sto dwudziesty szósty cesarz z jego rodu dostał miecz, którego nikt z żyjących nie widział."),
+                 "L: W 2019 roku sto dwudziesty szósty cesarz z jego rodu dostał miecz, którego nikt z żyjących nie widział. "
+                 "Skąd więc się wziął?"),
             ]),
         ]),
-        ("Obietnica", "kraj na scenie, chorągiewki na wzgórzach", [
-            ("Obietnica", [
-                # reżyser 18.11.2026: „ujęcie 14 skracamy o 4 s” (12,4 → 8,4 s) — obietnica bez wrony
-                ("luty", "PO", "naj", 8.4, "na wzgórzach wyskakują po kolei białe chorągiewki z czerwonym słońcem, a nad scenę zjeżdża na nitce "
-                 "zawieszka „11 lutego”", "L: Pod koniec filmu będziesz wiedzieć, skąd wziął się ten miecz i czemu urodziny Japonii "
-                 "są zmyślone."),
-            ]),
-        ]),
+        # obietnica „By the end, you'll know…” wypada (Rytm, „jeden początek”, 20.11.2026): pytanie stoi w kwestii koronacji
     ]),
     (1, "Kropla z włóczni", "Kroniki zaczynają od bogów Izanagi i Izanami, którzy włócznią wyłowili z morza pierwszą wyspę, a potem "
         "urodzili osiem wielkich wysp.", [
         ("Pływający most", "scena: morze pod chmurami", [
             ("Początek", [
                 # pomost z haka do mitu (przegląd 18.11.2026: po obietnicy film skakał w „na początku…” bez słowa, po co)
-                ("meduza", "PO", "naj", N, "zmiana dekoracji: na scenie tylko pasma papierowych fal pod chmurami, a między falami dryfuje "
-                 "półprzezroczysta papierowa meduza", "L: Żeby zrozumieć, czemu ci bracia wierzyli, że pochodzą od słońca, wróćmy do "
-                 "początku, kiedy młoda ziemia dryfowała po wodzie jak meduza."),
+                # bez kurtyny po prologu (render.BEZ_KURTYNY): ściemnienie i zawieszka czasu „Wiek bogów”, kwestia prowadzi w mit
+                ("meduza", "PO", "naj", N, "zmiana dekoracji po ściemnieniu (bez kurtyny): na scenie tylko pasma papierowych fal pod "
+                 "chmurami, między falami dryfuje półprzezroczysta papierowa meduza, zjeżdża zawieszka „Wiek bogów”",
+                 "L: Wszystko zaczyna się na samym początku świata, kiedy młoda ziemia dryfowała po wodzie jak meduza, "
+                 "a przodkowie tych braci byli bogami."),
                 ("most", "PP", "naj", N, "z chmur zjeżdża na nitkach tęczowy łuk mostu; po nim zsuwają się dwie lalki bogów: Izanagi w białej "
                  "szacie z włócznią i Izanami w czerwonej; nad bogami, kiedy staną, tabliczki „Izanami” i „Izanagi”", "L: Wtedy na pływający most niebios zeszło dwoje bogów, Izanagi i Izanami, którzy "
                  "dostali rozkaz, żeby nadać jej kształt."),
@@ -280,7 +284,8 @@ AKTY = [
                  "L: Na pamiątkę tego ptaka Japonia przez pół wieku odznaczała żołnierzy Orderem Złotej Kani."),
             ]),
             ("Nigihayahi", [
-                ("strzala_nieba", "PŚ", "stat", N, "Nagasunehiko i Iwarebiko unoszą po strzale z niebiańskim upierzeniem; za wodzem wysuwa się "
+                # uwaga reżysera 20.11.2026: „skróć to do 8 s” (od 4 s strzały w górę i w dół jak ciężary na siłowni)
+                ("strzala_nieba", "PŚ", "stat", 8.0, "Nagasunehiko i Iwarebiko unoszą po strzale z niebiańskim upierzeniem; za wodzem wysuwa się "
                  "lalka Nigihayahiego; tabliczka „Nigihayahi”", "L: Nagasunehiko wciąż nie chciał się poddać, bo służył innemu potomkowi bogów, Nigihayahiemu."),
                 ("zdrada", "PŚ", "stat", N, "Nigihayahi unosi miecz, lalka Nagasunehiko opada pod rampę, a Nigihayahi kłania się Iwarebiko; zabójstwo w fazach: zamach, cios ze wstrząsem, X na oczach i migający X, wódz opada, jego proporzec pada, Nigihayahi przechodzi do Iwarebiko i się kłania",
                  "L: Ale Nigihayahi uznał, że przybysz ma lepsze prawo do władzy, zabił upartego wodza i przeszedł na jego stronę."),
@@ -471,7 +476,11 @@ WYDLUZ = {"wyspy": 2.0, "orochi": 2.0, "miecz": 1.5, "flota": 2.5, "naniwa": 2.0
           "niedzwiedz": 1.5, "przebudzenie": 1.5, "wrona": 1.5, "bitwa": 2.5, "zdrada": 1.5, "palac": 2.5, "smierc": 1.5,
           "linia": 2.0, "haniwa": 2.5, "koronacja": 1.5, "uzume": 1.0, "rana": 1.0, "pulapka": 1.0, "dzieki": 0.7,
           # reżyser 18.11.2026: „wydłuż niektóre za krótkie ujęcia” — Ninigi stoi już na szczycie (zejście)
-          "zejscie": 2.0}
+          "zejscie": 2.0,
+          # gagi 20.11.2026 (GAGI.md): puenta w pauzie po kwestii, kończy się na oczach widza
+          "wlocznia": 0.8,
+          # marker 20.11.2026: wrona kopie piłkę, piłka wraca i ją przewraca — gag kończy się przed kurtyną aktu
+          "trzy_nogi": 2.0}
 
 
 def ujecia(akt=None):

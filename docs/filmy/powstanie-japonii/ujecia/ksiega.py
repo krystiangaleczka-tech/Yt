@@ -88,8 +88,7 @@ SWIAT = {
         {"id": "strzaly_nieba", "name": "Strzały z niebiańskim upierzeniem", "seeded": r("strzala_nieba", "strzale")},
         {"id": "pieczec", "name": "Złota pieczęć króla Na", "seeded": r("chlop", "pieczęć"),
          "uses": [r("pieczec", "pieczęć"), r("odcisk", "pieczęć")], "note": "Od przeglądu 18.11.2026 najpierw znalezisko chłopa (1784), potem czym była."},
-        {"id": "choragiewki", "name": "Chorągiewki z czerwonym słońcem", "place": "kraj", "seeded": r("luty", "chorągiewki"),
-         "uses": [r("luty2", "chorągiewki")]},
+        {"id": "choragiewki", "name": "Chorągiewki z czerwonym słońcem", "place": "kraj", "seeded": r("luty2", "chorągiewki")},
     ],
     "resources": [],
     "rules": [
@@ -119,7 +118,7 @@ SWIAT = {
         {"at": r("linia", "cesarzy"), "note": "linia następców po śmierci", "needsOff": ["cesarz"]},
     ],
     "threads": [
-        {"id": "swieto", "title": "11 lutego: urodziny państwa", "setup": [r("luty", "lutego")], "clues": [r("tron", "nowego roku")],
+        {"id": "swieto", "title": "11 lutego: urodziny państwa", "setup": [r("tron", "nowego roku")], "clues": [r("rachunek", "wróżby")],
          "payoff": [r("luty2", "lutego")]},
         {"id": "czy_zyl", "title": "Czy pierwszy cesarz żył?", "setup": [r("hak_najazd", "istniał")],
          "clues": [r("imie", "później"), r("kronika", "712"), r("rachunek", "wróżby"), r("jomon", "myśliwi"), r("haniwa", "prawdziwi")],
@@ -128,7 +127,7 @@ SWIAT = {
          "payoff": [r("koniec", "kropli")]},
         {"id": "skarby", "title": "Lustro, klejnoty i miecz", "setup": [r("koguty", "lustro"), r("lustro", "skarbów"), r("miecz", "miecz")],
          "clues": [r("skarby", "klejnoty"), r("tron", "lustro"), r("smierc", "przeszły")], "payoff": [r("koronacja", "miecz")]},
-        {"id": "slonce", "title": "Potomek słońca walczy pod słońce", "setup": [r("meduza", "słońca"), r("rzeka", "przodkini")],
+        {"id": "slonce", "title": "Potomek słońca walczy pod słońce", "setup": [r("meduza", "bogami"), r("rzeka", "przodkini")],
          "clues": [r("jaskinia", "słońce"), r("wschod", "słońce"), r("nagasune", "słońce")], "payoff": [r("pod_slonce", "słońcem")]},
         {"id": "bracia", "title": "Czterech braci wyrusza, wraca jeden", "setup": [r("hak_najazd", "braćmi"), r("bracia", "braćmi")],
          "clues": [r("rana", "Itsuse"), r("itsuse", "zmarł"), r("burza", "braci")], "payoff": [r("sam", "Iwarebiko")]},
@@ -201,6 +200,14 @@ SWIAT = {
          "do sceny z haka innymi słowami („Pamiętasz tę strzałę?”), hak przed aktem VIII („Ale czy on w ogóle istniał?”), tytuły "
          "aktów to pytania, mniej imion (bez Uzume, Takakuraji, Hyūga, Kii, Unebi), cisza muzyki przed szczytami (wąż, wrona, "
          "złoty ptak). Kwestie bez nagrania czekają na lektora reżysera.", "at": "2026-11-18", "by": "reżyser"},
+        {"id": "D13", "text": "Zmiany od „Bonnie and Clyde” (reżyser 20.11: „dołóż głosy, efekty, gagi i inne rzeczy na film, patrząc "
+         "na nowe zmiany od Bonnie i Clyde”). Jeden początek (Podręcznik, Rytm): zapowiedź 6 s z 10 cięciami na uderzeniach, kurtyna "
+         "tytułu 2,5 s, lektor od ok. 9 s, obietnica „By the end…” wypada — hak kończy się jednym pytaniem („So where did it come "
+         "from?”), a prolog przechodzi w akt I bez kurtyny (ściemnienie i zawieszka „The Age of the Gods”). Gagi według rozdziału "
+         "„Humor i gagi” (GAGI.md: 16 zrobionych, 9 do wyboru; silnik humoru: legenda kontra rzeczywistość, gag powracający: "
+         "królowa przed lustrem; bez gagów przy śmierci i żałobie). Głosy postaci z modelu mowy (Kokoro + Chatterbox Turbo, bez "
+         "głosu reżysera) pod tabliczkami, łagodne ściszanie pod lektorem, przystanek muzyki na puencie gagu, uderzenie na każdym "
+         "cięciu zapowiedzi.", "at": "2026-11-20", "by": "reżyser"},
     ],
 }
 

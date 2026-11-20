@@ -41,7 +41,7 @@ def stan(i):
     po = lambda k: i > I[k]
     f = lambda c: 1.0 if c else 0.0
     return Stan(
-        build=None, noc=0.0, sun=f(not (po("luty") and not po("rzeka"))), sun_xy=(905, 96),  # przed Amaterasu nie ma słońca (od mitu)
+        build=None, noc=0.0, sun=f(not (po("hak_koronacja") and not po("rzeka"))), sun_xy=(905, 96),  # przed Amaterasu nie ma słońca (od mitu)
         moon=0.0, clouds=[1.0, 1.0, 1.0],
         ciemnosc=f(po("jaskinia") and not po("lustro")),  # słońce w jaskini
         cesarz=f(po("tron") and not po("smierc")), choragiewki=0.0, zawieszki=[], kulisy=True,
@@ -463,13 +463,13 @@ def gora_wyspy(spr, x, cx, yb, wd):
     return yb - hh + spr.top((x - (cx - wd / 2)) / wd) * hh
 
 
-def zjazd(st, t, key, x, y, h, k, p=None, flip=1.0, rece=(0.0, 0.0), trzyma=None, lean=0.0, nitki=1.0, seed=None):
+def zjazd(st, t, key, x, y, h, k, p=None, flip=1.0, rece=(0.0, 0.0), trzyma=None, lean=0.0, nitki=1.0, seed=None, gwiazdki=0.0):
     """Lalka zjeżdża na dwóch nitkach z góry (z nieba) i staje w y; po wylądowaniu nitki bledną."""
     if k <= 0:
         return None
     yy = y - (1 - back(k, 1.1)) * 640
     rot = lean + (1 - k) * 5 * math.sin(k * 8)
-    out = lalka(st, t, key, x, h, 1.0, y=yy, p=p, flip=flip, rece=rece, trzyma=trzyma, lean=rot, seed=seed)
+    out = lalka(st, t, key, x, h, 1.0, y=yy, p=p, flip=flip, rece=rece, trzyma=trzyma, lean=rot, seed=seed, gwiazdki=gwiazdki)
     a = 0.7 * nitki * (1.0 if k < 1 else 0.5)
     if a > 0.02:
         for u in (128, 176):
@@ -500,10 +500,39 @@ def grzebien_we_wlosach(st, key, x, h, flip=1.0, rot=0.0, y=STOPY, p=None, k=1.0
     st.put(J.grzebien(), gx, gy, (P.lalki + 0.012) if p is None else p, w=h * 0.16, anchor=(0.5, 0.7), rot=rot - 20 * flip, sx=flip)
 
 
-def strzala_w_ramieniu(st, key, x, h, flip=1.0, rot=0.0, y=STOPY, p=None):
+def strzala_w_ramieniu(st, key, x, h, flip=1.0, rot=0.0, y=STOPY, p=None, ogien=False, t=0.0):
     ax, ay = punkt(key, x, h, 196, 236, y=y, flip=flip, rot=rot)
-    st.put(Z0.prop("strzala"), ax, ay, (P.lalki + 0.013) if p is None else p, w=h * 0.42, anchor=(0.95, 0.5), rot=rot + 160,
+    p = (P.lalki + 0.013) if p is None else p
+    st.put(Z0.prop("strzala"), ax, ay, p, w=h * 0.42, anchor=(0.95, 0.5), rot=rot + 160,
            shadow=(2, 3, 3, 0.4))  # strzała przyszła ze wschodu (z prawej): grot w barku, drzewce w prawo i w górę
+    if ogien:  # płonąca strzała (reżyser 20.11.2026: „pali się ta strzała”) — ogień na drzewcu tuż za grotem
+        a = math.radians(rot + 160)
+        plomien(st, t, ax - 0.16 * h * math.cos(a), ay + 0.16 * h * math.sin(a), p + 0.001, h * 0.16, seed=31)
+
+
+def plomien(st, t, x, y, p, h=40, seed=0, alpha=1.0):
+    """Mały płomień z bibuły (grot strzały, łódź w ogniu): trzy języki ognia w różnych fazach i poświata."""
+    ft = t * 14 + seed * 3
+    st.put(J.glow(), x, y - h * 0.35, p - 0.0005, w=h * 3.2, anchor=(0.5, 0.5), mode="add", alpha=0.5 * alpha, shadow=None, tint=(1.0, 0.6, 0.3))
+    for m in range(3):
+        st.put(J.flame((int(ft) + m + seed) % 8), x + (m - 1) * h * 0.1, y + h * 0.12, p + 0.0002 * m,
+               h=h * (1 - 0.2 * m) * (0.85 + 0.15 * math.sin(ft + m)), rot=10 * noise(ft, 800 + seed * 3 + m, 7), shadow=None, alpha=alpha)
+
+
+def piorun(st, t, x0, y0, x1, y1, k, p, seed=0):
+    """Piorun z nieba w punkt (x1, y1): łamana zygzakiem, biały rdzeń i błękitna poświata; k = 0..1 jasność (błysk trwa
+    ułamek sekundy). Wzór łamanej z ziarna, więc w tym samym uderzeniu jest stały."""
+    if k <= 0.01:
+        return
+    r = random.Random(900 + seed)
+    pts, n = [(x0, y0)], 9
+    for i in range(1, n):
+        f = i / n
+        pts.append((lerp(x0, x1, f) + r.uniform(-38, 38) * (1 - f * 0.5), lerp(y0, y1, f)))
+    pts.append((x1, y1))
+    st.line(pts, p, width=14, color=(150, 190, 255), alpha=0.35 * k)
+    st.line(pts, p + 0.0005, width=5, color=(250, 250, 255), alpha=0.95 * k)
+    st.put(J.glow(), x1, y1, p + 0.001, w=260, anchor=(0.5, 0.5), mode="add", alpha=0.6 * k, shadow=None, tint=(0.85, 0.9, 1.0))
 
 
 def poklad_lodzi(t, x, pasmo_i, h, dx, lh, flip=1.0, burza=0.0, seed=0, przechyl=0.0, sink=0.0):

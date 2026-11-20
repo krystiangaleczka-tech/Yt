@@ -918,6 +918,34 @@ def niedzwiedz():
     return Sprite(stack(w, h, parts, seed=350), "niedzwiedz", rim=2, clean=False)
 
 
+@lru_cache(None)
+def wiewiorka(f=0):
+    """Ruda wiewiórka (gag w lesie Kumano, reżyser 20.11.2026: „wiewiórka ruda polska”), widziana z boku, głową w górę —
+    wspina się po pniu; f = 0/1 dwie fazy łap. Ogon puszysty, zawinięty."""
+    w, h = 200, 320
+    rudy, ciemny, jasny = (196, 92, 34), (150, 64, 24), (236, 196, 150)
+    ogon = [(110, 300), (60, 280), (30, 220), (40, 150), (80, 120), (100, 160), (84, 210), (110, 250), (130, 270)]
+    cialo = [(100, 250), (96, 170), (110, 110), (130, 80), (150, 70), (160, 90), (150, 130), (140, 200), (130, 260)]
+    lapy = [(140, 120 + 14 * f), (176, 112 + 14 * f), (172, 124 + 14 * f), (138, 134 + 14 * f),
+            (130, 230 - 14 * f), (170, 238 - 14 * f), (166, 250 - 14 * f), (126, 246 - 14 * f)]
+    parts = [(poly(ogon), ciemny, dict(edge=2, contrast=1.3)), (poly(cialo), rudy, dict(edge=2, contrast=1.2)),
+             (poly(lapy[:4]), rudy), (poly(lapy[4:]), rudy),
+             (ell(150, 66, 26, 22), rudy), (poly([(140, 50), (146, 22), (156, 48)]), ciemny),
+             (ell(132, 150, 10, 34), jasny), (ell(158, 60, 4, 4), (24, 18, 16)), (ell(172, 70, 4, 3), (40, 26, 22))]
+    return Sprite(stack(w, h, parts, seed=371 + f), f"wiewiorka-{f}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def pilka():
+    """Piłka do piłki nożnej z białego papieru z czarnymi łatami (gag z wroną reprezentacji, reżyser 20.11.2026)."""
+    w = h = 200
+    parts = [(ell(100, 100, 92, 92), (238, 236, 228), dict(edge=2, contrast=1.2)), (poly([(100, 66), (132, 90), (120, 128), (80, 128), (68, 90)]), (30, 28, 30))]
+    for a in range(5):
+        x, y = 100 + 82 * math.cos(math.radians(-90 + 72 * a)), 100 + 82 * math.sin(math.radians(-90 + 72 * a))
+        parts.append((ell(x, y, 16, 16), (30, 28, 30)))
+    return Sprite(stack(w, h, parts, seed=377), "pilka", rim=2, clean=False)
+
+
 def _ptak(color, f, three_legs=False, perch=False, seed=0, gold=False):
     w, h = 440, 300
     dark = _shade(color, 0.75)
