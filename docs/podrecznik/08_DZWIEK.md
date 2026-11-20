@@ -33,7 +33,8 @@ na cały film. Lektora nagrywa reżyser (rozdział „Lektor”). Wzór: „Bonn
 8. **Zmiana tematu na cięciu**: stary temat kończy się na cięciu (0,12 s wyciszenia), nowy wchodzi na nim mocną częścią
    taktu z akcentem stopy (`CIECIE_WYJSCIE`, `CIECIE_WEJSCIE`) — bez półsekundowego przenikania, które rozmywało zmianę.
 9. **Przystanek na gagu**: na puencie gagu (`GAG_PUENTA`, sekunda od początku ujęcia) muzyka cichnie o 9 dB na 0,6 s
-   i wraca w 0,5 s, żeby dźwięk gagu wybrzmiał. Bez muzycznego podkreślania każdego ruchu — przy kilkudziesięciu gagach
+   i wraca w 0,5 s, żeby dźwięk gagu wybrzmiał. Ściszanie, przystanki i cisza przed szczytem liczą się jako obwiednia
+   w 100 Hz i dopiero potem rozciągają na próbki (pętla w 100 Hz trwa ułamek sekundy, na 44,1 kHz — minuty). Bez muzycznego podkreślania każdego ruchu — przy kilkudziesięciu gagach
    muzyka by się jąkała.
 
 ## Efekty
@@ -60,9 +61,16 @@ na cały film. Lektora nagrywa reżyser (rozdział „Lektor”). Wzór: „Bonn
    z nich znaczniki niewerbalne (`[laugh]`, `[gasp]`, `[groan]`, `[sigh]`, `[shush]`, `[fear]`, `[angry]`, `[happy]`)
    i krótkie okrzyki.
 3. `glosy.py referencje` (Kokoro) → `nagraj` (Turbo, po kilka ziaren) → `wybierz` (przycięcie ciszy; z faster-whisper
-   sprawdza słowa okrzyków). Pliki w `dzwiek_probki/` (poza gitem).
+   sprawdza słowa okrzyków). Pliki w `dzwiek_probki/` (poza gitem). Na Macu jedno podejście Turbo trwa ok. 40 s (cpu),
+   więc wystarczy **jedno ziarno na tekst i dwa teksty na rodzaj** (dwa warianty okrzyku) — 75 podejść to ok. 50 min.
+   faster-whisper jest tylko w `.venv-align`, a soundfile tylko w `pilot/.venv-tts`: słowa liczy osobny krok
+   `.venv-align/bin/python -I output/<film>/glosy.py slowa` (zapisuje `build/glosy_proby/slowa.json`), a `wybierz`
+   bierze je z tego pliku („Syn słońca”). Okrzyk z westchnieniem ma dziurę ciszy w środku i automat go odrzuca —
+   takie podejście przyjmuje się ręcznie po odsłuchu.
 4. Głos postaci idzie pod tabliczkę (`TAB_GLOS`, wyjątki dla ujęcia w `TAB_GLOS_UJ`); przy porażce najpierw głos,
-   potem puzon. Tłum to wiele krótkich zdań różnymi głosami, gęsto, stłumionych i z pogłosem (słychać ludzi, nie słowa);
+   potem puzon. W „Synu słońca” głosy i dźwięki gagów stoją w `efekty.GLOSY_UJ` pod kluczem **ujęcia źródłowego**
+   (sekunda = zjazd tabliczki + ok. 0,3 s): skróty w zapowiedzi i haku (`render.WYCINEK`) biorą z niego to, co wypada
+   w ich fragmencie, bez osobnych wpisów. Tłum to wiele krótkich zdań różnymi głosami, gęsto, stłumionych i z pogłosem (słychać ludzi, nie słowa);
    śmiech widowni i wiwaty — kilka głosów naraz.
 5. Zabici w teatrze cieni nie jęczą — prawdziwe ofiary pokazujemy z szacunkiem.
 

@@ -125,3 +125,19 @@ idzie jako próbka do reżysera (rozdział „Dźwięk”).
 | Gag kurtyny na końcu filmu wpadał w końcowe ściemnienie | Gag kończy się co najmniej 1 s przed ściemnieniem ostatniego ujęcia |
 | Trzy dźwięki gagów były nowe (kaszel silnika, werbel, zapałka) | Gag z istniejącymi dźwiękami idzie od razu; nowy rodzaj czeka na próbkę (`efekty.NOWE`) |
 
+
+## Lekcje z „Syna słońca” (20.11.2026, mit japoński, 25 gagów)
+
+Silnik humoru dla mitu: **bogowie i władcy jak rodzina z kłopotami** — bóg zmęczony mieszaniem morza („PHEW…”), bogini
+zachwycona sobą w lustrze („WOW!”), wodzowie przekrzykujący się nad wzgórzami („MINE!” ×3), dwór, który każe pisarzowi
+kroniki „MAKE IT OLDER!”. Gag powracający: królowa przed lustrem (Amaterasu w akcie II, Himiko w akcie VIII). Lista
+z gagami zrobionymi i propozycjami: `docs/filmy/powstanie-japonii/GAGI.md`.
+
+| Co poszło źle | Zasada |
+|---|---|
+| Tabliczka „WHOA!” nad bogiem na moście wychodziła za górną krawędź kadru | Tabliczka gagu wisi obok głowy, gdy postać stoi blisko górnej krawędzi; sprawdzaj ją na klatce, nie w kodzie |
+| Zgubiony żołnierz biegł poza kadrem, bo kamera jechała za wroną | Przy jeździe kamery tor gagu liczy się od położenia kamery w chwili gagu |
+| Zawieszka „− 1260 years” po pęknięciu prawej nitki obracała się w górę | Po pęknięciu nitki rzecz wisi na drugiej i opada wolnym końcem w dół (obrót w stronę pękniętej nitki) |
+| Niedźwiedź, o którym mówi lektor, chował się za szeregiem wojowników | Postać gagu albo kwestii idzie przed tłumem, na planie lalek (Wytyczne 1.5, 1.19) |
+| Skrót w zapowiedzi łapał podpis „a goddess of dance” | Skrót zaczyna się po zjechaniu podpisu (`render.WYCINEK`, „od”) |
+| Okrzyki dodane markerami przy śmierci i burzy („I can't…”, „BROTHER!”) | To reakcje, nie żarty — zostają, ale bez puzonu i bez przystanku muzyki |

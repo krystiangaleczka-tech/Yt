@@ -76,6 +76,22 @@ i pomocnicze), `ujecia_a.py` / `ujecia_b.py`. Zasady, które dopisał silnik:
 **Przegląd po akcie.** Arkusz po 6 ujęć z miniaturami 400 px (`R.arkusz(zakres, plik, cols=3, tw=400)`), potem pełne
 klatki tylko tam, gdzie coś nie gra; poprawki od razu dla całej klasy błędu (w silniku), nie w jednym ujęciu.
 
+### Lekcje z „Syna słońca” (18–20.11.2026, Japonia, mit)
+
+Pliki w `output/powstanie-japonii/` (gałąź `powstanie-japonii`). Sposoby, które wnoszą coś nowego:
+
+| Sposób | Jak |
+|---|---|
+| Skrót ujęcia (zapowiedź, hak, krótki tytuł) | `render.WYCINEK = {klucz: (źródło, od[, T])}` — ujęcie rysuje inne ujęcie filmu od chwili `od`, ze stanem świata z jego miejsca w filmie; trzeci element to długość, z jaką liczy się oryginał (tytuł teatru 2,5 s z ujęcia o długości 4,4 s). Dźwięki i głosy źródła dochodzą same (rozdział „Dźwięk”) |
+| Kurtyna startu i akt bez kurtyny | `render.KURTYNA_START` (ujęcie zaczyna się zasuniętą kurtyną bez tytułu, która się rozsuwa), `render.BEZ_KURTYNY` (granica aktów jak granica scen: ściemnienie; zamiast tabliczki aktu zawieszka czasu, np. „The Age of the Gods”) |
+| Tytuł aktu jako pytanie | etykieta „Act N · pytanie” (`kwestie_en.ETYKIETY`); `render.kurtyna` dzieli ją po „ · ” na dwa rzędy: mała tabliczka „Act N”, pod nią pytanie — jedna tabliczka z całym zdaniem była szersza od kadru |
+| Ruch w wycinku przez fazy arkusza | wiosła: `J.lodz(v, faza)` rysuje 8 faz zamachu (każda w pamięci podręcznej, nazwa wycinka z fazą — podgląd na żywo jej potrzebuje); `scena.lodz(…, wiosla=True)` bierze fazę z zegara i ziarna, więc każda łódź wiosłuje w swoim rytmie |
+| Rzecz z nitki do dłoni | wisi na nitce (`J.hang`), w chwili chwytu leci po prostej do dłoni z wyniku `lalka(…)` (zwraca położenie dłoni), od następnej klatki postać ją trzyma (`trzyma=`) — miecz Ninigiego (Wytyczne 1.28) |
+| Przestawione ujęcia a dekoracja | po zmianie kolejności dekoracja buduje się (zjeżdża) w pierwszym ujęciu, które ją pokazuje, a w następnych już wisi — mapa wysp w śledztwie zjeżdżała dwa razy (Wytyczne 1.2) |
+| Tabliczka przy jeździe kamery | podpis stoi w świecie, a kamera jedzie: przy jeździe licz jego `x` z położenia kamery w chwili gagu, inaczej ucieka poza kadr (żołnierz za wroną) |
+| Arkusz chwil i markery | `scripts/arkusz_chwil.py` (z katalogu filmu): dowolne chwile ujęć — ułamek, „2.53s” jak marker w Studio albo sekundy od końca; `BOX` rysuje obrys markera z `uwagi_rezysera.py`. Najpierw klatka z markerem, potem poprawka, potem ta sama klatka |
+| Test krawędzi ujęć z listy | `render.py kontrola 9,14,15` przyjmuje numery ujęć; po każdej poprawce kamery albo dekoracji — tylko zmienione ujęcia |
+
 ## Zasady rysowania
 
 - Czasy wydarzeń liczy się od początku ujęcia (`t`), nie bezwzględnie.

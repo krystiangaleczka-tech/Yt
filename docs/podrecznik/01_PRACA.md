@@ -100,7 +100,15 @@ Trzy różne rzeczy, których nie wolno mylić:
 Zasady:
 
 - **Zmiana rysunku albo nowe ujęcie w filmie z podglądem na żywo:** wystarczy zapisać kod — Studio pokaże zmianę
-  samo. Klipów mp4 do Studio nie rysujesz.
+  samo. Klipów mp4 do Studio nie rysujesz. Wyjątek: zmiana napisów na wycinkach (`ETYKIETY`) — podgląd trzyma
+  wycinki w pamięci, więc zatrzymaj go (`pkill -f output/<film>/na_zywo.py`); Studio uruchamia go sam, a przez kilka
+  sekund rozgrzewania ujęcia odpowiadają błędem 500 (stan: `/api/projects/<id>/teatr/stan`, pole `gotowe`).
+- **Wycięte, dodane albo przestawione ujęcia:** `studio_film.py plan` dopasowuje ujęcia Studio po kluczu rozpiski
+  (`legacy.klucz`), nie po miejscu w akcie, więc uwagi i markery reżysera zostają przy swoim ujęciu (wcześniej po wycięciu
+  ujęcia przechodziły na sąsiada). Po planie z nową numeracją: `klatki` dla wszystkich ujęć (zapas na osi idzie po
+  odnośniku `dAA_NN`), `efekty.py`, `dzwiek lektor` (zostają tylko nagrania, których tekst się nie zmienił), szkic
+  przebudowany (`buduj_szkice.py d`) i zaimportowany od nowa (`POST /api/projects/<id>/sketches/import` z katalogiem
+  wariantu).
 - **Zmiana rysunku w filmie bez podglądu na żywo:** narysuj klipy tylko zmienionych ujęć i podmień je w Studio — oś,
   lektor, muzyka i uwagi zostają. Nigdy nie rysuj całego filmu, żeby poprawić kilka ujęć.
 - **Zmiana długości ujęć** (rytm, pauza po kwestii, nowe nagranie lektora): długości liczy rozpiska filmu, muzykę
