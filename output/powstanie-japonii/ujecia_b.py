@@ -315,7 +315,22 @@ def s_bitwa(st, w, t, T):
             st.put(Z0.spears(seed, flag=CIEMNE), lerp(1500, 1080, adv) + dx - sway * hh / 210,
                    ziemia(band, 900 + dx) + (80 if band == "przod" else 66) + (1 - back(up, 1.3)) * 200, p, h=hh, anchor=(0.0, 1.0),
                    sx=-1, rot=0.8 * math.sin(t + n))
-    _grad(st, t, pr(t, 2.6, T - 2.6), n=120)  # grad gęstnieje do końca ujęcia (1.23)
+    # przegląd ujęć 58–85 (19.11.2026): lektor mówi, że Iwarebiko znów walczył z Nagasunehiko — widać obu wodzów i ludzi na przodzie sceny, a nie
+    # same czubki włóczni za pasmem wzgórz (1.5, 1.17, 1.19); linie zwierają się w środku i pchają w tę i z powrotem
+    pch = 28 * math.sin(t * 3.0) * clash
+    for n in range(5):
+        k = pr(t, 0.6 + 0.12 * n, 0.5)
+        dzg = 30 * clash * abs(math.sin(t * 4.0 + 1.3 * n))  # pchnięcia włócznią
+        lalka(st, t, ("wojownik", "wojownik2")[n % 2], lerp(-300 - n * 110, 590 - n * 100, adv) + pch, 232 - 6 * (n % 3), k, flip=1,
+              rece=(55 + dzg, 0), lean=5 * clash * math.sin(t * 3.0 + n), hop=6 * (adv < 1), seed=890 + n, trzyma=SPEAR(232))
+        lalka(st, t, ("wojownik2", "wojownik")[n % 2], lerp(1580 + n * 110, 700 + n * 100, adv) + pch, 232 - 6 * (n % 3), k, flip=-1,
+              rece=(55 + dzg, 0), lean=-5 * clash * math.sin(t * 3.0 + n), hop=6 * (adv < 1), seed=900 + n, trzyma=SPEAR(232),
+              tint=(0.62, 0.52, 0.48))
+    lalka(st, t, "iwarebiko", lerp(-200, 140, adv) + 0.5 * pch, 300, flip=1, rece=(70 + 20 * clash * math.sin(t * 2.2), 0), trzyma=LUK(300),
+          hop=6 * (adv < 1), p=P.lalki + 0.012)
+    lalka(st, t, "nagasune", lerp(1560, 1120, adv) + 0.5 * pch, 430, flip=-1, rece=(40 + 80 * clash * (math.sin(t * 2.0) > 0), 0),
+          lean=3 * math.sin(t * 2.0) * clash, p=P.lalki + 0.003)
+    _grad(st, t, pr(t, 2.6, T - 2.6), n=200)  # grad gęstnieje do końca ujęcia (1.23)
     swiatlo(st, w, t, extra=(0.86, 0.88, 0.96))
 
 
@@ -359,9 +374,18 @@ def s_blysk(st, w, t, T):
     st.put(Z0.spears(22, flag=CIEMNE), 1080 + 260 * back_, ziemia("przod", 900) + 80 + 160 * back_, P.wzgorza + 0.046, h=210, anchor=(0.0, 1.0),
            sx=-1, rot=8 * math.sin(t * 9) * (1 - back_))
     _wojsko(st, t, 700, BIALE, p=P.wzgorza + 0.045, band="przod", h=210)
+    # {U}: wrogowie na przodzie sceny zasłaniają oczy, odwracają się i uciekają w prawo (ciągłość z bitwą)
+    for n in range(4):
+        uc = ease(pr(t, 0.35 + 0.08 * n, 0.4))
+        lalka(st, t, ("wojownik2", "wojownik")[n % 2], 820 + n * 110 + 700 * ease(pr(t, 0.6 + 0.08 * n, 1.4)), 232 - 6 * (n % 3),
+              flip=-1 + 2 * uc, rece=(150 * (1 - uc) + 20, 120 * (1 - uc)), lean=10 * uc, hop=8 * uc, seed=920 + n,
+              tint=(0.62, 0.52, 0.48))
     tip = _iw_z_lukiem(st, t, x=330)
     st.put(J.zloty_ptak(0, True), tip[0], tip[1] + 6, 0.815, w=170, anchor=(0.6, 0.97), sx=-1)
     st.put(J.glow(), tip[0], tip[1], 0.9, w=3000, anchor=(0.5, 0.5), mode="add", alpha=0.85 * max(fl, 0.25), shadow=None, tint=(1.0, 0.92, 0.7))
+    flash = 1 - ease(pr(t, 0.08, 0.55))  # przegląd ujęć 58–85 (19.11.2026): błysk ma być widać — cała scena bieleje na ułamek sekundy
+    if flash > 0:
+        st.put(J.glow(), tip[0], tip[1], 0.95, w=5200, anchor=(0.5, 0.5), mode="add", alpha=0.95 * flash, shadow=None, tint=(1.0, 0.97, 0.85))
     swiatlo(st, w, t, extra=(0.86, 0.88, 0.96), dim=1 + 0.6 * max(fl, 0))
 
 
@@ -679,7 +703,8 @@ def s_wa(st, w, t, T):
     """Na nitkach zjeżdża papierowa mapa wysp; wyskakują na niej dziesiątki maleńkich chorągiewek."""
     kam(st, t, 66, 640, 360, lerp(1.08, 1.14, ease(t / T)), 0.82)
     st.dof = 0.6
-    to = mapa_scena(st, t, w, k=pr(t, 0.3, 1.4), x=640, y=40, wd=MAPA_WD)
+    # mapa wisi już od ujęcia „pieczec” (od przeglądu 18.11.2026 śledztwo idzie: chłop → pieczęć → odcisk → zapiski)
+    to = mapa_scena(st, t, w, k=1.0, x=640, y=40, wd=MAPA_WD)
     pts = J.punkty_na_mapie(110, seed=5)
     for n, (mx, my) in enumerate(pts):
         r = random.Random(1300 + n)
@@ -690,8 +715,8 @@ def s_wa(st, w, t, T):
     swiatlo(st, w, t)
 
 
-def _mapa_tlo(st, t, w):
-    mapa_scena(st, t, w, k=1.0, x=640, y=40, wd=MAPA_WD)
+def _mapa_tlo(st, t, w, k=1.0):
+    mapa_scena(st, t, w, k=k, x=640, y=40, wd=MAPA_WD)
 
 
 def s_pieczec(st, w, t, T):
@@ -699,7 +724,7 @@ def s_pieczec(st, w, t, T):
     k = ease(t / T)
     kam(st, t, 67, 640, 360, lerp(1.7, 1.9, k), 0.86, lens=1.6)
     st.dof = 2.6
-    _mapa_tlo(st, t, w)
+    _mapa_tlo(st, t, w, pr(t, 0.0, 1.2))  # pierwsze ujęcie z mapą: mapa zjeżdża na nitkach za pieczęcią (1.2)
     spin = math.cos(t * 1.6)
     J.hang(st, J.pieczec(), 640, 250, 0.86, pr(t, 0.3, 1.6), t, 650, drop=520, sway=1.0, w=170, sx=spin if abs(spin) > 0.06 else 0.06)
     st.put(J.glow(), 640, 340, 0.861, w=300, anchor=(0.5, 0.5), mode="add", alpha=0.16 * pr(t, 1.6, 1.0), shadow=None, tint=(1.0, 0.85, 0.4))
@@ -866,15 +891,21 @@ def s_nihon(st, w, t, T):
     swiatlo(st, w, t)
 
 
+LUTY2_ZNIESIONE, LUTY2_1966 = 7.0, 8.6  # „abolished after the war” / „restored in 1966” w kwestii; te same czasy w efektach
+
+
 def s_luty2(st, w, t, T):
     """Kartka kalendarza „11 lutego” zjeżdża obok zawieszki „1873”; na wzgórzach znów wyskakują chorągiewki."""
     k = ease(t / T)
     kam(st, t, 75, 640, lerp(400, 380, k), lerp(1.06, 1.12, k), 0.62, truck=0.5)
     st.dof = 0.5
     kraj(st, t, w, pola=1.0)
-    choragiewki(st, t, [pr(t, 3.0 + 0.4 * n, 0.5) for n in range(9)])
+    # przegląd ujęć 58–85 (19.11.2026): lektor mówi, że święto po wojnie zniesiono i w 1966 przywrócono — chorągiewki chowają się i wracają, zjeżdża „1966”
+    choragiewki(st, t, [max(min(pr(t, 3.0 + 0.4 * n, 0.5), 1 - pr(t, LUTY2_ZNIESIONE + 0.05 * n, 0.4)), pr(t, LUTY2_1966 + 0.12 * n, 0.5))
+                        for n in range(9)])
     J.hang(st, J.kalendarz(), 560, 200, 0.84, pr(t, 0.4, 1.2), t, 700, drop=520, sway=1.4, w=130, shadow=(4, 6, 6, 0.4))
     J.hang(st, J.tag("1873"), 740, 260, 0.85, pr(t, 1.4, 1.0), t, 701, drop=480, sway=1.4, h=50, shadow=(4, 6, 6, 0.4))
+    J.hang(st, J.tag("1966"), 900, 300, 0.85, pr(t, LUTY2_1966 - 0.3, 1.0), t, 702, drop=480, sway=1.4, h=50, shadow=(4, 6, 6, 0.4))
     swiatlo(st, w, t)
 
 

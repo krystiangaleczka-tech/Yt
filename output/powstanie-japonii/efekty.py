@@ -548,7 +548,7 @@ DODATKI = {"zap_jaskinia": [(0.0, "gong", 1.0), (0.0, "drum", 0.9)], "zap_blysk"
            # szczyty (przegląd 18.11.2026): po ciszy muzyki mocne uderzenie — ósma głowa węża, pierwsze krakanie wrony
            "orochi": [(4.8, "drum", 1.0), (4.8, "gong", 0.8)], "wrona": [(0.8, "gong", 0.6)],
            # markery reżysera 18.11.2026: strzała w góry, skoki brata, łuk napięty w zwrocie ku słońcu
-           "wschod": [(3.6, "whoosh", 0.55), (4.15, "thud", 0.4)], "bracia": [(6.5, "knock", 0.4), (7.15, "knock", 0.4), (7.8, "knock", 0.4)],
+           "wschod": [(3.6, "whoosh", 0.55), (4.15, "thud", 0.4)], "luty2": [(7.0, "whoosh", 0.4), (8.6, "whoosh", 0.4), (8.8, "knock", 0.4)], "bracia": [(6.5, "knock", 0.4), (7.15, "knock", 0.4), (7.8, "knock", 0.4)],
            "hak_cien": [(0.2, "knock", 0.4), (0.35, "whoosh", 0.3), (1.35, "whoosh", 0.6), (1.65, "thud", 0.7), (1.65, "crack", 0.35),
                         (2.75, "whoosh", 0.4), (3.4, "thud", 0.5)]}
 

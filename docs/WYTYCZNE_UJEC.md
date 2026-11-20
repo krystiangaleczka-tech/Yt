@@ -191,6 +191,10 @@ Przy podmianie zsyntezowanego dźwięku na próbkę stara synteza liczy się dal
   ok. 2–3 s i odjeżdża w górę, kiedy postać jest już cała widoczna (`swiat.podpis(w, t, "kupiec Lü Buwei", x, y, t0)`;
   reżyser 15.11: „za 1. razem zrzuć nad nim na chwilę tabliczki, kto kim jest, jak się pierwszy raz pojawiają”).
   Podpis jest w języku wersji (1.13) i nie wisi nad kimś, o kim lektor właśnie nie mówi.
+- Kamera i podpis pokazują tego, o kim jest kwestia, w chwili, gdy lektor go nazywa. Wprowadzenie „to historia
+  pierwszego cesarza” z najazdem na brata, który za chwilę ginie, myli widza (reżyser 18.11, „Syn słońca”) — najazd
+  obejmuje bohatera, podpis „Iwarebiko, the future emperor” zjeżdża przy jego imieniu, drugi podpis („Itsuse, eldest
+  brother”) dopiero przy „trzech braciach”. Kilka podpisów w jednym ujęciu idzie po kolei, za kwestią.
 - Kwestia mówi jednoznacznie, o kim jest: „ojciec Zhenga”, a nie „ojciec” (reżyser 15.11: „mówi, że father is dead,
   ale kogo father?”).
 - Jedna postać = jedna lalka przez cały film; zmiana wieku albo godności to inna wersja tej samej lalki (chłopiec →
@@ -291,6 +295,9 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 - Uderzenie, wybuch i upadek mają wyraźną siłę: mocny wstrząs kamery, duży płomień (meteoryt, reżyser 15.11: „bardziej
   zatrzęś kamerą i większy płomień meteorytu”), drżenie budowli („zrób shaking tej tomb”).
 - Pożar i zniszczenie rosną do końca ujęcia („spal ją bardziej na końcu”), a nie stoją na jednym poziomie.
+- Przed szczytem muzyka milknie, zostają same efekty (syk głów węża, grad), na szczycie pada uderzenie (bęben, gong),
+  a muzyka wraca głośniej i opada przez ok. 3 s (`efekty.CISZA`; przegląd 18.11: „za mało ciszy i muzyki przy
+  szczytach”). Cisza jest krótka i rzadka: dwa–trzy szczyty na film.
 
 ### 1.24 Szczegół w skali planu
 - Oczy, usta i kreska twarzy w planie ogólnym są proporcjonalnie małe; duże oczy działają tylko w zbliżeniu (reżyser
@@ -309,6 +316,113 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 - Zwrot postaci zaczyna się od przeciwnego kierunku, żeby był widoczny (Iwarebiko najpierw patrzy w lewo, potem
   zwraca się ku słońcu). Ujęcie przejścia albo przybycia ma końcówkę „już na miejscu” (Ninigi stoi na szczycie, wojsko
   wchodzi w las) — 1.18.
+
+### 1.26 Otwarcie, skróty i kurtyny
+- **Zapowiedź (6 s)** składa się z ok. 10 skrótów najmocniejszych ujęć filmu (`render.WYCINEK`: oryginał od jego
+  najlepszej chwili, ze stanem świata z jego miejsca w filmie), cięte parami 0,4 / 0,7 s (sąsiednie różne co najmniej
+  o ¼ s), bez przejść, z uderzeniem na każdym cięciu; kończy się ściemnieniem (reżyser 18.11: „mini spoiler 5 s, co
+  będzie w filmie (najlepsze akcje)”; 19.11: „najlepiej zrób go 6 s i szybko zmieniaj ujęcia”). Skrót bierze chwilę akcji,
+  ale nie podpis, który zdradza tajemnicę późniejszego aktu.
+- **Kurtyna startu** trwa krótko (do 2,5 s, lektor zaczyna najpóźniej ok. 9 s) i rozsuwa się na tytuł teatru, a na
+  scenie stoi już bohater haka (`KURTYNA_START`); następne
+  ujęcie najeżdża na niego i lektor mówi, o czym jest film — **wprowadzenie przed akcją** (reżyser 18.11: „z dupy jest
+  wprowadzenie: strzelają, potem 3 giną, a nie ma info, co się dowiemy”).
+- **Hak** nie skacze z miejsca na miejsce bez pomostu: między dwoma ujęciami haka z różnych dekoracji stoi ujęcie
+  przejściowe (teatr cieni za parawanem między strzałą a burzą; reżyser 18.11: „po 1 ujęciu nie może być od razu ta
+  woda, tylko coś pomiędzy”). Po obietnicy, przed pierwszym aktem, ujęcie-pomost mówi, po co cofamy się w czasie
+  („To see why these brothers believed they came from the sun, we go back to the beginning…”).
+- **Jeden początek** (reżyser 19.11, „Bonnie and Clyde”: „a potem w tym filmie dowiecie się blablabla… i kurtyna
+  i znowu od nowa tak jakby? tak ma być?” — nie): obietnica to jedno pytanie, które prowadzi prosto w retrospekcję
+  („So how does a joke turn two broke kids into…?” → „It all starts in West Dallas…”), a nie lista „By the end, you'll
+  know…”. Między prologiem a aktem I nie ma kurtyny ani tabliczki aktu (`render.BEZ_KURTYNY`), tylko ściemnienie
+  i zawieszka miejsca i czasu; kurtyny z pytaniami od aktu II. Liczby i powód: Podręcznik → Rytm, „Początek filmu”.
+- W pierwszej minucie dekoracja zmienia się co najmniej 3 razy (licznik w `buduj_szkice.zmiany_scenerii`).
+- **Powrót do sceny z haka** w ciele filmu ma inne słowa niż hak („Remember that arrow?”), a nie powtórkę kwestii.
+- **Kurtyna aktu** pokazuje tytuł-pytanie w dwóch rzędach: mała tabliczka „Act N”, pod nią pytanie, na które akt
+  odpowiada (`render.kurtyna`); żadna tabliczka nie jest szersza od kadru. Akt przed zwrotem fabuły kończy się
+  pytaniem w kwestii, a nie zdaniem, które brzmi jak koniec filmu („But did he ever really exist?”).
+
+### 1.27 Teatr, który się buduje, i to, co przed rampą
+- Lalki i auta wchodzą dopiero, kiedy dekoracja się zbuduje (`scena.wejscie`); na pustym płótnie nikt nie stoi.
+  To samo dotyczy rzeczy: rekwizyt, zawieszka i nitka postawione wprost w ujęciu pojawiają się po zbudowaniu dekoracji
+  (`render.po_budowie`), a światło za oknem zapala się, gdy stoi ściana — teczka nie wisi nad pustym płótnem przed biurkiem.
+- Pasażer auta jest widoczny w oknie od pasa w górę; nogi nie wystają spod karoserii (`siedzi=True`). Rzecz w oknie
+  (gazeta) stoi obok głowy, nie na niej.
+- Rzecz leżąca na ziemi, leżąca postać i woda, w której ktoś brodzi, są nad rampą — inaczej rampa i napisy je chowają
+  (czapki zabitych, trumna, rzeka, ranny Buck).
+- Broń w ręce celuje tam, gdzie ma celować: kto czyści karabin, trzyma go na kolanach, a nie w stronę partnera.
+- Sylwetka w teatrze cieni jest jednolicie czarna; prześwitujące ręce rysują na tułowiu „X”.
+- Auto, które dachuje, obraca się wokół swojego środka i ląduje widoczne; płomień wychodzi z auta, nie zasłania go.
+- Akcja przy ziemi w zbliżeniu: kamera niżej, żeby nie chowała się pod napisem. Rzecz, o której mówi kwestia (teczka
+  Hamera, kanapka Bonnie), stoi nad pasem napisów i przed karoserią, nie za nią; reakcja („HA HA HA!”) wisi nad głową, nie
+  na twarzy i nie pod napisem.
+- **Żaden napis nie jest lustrzany**: przewracana strona gazety pokazuje drugą stronę (inną gazetę), lecące gazety obracają
+  się bez odbicia, napis na drzwiach auta jadącego w lewo rysuje się odbity w arkuszu (`ford(lustro=True)`), żeby po odbiciu
+  auta czytał się normalnie.
+- **Napis mieści się na swojej tablicy**: tablica jest szersza od napisu; napis z odstępami liter liczy środek sam
+  (`glyphs(spacing=…)` stawia litery od punktu startu). Napis na pasiastym płótnie ma własny szyld, inaczej ginie na jasnym pasie.
+- **Nazwa, którą mówi lektor, jest do przeczytania**: tabliczka miejsca (nazwy cmentarzy) wisi nad głowami, nie za postaciami
+  przy krawędzi kadru; nowa tabliczka nie zasłania dekoracji, o której jest ujęcie (serca nad łukiem z kwiatów, nie na nim).
+- **Rzecz w dłoni ma kierunek, jaki ma w życiu**, a nie przedłuża ręki jak patyk (reżyser 19.11: „musisz poprawić ich
+  umiejscowienie w rękach”): karabin w gotowości albo na warcie stoi pionowo przy boku, lufą w górę (`KARABIN_PION`;
+  sąsiedzi z karabinami pod kątem tworzyli X); gazetę czyta się przed twarzą, dłoń przy bliższym brzegu, ręce ok. 150°
+  (`GAZETA`); łyżka miesza w garnku (garnek przed łyżką); laska sięga ziemi; miarka zwisa z dłoni wzdłuż mierzonego;
+  kapelusz uniesiony w dłoni w oknie auta (pasażer może trzymać rzecz). Każdą trzymaną rzecz sprawdza się na arkuszu
+  zbliżeń dłoni (wycinek 240 px wokół dłoni w kilku chwilach ujęcia).
+- **Postać niesiona leży na rękach niosącego**, po stronie, w którą wyciąga ręce; stojący trzyma karabin w dłoniach
+  (`KARABIN()`), a nie „na kolanach” w powietrzu.
+- **Zmiana bohatera albo miejsca ma łącznik**: kiedy opowieść przechodzi od jednej postaci do drugiej (Clyde → Bonnie)
+  albo do innego miasta, pierwsza kwestia nowej sceny mówi, gdzie i kiedy jesteśmy („Meanwhile, a few miles away in Cement
+  City…”), zjeżdża zawieszka miejsca, a obraz łączy oba ujęcia (indyk, który uciekł w West Dallas, spada w Cement City).
+  Z indyków od razu w ślub było „bez sensu” (reżyser 19.11). Kontrola: wypisz wszystkie granice scen z końcem i początkiem
+  kwestii i sprawdź, czy każda ma łącznik czasu, miejsca albo osoby.
+- **To samo miejsce nie buduje się od zera**: kiedy następna scena dzieje się w tym samym miejscu (pole pod Waldo po
+  śmiechu Darby'ego, rzeka zaraz po Dexfield, ta sama nocna droga, Kansas po jeździe z Boydem), jest zwykłe cięcie bez
+  gaśnięcia i bez pustego płótna (`render.CIAGLOSC`); budowa od zera mówi widzowi „nowa historia”.
+- **Próbka z fragmentów ma plansze**: przed każdym fragmentem plansza z numerem, aktem, ujęciem i minutą filmu
+  (`probka_dzwieku._karta`) — zlepek bez plansz wygląda jak jeden film, w którym historie nachodzą na siebie.
+- **Podpis i puenta na słowo**: podpis zjeżdża, kiedy lektor nazywa postać i postać jest widać (W.D. stoi przy aucie, wsiada
+  potem); puenta kwestii („undertaker”) nie stoi w podpisie wcześniej niż w kwestii.
+
+### 1.28 Biomechanika lalki i rekwizytu
+Reżyser 19.11 („umiejscowienie tych rekwizytów w rękach, albo na stole, przy stole itp. jest tragiczne… ogarnij biomechanikę”).
+Lalka teatru papierowego ma ciało sztywne i dwie ręce, każda to jeden odcinek od barku do dłoni (zawias tylko w barku). Z tego
+wynikają zasady — liczone, nie zgadywane (`scena.bark`, `scena.dlon`, `scena.siegnij`, `scena.stan_przy`):
+
+**Zasięg i kolejność.** Najpierw ustala się punkt, którego dotyka dłoń (ucho dzbanka nad filiżanką, brzeg gazety przy twarzy,
+dłoń partnera, blat), potem kąt ręki z tego punktu: `kat, dosiega = siegnij(lalka, x, punkt)`. Jeśli dłoń nie dosięga
+(odległość od barku większa niż ręka), lalka **podchodzi** (`stan_przy`) albo rzecz leży bliżej — rzecz nigdy nie przyskakuje
+do dłoni, a dłoń nie wisi w powietrzu obok rzeczy.
+
+**Chwyt za uchwyt.** Każdy rekwizyt ma punkt chwytu w arkuszu (kotwica `trzyma`): dzbanek — ucho, rewolwer — kolba (0.3, 0.75),
+karabin — szyjka kolby (0.3, 0.55), kula — rączka (0.5, 0.45), laska — gałka, gazeta — bliższy brzeg, miarka — kasetka.
+Dłoń leży na punkcie chwytu; rzecz płaska (gazeta, list, zdjęcie) leży **za dłonią** (szósty element `trzyma` z = 0.02).
+
+**Kierunek rzeczy nie idzie za ręką**, tylko za tym, do czego służy (`za_ręką = False`): rewolwer lufą przed siebie, poziomo
+(marker 19.11: „w tę stronę ma być skierowany rewolwer, i w następnych ujęciach też”); karabin noszony przy nodze lufą w dół
+(`KARABIN`), karabin do strzału poziomo, ręka ok. 90° (`CEL`), karabin na warcie pionowo lufą w górę (`KARABIN_PION`);
+dzbanek pionowo, przy nalewaniu przechylony o ok. 45° dzióbkiem nad naczynie; laska i kula pionowo do ziemi; łyżka w garnku.
+
+**Rzecz na stole stoi na blacie**: dolna krawędź rzeczy = górna krawędź mebla (`STOPY − wysokość mebla`), plan rzeczy tuż
+przed meblem. Postać przy stole stoi tak blisko, że dłoń sięga blatu; siedząca — `sink`, a mebel ją zasłania od pasa w dół.
+
+**Rzecz zmienia się w jednej klatce, bez przemiany**: gazeta → zgnieciona kulka, cygaro w dłoni → cygaro w ustach,
+rewolwer w dłoni → za paskiem. W klatce N rzecz A znika, w klatce N+1 w tym samym miejscu jest rzecz B (marker 19.11: „ma
+zniknąć w tej klatce… i tu w rękach pojawić się w następnej klatce; nie robisz tych przemian pomiędzy tymi dwoma rodzajami
+obiektu”). Nigdy nie skaluje się jednej rzeczy w drugą.
+
+**Rzecz przechodzi z ręki do ręki dłonią w dłoń**: dający wyciąga rękę (dłoń w punkcie P), biorący sięga tą samą chwilą do P
+(`siegnij`), rzecz przeskakuje między dłońmi w jednej klatce. Nie ma rąk bez właściciela — jeśli coś podaje ktoś, to ten ktoś
+stoi w kadrze (marker 19.11: „skąd ta ręka? tu ma stać gościu”).
+
+**Postać na pojeździe**: siedzi (`siedzi=True`, biodra na siedzisku, pace, grzbiecie konia), nie stoi obok; zsiada łukiem
+(skok) na ziemię. Jeździec na koniu: biodra na grzbiecie, nogi zakrywa koń.
+
+**Kontakt dwóch postaci** (pocałunek, uścisk): podchodzą, aż głowy albo dłonie się zetkną, i nie wchodzą jedna w drugą;
+wyższa się pochyla (`lean`), niższa unosi (`lift`); potem wracają na swoje miejsca.
+
+**Kontrola**: arkusz zbliżeń dłoni (wycinek 240 px wokół każdej dłoni z rzeczą w kilku chwilach ujęcia) i arkusz stołów
+(rzeczy na blacie, postacie przy meblach) przed oddaniem ujęć.
 
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
@@ -477,7 +591,7 @@ i rozjaśnienie półtonów `JASNOSC=0.07` (czerń i biel bez zmian). Czysty obr
 
 ## 6. Skąd te zasady
 
-Od pilota (29.10.2026) i „Oddziału C” (3.11) do „Pierwszego cesarza” EN (16.11); wiersze w kolejności dat. Źródła:
+Od pilota (29.10.2026) i „Oddziału C” (3.11) przez „Pierwszego cesarza” EN (16.11) do „Syna słońca” EN (18.11); wiersze w kolejności dat. Źródła:
 uwagi w ujęciach i markery na klatkach w Studio (`scripts/uwagi_rezysera.py`), rozmowy z reżyserem przy pracy
 i błędy znalezione w kontroli.
 
@@ -564,7 +678,21 @@ i błędy znalezione w kontroli.
 | Miniaturka Pierwszego cesarza (16.11, reżyser) | z dwóch koncepcji wygrało zbliżenie; plan ogólny miał za drobne postacie; cesarz bez obrysu ginął na tle miasta; tabliczka „NO WAY?!” prosta i za wysoko | 5.1 |
 | Miniaturka (16.11, znalezione w kontroli) | ostrze łopaty ucięte krawędzią arkusza wyglądało jak grot; grudy ziemi na żołnierzu jak dziury; szyld z tytułem EN dotykał krawędzi kadru; meteoryt nachodził na ostrze łopaty | 5.2 |
 | Miniaturka (16.11, reżyser) | Fujifilm o sile 1,8 „za mocny”, 0,8 nadal za dużo → 0,5 i minimalne rozjaśnienie; spirale na oczach z białym tłem → grube czarne wprost na skórze | 5.1, 5.4 |
+| Syn słońca EN, otwarcie (18.11, reżyser) | po zapowiedzi brak ściemnienia i kurtyny startu; hak zaczynał się od akcji bez słowa, o czym jest film („z dupy jest wprowadzenie”); po strzale od razu woda bez ujęcia pomiędzy; najazd z kwestią o pierwszym cesarzu pokazywał brata, który ginie (przegląd scenariusza); kurtyny aktów bez pytań | 1.26, 1.15 |
+| Syn słońca EN, przegląd scenariusza (18.11, wykonawca, zatwierdzone przez reżysera) | hak i ciało filmu powtarzały te same zdania; śmierć cesarza brzmiała jak koniec filmu; brak pomostu z haka do mitu; brak ciszy przed szczytami | 1.26, 1.23 |
 | Syn słońca EN, akty 3–5 (18.11, reżyser: 3 uwagi, 16 markerów) | brak reakcji na mocnych chwilach (tabliczki „help”, „hmm..”, „stop!” z ręką do góry, „no way!”, „aaa!”, „I can't..”, „aaaa”, „brother!”, „boo!”); leżąca głowa i brat bez ruchu („porusz go”, „niech skacze”); wiosłuje tylko część łodzi; miecz obok dłoni Ninigiego („miecz ma być tutaj”); słońce ucięte krawędzią; zwrot ku słońcu niewidoczny; Iwarebiko tylko wskazuje góry („strzel tu strzałą”); po stracie braci stoi bez gestu („podnosi ręce”); za krótkie końcówki zejścia Ninigiego i wejścia w las Kumano | 1.25, 1.20, 1.18 |
+| Syn słońca EN, ujęcia 58–85 (19.11, kontrola na prośbę reżysera) | bitwa: lektor mówi o walce Iwarebiko z Nagasunehiko, a widać same czubki włóczni za pasmem wzgórz, bez ludzi i bez obu wodzów; błysk złotego ptaka prawie niewidoczny; po przestawieniu śledztwa mapa wysp wisiała już w tle pieczęci, a w następnym ujęciu zjeżdżała drugi raz; „restored in 1966” bez śladu w obrazie | 1.5, 1.17, 1.19, 1.2, 1.23 |
+
+| Bonnie and Clyde, arkusze aktów II–VIII (19.11, kontrola wykonawcy) | lalki i auta stały na płótnie, zanim wyrosła dekoracja; nogi pasażerów pod Fordem; sylwetki tancerzy z „X” na tułowiu; Ford w błocie zasłonięty pasem błota, a muły bez jeźdźców; cela zakryta gęstymi kratami; czapki zabitych, trumny i rzeka schowane za rampą; gazeta na twarzy Bonnie; Clyde „czyścił” karabin wycelowany w Bonnie; Ford z mostu znikał pod sceną po obrocie i za płomieniami; wycinki do teczki leciały poza kadrem | 1.27, 1.2, 1.1 |
+| Bonnie and Clyde, kontrola końca świata i przegląd dźwięku (19.11) | przy budowie wnętrza pod ścianą świeciło puste płótno (14 ujęć); wyrastające domki i pinezki miały w jednej klatce wysokość 0 i klatka się wywracała | 1.3, Animacja kodem |
+| Bonnie and Clyde, otwarcie (19.11, reżyser) | „jest 5 s spoiler, najlepiej zrób go 6 s i szybko zmieniaj ujęcia… a potem w tym filmie dowiecie się blablabla… i kurtyna i znowu od nowa tak jakby?” — trzy starty: długa kurtyna tytułu, lista obietnic, kurtyna aktu I z powrotem w czasie; w zapowiedzi podpis zdradzał łowcę | 1.26 |
+| Pierwszy cesarz EN, wyniki po 1 dniu 20 h (19.11, reżyser) | po 30 s ogląda 35 %, średnio 1:29 z 11:19: pusta rama z tytułem na starcie, chronologia „Long ago…” bez haka, pięć nazw w 40 s, kurtyna aktu w 1:18 | 1.26, Rytm |
+| Bonnie and Clyde, ślub (19.11, marker reżysera) | „znika to i po łuku napis pod tymi kwiatkami Happy Ever After” — tabliczka z sercami zjeżdżała na górę łuku z kwiatów i go zasłaniała; pod łukiem brakowało napisu | 1.27 |
+| Bonnie and Clyde, 21 markerów (19.11, reżyser) | broń w złą stronę w prologu; ręka zza kadru podaje cygaro; klisza wysuwa się w bok zamiast w dół; gazeta płynnie zmienia się w kulkę; chłopcy obok ciężarówki zamiast na pace; Bonnie nie trzyma dzbanka i nie leje do filiżanki; gazeta obok rąk; ciemne 5 s na początku Eastham po turbo krótkich ujęciach; Bonnie „nagle w więzieniu” (brak ujęcia pośredniego przed aresztem w Waco i niejasna ucieczka); siekiera nie spada z góry; przysięga za długa i bez ruchu | 1.27, 1.28 |
+| Bonnie and Clyde, akt I (19.11, reżyser) | „dlaczego z ujęcia 21 o jakichś indykach robi się nagle w 22 ślub? to nie ma sensu” — przy skracaniu aktu I wypadło ujęcie szkoły, które było pomostem od Clyde'a do Bonnie; kwestia ślubu zaczynała się bez „tymczasem” | 1.27, Rytm |
+| Bonnie and Clyde, gagi (19.11, reżyser) | „więcej gagów i musisz poprawić ich umiejscowienie w rękach szczególnie” — karabiny łowców w X, gazety obok twarzy, łyżka obok garnka, laska w górę, miarka w powietrzu, kieszenie jako kwadraty, ręka maszynisty jak patyk, kapelusz nad maską | 1.27 |
+| Bonnie and Clyde, próbka głosów (19.11, reżyser) | „wygląda to jakby dwie historie nachodziły na siebie… na 2:48 jak kurtyna wjeżdża, pojawiają się dwie różne tabliczki po sobie” — próbka była zlepkiem fragmentów z różnych aktów bez plansz (kurtyna aktu III, zaraz potem akt VIII); w filmie cztery sceny w tym samym miejscu budowały się od pustego płótna | 1.27 |
+| Bonnie and Clyde, recenzja 114 ujęć (19.11, kontrola wykonawcy na prośbę reżysera) | lustrzane „EXTRA!” na przewracanej stronie i „SHERIFF” na aucie jadącym w lewo; „THE OUTLAWS MADE OF PAPER” i „BONNIE AND CLYDE” wystawały poza tablice; w zapowiedzi na 0,1 s mignął podpis Hamera; teczka, kapelusz, karabin, puszka i list wisiały nad pustym płótnem w czasie budowy; Bonnie „niesiona” wisiała za plecami Clyde'a; karabin „na kolanach” stojącego Clyde'a; podpis Buchera poza kadrem, W.D. podpisany już w aucie, „undertaker” w podpisie 8 s przed puentą; kanapka za karoserią, teczka i „HA HA HA!” pod napisem; nazwy cmentarzy za żałobnikami; „SEE THE DEATH CAR” biały na białym pasie | 1.27 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
