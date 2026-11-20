@@ -54,7 +54,12 @@ i opowieść się bronią. Miniatura klika się przyzwoicie.
 
 **Zasady od „Bonnie and Clyde”** (uzupełniają przepis na otwarcie z 18.11):
 1. Pierwsza klatka już w ruchu i na temat. Zapowiedź 6 s: ok. 10 cięć po 0,6 s na uderzeniach muzyki, na końcu ściemnienie.
-2. Kurtyna tytułu krótko (do 2,5 s), lektor zaczyna najpóźniej ok. 9 s od początku.
+2. Kurtyna tytułu krótko (ok. 2,5 s; z kwestią tyle, żeby po niej została ≥1 s obrazu). **Lektor mówi od pierwszej sekundy**, już na zapowiedzi: jedno zdanie o tym, o czym
+   jest film (bohaterowie i stawka), a w kurtynie krótkie zdanie, które stawia pytanie („Syn słońca”: „Japan began with gods,
+   monsters, and four brothers who set out to rule it.” → „Only one of them survived.”). Krzywa „Cesarza” odczytana ze
+   zrzutu: ok. 72 % w 6 s, kiedy padło pierwsze słowo, 62 % w 9 s, 50 % w 15 s, 35 % w 30 s, 21 % w 60 s — każda sekunda
+   ciszy na starcie kosztuje kilka procent widzów (20.11.2026, reżyser: „mogę gadać nawet od 1 s filmu”; wcześniej było
+   „najpóźniej ok. 9 s”).
 3. **Jeden początek.** Po zapowiedzi i tytule opowieść już się toczy: hak (tajemnica) w pierwszych 15–30 s, a obietnica to jedno
    pytanie, które prowadzi prosto w retrospekcję („It all starts…”) — bez listy „By the end, you'll know…”.
 4. Między prologiem a aktem I **bez kurtyny i tabliczki aktu** (wygląda jak drugi start filmu); zamiast niej ściemnienie i

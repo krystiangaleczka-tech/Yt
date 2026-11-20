@@ -323,10 +323,20 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
   o ¼ s), bez przejść, z uderzeniem na każdym cięciu; kończy się ściemnieniem (reżyser 18.11: „mini spoiler 5 s, co
   będzie w filmie (najlepsze akcje)”; 19.11: „najlepiej zrób go 6 s i szybko zmieniaj ujęcia”). Skrót bierze chwilę akcji,
   ale nie podpis, który zdradza tajemnicę późniejszego aktu.
-- **Kurtyna startu** trwa krótko (do 2,5 s, lektor zaczyna najpóźniej ok. 9 s) i rozsuwa się na tytuł teatru, a na
-  scenie stoi już bohater haka (`KURTYNA_START`); następne
-  ujęcie najeżdża na niego i lektor mówi, o czym jest film — **wprowadzenie przed akcją** (reżyser 18.11: „z dupy jest
-  wprowadzenie: strzelają, potem 3 giną, a nie ma info, co się dowiemy”).
+- **Lektor od pierwszej sekundy** (20.11, „Syn słońca”, reżyser: „mogę gadać nawet od 1 s filmu”): już na zapowiedzi
+  jedno zdanie o tym, o czym jest film — bohaterowie i stawka („Japan began with gods, monsters, and four brothers who
+  set out to rule it.”); kwestia stoi na pierwszym skrócie i biegnie przez całą zapowiedź (napis przechodzi na następne
+  skróty). W kurtynie startu krótkie zdanie, które stawia pytanie („Only one of them survived.”). Liczby: Podręcznik →
+  Rytm, „Początek filmu”.
+- **Jedna scena najwyżej dwa razy**: zapowiedź nie bierze scen, które są w haku — scena z haka gra w haku i w ciele
+  filmu, scena z zapowiedzi w zapowiedzi i w ciele filmu (reżyser 20.11, „Syn słońca”: „czemu pokazujemy scenę z morza
+  w zapowiedzi, zaraz w 15 znowu i potem w filmie? czemu nie tylko 2 razy?”). Przy każdej zmianie haka sprawdź listę
+  `render.WYCINEK`: żadne źródło skrótu `zap_*` nie może być źródłem skrótu `hak_*`.
+- **Kurtyna startu** trwa krótko (ok. 2,5 s; z kwestią lektora tyle, żeby po niej została co najmniej 1 s obrazu — „Syn słońca”: 3,0 s, kwestia od 0,2 s) i rozsuwa się na tytuł teatru, a na scenie stoi już bohater haka
+  (`KURTYNA_START`); następne ujęcie najeżdża na niego i lektor mówi, kim jest — **wprowadzenie przed akcją** (reżyser
+  18.11: „z dupy jest wprowadzenie: strzelają, potem 3 giną, a nie ma info, co się dowiemy”). Akcja haka pokazuje każde
+  zdarzenie raz (strzała trafia raz, następne ujęcie zaczyna się od skutku), a postać, której imię padnie dopiero w ciele
+  filmu, jest w haku bez imienia i bez podpisu („the eldest brother”).
 - **Hak** nie skacze z miejsca na miejsce bez pomostu: między dwoma ujęciami haka z różnych dekoracji stoi ujęcie
   przejściowe (teatr cieni za parawanem między strzałą a burzą; reżyser 18.11: „po 1 ujęciu nie może być od razu ta
   woda, tylko coś pomiędzy”). Po obietnicy, przed pierwszym aktem, ujęcie-pomost mówi, po co cofamy się w czasie
@@ -694,6 +704,7 @@ i błędy znalezione w kontroli.
 | Bonnie and Clyde, gagi (19.11, reżyser) | „więcej gagów i musisz poprawić ich umiejscowienie w rękach szczególnie” — karabiny łowców w X, gazety obok twarzy, łyżka obok garnka, laska w górę, miarka w powietrzu, kieszenie jako kwadraty, ręka maszynisty jak patyk, kapelusz nad maską | 1.27 |
 | Bonnie and Clyde, próbka głosów (19.11, reżyser) | „wygląda to jakby dwie historie nachodziły na siebie… na 2:48 jak kurtyna wjeżdża, pojawiają się dwie różne tabliczki po sobie” — próbka była zlepkiem fragmentów z różnych aktów bez plansz (kurtyna aktu III, zaraz potem akt VIII); w filmie cztery sceny w tym samym miejscu budowały się od pustego płótna | 1.27 |
 | Bonnie and Clyde, recenzja 114 ujęć (19.11, kontrola wykonawcy na prośbę reżysera) | lustrzane „EXTRA!” na przewracanej stronie i „SHERIFF” na aucie jadącym w lewo; „THE OUTLAWS MADE OF PAPER” i „BONNIE AND CLYDE” wystawały poza tablice; w zapowiedzi na 0,1 s mignął podpis Hamera; teczka, kapelusz, karabin, puszka i list wisiały nad pustym płótnem w czasie budowy; Bonnie „niesiona” wisiała za plecami Clyde'a; karabin „na kolanach” stojącego Clyde'a; podpis Buchera poza kadrem, W.D. podpisany już w aucie, „undertaker” w podpisie 8 s przed puentą; kanapka za karoserią, teczka i „HA HA HA!” pod napisem; nazwy cmentarzy za żałobnikami; „SEE THE DEATH CAR” biały na białym pasie | 1.27 |
+| Syn słońca EN, zapowiedź i hak (20.11, reżyser) | burza i wąż były w zapowiedzi, zaraz potem w haku (ujęcia 15 i 17) i jeszcze raz w ciele filmu — „czemu nie tylko 2 razy?” | 1.26 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
