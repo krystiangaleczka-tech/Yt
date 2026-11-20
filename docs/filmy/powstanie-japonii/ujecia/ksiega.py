@@ -258,6 +258,11 @@ SWIAT = {
          "zostały klonem; imiona reżysera w 21 kwestiach (28 imion). Kwestia 88 z nagrania reżysera. Ujęcia 16 i 65 wróciły do 5 i "
          "8 s, kurtyna 3,4 s. Film 11:48. Lektor reżysera odłożony w build/lektor_en_autor_2011.",
          "at": "2026-11-21", "by": "reżyser"},
+        {"id": "D20", "text": "Reżyser 21.11: „przywróć poprzednie czytane imiona z klona” — podmiana imion głosem reżysera cofnięta we "
+         "wszystkich 21 kwestiach; głosem reżysera zostaje tylko kwestia 88 (podziękowanie). Kwestia 65: klon urywał albo zaśmiewał "
+         "imię na końcu zdania w 5 ziarnach (42, 123, 7, 2, 99), więc tekst EN ma imię w środku, treść ta sama: „…because he "
+         "served Nigihayahi, another descendant of the gods.” Z kwestiami klona ujęcie 16 ma 6,4 s, 65 — 9,8 s (najmniej, ile się "
+         "mieści z sekundą obrazu po kwestii). Film 12:06.", "at": "2026-11-21", "by": "reżyser"},
     ],
 }
 

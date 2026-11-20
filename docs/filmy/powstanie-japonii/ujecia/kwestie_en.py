@@ -109,8 +109,8 @@ EN = {
     "ptak": "Then a golden bird landed on the tip of Iwarebiko's bow, shining like lightning.",
     "order": "In its memory, for half a century Japan honoured its soldiers with the Order of the Golden "
              "Kite.",
-    "strzala_nieba": "Nagasunehiko still refused to give in, because he served another descendant of the "
-                     "gods, Nigihayahi.",
+    # 21.11.2026 (księga D20): klon urywał albo zaśmiewał imię na końcu zdania (5 ziaren) — imię w środku, treść ta sama
+    "strzala_nieba": "Nagasunehiko still refused to give in, because he served Nigihayahi, another descendant of the gods.",
     "zdrada": "But Nigihayahi decided that the newcomer had the better claim to rule, killed the stubborn"
               " chief, and went over to his side.",
     # akt 7 · Pierwszy cesarz
