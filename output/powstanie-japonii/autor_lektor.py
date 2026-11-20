@@ -170,6 +170,21 @@ WYTNIJ = {"zdrada": [(218.33, 225.30)]}  # klucz → [(od, do)] w sekundach nagr
 # „But Nigi… But Nigihayahi decided that newcomer” — bez „the”); odcinki głosu po odszumieniu i Whisper, zmierzone 20.11
 
 
+# Trzecie nagranie (reżyser 20.11.2026, „Głos 261120_213413.m4a”, też z auta): 6 kwestii, które czytał klon
+# (13, 16, 29, 35, 40, 41) — ta sama droga co nagranie z auta.
+AUTO6 = HERE / "build" / "autor_6"
+ZRODLO_6 = ("autor (nagranie z auta „Głos 261120_213413.m4a”, 20.11.2026; odszumione resemble-enhance, pauzy z zakresów, "
+            "niżej o 0,25 półtonu, ciepła korekcja)")
+RECZNIE_6 = {
+    "hak_koronacja": (11.80, 17.67, 0.0),  # drugie podejście; pierwsze urwane po „In 2019.” (8,1–9,5 s)
+    "kadzie": (37.05, 44.80, 0.0),         # drugie podejście; pierwsze pomylone („packed it into a case here”)
+    "prawnuk": (67.55, 74.81, 0.0),        # drugie podejście („other islands”); w pierwszym „other island”
+}
+WYTNIJ_6 = {}
+ZRODLA = {"auto": dict(dir=AUTO, reczne=RECZNIE, wytnij=WYTNIJ, opis=ZRODLO_AUTO),
+          "6": dict(dir=AUTO6, reczne=RECZNIE_6, wytnij=WYTNIJ_6, opis=ZRODLO_6)}
+
+
 def granice_auto(db, s0, e0, wstecz, poprz, nast, krok=0.01):
     """Start: najwcześniejszy głos przed s0 (do `wstecz` s, nie przed poprz) bez ciszy ≥ 0,3 s po drodze; koniec: ostatni głos
     po e0 przed ciszą ≥ 0,35 s (nie dalej niż nast)."""
@@ -197,7 +212,9 @@ def granice_auto(db, s0, e0, wstecz, poprz, nast, krok=0.01):
     return max(poprz, pocz * krok - 0.08), min(nast, (ost + 1) * krok + 0.15)
 
 
-def tnij_auto():
+def tnij_auto(nazwa="auto"):
+    cfg = ZRODLA[nazwa]
+    AUTO, RECZNIE, WYTNIJ = cfg["dir"], cfg["reczne"], cfg["wytnij"]  # noqa: N806
     dop = {r["klucz"]: r for r in json.loads((AUTO / "dopasowanie.json").read_text(encoding="utf-8")) if not r.get("brak")}
     x, sr = wczytaj(AUTO / "auto_dn_mono.wav")
     db = poziomy(x, sr)
@@ -228,13 +245,15 @@ def tnij_auto():
     (AUTO / "kwestie.json").write_text(json.dumps(spis, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
-def wstaw_auto(enh_python):
+def wstaw_auto(enh_python, nazwa="auto"):
     """Pauzy z zakresów (pauzy_lektora.plik w środowisku z soundfile) → ten sam głos co klon → lektor_en/."""
+    cfg = ZRODLA[nazwa]
+    AUTO, ZRODLO_AUTO = cfg["dir"], cfg["opis"]  # noqa: N806
     teksty = {u[2]: kwestia(u[7]) for u in ujecia() if kwestia(u[7])}
     f, sr = 2 ** (-OBNIZ / 12), 44100
     pz = AUTO / "pauzy"
     pz.mkdir(exist_ok=True)
-    kopia = HERE / "build" / "lektor_en_przed_autorem_auto_2026-11-20"
+    kopia = HERE / "build" / f"lektor_en_przed_autorem_{nazwa}_2026-11-20"
     if not kopia.exists():
         shutil.copytree(LEKTOR, kopia)
     uzyte = []
@@ -282,7 +301,10 @@ def slownie_en(txt):
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
-    if cmd == "wstaw_auto":
-        wstaw_auto(sys.argv[2] if len(sys.argv) > 2 else str(HERE.parents[4] / "pilot/.venv-enhance/bin/python"))
+    if cmd == "wstaw_auto":   # wstaw_auto <python z resemble-enhance> [auto|6]
+        wstaw_auto(sys.argv[2] if len(sys.argv) > 2 else str(HERE.parents[4] / "pilot/.venv-enhance/bin/python"),
+                   sys.argv[3] if len(sys.argv) > 3 else "auto")
+    elif cmd == "tnij_auto":  # tnij_auto [auto|6]
+        tnij_auto(sys.argv[2] if len(sys.argv) > 2 else "auto")
     else:
-        {"tnij": tnij, "wstaw": wstaw, "tnij_auto": tnij_auto}[cmd]()
+        {"tnij": tnij, "wstaw": wstaw}[cmd]()

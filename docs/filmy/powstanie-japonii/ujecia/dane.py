@@ -93,8 +93,8 @@ AKTY = [
                  "przechylają się i znikają za falą, zostaje łódź Iwarebiko", "L: Dwóch pozostałych zabrała burza."),
                 # reżyser 20.11.2026: „ujęcie 16 skróć do 5 s” — kwestia krótsza („nikt z żyjących nie widział” zostaje w akcie III),
                 # w haku bez tabliczki „DZIŚ, W 2019 ROKU” (mówi to lektor), zawieszka „126” wcześniej (s_koronacja, st.skrot)
-                # 20.11 wieczorem: tymczasowo 6,7 s — kwestię czyta klon (5,2 s; nagranie reżysera z zacięciem odpadło); po
-                # nagraniu kwestii przez reżysera (ok. 3 s) z powrotem 5 s
+                # 20.11 wieczorem: 6,7 s — kwestia reżysera (trzecie nagranie) trwa 5,1 s nawet po przyspieszeniu o 8 % i przycięciu
+                # przerw, w 5 s się nie mieści; 6,7 s = oddech 0,4 + kwestia + ok. 1,2 s obrazu po niej
                 ("hak_koronacja", "PO", "naj", 6.7, "hak (skrót ujęcia „koronacja” od 1,6 s): tron pod baldachimem, wyrasta cesarz w szacie "
                  "koronacyjnej, przed nim skrzynki owinięte płótnem, zjeżdża zawieszka „126”",
                  "L: W 2019 roku dziedzic Iwarebiko dostał święty miecz."),

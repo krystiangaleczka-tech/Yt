@@ -244,6 +244,11 @@ SWIAT = {
          "„rób jedno podejście”). Odstępstwa od skryptu bez napisów: w 81 podejście z „half a kilometre” (ostatnie mówiło „half "
          "mile”), w 87 bez „However, today,”, w 88 bez „peace out”. Długości z czytania reżysera: film 12:35; ujęcie 65 8,8 s "
          "(najmniej z kwestią), 16 tymczasowo 6,7 s z klonem.", "at": "2026-11-20", "by": "reżyser"},
+        {"id": "D18", "text": "Trzecie nagranie reżysera (z auta, „Głos 261120_213413.m4a”): 6 kwestii, które czytał klon (13, 16, 29, "
+         "35, 40, 41), ta sama obróbka (odszumienie, ostatnie dobre podejście — falstart w 16, pomyłka w 35, „island” w 41 — "
+         "pauzy z zakresów, przyspieszenie ≤ 8 %, jeden głos z resztą). Cały lektor głosem reżysera: 70/70. Ujęcie 16 zostaje "
+         "6,7 s: kwestia reżysera trwa 5,1 s nawet po przyspieszeniu, w 5 s się nie mieści. Film 12:36.",
+         "at": "2026-11-20", "by": "reżyser"},
     ],
 }
 
