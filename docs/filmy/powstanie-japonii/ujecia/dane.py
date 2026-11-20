@@ -65,9 +65,9 @@ AKTY = [
         ]),
         ("Teatr i bracia", "front teatru i kraj na scenie, potem teatr cieni za parawanem, morze w burzy, sala tronowa i Izumo", [
             ("Tytuł", [
-                # 3,0 s (20.11.2026, D16): po „Only one of them survived.” ma zostać co najmniej 1 s obrazu przed cięciem; kurtyna sama
-                # rozsuwa się w niecałą sekundę, potem kamera wjeżdża w scenę
-                ("teatr", "TYT", "naj", 3.0, "krótka kurtyna startu (kurtyna, gong, szelest papieru) rozsuwa się na front teatru "
+                # 3,4 s (20.11.2026, D16/D19): po „Only one of them survived.” (klon 2,2 s) ma zostać co najmniej 1 s obrazu przed
+                # cięciem; kurtyna sama rozsuwa się w niecałą sekundę, potem kamera wjeżdża w scenę
+                ("teatr", "TYT", "naj", 3.4, "krótka kurtyna startu (kurtyna, gong, szelest papieru) rozsuwa się na front teatru "
                  "w kształcie bramy torii z szyldem „SYN SŁOŃCA”: światło już się pali, słońce dojeżdża na nitce, a na polanie wysuwają "
                  "się czterej bracia, kiedy lektor mówi, że przeżył tylko jeden; kamera wjeżdża do środka sceny (render.WYCINEK, "
                  "KURTYNA_START)",
@@ -93,9 +93,9 @@ AKTY = [
                  "przechylają się i znikają za falą, zostaje łódź Iwarebiko", "L: Dwóch pozostałych zabrała burza."),
                 # reżyser 20.11.2026: „ujęcie 16 skróć do 5 s” — kwestia krótsza („nikt z żyjących nie widział” zostaje w akcie III),
                 # w haku bez tabliczki „DZIŚ, W 2019 ROKU” (mówi to lektor), zawieszka „126” wcześniej (s_koronacja, st.skrot)
-                # 20.11 wieczorem: 6,7 s — kwestia reżysera (trzecie nagranie) trwa 5,1 s nawet po przyspieszeniu o 8 % i przycięciu
-                # przerw, w 5 s się nie mieści; 6,7 s = oddech 0,4 + kwestia + ok. 1,2 s obrazu po niej
-                ("hak_koronacja", "PO", "naj", 6.7, "hak (skrót ujęcia „koronacja” od 1,6 s): tron pod baldachimem, wyrasta cesarz w szacie "
+                # reżyser 20.11: „skróć do 5 s” — klon z „Iwarebiko's” głosem reżysera (3,8 s, księga D19) mieści się z oddechem
+                # 0,2 s i sekundą obrazu po kwestii
+                ("hak_koronacja", "PO", "naj", 5.0, "hak (skrót ujęcia „koronacja” od 1,6 s): tron pod baldachimem, wyrasta cesarz w szacie "
                  "koronacyjnej, przed nim skrzynki owinięte płótnem, zjeżdża zawieszka „126”",
                  "L: W 2019 roku dziedzic Iwarebiko dostał święty miecz."),
                 # D14: pytanie, na które film odpowiada: miecz z ogona węża (akt III) → Ninigi (skarby) → syn cesarza (śmierć) →
@@ -313,9 +313,9 @@ AKTY = [
                  "L: Na pamiątkę tego ptaka Japonia przez pół wieku odznaczała żołnierzy Orderem Złotej Kani."),
             ]),
             ("Nigihayahi", [
-                # uwaga reżysera 20.11.2026: „skróć to do 8 s” (od 4 s strzały w górę i w dół jak ciężary na siłowni); z kwestią
-                # nagraną przez reżysera (7,5 s, 20.11 wieczorem) 8,8 s — najmniej, ile się mieści z sekundą obrazu po kwestii
-                ("strzala_nieba", "PŚ", "stat", 8.8, "Nagasunehiko i Iwarebiko unoszą po strzale z niebiańskim upierzeniem; za wodzem wysuwa się "
+                # uwaga reżysera 20.11.2026: „skróć to do 8 s” (od 4 s strzały w górę i w dół jak ciężary na siłowni); klon z
+                # imionami głosem reżysera (księga D19) mieści się w 8 s z sekundą obrazu po kwestii
+                ("strzala_nieba", "PŚ", "stat", 8.0, "Nagasunehiko i Iwarebiko unoszą po strzale z niebiańskim upierzeniem; za wodzem wysuwa się "
                  "lalka Nigihayahiego; tabliczka „Nigihayahi”", "L: Nagasunehiko wciąż nie chciał się poddać, bo służył innemu potomkowi bogów, Nigihayahiemu."),
                 ("zdrada", "PŚ", "stat", N, "Nigihayahi unosi miecz, lalka Nagasunehiko opada pod rampę, a Nigihayahi kłania się Iwarebiko; zabójstwo w fazach: zamach, cios ze wstrząsem, X na oczach i migający X, wódz opada, jego proporzec pada, Nigihayahi przechodzi do Iwarebiko i się kłania",
                  "L: Ale Nigihayahi uznał, że przybysz ma lepsze prawo do władzy, zabił upartego wodza i przeszedł na jego stronę."),
@@ -488,7 +488,7 @@ def slownie(txt):
 # żeby po kwestii został co najmniej 1 s obrazu przed cięciem (Podręcznik, Rytm 2)
 # zapowiedź: zdanie autora (5,3 s z nagrania, 20.11) zaczyna się wcześniej, żeby przed kwestią w kurtynie została naturalna
 # przerwa między zdaniami (ok. 0,6–0,8 s, Podręcznik → Lektor, zasada 8)
-ODDECH = {"teatr": 0.2, "zap_jaskinia": 0.35, "strzala_nieba": 0.3, "hak_koronacja": 0.4}
+ODDECH = {"teatr": 0.2, "zap_jaskinia": 0.35, "strzala_nieba": 0.3, "hak_koronacja": 0.2}
 _KLUCZ = {d: k for _, _, _, sc in AKTY for _, _, b in sc for _, sh in b for k, *_r, d in sh}
 
 

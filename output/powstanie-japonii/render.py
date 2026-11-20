@@ -72,7 +72,7 @@ BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
 WYCINEK = {"zap_jaskinia": ("jaskinia", 5.0), "zap_susanoo": ("susanoo", 3.0), "zap_miecz": ("miecz", 0.6),
            "zap_strzaly": ("strzaly", 0.5), "zap_uzume": ("uzume", 3.8), "zap_pulapka": ("pulapka", 6.68), "zap_niedzwiedz": ("niedzwiedz", 1.6),
            "zap_wrona": ("wrona", 5.5), "zap_bitwa": ("bitwa", 3.2), "zap_blysk": ("blysk", 0.05),
-           "hak_rana": ("rana", 0.0), "hak_burza": ("burza", 1.4), "hak_koronacja": ("koronacja", 1.6), "teatr": ("teatr", 1.4, 4.4),
+           "hak_rana": ("rana", 0.0), "hak_burza": ("burza", 1.4), "hak_koronacja": ("koronacja", 1.6), "teatr": ("teatr", 1.4, 4.8),
            # księga D14 (20.11.2026): burza od pierwszego pioruna, żeby obie łodzie zniknęły w kadrze; wąż z ujęcia „orochi” bez
            # gagu, Susanoo i kadzi (s_orochi sprawdza st.skrot); zapowiedź nie bierze scen z haka (reżyser 20.11: „czemu nie tylko
            # 2 razy?”) — burza i wąż są tylko w haku i w ciele filmu

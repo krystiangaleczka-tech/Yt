@@ -249,6 +249,15 @@ SWIAT = {
          "pauzy z zakresów, przyspieszenie ≤ 8 %, jeden głos z resztą). Cały lektor głosem reżysera: 70/70. Ujęcie 16 zostaje "
          "6,7 s: kwestia reżysera trwa 5,1 s nawet po przyspieszeniu, w 5 s się nie mieści. Film 12:36.",
          "at": "2026-11-20", "by": "reżyser"},
+        {"id": "D19", "text": "Reżyser 20.11 w nocy: „nie podoba mi się mój lektor — robimy tak, jak przy Pierwszym cesarzu, klonujemy "
+         "wszystkie kwestie”; „weź z moich próbek nazwy japońskie i wrzuć w kwestie z wygenerowanym głosem”; „koniec (thank you) "
+         "z mojej prawdziwej próbki”. Lektor: klon jak w „Pierwszym cesarzu” EN (Chatterbox Multilingual, TEATR, ta sama próbka "
+         "ref_en_teatr_nizej_0.25pt, obróbka i --teatr), jedno podejście; 7 kwestii innym ziarnem po kontroli Whisperem i urwanych "
+         "słów (15, 48, 61, 65, 75, 76, 77 — dogadywanie, śmiech, urwany koniec). Imiona głosem reżysera: imiona_autora.py "
+         "(bank 25 imion z jego kwestii, podmiana z przenikaniem); w 14 kwestiach podmiana zjadała sąsiednie słowo — tam imiona "
+         "zostały klonem; imiona reżysera w 21 kwestiach (28 imion). Kwestia 88 z nagrania reżysera. Ujęcia 16 i 65 wróciły do 5 i "
+         "8 s, kurtyna 3,4 s. Film 11:48. Lektor reżysera odłożony w build/lektor_en_autor_2011.",
+         "at": "2026-11-21", "by": "reżyser"},
     ],
 }
 
