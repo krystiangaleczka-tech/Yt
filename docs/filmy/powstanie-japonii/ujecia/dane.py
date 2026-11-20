@@ -20,27 +20,39 @@ N = None
 AKTY = [
     # Akt 0 · zapowiedź i hak. Reżyser 18.11.2026: „mini spoiler 5 s, co będzie w filmie (najlepsze akcje)”, „w pierwszej minucie
     # sceneria co najmniej 3 razy”; 20.11 według lekcji z wyników „Pierwszego cesarza” i z „Bonnie and Clyde” (Podręcznik, Rytm:
-    # „jeden początek”): zapowiedź 6 s z 10 cięciami na uderzeniach (pary 0,7 / 0,4 s), kurtyna tytułu do 2,5 s, lektor zaczyna
-    # ok. 9 s, obietnica to jedno pytanie prowadzące prosto w mit, a między prologiem a aktem I nie ma kurtyny (render.BEZ_KURTYNY).
+    # „jeden początek”): zapowiedź 6 s z 10 cięciami na uderzeniach (pary 0,7 / 0,4 s), kurtyna tytułu do 2,5 s, obietnica to jedno
+    # pytanie prowadzące prosto w mit, a między prologiem a aktem I nie ma kurtyny (render.BEZ_KURTYNY).
+    # 20.11.2026, księga D14 (reżyser: „zrób, żeby było dobrze, mogę gadać nawet od 1 s filmu”; „pamiętaj, że to ma mieć spójność
+    # z całym scenariuszem”): w „Cesarzu” do 6 s (pierwsze słowo) odeszło ok. 28 % widzów, do 15 s połowa — lektor mówi już na
+    # zapowiedzi, a w kurtynie pada „przeżył tylko jeden”. Hak bez imienia Itsuse (pada w akcie IV), trafienie strzałą raz (cień od
+    # upadku), pytanie o miecz z ogona węża, na które odpowiadają akt III, skarby, śmierć cesarza i koronacja w akcie IX.
     # Ujęcia zap_* i hak_* to skróty innych ujęć filmu: render.WYCINEK rysuje oryginał od jego najlepszej chwili.
-    (0, "Zapowiedź i hak", "Sześć sekund najmocniejszych akcji filmu i ściemnienie; krótka kurtyna startu na teatr, na polanie "
-        "czterej bracia, kamera najeżdża na Iwarebiko i Itsuse, a lektor mówi, o czym jest film. Potem hak: strzała trafia Itsuse, "
-        "w teatrze cieni Itsuse pada, burza zabiera dwóch braci, w 2019 roku cesarz dostaje miecz, którego nikt nie widział — "
-        "i jedno pytanie: skąd się wziął.", [
-        ("Zapowiedź", "skróty najmocniejszych ujęć filmu, cięte bez przejść na uderzeniach muzyki; na końcu ściemnienie", [
+    (0, "Zapowiedź i hak", "Sześć sekund najmocniejszych akcji filmu, a pod nimi lektor: Japonia zaczęła się od bogów, potworów "
+        "i czterech braci; w krótkiej kurtynie startu na polanę wychodzą czterej bracia i pada „przeżył tylko jeden”. Kamera "
+        "najeżdża na Iwarebiko — to on, pierwszy cesarz, o ile istniał. Hak: strzała trafia najstarszego brata, w teatrze cieni "
+        "brat pada, burza zabiera dwóch pozostałych, w 2019 roku cesarz z jego rodu dostaje miecz, którego nikt nie widział, "
+        "a legenda mówi, że miecz wyszedł z ogona węża — i jedno pytanie: jak trafił do cesarzy.", [
+        ("Zapowiedź", "skróty najmocniejszych ujęć filmu, cięte bez przejść na uderzeniach muzyki; lektor mówi przez całą zapowiedź; "
+                      "na końcu ściemnienie", [
             ("Zapowiedź", [
-                ("zap_jaskinia", "PO", "stat", 0.7, "zapowiedź (skrót ujęcia „jaskinia” od 5,0 s): słońce odjeżdża w górę, scena gaśnie",
-                 "uderzenie na cięciu"),
-                ("zap_orochi", "PO", "naj", 0.4, "zapowiedź (skrót ujęcia „orochi” od 6,0 s): osiem głów węża stoi nad górami",
-                 "syk, uderzenie bębna"),
+                # kwestia pierwszego skrótu biegnie przez całą zapowiedź (render: napis przechodzi na następne skróty, efekty:
+                # ściszanie muzyki pod lektorem); uderzenia na cięciach zostają (efekty.DODATKI)
+                ("zap_jaskinia", "PO", "stat", 0.7, "zapowiedź (skrót ujęcia „jaskinia” od 5,0 s): słońce odjeżdża w górę, scena gaśnie; "
+                 "lektor zaczyna mówić i mówi przez całą zapowiedź",
+                 "L: Japonia zaczęła się od bogów, potworów i czterech braci, którzy wyruszyli, żeby nią rządzić."),
+                # reżyser 20.11.2026: „czemu pokazujemy scenę z morza w zapowiedzi, zaraz w 15 znowu i potem w filmie? czemu nie
+                # tylko 2 razy?” — scena z haka nie wchodzi do zapowiedzi (burza i wąż są w haku), więc zamiast nich wir Susanoo
+                # i belka pułapki
+                ("zap_susanoo", "PO", "szarp", 0.4, "zapowiedź (skrót ujęcia „susanoo” od 3,0 s): wir Susanoo przelatuje po niebie, "
+                 "poletka fruwają, dach tkalni pęka", "wicher, trzask"),
                 ("zap_miecz", "PŚ", "szarp", 0.7, "zapowiedź (skrót ujęcia „miecz” od 0,6 s): Susanoo tnie mieczem, szyje opadają",
                  "świst miecza, cios"),
                 ("zap_strzaly", "PP", "szarp", 0.4, "zapowiedź (skrót ujęcia „strzaly” od 0,5 s): chmara płonących strzał spod słońca",
                  "świst strzał, ogień"),
                 ("zap_uzume", "PP", "stat", 0.7, "zapowiedź (skrót ujęcia „uzume” od 3,8 s, po zjechaniu podpisu): bogini tańczy na kadzi, bogowie się śmieją",
                  "śmiech bogów, bęben"),
-                ("zap_burza", "PO", "szarp", 0.4, "zapowiedź (skrót ujęcia „burza” od 2,6 s): łódź przechyla się za falę, błyska",
-                 "grzmot, fale"),
+                ("zap_pulapka", "PŚ", "szarp", 0.4, "zapowiedź (skrót ujęcia „pulapka” od 6,68 s, przed X-em): z dachu chaty spada "
+                 "belka pułapki", "świst, huk belki"),
                 ("zap_niedzwiedz", "PP", "stat", 0.7, "zapowiedź (skrót ujęcia „niedzwiedz” od 1,6 s): spomiędzy cedrów wychodzi czarny "
                  "niedźwiedź", "pomruk"),
                 ("zap_wrona", "PO", "jaz", 0.4, "zapowiedź (skrót ujęcia „wrona” od 5,5 s): wrona przelatuje nad górami",
@@ -51,36 +63,46 @@ AKTY = [
                  "na końcu ściemnienie", "grzmot, potem cisza"),
             ]),
         ]),
-        ("Teatr i bracia", "front teatru i kraj na scenie, potem teatr cieni za parawanem", [
+        ("Teatr i bracia", "front teatru i kraj na scenie, potem teatr cieni za parawanem, morze w burzy, sala tronowa i Izumo", [
             ("Tytuł", [
-                ("teatr", "TYT", "naj", 2.5, "krótka kurtyna startu (do 2,5 s) rozsuwa się na front teatru w kształcie bramy torii z "
-                 "szyldem „SYN SŁOŃCA”: światło już się pali, słońce dojeżdża na nitce, a na polanie wysuwają się czterej bracia; "
-                 "kamera wjeżdża do środka sceny (render.WYCINEK, KURTYNA_START)",
-                 "kurtyna, gong, szelest papieru"),
+                # 3,0 s (20.11.2026, D16): po „Only one of them survived.” ma zostać co najmniej 1 s obrazu przed cięciem; kurtyna sama
+                # rozsuwa się w niecałą sekundę, potem kamera wjeżdża w scenę
+                ("teatr", "TYT", "naj", 3.0, "krótka kurtyna startu (kurtyna, gong, szelest papieru) rozsuwa się na front teatru "
+                 "w kształcie bramy torii z szyldem „SYN SŁOŃCA”: światło już się pali, słońce dojeżdża na nitce, a na polanie wysuwają "
+                 "się czterej bracia, kiedy lektor mówi, że przeżył tylko jeden; kamera wjeżdża do środka sceny (render.WYCINEK, "
+                 "KURTYNA_START)",
+                 "L: Przeżył tylko jeden z nich."),
             ]),
             ("Wprowadzenie", [
-                # przegląd 18.11.2026: lektor mówi o pierwszym cesarzu, więc kamera i podpis pokazują Iwarebiko, nie tylko
-                # Itsuse (inaczej widz bierze Itsuse za przyszłego cesarza, a po 15 s Itsuse ginie); kwestia krótsza (ok. 9 s)
-                ("hak_najazd", "PO", "naj", N, "kamera najeżdża z całej sceny na Itsuse i Iwarebiko stojących na polanie, dwaj młodsi "
-                 "bracia zostają za kadrem; nad Iwarebiko zjeżdża podpis „Iwarebiko, przyszły cesarz”, potem nad Itsuse „Itsuse, "
-                 "najstarszy brat”", "L: Kroniki mówią, że książę Iwarebiko razem z trzema braćmi wywalczył sobie drogę na wschód "
-                 "i został pierwszym cesarzem Japonii, o ile w ogóle istniał."),
+                # przegląd 18.11.2026: lektor mówi o pierwszym cesarzu, więc kamera i podpis pokazują Iwarebiko (wytyczne 1.15);
+                # D14 (20.11): Itsuse bez imienia i bez podpisu w haku — imię pada w akcie IV („bracia”, „rana”)
+                ("hak_najazd", "PO", "naj", N, "kamera najeżdża z całej sceny na Iwarebiko i stojącego obok najstarszego brata, dwaj "
+                 "młodsi bracia zostają za kadrem; przy imieniu nad Iwarebiko zjeżdża podpis „Iwarebiko, przyszły cesarz”",
+                 "L: Był nim książę Iwarebiko, który został pierwszym cesarzem Japonii, o ile w ogóle istniał."),
             ]),
             ("Hak", [
-                ("hak_rana", "Z", "stat", N, "hak (skrót ujęcia „rana” od początku): strzała trafia Itsuse w ramię, lalka się zatacza",
-                 "L: Ale strzała trafiła najstarszego brata, księcia Itsuse."),
-                ("hak_cien", "PŚ", "stat", 4.6, "teatr cieni: na podświetlonym parawanie cień Itsuse; z prawej wysuwa się cień łucznika, "
-                 "napina łuk i strzela, strzała trafia Itsuse w ramię, Itsuse zatacza się i opada (śmierć)",
-                 "L: Itsuse zmarł od tej rany, daleko od domu."),
-                ("hak_burza", "PO", "szarp", N, "hak (skrót ujęcia „burza” od 0,8 s): dwie łodzie z braćmi przechylają się i znikają za "
-                 "falą, zostaje łódź Iwarebiko", "L: Burza zabrała dwóch kolejnych i został tylko Iwarebiko."),
-                ("hak_koronacja", "PO", "naj", N, "hak (skrót ujęcia „koronacja” od 1,0 s): tron pod baldachimem, cesarz w szacie "
-                 "koronacyjnej, przed nim wyrastają skrzynki owinięte płótnem, zjeżdża zawieszka „126”",
-                 "L: W 2019 roku sto dwudziesty szósty cesarz z jego rodu dostał miecz, którego nikt z żyjących nie widział. "
-                 "Skąd więc się wziął?"),
+                ("hak_rana", "Z", "stat", N, "hak (skrót ujęcia „rana” od początku): strzała trafia najstarszego brata w ramię, lalka "
+                 "się zatacza", "L: Najpierw strzała trafiła najstarszego brata."),
+                # D14: trafienie widać raz (w „hak_rana”). Reżyser 20.11.2026 (uwaga do ujęcia 14): „on ma leżeć z tą strzałą na
+                # ziemi, a ten gość ma próbować ją mu wyciągnąć” — strzałę ciągnie brat (łucznik to wróg); strzała nie puszcza
+                ("hak_cien", "PŚ", "stat", N, "teatr cieni: na podświetlonym parawanie cień najstarszego brata leży na ziemi ze strzałą "
+                 "w ramieniu; z lewej wchodzi cień Iwarebiko, pochyla się, chwyta drzewce i szarpie trzy razy — strzała nie puszcza, "
+                 "ciało brata podrywa się przy każdym szarpnięciu; ręka leżącego opada (śmierć), Iwarebiko puszcza strzałę i zwiesza głowę",
+                 "L: Strzały nie dało się wyciągnąć i zmarł daleko od domu."),
+                ("hak_burza", "PO", "szarp", N, "hak (skrót ujęcia „burza” od 1,4 s): piorun wali w pierwszą łódź, potem w drugą, obie "
+                 "przechylają się i znikają za falą, zostaje łódź Iwarebiko", "L: Dwóch pozostałych zabrała burza."),
+                # reżyser 20.11.2026: „ujęcie 16 skróć do 5 s” — kwestia krótsza („nikt z żyjących nie widział” zostaje w akcie III),
+                # w haku bez tabliczki „DZIŚ, W 2019 ROKU” (mówi to lektor), zawieszka „126” wcześniej (s_koronacja, st.skrot)
+                ("hak_koronacja", "PO", "naj", 5.0, "hak (skrót ujęcia „koronacja” od 1,6 s): tron pod baldachimem, wyrasta cesarz w szacie "
+                 "koronacyjnej, przed nim skrzynki owinięte płótnem, zjeżdża zawieszka „126”",
+                 "L: W 2019 roku dziedzic Iwarebiko dostał święty miecz."),
+                # D14: pytanie, na które film odpowiada: miecz z ogona węża (akt III) → Ninigi (skarby) → syn cesarza (śmierć) →
+                # koronacja 2019 („the serpent's sword”, akt IX)
+                ("hak_waz", "PO", "naj", N, "hak (skrót ujęcia „orochi” od początku, bez gagu z gryzieniem, bez Susanoo i kadzi): nocą "
+                 "zza gór Izumo wychylają się po kolei osiem głów węża z czerwonymi oczami, ósma tuż przed pytaniem (bęben); na końcu ściemnienie",
+                 "L: Legenda mówi, że wyszedł z ogona węża. Jak więc trafił do cesarzy?"),
             ]),
         ]),
-        # obietnica „By the end, you'll know…” wypada (Rytm, „jeden początek”, 20.11.2026): pytanie stoi w kwestii koronacji
     ]),
     (1, "Kropla z włóczni", "Kroniki zaczynają od bogów Izanagi i Izanami, którzy włócznią wyłowili z morza pierwszą wyspę, a potem "
         "urodzili osiem wielkich wysp.", [
@@ -88,13 +110,18 @@ AKTY = [
             ("Początek", [
                 # pomost z haka do mitu (przegląd 18.11.2026: po obietnicy film skakał w „na początku…” bez słowa, po co)
                 # bez kurtyny po prologu (render.BEZ_KURTYNY): ściemnienie i zawieszka czasu „Wiek bogów”, kwestia prowadzi w mit
+                # D14 (20.11.2026): kwestia krótsza — przodkowie braci jako bogowie zostają w kwestii „rzeka” („przodkini czterech
+                # braci”); gag „BLUB!” w pauzie po kwestii
+                # reżyser 20.11.2026: „w ujęciu 18 jellyfish ma się powiększać na 70% kadru”
                 ("meduza", "PO", "naj", N, "zmiana dekoracji po ściemnieniu (bez kurtyny): na scenie tylko pasma papierowych fal pod "
-                 "chmurami, między falami dryfuje półprzezroczysta papierowa meduza, zjeżdża zawieszka „Wiek bogów”",
-                 "L: Wszystko zaczyna się na samym początku świata, kiedy młoda ziemia dryfowała po wodzie jak meduza, "
-                 "a przodkowie tych braci byli bogami."),
+                 "chmurami, zjeżdża zawieszka „Wiek bogów”; przy przedniej fali wynurza się mała półprzezroczysta papierowa meduza "
+                 "i przy „młoda ziemia dryfowała jak meduza” rośnie, aż zajmie ok. 70% wysokości kadru; po kwestii fala podbija "
+                 "meduzę („BLUB!”)",
+                 "L: Wszystko zaczyna się wtedy, kiedy młoda ziemia jeszcze dryfowała po wodzie jak meduza."),
+                # D14: kwestia i ruch krótsze (bogowie zjeżdżają, kiedy lektor ich nazywa; tabliczki po wylądowaniu)
                 ("most", "PP", "naj", N, "z chmur zjeżdża na nitkach tęczowy łuk mostu; po nim zsuwają się dwie lalki bogów: Izanagi w białej "
-                 "szacie z włócznią i Izanami w czerwonej; nad bogami, kiedy staną, tabliczki „Izanami” i „Izanagi”", "L: Wtedy na pływający most niebios zeszło dwoje bogów, Izanagi i Izanami, którzy "
-                 "dostali rozkaz, żeby nadać jej kształt."),
+                 "szacie z włócznią i Izanami w czerwonej; Izanagi ląduje za mocno; nad bogami, kiedy staną, tabliczki „Izanami” i "
+                 "„Izanagi”", "L: Dwoje bogów, Izanagi i Izanami, zeszło z nieba po moście, żeby nadać jej kształt."),
             ]),
             ("Wyspy", [
                 ("wlocznia", "PŚ", "stat", N, "Izanagi pochyla się z mostu i zanurza w falach długą włócznię z klejnotami; wokół drzewca fale "
@@ -454,15 +481,22 @@ def slownie(txt):
     return txt
 
 
+# Oddech przed kwestią inny niż 0,6 s (D16, 20.11.2026): w kurtynie startu lektor zaczyna, kiedy kurtyna się rozsuwa,
+# żeby po kwestii został co najmniej 1 s obrazu przed cięciem (Podręcznik, Rytm 2)
+ODDECH = {"teatr": 0.2}
+_KLUCZ = {d: k for _, _, _, sc in AKTY for _, _, b in sc for _, sh in b for k, *_r, d in sh}
+
+
 def okno_kwestii(dzwiek):
-    """(start, długość) kwestii w ujęciu: oddech 0,6 s, potem nagranie lektora — a zanim powstanie, tempo lektora."""
+    """(start, długość) kwestii w ujęciu: oddech 0,6 s (ODDECH), potem nagranie lektora — a zanim powstanie, tempo lektora."""
     txt = kwestia(dzwiek)
     if not txt:
         return (0.0, 0.0)
+    start = ODDECH.get(_KLUCZ.get(dzwiek), 0.6)
     real = nagranie(dzwiek)
     if real:
-        return (0.6, real)
-    return (0.6, len(slownie(txt).split()) / (TEMPO_EN if JEZYK == "en" else TEMPO))
+        return (start, real)
+    return (start, len(slownie(txt).split()) / (TEMPO_EN if JEZYK == "en" else TEMPO))
 
 
 # Pauza po kwestii, zanim padnie cięcie (podręcznik, „Rytm” 2 i 3). Reżyser 14.11.2026 (przy „Pierwszym cesarzu”): przy
@@ -480,7 +514,10 @@ WYDLUZ = {"wyspy": 2.0, "orochi": 2.0, "miecz": 1.5, "flota": 2.5, "naniwa": 2.0
           # gagi 20.11.2026 (GAGI.md): puenta w pauzie po kwestii, kończy się na oczach widza
           "wlocznia": 0.8,
           # marker 20.11.2026: wrona kopie piłkę, piłka wraca i ją przewraca — gag kończy się przed kurtyną aktu
-          "trzy_nogi": 2.0}
+          "trzy_nogi": 2.0,
+          # D14 (20.11.2026): obie łodzie znikają za falą i chwilę jest pusto; meduza: gag „BLUB!” w pauzie po kwestii; most:
+          # tabliczka „Izanagi” po wylądowaniu ma czas zjechać i odjechać
+          "hak_burza": 0.6, "meduza": 0.9, "most": 0.3}
 
 
 def ujecia(akt=None):

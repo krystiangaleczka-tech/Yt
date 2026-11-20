@@ -1171,8 +1171,10 @@ def s_luty2(st, w, t, T):
 def s_koronacja(st, w, t, T):
     """Wyrasta tron pod baldachimem i staje w nim cesarz w szacie koronacyjnej; przed nim na stojakach stają dwie
     skrzynki owinięte płótnem (miecz i klejnoty); zawieszka „126”."""
-    w.zawieszki = [("126", 1010, 280, pr(t, 5.0, 1.0))]
-    podpis(w, t, "DZIŚ, W 2019 ROKU", 340, 190, 0.6, 3.2)  # marker 20.11
+    hak = st.__dict__.get("skrot") == "hak_koronacja"  # skrót w haku (5 s, reżyser 20.11): lektor mówi „In 2019”, więc bez tabliczki
+    w.zawieszki = [("126", 1010, 280, pr(t, 3.6 if hak else 5.0, 1.0))]
+    if not hak:
+        podpis(w, t, "DZIŚ, W 2019 ROKU", 340, 190, 0.6, 3.2)  # marker 20.11 (ujęcie 86: „tabliczka nowadays in 2019”)
     k = ease(t / T)
     kam(st, t, 76, 640, lerp(440, 420, k), lerp(1.2, 1.3, k), 0.8)
     st.dof = 1.0

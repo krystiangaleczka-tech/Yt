@@ -16,7 +16,7 @@ Gagi zrobione 20.11.2026 (rysunek, napis EN, głos z modelu mowy, dźwięk gagu,
 
 | # | Ujęcie | Chwila | Gag | Koniec i reakcja | Dźwięk | Długość |
 |---|---|---|---|---|---|---|
-| 1 | meduza (akt I) | 5,8 s | grzbiet fali podbija meduzę, podskakuje i spłaszcza się przy lądowaniu | tabliczka „BLUB!” | plusk, stuk | bez zmian |
+| 1 | meduza (akt I) | 4,9 s (D14: po krótszej kwestii; tabliczka wcześniej się nie pokazywała — naprawione 20.11) | grzbiet fali podbija meduzę, podskakuje i spłaszcza się przy lądowaniu | tabliczka „BLUB!” | plusk, stuk | bez zmian |
 | 2 | włócznia | pauza po kwestii | Izanagi po mieszaniu ociera czoło wolną ręką | „PHEW…” | głos boga | +0,8 s |
 | 3 | kropla | 4,4 s | pierwsza wyspa gotowa | „TA-DA!” | dzwonek, głos | bez zmian |
 | 4 | koguty | 5,4 s | koguty pieją w środku nocy | „COCK-A-DOODLE-DOO!” | pianie | bez zmian |
@@ -40,7 +40,7 @@ STOP! (Naniwa), NO WAY! (Nagasunehiko), AAA! (rana), BOO! (niedźwiedź).
 
 | # | Ujęcie | Chwila | Gag | Koniec i reakcja | Dźwięk |
 |---|---|---|---|---|---|
-| 17 | most | 4,8 s | Izanagi ląduje na moście za mocno: chwieje się do przodu i do tyłu, macha ręką; Izanami ląduje lekko | „WHOA!”, potem podpis „Izanagi” | stuk, świst |
+| 17 | most | 3,0 s (D14) | Izanagi ląduje na moście za mocno: chwieje się do przodu i do tyłu, macha ręką; Izanami ląduje lekko | „WHOA!”, potem podpis „Izanagi” | stuk, świst |
 | 18 | uzume | 3,8 s | jeden z bogów śmieje się tak, że przewraca się do tyłu za rampę i po chwili wraca | tabliczki „HA HA!” | łomot |
 | 19 | kadzie | 3,3 s | grzebień we włosach Susanoo „mruga” do widza błyskiem | gwiazdka | dzwonek |
 | 20 | naniwa | 3,5 s | ostatnia łódź przybija za mocno i wjeżdża dziobem na skały | „BUMP!” | łomot, trzask |

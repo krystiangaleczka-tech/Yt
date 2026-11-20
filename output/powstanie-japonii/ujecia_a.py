@@ -57,9 +57,9 @@ def bracia_na_polanie(st, t, wstaja=True):
 
 
 def s_hak_najazd(st, w, t, T):
-    """Kamera najeżdża z całej sceny na Itsuse i Iwarebiko na polanie (przegląd 18.11.2026: lektor mówi o przyszłym
-    cesarzu, więc widz ma go zobaczyć, a nie wziąć Itsuse za cesarza). Podpisy po kolei, kiedy lektor ich nazywa:
-    „Iwarebiko, przyszły cesarz” (imię pada ok. 2 s), potem „Itsuse, najstarszy brat” (przy „trzech braciach”)."""
+    """Kamera najeżdża z całej sceny na Iwarebiko i stojącego obok najstarszego brata (przegląd 18.11.2026: lektor mówi
+    o przyszłym cesarzu, więc widz ma go zobaczyć, a nie wziąć brata za cesarza). Podpis „Iwarebiko, przyszły cesarz” zjeżdża
+    przy imieniu (ok. 1,7 s). Księga D14 (20.11.2026): brat w haku nie ma imienia ani podpisu — „Itsuse” pada w akcie IV."""
     k = ease(t / T)
     m = math.exp(lerp(math.log(1.0), math.log(1.55), k))
     kam(st, t, 36, lerp(640, 800, k), lerp(360, 455, k), m, lerp(1.0, 0.8, k), lens=lerp(1.0, 1.5, k), truck=0.8, drift=0.3)
@@ -67,47 +67,71 @@ def s_hak_najazd(st, w, t, T):
     kraj(st, t, w, pola=1.0)
     bracia_na_polanie(st, t, wstaja=False)
     podpis(w, t, "Iwarebiko, przyszły cesarz", 1000, nad(290), 1.6, 0.42 * T)
-    podpis(w, t, "Itsuse, najstarszy brat", 600, nad(280), 0.42 * T, 0.5 * T)
     zawieszki(st, t, w)
     swiatlo(st, w, t)
 
 
 # Teatr cieni między strzałą a burzą (reżyser 18.11.2026: „ujęcie, jak jest ziomek za kurtyną, ale dokładamy, że strzela
-# ktoś strzałą w niego”): cień Itsuse na parawanie, z prawej wysuwa się cień łucznika, strzela, Itsuse pada (śmierć widać).
-CIEN_STRZAL = 1.35  # łucznik puszcza cięciwę; strzała leci 0,3 s
-CIEN_TRAF = CIEN_STRZAL + 0.3
+# ktoś strzałą w niego”; księga D14: trafienie widać raz, w „hak_rana”). Reżyser 20.11.2026, uwaga do ujęcia 14: „on ma leżeć
+# z tą strzałą na ziemi, a ten gość ma próbować ją mu wyciągnąć” — cień najstarszego brata leży na ziemi ze strzałą w ramieniu,
+# z lewej wchodzi cień Iwarebiko (łucznik to wróg, więc strzałę ciągnie brat), pochyla się, chwyta drzewce i szarpie trzy
+# razy: strzała nie puszcza, ciało podrywa się przy każdym szarpnięciu; ręka leżącego opada (śmierć), Iwarebiko puszcza
+# i zwiesza głowę. Te same czasy w efekty.DODATKI.
+CIEN_CHWYT = 0.9  # dłoń Iwarebiko na drzewcu
+CIEN_SZARP = (1.15, 1.65, 2.15)  # szarpnięcia: ciągnie 0,15 s, puszcza 0,2 s
+CIEN_SMIERC = 3.0  # ręka leżącego opada
+CIEN_PUSZCZA = 3.3  # Iwarebiko puszcza strzałę i zwiesza głowę
+
+
+class _BezRysunku:
+    """Scena, która niczego nie rysuje: lalka() liczy na niej tylko położenie dłoni."""
+    def put(self, *a, **k):
+        pass
+
+
+def kat_do(t, key, x, h, cel, **kw):
+    """Kąt przedniej ręki, przy którym dłoń lalki jest najbliżej punktu cel (wytyczne 1.28: dłoń na uchwycie)."""
+    def odl(a):
+        d = lalka(_BezRysunku(), t, key, x, h, rece=(a, 0.0), **kw)
+        return (d[0] - cel[0]) ** 2 + (d[1] - cel[1]) ** 2
+    best = min(range(-80, 200, 4), key=odl)
+    return min((best + d / 4 for d in range(-8, 9)), key=odl)
 
 
 def s_hak_cien(st, w, t, T):
-    """Parawan podświetlony od tyłu: cień Itsuse, z prawej cień łucznika strzela, Itsuse zatacza się i opada."""
-    kam(st, t, 2, 640, 458, lerp(1.62, 1.7, ease(t / T)), 0.84, lens=1.42, shake=4.0 * (CIEN_TRAF < t < CIEN_TRAF + 0.3))
+    """Parawan podświetlony od tyłu: cień brata leży ze strzałą w ramieniu, cień Iwarebiko próbuje ją wyciągnąć, brat umiera."""
+    kam(st, t, 2, 640, 458, lerp(1.62, 1.7, ease(t / T)), 0.84, lens=1.42)
     st.dof = 1.6
     kraj(st, t, w, pola=1.0, kul=False)
     pw = 600
     ph = pw * 480 / 760
     y0, p0 = 704, 0.83
-    cien = dict(tint=(0.10, 0.07, 0.06), shadow=None, blur=1.6, y=y0 - 26, p=p0 + 0.001)
+    cien = dict(tint=(0.10, 0.07, 0.06), shadow=None, blur=1.6, p=p0 + 0.001)
     st.put(J.glow(), 640, y0 - ph * 0.5, p0 - 0.004, w=900, anchor=(0.5, 0.5), mode="add", alpha=0.35, shadow=None, tint=(1.0, 0.8, 0.55))
     st.put(J.parawan(), 640, y0, p0, w=pw, anchor=(0.5, 1.0), shadow=(6, 8, 10, 0.45))
-    hit = ease(pr(t, CIEN_TRAF, 0.35))
-    lean = -14 * hit + 3 * settle((t - CIEN_TRAF - 0.4) / 1.2, 1.5) * (t > CIEN_TRAF + 0.4)
-    sink = ease(pr(t, CIEN_TRAF + 1.1, 1.3))
-    hx, hh = 520, 250
-    lalka(st, t, "itsuse", hx, hh, 1.0, flip=1, lean=lean, sink=sink, rece=(25 + 30 * hit, -10 * hit), alpha=0.82 * (1 - 0.6 * sink),
-          **cien)
-    ax, ay = punkt("itsuse", hx, hh, 196, 236, y=y0 - 26, rot=lean)
-    ay += sink * hh * 0.9
-    lk = ease(pr(t, 0.25, 0.6))  # łucznik wysuwa się z prawej krawędzi parawanu
-    naciag = ease(pr(t, 0.75, 0.5)) * (1 - ease(pr(t, CIEN_STRZAL, 0.15)))
-    lalka(st, t, "wojownik2", lerp(980, 820, lk), 260, lk, flip=-1, rece=(85 + 10 * naciag, 60 * naciag), trzyma=LUK(260),
-          alpha=0.82 * lk, **cien)
-    f = pr(t, CIEN_STRZAL, CIEN_TRAF - CIEN_STRZAL)
-    if 0 < f < 1:
-        st.put(Z0.prop("strzala"), lerp(790, ax, f), lerp(ay - 30, ay, f) - 20 * math.sin(math.pi * f), p0 + 0.002, w=hh * 0.42,
-               anchor=(0.95, 0.5), rot=180, tint=(0.10, 0.07, 0.06), alpha=0.8, shadow=None, blur=1.6)
-    elif f >= 1 and sink < 0.95:
-        st.put(Z0.prop("strzala"), ax, ay, p0 + 0.002, w=hh * 0.42, anchor=(0.95, 0.5), rot=lean + 160, tint=(0.10, 0.07, 0.06),
-               alpha=0.8 * (1 - sink), shadow=None, blur=1.6)
+    # szarpnięcia: 0..1 ciągnięcie, potem powrót (strzała nie puszcza)
+    sz = max(math.sin(math.pi * min(1.0, pr(t, a, 0.15) * 0.5 + pr(t, a + 0.15, 0.2) * 0.5)) for a in CIEN_SZARP)
+    # brat leży głową w lewo (stopy w lx), podnosi się lekko przy każdym szarpnięciu; ręka leżącego opada w chwili śmierci
+    lx, hh, ly = 800, 250, y0 - 26 - 38
+    lean_l = -90 + 8 * sz - 2 * ease(pr(t, CIEN_SMIERC, 0.5))
+    reka_l = 28 * (1 - ease(pr(t, CIEN_SMIERC, 0.35))) + 5 * math.sin(t * 2.0) * (t < CIEN_SMIERC)  # nisko: nie myli się ze strzałą
+    lalka(st, t, "itsuse", lx, hh, 1.0, y=ly, flip=1, lean=lean_l, rece=(reka_l, 0), alpha=0.82, **cien)
+    ax, ay = punkt("itsuse", lx, hh, 196, 236, y=ly, rot=lean_l)  # grot w ramieniu
+    kier = math.radians(62)  # strzała wbita z góry, lotka w stronę Iwarebiko
+    dl = hh * 0.42
+    wyj = 18 * sz  # strzała wysuwa się kawałek i wraca (nie puszcza)
+    tip = (ax - math.cos(kier) * wyj, ay - math.sin(kier) * wyj)
+    st.put(Z0.prop("strzala"), tip[0], tip[1], p0 + 0.002, w=dl, anchor=(0.95, 0.5), rot=62, tint=(0.10, 0.07, 0.06), alpha=0.8,
+           shadow=None, blur=1.6)
+    chwyt = (tip[0] - math.cos(kier) * dl * 0.62, tip[1] - math.sin(kier) * dl * 0.62)  # dłoń na drzewcu
+    # Iwarebiko wchodzi z lewej, pochyla się nad bratem, przy szarpnięciach odchyla się do tyłu; po śmierci brata zwiesza głowę
+    wej = ease(pr(t, 0.0, 0.6))
+    ix = lerp(250, 470, wej)
+    lean_i = 28 * ease(pr(t, 0.4, 0.5)) - 12 * sz + 10 * ease(pr(t, CIEN_PUSZCZA, 1.0))
+    trzyma = pr(t, 0.55, CIEN_CHWYT - 0.55) * (1 - ease(pr(t, CIEN_PUSZCZA, 0.5)))  # 0..1: ręka w drodze do drzewca i z powrotem
+    kw = dict(y=y0 - 26, flip=1, lean=lean_i)
+    kat = lerp(8, kat_do(t, "iwarebiko", ix, 260, chwyt, **kw), ease(trzyma))
+    lalka(st, t, "iwarebiko", ix, 260, 1.0, rece=(kat, -6), alpha=0.82 * wej, **kw, **cien)  # wchodzi bokiem, nie zza rampy
     st.put(J.parawan_rama(), 640, y0, p0 + 0.003, w=pw, anchor=(0.5, 1.0), shadow=(2, 3, 4, 0.4))
     swiatlo(st, w, t, dim=0.92)
     st.spot = (640, y0 - ph * 0.5, p0, 560, 0.5)
@@ -151,25 +175,35 @@ def s_cien(st, w, t, T):
     st.spot = (640, y0 - ph * 0.5, p0, 560, 0.5)
 
 
-MEDUZA_HOP = 5.8  # gag: fala podbija meduzę (ten sam czas w efektach)
+MEDUZA_HOP = 4.9  # gag: fala podbija meduzę tuż po kwestii (ten sam czas w efektach; D14: kwestia krótsza)
+# Reżyser 20.11.2026: „w ujęciu 18 jellyfish ma się powiększać na 70% kadru” — mała meduza wynurza się przy przedniej fali,
+# a przy „young earth… drifted like a jellyfish” rośnie i unosi się, aż zajmie ok. 70% wysokości kadru (czubek kopuły ok. 0,14
+# wysokości, macki chowają się za przednią falą); ten sam czas w efektach
+MEDUZA_ROSNIE = (2.4, 2.3)  # start, czas wzrostu
 
 
 def s_meduza(st, w, t, T):
-    """Zmiana dekoracji: same fale pod chmurami; między nimi dryfuje papierowa meduza."""
+    """Zmiana dekoracji: same fale pod chmurami; przy przedniej fali wynurza się papierowa meduza i rośnie do 70% kadru."""
     k = ease(t / T)
-    kam(st, t, 3, 640, lerp(420, 400, k), lerp(1.0, 1.12, k), 0.6, truck=0.5)
+    kam(st, t, 3, 640, lerp(420, 400, k), lerp(1.0, 1.06, k), 0.66, truck=0.5)
     st.dof = 0.6
     morze(st, t, w, tint=(0.9, 0.94, 0.98))
-    km = pr(t, 1.8, 1.4)
+    # zawieszka czasu najpierw: podpis „BLUB!” dopisuje się do listy (wcześniej przypisanie listy po gagu kasowało tabliczkę);
+    # zawieszka odjeżdża, zanim meduza urośnie pod nią
+    w.zawieszki = [("Wiek bogów", 640, 250, pr(t, 0.5, 1.0) * (1 - pr(t, 2.2, 0.8)))]  # 20.11.2026, „jeden początek”: zawieszka czasu zamiast kurtyny aktu
+    km = pr(t, 1.0, 1.2)
     if km > 0:
-        x, y = lerp(430, 760, t / T), 498 + 14 * math.sin(t * 1.4)
+        g = ease(pr(t, *MEDUZA_ROSNIE))
+        hm = lerp(150, 585, g)  # wysokość arkusza meduzy (kopuła to górne 28%, kotwica na dole kopuły); 70% kadru zmierzone 20.11
+        x = lerp(lerp(470, 560, pr(t, 1.0, MEDUZA_ROSNIE[0] - 1.0)), 640, g) + 10 * math.sin(t * 0.9)
+        y = lerp(612, 346, g) + lerp(8, 12, g) * math.sin(t * 1.4)
         # gag (reżyser 20.11.2026: „dołóż gagi”, Podręcznik „Humor i gagi”, lista w docs/filmy/powstanie-japonii/GAGI.md): grzbiet fali podbija meduzę — podskakuje, spłaszcza się przy lądowaniu, „BLUB!”
         hop = math.sin(math.pi * pr(t, MEDUZA_HOP, 0.7))
-        squash = 0.25 * math.sin(math.pi * pr(t, MEDUZA_HOP + 0.7, 0.35))
-        st.put(J.meduza(), x, y + (1 - ease(km)) * 70 - 90 * hop, 0.52, h=150, anchor=(0.5, 0.35),
-               sy=1 + 0.07 * math.sin(t * 3.2) - squash, sx=1 + squash, rot=4 * math.sin(t * 0.9) + 20 * hop, alpha=ease(km), shadow=(3, 4, 6, 0.2))
-        podpis(w, t, "BLUB!", lerp(430, 760, MEDUZA_HOP / T), 330, MEDUZA_HOP + 0.4, 1.6)
-    w.zawieszki = [("Wiek bogów", 640, 250, pr(t, 0.5, 1.0) * (1 - pr(t, 5.0, 0.8)))]  # 20.11.2026, „jeden początek”: zawieszka czasu zamiast kurtyny aktu
+        squash = 0.18 * math.sin(math.pi * pr(t, MEDUZA_HOP + 0.7, 0.35))
+        st.put(J.meduza(), x, y + (1 - ease(km)) * 40 - lerp(90, 60, g) * hop, 0.68, h=hm, anchor=(0.5, 0.35),
+               sy=1 + 0.05 * math.sin(t * 3.2) - squash, sx=1 + squash, rot=4 * math.sin(t * 0.9) + lerp(20, 6, g) * hop, alpha=0.9 * ease(km),
+               shadow=(3, 4, 6, 0.2))
+        podpis(w, t, "BLUB!", 960, 150, MEDUZA_HOP + 0.4, 1.4)
     zawieszki(st, t, w)
     swiatlo(st, w, t, extra=(0.95, 0.98, 1.02))
 
@@ -187,7 +221,11 @@ def poklad(x):
     return J.most_y(x, x0, y0 + 360 * wd / 1200, wd)
 
 
-MOST_LAD = 4.8  # gag: Izanagi ląduje na moście z potknięciem (ten sam czas w efektach)
+# D14 (20.11.2026): kwestia krótsza, więc ruch też — most spada od 0,2 s, bogowie zjeżdżają, kiedy lektor ich nazywa
+# (ok. 1,3 i 2,0 s), tabliczki po wylądowaniu; te same czasy w efekty.ZDARZENIA
+MOST_SPAD = (0.2, 1.2)  # most niebios zjeżdża na nitkach: start, czas
+MOST_ZJAZD = {"izanami": 1.0, "izanagi": 1.6}  # początek zjazdu bogów po moście (zjazd trwa 1,4 s)
+MOST_LAD = MOST_ZJAZD["izanagi"] + 1.4  # gag: Izanagi ląduje na moście z potknięciem (ten sam czas w efektach)
 
 
 def s_most(st, w, t, T):
@@ -197,17 +235,18 @@ def s_most(st, w, t, T):
     kam(st, t, 4, 640, lerp(380, 370, k), lerp(1.2, 1.32, k), 0.5, truck=0.5)
     st.dof = 0.7
     morze(st, t, w, tint=(0.92, 0.95, 0.98))
-    most(st, t, pr(t, 0.4, 1.6))
-    for key, x0, x1, d, fl, rc, tr in (("izanami", 610, 560, 2.4, 1.0, (10, 0), None),
-                                       ("izanagi", 700, 670, 3.2, -1.0, (55, 0), WLOCZNIA(150))):
-        kk = pr(t, d, 1.6)
-        x = lerp(x0, x1, ease(pr(t, d + 1.8, 2.0)))
+    most(st, t, pr(t, *MOST_SPAD))
+    for key, x0, x1, fl, rc, tr in (("izanami", 610, 560, 1.0, (10, 0), None),
+                                    ("izanagi", 700, 670, -1.0, (55, 0), WLOCZNIA(150))):
+        d = MOST_ZJAZD[key]
+        kk = pr(t, d, 1.4)
+        x = lerp(x0, x1, ease(pr(t, d + 1.6, 1.6)))
         # gag (GAGI.md, reżyser 20.11.2026: „wykonaj wszystkie poprawki w ujęciach”): Izanagi ląduje za mocno — chwieje się do przodu i do tyłu, macha ręką; Izanami ląduje lekko
         chw = math.sin(math.pi * 2 * pr(t, MOST_LAD, 0.7)) * (1 - pr(t, MOST_LAD, 0.9)) if key == "izanagi" else 0.0
         zjazd(st, t, key, x, poklad(x) + 6, 150, kk, p=MOST[3] + 0.005, flip=fl, rece=(rc[0], 140 * abs(chw)) if key == "izanagi" else rc,
               trzyma=tr, lean=18 * chw)
     # bogowie stoją na szczycie łuku, blisko górnej krawędzi kadru: tabliczki wiszą obok nich, na wysokości głów
-    podpis(w, t, "Izanami", 455, poklad(560) - 130, 4.1, 2.6)
+    podpis(w, t, "Izanami", 455, poklad(560) - 130, MOST_ZJAZD["izanami"] + 1.5, 2.4)
     podpis(w, t, "OJEJ!", 800, poklad(690) - 150, MOST_LAD - 0.1, 0.8)
     podpis(w, t, "Izanagi", 815, poklad(690) - 130, MOST_LAD + 1.4, 2.4)
     zawieszki(st, t, w)
@@ -683,14 +722,16 @@ OROCHI_GRYZ = (5.6, 6.4)  # głowa 2 kłapie na głowę 3, potem 3 oddaje (ten s
 
 
 def s_orochi(st, w, t, T):
-    """Zza gór wychylają się po kolei osiem głów na długich szyjach, z czerwonymi oczami."""
+    """Zza gór wychylają się po kolei osiem głów na długich szyjach, z czerwonymi oczami. Jako skrót w haku („hak_waz”,
+    księga D14) sam wąż: bez gagu z gryzieniem, bez Susanoo i kadzi (lektor mówi tylko o wężu i mieczu)."""
+    hak = st.__dict__.get("skrot") == "hak_waz"
     k = ease(t / T)
     kam(st, t, 21, 700, lerp(420, 400, k), lerp(1.0, 1.1, k), 0.6, truck=0.5)
     st.dof = 0.6
     w.noc = 0.25
     kraj(st, t, w, rzeka=1.0)
     # marker reżysera 20.11.2026: głowy się ruszają (każda w swoim rytmie), a dwie gryzą się nawzajem; skrót w zapowiedzi bierze to samo
-    gryz = [math.sin(math.pi * pr(t, a, 0.45)) for a in OROCHI_GRYZ]
+    gryz = [0.0 if hak else math.sin(math.pi * pr(t, a, 0.45)) for a in OROCHI_GRYZ]
     for n, (x, hy) in enumerate(GLOWY):
         base = (x, ziemia("srodek", x) + 70)
         hx = x + (40 if n % 2 else -40) + 26 * math.sin(t * (1.3 + 0.17 * n) + n)
@@ -701,11 +742,13 @@ def s_orochi(st, w, t, T):
             hx += (70 if n == 2 else -70) * atak - (30 if n == 2 else -30) * odskok
             hy_ += -20 * atak + 16 * odskok
         szyja(st, t, base, (hx, hy_), pr(t, 0.6 + 0.6 * n, 1.0), n % 3, P.miasto + 0.012 + 0.0015 * n, n)
-    podpis(w, t, "KŁAP!", 600, 150, OROCHI_GRYZ[0] + 0.1, 1.6)
+    if not hak:
+        podpis(w, t, "KŁAP!", 600, 150, OROCHI_GRYZ[0] + 0.1, 1.6)
     zawieszki(st, t, w)
-    kadzie(st, t, 1.0)
-    lalka(st, t, "susanoo", SUS_X, 290, flip=1, rece=(20, 0), lean=-3 * ease(pr(t, 3.0, 1.0)))
-    grzebien_we_wlosach(st, "susanoo", SUS_X, 290)
+    if not hak:
+        kadzie(st, t, 1.0)
+        lalka(st, t, "susanoo", SUS_X, 290, flip=1, rece=(20, 0), lean=-3 * ease(pr(t, 3.0, 1.0)))
+        grzebien_we_wlosach(st, "susanoo", SUS_X, 290)
     swiatlo(st, w, t)
 
 

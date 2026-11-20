@@ -52,6 +52,14 @@ for _akt, _k, _klucz, _kadr, _ruch, _sec, _opis, _snd in UJ:
     SCENES.append((_t, _t + _sec, _ruch, kwestia(_snd), *okno_kwestii(_snd)))
     _t += _sec
 DUR = _t
+# Kwestia dłuższa niż jej ujęcie (księga D14: lektor mówi przez całą zapowiedź, a kwestia stoi na pierwszym skrócie): napis
+# przechodzi na następne ujęcia bez własnej kwestii, z początkiem kwestii liczonym od ich początku (ujemny start).
+for _i, (_a, _b, _ruch, _txt, _vs, _vl) in enumerate(SCENES):
+    _j = _i + 1
+    while _txt and _j < len(SCENES) and not SCENES[_j][3] and _a + _vs + _vl > SCENES[_j][0]:
+        _aj, _bj, _rj = SCENES[_j][:3]
+        SCENES[_j] = (_aj, _bj, _rj, _txt, _a + _vs - _aj, _vl)
+        _j += 1
 
 
 BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
@@ -61,10 +69,14 @@ BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
 # miejsca w filmie i z jego długością (kamera i zdarzenia liczą się tak jak w oryginale) — to skrót, a nie nowa scena.
 # Trzeci element: długość, z jaką liczy się oryginał, gdy ujęcie skraca samo siebie (teatr: od 1 s, za kurtyną zapala się
 # lampa, szyld „SON OF THE SUN” widać, gdy kurtyna się rozsunie, bracia wysuwają się na polanę, kamera dojeżdża do 5 s).
-WYCINEK = {"zap_jaskinia": ("jaskinia", 5.0), "zap_orochi": ("orochi", 6.0), "zap_miecz": ("miecz", 0.6),
-           "zap_strzaly": ("strzaly", 0.5), "zap_uzume": ("uzume", 3.8), "zap_burza": ("burza", 2.6), "zap_niedzwiedz": ("niedzwiedz", 1.6),
+WYCINEK = {"zap_jaskinia": ("jaskinia", 5.0), "zap_susanoo": ("susanoo", 3.0), "zap_miecz": ("miecz", 0.6),
+           "zap_strzaly": ("strzaly", 0.5), "zap_uzume": ("uzume", 3.8), "zap_pulapka": ("pulapka", 6.68), "zap_niedzwiedz": ("niedzwiedz", 1.6),
            "zap_wrona": ("wrona", 5.5), "zap_bitwa": ("bitwa", 3.2), "zap_blysk": ("blysk", 0.05),
-           "hak_rana": ("rana", 0.0), "hak_burza": ("burza", 0.8), "hak_koronacja": ("koronacja", 1.0), "teatr": ("teatr", 1.4, 4.4)}
+           "hak_rana": ("rana", 0.0), "hak_burza": ("burza", 1.4), "hak_koronacja": ("koronacja", 1.6), "teatr": ("teatr", 1.4, 4.4),
+           # księga D14 (20.11.2026): burza od pierwszego pioruna, żeby obie łodzie zniknęły w kadrze; wąż z ujęcia „orochi” bez
+           # gagu, Susanoo i kadzi (s_orochi sprawdza st.skrot); zapowiedź nie bierze scen z haka (reżyser 20.11: „czemu nie tylko
+           # 2 razy?”) — burza i wąż są tylko w haku i w ciele filmu
+           "hak_waz": ("orochi", 0.0)}
 # Kurtyna startu (reżyser 18.11.2026: „po spoilerze na końcu ściemnienie i kurtyna startu z pierwszym ujęciem”): ujęcie
 # zaczyna się zasuniętą kurtyną bez tytułu, która się rozsuwa (zapowiedź kończy się ściemnieniem — koniec swojej sceny).
 KURTYNA_START = {"teatr"}
@@ -194,6 +206,7 @@ def uloz(t, void=None):
         Tj = dl[0] if dl else SCENES[j][1] - SCENES[j][0]
         st = Stage(od + lt, seed=ziarno(j))  # czas sceny jak w oryginale (mruganie, drżenie, kołysanie)
         st.void = void
+        st.skrot = KOL[i]  # oryginał wie, że jest rysowany jako skrót (np. wąż w haku bez gagu)
         w = swiat.stan(j)
         if src in BUDUJ:
             w.build = od + lt

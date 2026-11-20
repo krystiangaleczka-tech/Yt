@@ -8,24 +8,25 @@ understood”, „Iwarebiko's bow”, a nie „he” tam, gdzie po polsku domyś
 """
 
 EN = {
-    # akt 0 · zapowiedź i hak (szkic D, reżyser 18.11.2026)
-    "hak_najazd": "The chronicles say Prince Iwarebiko fought his way east with three brothers to become Japan's first emperor, "
-                  "if he ever existed.",
-    "hak_rana": "But an arrow struck the eldest brother, Prince Itsuse.",
-    "hak_cien": "Itsuse died of that wound, far from home.",
-    "hak_burza": "A storm took two more, leaving only Iwarebiko.",
-    "hak_koronacja": "In 2019, the hundred and twenty-sixth emperor of his line received a sword no one alive has seen. "
-                     "So where did it come from?",
+    # akt 0 · zapowiedź i hak (szkic D, reżyser 18.11.2026; księga D14, 20.11.2026: lektor od pierwszej sekundy, na zapowiedzi;
+    # spójność z resztą: „four brothers” = akt IV „bracia”, łuk Itsuse → „Remember that arrow?” (rana), „died far from home” →
+    # „died on the boat” (itsuse), burza innymi słowami niż w akcie V, miecz z ogona węża → akt III, skarby, śmierć, koronacja)
+    "zap_jaskinia": "Japan began with gods, monsters, and four brothers who set out to rule it.",
+    "teatr": "Only one of them survived.",
+    "hak_najazd": "That was Prince Iwarebiko, who became Japan's first emperor, if he ever existed.",
+    "hak_rana": "First, an arrow struck the eldest brother.",
+    "hak_cien": "The arrow wouldn't come out, and he died far from home.",
+    "hak_burza": "A storm took the other two.",
+    "hak_koronacja": "In 2019, Iwarebiko's heir received a sacred sword.",
+    "hak_waz": "Legend says it came from a serpent's tail. So how did it reach the emperors?",
     # cien: ujęcie z pierwszej wersji filmu (parawan z cieniem władcy), dziś poza filmem — kwestia jak w nagraniu lektora
     "cien": "The chronicles call him a great-great-great-grandson of the sun goddess, and historians "
             "still argue whether he ever lived.",
     # reżyser 18.11.2026: ujęcie 14 krótsze o 4 s — obietnica bez wrony (wrona i tak wraca w tytule aktu V)
     "luty": "By the end, you'll know where that sword came from and why Japan's birthday was made up.",
     # akt 1 · Kropla z włóczni
-    "meduza": "It all starts at the very beginning of the world, when the young earth drifted like a jellyfish, and "
-              "these brothers' ancestors were gods.",
-    "most": "Then two gods, Izanagi and Izanami, stepped onto the Floating Bridge of Heaven with orders "
-            "to give it shape.",
+    "meduza": "It all starts when the young earth still drifted like a jellyfish.",
+    "most": "Two gods, Izanagi and Izanami, came down the bridge of heaven to give it shape.",
     "wlocznia": "They dipped a jewelled spear into the sea and stirred until the salt water began to "
                 "thicken.",
     "kropla": "When they lifted it, salt dripped from the tip, and from that drop grew the first island.",
@@ -191,7 +192,8 @@ ETYKIETY = {
     # w dwóch rzędach (render.kurtyna)
     "Akt 1 · Kropla z włóczni": "Act I · How do you make a country from a single drop?",  # kurtyna po haku (akt 0)
     "Akt 2 · Słońce w jaskini": "Act II · Why did the sun hide in a cave?",
-    "Akt 3 · Miecz w ogonie węża": "Act III · What was hiding in the serpent's tail?",
+    # D14: hak mówi już, że miecz wyszedł z ogona węża — pytanie aktu III go nie powtarza
+    "Akt 3 · Miecz w ogonie węża": "Act III · How do you beat a serpent with eight heads?",
     "Akt 4 · Na wschód": "Act IV · Why would a prince sail east at forty-five?", "Akt 5 · Wrona z gór Kumano": "Act V · Who sent the crow?",
     "Akt 6 · Złoty ptak": "Act VI · How do you win a battle in a hailstorm?", "Akt 7 · Pierwszy cesarz": "Act VII · Who sat on the first throne?",
     "Akt 8 · Kronika i ziemia": "Act VIII · What does the evidence say?", "Akt 9 · Źródło słońca": "Act IX · Why 'the origin of the sun'?",

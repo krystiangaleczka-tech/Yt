@@ -282,7 +282,12 @@ def dzwiek(lektor=False):
     ops = [{"type": "remove_clip", "clip_id": c["id"]} for c in p["sequence"]["clips"]
            if c["track_id"] in (("a1", "a2", "a3") if lektor else ("a2", "a3"))]
     total = 0
-    for r in rozpiska():
+    rows = rozpiska()
+    # miejsce na kwestię = jej ujęcie; wyjątek (księga D14): zdanie z pierwszego skrótu zapowiedzi biegnie przez całą zapowiedź
+    # (render robi to samo z napisem). Inne ujęcia bez zmian: kwestia nie wchodzi na nieme ujęcie akcji.
+    zap = sum(x["sec"] for x in rows if x["klucz"].startswith("zap_"))
+    miejsce = {r["klucz"]: zap if r["klucz"] == "zap_jaskinia" else r["sec"] for r in rows}
+    for r in rows:
         sc = by_shot[r["sid"]]
         total = max(total, sc["start"] + sc["duration"])
         wav = LEKTOR_DIR / f"{r['klucz']}.wav"
@@ -291,8 +296,8 @@ def dzwiek(lektor=False):
         meta = json.loads(wav.with_suffix(".json").read_text())
         if meta["text"] != kwestia(r["snd"]):
             continue
-        if okno_kwestii(r["snd"])[0] + meta["duration"] > r["sec"] + 0.2:  # ujęcie skrócone pod nagranie: kwestia wchodziłaby na następne
-            print(f"  lektor {r['klucz']}: nagranie {meta['duration']:.1f} s dłuższe niż ujęcie {r['sec']:.1f} s — bez klipu (nagra reżyser)")
+        if okno_kwestii(r["snd"])[0] + meta["duration"] > miejsce[r["klucz"]] + 0.2:  # kwestia wchodziłaby na następne ujęcie
+            print(f"  lektor {r['klucz']}: nagranie {meta['duration']:.1f} s dłuższe niż miejsce {miejsce[r['klucz']]:.1f} s — bez klipu (nagra reżyser)")
             continue
         cached = st.setdefault("lektor", {}).get(r["klucz"])
         if not cached or cached["sha"] != _sha(wav):

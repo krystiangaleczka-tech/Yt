@@ -476,6 +476,8 @@
       "id": "skarby",
       "title": "Lustro, klejnoty i miecz",
       "setup": [
+        "d00_16~miecz",
+        "d00_17~ogona",
         "d02_07~lustro",
         "d02_09~skarbów",
         "d03_06~miecz"
@@ -493,7 +495,6 @@
       "id": "slonce",
       "title": "Potomek słońca walczy pod słońce",
       "setup": [
-        "d01_01~bogami",
         "d02_03~przodkini"
       ],
       "clues": [
@@ -509,7 +510,8 @@
       "id": "bracia",
       "title": "Czterech braci wyrusza, wraca jeden",
       "setup": [
-        "d00_12~braćmi",
+        "d00_01~czterech braci",
+        "d00_11~przeżył",
         "d04_03~braćmi"
       ],
       "clues": [
@@ -674,6 +676,24 @@
       "text": "Zmiany od „Bonnie and Clyde” (reżyser 20.11: „dołóż głosy, efekty, gagi i inne rzeczy na film, patrząc na nowe zmiany od Bonnie i Clyde”). Jeden początek (Podręcznik, Rytm): zapowiedź 6 s z 10 cięciami na uderzeniach, kurtyna tytułu 2,5 s, lektor od ok. 9 s, obietnica „By the end…” wypada — hak kończy się jednym pytaniem („So where did it come from?”), a prolog przechodzi w akt I bez kurtyny (ściemnienie i zawieszka „The Age of the Gods”). Gagi według rozdziału „Humor i gagi” (GAGI.md: 16 zrobionych, 9 do wyboru; silnik humoru: legenda kontra rzeczywistość, gag powracający: królowa przed lustrem; bez gagów przy śmierci i żałobie). Głosy postaci z modelu mowy (Kokoro + Chatterbox Turbo, bez głosu reżysera) pod tabliczkami, łagodne ściszanie pod lektorem, przystanek muzyki na puencie gagu, uderzenie na każdym cięciu zapowiedzi.",
       "at": "2026-11-20",
       "by": "reżyser"
+    },
+    {
+      "id": "D14",
+      "text": "Otwarcie po krzywej „Pierwszego cesarza” i opinii z ChatGPT (reżyser 20.11: „zrób, żeby było dobrze, mogę gadać nawet od 1 s filmu”; „pamiętaj, że to ma mieć spójność z całym scenariuszem”). Krzywa „Cesarza” (zrzut z YouTube Studio): ok. 72 % w 6 s, kiedy padło pierwsze słowo, 62 % w 9 s, 50 % w 15 s, 35 % w 30 s, 21 % w 60 s — cisza na starcie kosztuje. Lektor mówi od 0,6 s na zapowiedzi („Japan began with gods, monsters, and four brothers who set out to rule it.”), w kurtynie startu „Only one of them survived.”, potem najazd na Iwarebiko z podpisem przy imieniu (wprowadzenie przed akcją, wytyczne 1.15 i 1.26). Hak: brat bez imienia (Itsuse pada w akcie IV), trafienie strzałą raz, teatr cieni od upadku, burza od pierwszego pioruna, koronacja i wąż: „Legend says it came from a serpent's tail. So how did it reach the emperors?” — odpowiadają akt III (miecz z ogona), skarby (Ninigi), śmierć cesarza (skarby przechodzą na syna) i koronacja w akcie IX („the serpent's sword”). Kwestie haka innymi słowami niż ciało filmu („Remember that arrow?”, „died on the boat”, „Then a storm sank two boats”). Meduza i most krótsze, tytuł aktu III nie powtarza haka („How do you beat a serpent with eight heads?”). Kropla z 1:13 na ok. 1:07; film 11:45.",
+      "at": "2026-11-20",
+      "by": "reżyser"
+    },
+    {
+      "id": "D15",
+      "text": "Uwagi reżysera do otwarcia (20.11 wieczorem). Ujęcie 16 (koronacja w haku) skrócone do 5 s: kwestia „In 2019, Iwarebiko's heir received a sacred sword.” („nikt z żyjących nie widział” zostaje w akcie III), w haku bez tabliczki „NOWADAYS, IN 2019” (marker do ujęcia 86 — tam zostaje; w haku mówi to lektor), zawieszka „126” wcześniej. Ujęcie 18: meduza wynurza się mała i rośnie do ok. 70% wysokości kadru („w ujęciu 18 jellyfish ma się powiększać na 70% kadru”). Ujęcie 14: brat leży na ziemi ze strzałą, Iwarebiko szarpie ją trzy razy, strzała nie puszcza, ręka brata opada (reżyser: „on ma leżeć z tą strzałą na ziemi, a ten gość ma próbować ją mu wyciągnąć”; łucznik to wróg, więc ciągnie brat) — kwestia „The arrow wouldn't come out, and he died far from home.” (zgodna z „Itsuse never recovered… died on the boat”). Zapowiedź bez scen z haka: zamiast burzy i węża wir Susanoo i belka pułapki — każda scena najwyżej dwa razy (reżyser: „czemu nie tylko 2 razy?”; Wytyczne 1.26). Film 11:42.",
+      "at": "2026-11-20",
+      "by": "reżyser"
+    },
+    {
+      "id": "D16",
+      "text": "Skrypt lektora do nagrania przez reżysera (SKRYPT_LEKTORA_EN.md, generator ujecia/skrypt_lektora.py: ujęcie, start, co widać, kwestia, „mów ok.”, „maks.”). Przy liczeniu: po „Only one of them survived.” w kurtynie 2,5 s zostawało 0,1 s obrazu przed cięciem — kurtyna startu ma 3,0 s, a lektor zaczyna w niej po 0,2 s (dane.ODDECH), więc po kwestii zostaje ponad 1 s (Podręcznik, Rytm 2). Film 11:42.",
+      "at": "2026-11-20",
+      "by": "wykonawca (reżyser: „zrób dobrze”)"
     }
   ]
 }

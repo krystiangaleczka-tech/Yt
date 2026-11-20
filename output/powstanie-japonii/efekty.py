@@ -379,8 +379,9 @@ ZDARZENIA = {
     "teatr": [(0.2, "gong", 1.0), (0.7, "knock", 0.6), (1.3, "whoosh", 0.6)],
     "luty": [(1.0, "whoosh", 0.4)] + [(1.8 + 0.45 * n, "knock", 0.5) for n in range(9)],
     "cien": [(0.3, "knock", 0.5), (1.4, "whoosh", 0.3), (3.9, "whoosh", 0.5)],
-    "meduza": [(1.8, "water", 3.0)],
-    "most": [(0.4, "whoosh", 0.6), (2.4, "whoosh", 0.4), (3.2, "whoosh", 0.4), (1.9, "knock", 0.4)],
+    "meduza": [(1.0, "water", 3.0), (A.MEDUZA_ROSNIE[0], "whoosh", 0.35)],  # meduza wynurza się, potem rośnie
+    "most": [(A.MOST_SPAD[0], "whoosh", 0.6), (A.MOST_ZJAZD["izanami"], "whoosh", 0.4), (A.MOST_ZJAZD["izanagi"], "whoosh", 0.4),
+             (sum(A.MOST_SPAD) - 0.1, "knock", 0.4)],
     "wlocznia": [(0.6, "splash", 0.5), (1.4, "water", 6.0)],
     "kropla": [(2.55, "splash", 0.7), (2.8, "thud", 0.4)],
     "wyspy": [(0.7 + 0.55 * n, "thud", 0.35) for n in range(8)],
@@ -549,16 +550,21 @@ def zapisz(path, x):
 # Dźwięki dokładane do skrótów (akt 0, render.WYCINEK): mocne uderzenie na start zapowiedzi i gong pod tytuł teatru.
 DODATKI = {"zap_jaskinia": [(0.0, "gong", 1.0), (0.0, "drum", 0.9)], "zap_blysk": [(0.0, "drum", 0.9), (0.0, "gong", 0.8)],
            # zapowiedź ma uderzenie na każdym cięciu, jak zwiastun (Podręcznik, Dźwięk; 20.11.2026)
-           **{k: [(0.0, "drum", 0.8)] for k in ("zap_orochi", "zap_miecz", "zap_strzaly", "zap_uzume", "zap_burza", "zap_niedzwiedz",
+           **{k: [(0.0, "drum", 0.8)] for k in ("zap_susanoo", "zap_miecz", "zap_strzaly", "zap_uzume", "zap_pulapka", "zap_niedzwiedz",
                                               "zap_wrona", "zap_bitwa")},
            "teatr": [(0.1, "kurtyna_r", 1.0), (0.9, "gong", 0.9), (1.9, "whoosh", 0.4)] + [(1.6 + 0.3 * n, "knock", 0.35) for n in range(4)],
-           "hak_najazd": [(0.3, "whoosh", 0.25), (1.6, "whoosh", 0.2), (4.1, "whoosh", 0.2)],  # podpisy Iwarebiko i Itsuse
+           "hak_najazd": [(0.3, "whoosh", 0.25), (1.6, "whoosh", 0.2)],  # podpis Iwarebiko (D14: brat w haku bez podpisu)
            # szczyty (przegląd 18.11.2026): po ciszy muzyki mocne uderzenie — ósma głowa węża, pierwsze krakanie wrony
            "orochi": [(4.8, "drum", 1.0), (4.8, "gong", 0.8)], "wrona": [(0.8, "gong", 0.6)],
            # markery reżysera 18.11.2026: strzała w góry, skoki brata, łuk napięty w zwrocie ku słońcu
            "wschod": [(3.6, "whoosh", 0.55), (4.15, "thud", 0.4)], "luty2": [(7.0, "whoosh", 0.4), (8.6, "whoosh", 0.4), (8.8, "knock", 0.4)], "bracia": [(6.5, "knock", 0.4), (7.15, "knock", 0.4), (7.8, "knock", 0.4)],
-           "hak_cien": [(0.2, "knock", 0.4), (0.35, "whoosh", 0.3), (1.35, "whoosh", 0.6), (1.65, "thud", 0.7), (1.65, "crack", 0.35),
-                        (2.75, "whoosh", 0.4), (3.4, "thud", 0.5)]}
+           # teatr cieni (reżyser 20.11.2026, ujęcie 14): wejście Iwarebiko, trzy szarpnięcia strzały, jęk brata, opadająca ręka
+           "hak_cien": [(0.1, "whoosh", 0.25)] + [(a, "knock", 0.3 + 0.05 * n) for n, a in enumerate(A.CIEN_SZARP)]
+                       + [(A.CIEN_SZARP[0] + 0.05, "jek", 0.6), (A.CIEN_SMIERC, "thud", 0.3)],
+           # wąż w haku: ósma głowa tuż przed pytaniem — bęben i gong jak w ujęciu „orochi”
+           "hak_waz": [(0.6 + 0.6 * 7, "drum", 1.0), (0.6 + 0.6 * 7, "gong", 0.8)]}
+# Skróty, które biorą oryginał bez gagu (s_orochi w haku): dźwięki gagu wypadają z ich fragmentu (sekundy oryginału)
+BEZ_GAGU = {"hak_waz": (A.OROCHI_GRYZ[0], A.OROCHI_GRYZ[1] + 0.5)}
 
 
 # Głos pod tabliczką i dźwięk gagu (Podręcznik, „Dźwięk”, Głosy ludzi 4; „Humor i gagi”, Dźwięk gagu): sekunda od początku
@@ -702,7 +708,9 @@ def main():
         amb = ambient(place, sec + 0.3, idx)
         i = N(t0)
         fx[i:i + len(amb)] += amb[:n - i]
-        evs = [(at - od, kind, g) for at, kind, g in ZDARZENIA.get(src, []) + GLOSY_UJ.get(src, []) if od <= at < od + sec] + DODATKI.get(klucz, [])
+        gag = BEZ_GAGU.get(klucz, (1e9, 1e9))
+        evs = [(at - od, kind, g) for at, kind, g in ZDARZENIA.get(src, []) + GLOSY_UJ.get(src, [])
+               if od <= at < od + sec and not gag[0] <= at <= gag[1]] + DODATKI.get(klucz, [])
         g = R.GRANICE[idx]  # przejścia: kurtyna między aktami (render.przejscie), klapki przy tytule aktu
         zam, dl, czekaj, otw = R.KURTYNA
         if g["ostatnie_aktu"] and idx < len(us) - 1 and g["akt"] + 1 not in R.BEZ_KURTYNY:
