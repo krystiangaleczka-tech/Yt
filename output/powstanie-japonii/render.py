@@ -37,6 +37,11 @@ NAPISY = os.environ.get("NAPISY", "1") != "0"
 SZKIC = os.environ.get("SZKIC", "0") == "1"  # szkic do przeglądu w Studio: 640 × 360, 12 kl./s
 if SZKIC:
     papier.Q, FPS = 0.5, 12
+elif os.environ.get("ROZDZIELCZOSC"):  # wysokość klatki, np. ROZDZIELCZOSC=1080 → 1920 × 1080 (ta sama geometria, Q = 1,5)
+    papier.Q = int(os.environ["ROZDZIELCZOSC"]) / H
+# jak w „Pierwszym cesarzu” (render końcowy): większa klatka — mniej kompresji; PRESET=slow przy renderze na YouTube
+CRF = os.environ.get("CRF", "23" if papier.Q <= 1 else "18")
+PRESET = os.environ.get("PRESET", "medium")
 
 UJ = ujecia()
 KOL = swiat.KOL
@@ -52,6 +57,17 @@ for _akt, _k, _klucz, _kadr, _ruch, _sec, _opis, _snd in UJ:
     SCENES.append((_t, _t + _sec, _ruch, kwestia(_snd), *okno_kwestii(_snd)))
     _t += _sec
 DUR = _t
+# Render końcowy (FILM=1 → zloz.py): ujęcie kończy się na klatce najbliższej swojemu końcowi w rozpisce, więc klipy
+# złożone jeden po drugim trwają dokładnie tyle co oś w Studio i muzyka z efektami nie rozjeżdżają się z obrazem
+# (wzór i powód: „Pierwszy cesarz” render.py, 16.11.2026). Klipy do Studio: zaokrąglone w górę, jak dotąd.
+FILM = os.environ.get("FILM", "0") == "1"
+
+
+def klatki_ujecia(i):
+    a, b = SCENES[i][:2]
+    if FILM:
+        return math.floor(b * FPS + 0.5) - math.floor(a * FPS + 0.5)
+    return math.ceil((b - a) * FPS - 1e-9)
 # Kwestia dłuższa niż jej ujęcie (księga D14: lektor mówi przez całą zapowiedź, a kwestia stoi na pierwszym skrócie): napis
 # przechodzi na następne ujęcia bez własnej kwestii, z początkiem kwestii liczonym od ich początku (ujemny start).
 for _i, (_a, _b, _ruch, _txt, _vs, _vl) in enumerate(SCENES):
@@ -276,11 +292,12 @@ def _klip(arg):
     import subprocess
     i, out = arg
     a, b = SCENES[i][:2]
-    n = math.ceil((b - a) * FPS - 1e-9)
+    n = klatki_ujecia(i)
     ow, oh = int(round(W * papier.Q)), int(round(H * papier.Q))
     part = out.with_name(out.stem + ".part.mp4")  # plik niedokończony nie wygląda na gotowy po przerwaniu
     proc = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{ow}x{oh}",
-                             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", "23", "-pix_fmt", "yuv420p", str(part)],
+                             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", CRF, "-preset", PRESET,
+                             "-threads", os.environ.get("X264_WATKI", "4"), "-pix_fmt", "yuv420p", str(part)],
                             stdin=subprocess.PIPE)
     for f in range(n):
         proc.stdin.write(frame(min(a + f / FPS, b - 1e-3)).tobytes())

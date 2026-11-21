@@ -93,9 +93,9 @@ AKTY = [
                  "przechylają się i znikają za falą, zostaje łódź Iwarebiko", "L: Dwóch pozostałych zabrała burza."),
                 # reżyser 20.11.2026: „ujęcie 16 skróć do 5 s” — kwestia krótsza („nikt z żyjących nie widział” zostaje w akcie III),
                 # w haku bez tabliczki „DZIŚ, W 2019 ROKU” (mówi to lektor), zawieszka „126” wcześniej (s_koronacja, st.skrot)
-                # reżyser 20.11: „skróć do 5 s”; z kwestią klona (5,2 s, imiona czytane przez klona — księga D20) 6,4 s — najmniej,
+                # reżyser 20.11: „skróć do 5 s”; z kwestią klona (4,8 s, imiona jednym ciągiem — księga D21) 6,0 s — najmniej,
                 # ile się mieści z oddechem 0,2 s i sekundą obrazu po kwestii
-                ("hak_koronacja", "PO", "naj", 6.4, "hak (skrót ujęcia „koronacja” od 1,6 s): tron pod baldachimem, wyrasta cesarz w szacie "
+                ("hak_koronacja", "PO", "naj", 6.0, "hak (skrót ujęcia „koronacja” od 1,6 s): tron pod baldachimem, wyrasta cesarz w szacie "
                  "koronacyjnej, przed nim skrzynki owinięte płótnem, zjeżdża zawieszka „126”",
                  "L: W 2019 roku dziedzic Iwarebiko dostał święty miecz."),
                 # D14: pytanie, na które film odpowiada: miecz z ogona węża (akt III) → Ninigi (skarby) → syn cesarza (śmierć) →
@@ -314,8 +314,8 @@ AKTY = [
             ]),
             ("Nigihayahi", [
                 # uwaga reżysera 20.11.2026: „skróć to do 8 s” (od 4 s strzały w górę i w dół jak ciężary na siłowni); z kwestią
-                # klona (8,45 s, imiona czytane przez klona — księga D20) 9,8 s — najmniej, ile się mieści z sekundą obrazu po kwestii
-                ("strzala_nieba", "PŚ", "stat", 9.8, "Nagasunehiko i Iwarebiko unoszą po strzale z niebiańskim upierzeniem; za wodzem wysuwa się "
+                # klona (7,2 s, imiona jednym ciągiem — księga D21) 8,5 s — najmniej, ile się mieści z sekundą obrazu po kwestii
+                ("strzala_nieba", "PŚ", "stat", 8.5, "Nagasunehiko i Iwarebiko unoszą po strzale z niebiańskim upierzeniem; za wodzem wysuwa się "
                  "lalka Nigihayahiego; tabliczka „Nigihayahi”", "L: Nagasunehiko wciąż nie chciał się poddać, bo służył innemu potomkowi bogów, Nigihayahiemu."),
                 ("zdrada", "PŚ", "stat", N, "Nigihayahi unosi miecz, lalka Nagasunehiko opada pod rampę, a Nigihayahi kłania się Iwarebiko; zabójstwo w fazach: zamach, cios ze wstrząsem, X na oczach i migający X, wódz opada, jego proporzec pada, Nigihayahi przechodzi do Iwarebiko i się kłania",
                  "L: Ale Nigihayahi uznał, że przybysz ma lepsze prawo do władzy, zabił upartego wodza i przeszedł na jego stronę."),

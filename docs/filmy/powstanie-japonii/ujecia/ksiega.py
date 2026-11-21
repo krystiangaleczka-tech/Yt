@@ -263,6 +263,12 @@ SWIAT = {
          "imię na końcu zdania w 5 ziarnach (42, 123, 7, 2, 99), więc tekst EN ma imię w środku, treść ta sama: „…because he "
          "served Nigihayahi, another descendant of the gods.” Z kwestiami klona ujęcie 16 ma 6,4 s, 65 — 9,8 s (najmniej, ile się "
          "mieści z sekundą obrazu po kwestii). Film 12:06.", "at": "2026-11-21", "by": "reżyser"},
+        {"id": "D21", "text": "Imiona w lektorze jednym ciągiem (reżyser 21.11 po próbie A/B/C: „B, jednym ciągiem”): podpowiedzi wymowy "
+         "bez łączników („Eezahnahgee” zamiast „Ee-zah-nah-gee”) — z łącznikami klon czytał sylabami, zwykła pisownia brzmiała po "
+         "angielsku. Nagrane od nowa 35 kwestii z imionami (ziarno 42; 69, 61, 57, 66 ziarnem 123 po kontroli). Ujęcia 16 = 6,0 s, "
+         "65 = 8,5 s (najkrócej z kwestią). Film 11:40. Reżyser: „sprawdź, czy wszystko jest ok i spójne, i włącz render 1080p na "
+         "YouTube” — render końcowy na Macu: render.py klipy (ROZDZIELCZOSC=1080, FILM=1, PRESET=slow) + zloz.py.",
+         "at": "2026-11-21", "by": "reżyser"},
     ],
 }
 

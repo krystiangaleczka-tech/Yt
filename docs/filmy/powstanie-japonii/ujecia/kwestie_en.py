@@ -208,15 +208,17 @@ SLOWNIE_EN = {"in 660 BC": "in six hundred and sixty B.C.", "The date 660 BC": "
               "in the year 57": "in the year fifty-seven", "In 1784": "In seventeen eighty-four", "in 1784": "in seventeen eighty-four",
               "in 1873": "in eighteen seventy-three", "in 1966": "in nineteen sixty-six", "In 2019": "In twenty nineteen"}
 
-# japońskie imiona zapisane tak, jak ma je przeczytać angielski lektor (dłuższe nazwy przed krótszymi)
-WYMOWA_EN = [("Nagasunehiko", "Nah-gah-soo-neh-hee-ko"), ("Yatagarasu", "Yah-tah-gah-rah-soo"),
-             ("Takakuraji", "Tah-kah-koo-rah-jee"), ("Nigihayahi", "Nee-gee-hah-yah-hee"), ("Amaterasu", "Ah-mah-teh-rah-soo"),
-             ("Iwarebiko", "Ee-wah-reh-bee-ko"), ("Takachiho", "Tah-kah-chee-ho"), ("Kashihara", "Kah-shee-hah-rah"),
-             ("Izanagi", "Ee-zah-nah-gee"), ("Izanami", "Ee-zah-nah-mee"), ("Susanoo", "Soo-sah-no-oh"), ("Ninigi", "Nee-nee-gee"),
-             ("Itsuse", "Eet-soo-seh"), ("Kumano", "Koo-mah-no"), ("Naniwa", "Nah-nee-wah"), ("Yamato", "Yah-mah-toh"),
-             ("Himiko", "Hee-mee-ko"), ("Uzume", "Oo-zoo-meh"), ("Izumo", "Ee-zoo-mo"), ("Unebi", "Oo-neh-bee"),
-             ("Kyushu", "Kyoo-shoo"), ("Hyuga", "Hyoo-gah"), ("haniwa", "hah-nee-wah"), ("Nihon", "Nee-hon"), ("Jimmu", "Jim-moo"),
-             ("sake", "sah-keh"), ("Kii", "Kee"), ("Wa", "Wah")]
+# japońskie imiona zapisane tak, jak ma je przeczytać angielski lektor (dłuższe nazwy przed krótszymi).
+# Reżyser 21.11.2026 (księga D21, próba A/B/C): podpowiedź JEDNYM CIĄGIEM, bez łączników — z łącznikami („Ee-zah-nah-gee”)
+# klon czytał każdy kawałek jak osobne słowo, sylabami; zwykła pisownia („Izanagi”) brzmiała po angielsku („Aizenaji”).
+WYMOWA_EN = [("Nagasunehiko", "Nahgahsoonehheeko"), ("Yatagarasu", "Yahtahgahrahsoo"), ("Takakuraji", "Tahkahkoorahjee"),
+             ("Nigihayahi", "Neegeehahyahhee"), ("Amaterasu", "Ahmahtehrahsoo"), ("Iwarebiko", "Eewahrehbeeko"),
+             ("Takachiho", "Tahkahcheeho"), ("Kashihara", "Kahsheehahrah"), ("Izanagi", "Eezahnahgee"),
+             ("Izanami", "Eezahnahmee"), ("Susanoo", "Soosahnooh"), ("Ninigi", "Neeneegee"), ("Itsuse", "Eetsooseh"),
+             ("Kumano", "Koomahno"), ("Naniwa", "Nahneewah"), ("Yamato", "Yahmahtoh"), ("Himiko", "Heemeeko"),
+             ("Uzume", "Oozoomeh"), ("Izumo", "Eezoomo"), ("Unebi", "Oonehbee"), ("Kyushu", "Kyooshoo"),
+             ("Hyuga", "Hyoogah"), ("haniwa", "hahneewah"), ("Nihon", "Neehon"), ("Jimmu", "Jimmoo"), ("sake", "sahkeh"),
+             ("Kii", "Kee"), ("Wa", "Wah")]
 
 # Frazowanie lektora (tylko tekst mówiony, FRAZY=1): przecinki tam, gdzie autor robi oddech we frazie — jak w „Pierwszym
 # cesarzu” EN. Puste, dopóki reżyser nie odsłucha pierwszego nagrania.
