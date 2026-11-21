@@ -72,7 +72,7 @@ def sprawdz(muzyka=True):
 
 
 def main(klipy, wynik):
-    klipy, wynik = Path(klipy), Path(wynik)
+    klipy, wynik = Path(klipy).resolve(), Path(wynik).resolve()  # lista concat: ffmpeg czyta ścieżki względem katalogu listy
     muzyka = os.environ.get("BEZ_MUZYKI") != "1"
     bledy = sprawdz(muzyka)
     if bledy:

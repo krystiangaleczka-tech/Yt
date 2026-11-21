@@ -308,6 +308,12 @@ def _klip(arg):
     return i, n
 
 
+def rysowane(i):
+    """Ujęcie ma rysunek: własną funkcję albo jest skrótem innego ujęcia (WYCINEK — zapowiedź, hak). Bez skrótów render
+    końcowy 21.11.2026 zgubił 14 ujęć prologu i zloz.py stanął na „brak klipu d00_01”."""
+    return FNS[i] is not None or KOL[i] in WYCINEK
+
+
 def rozgrzej(ktore=None):
     """Buduje wycinki w procesie głównym, zanim powstaną procesy robocze — po rozwidleniu dzielą one tę samą pamięć.
     Bez tego każdy proces ładował własny komplet wycinków i komputer z 8 GB RAM wchodził w pamięć wymiany (10.11.2026)."""
@@ -341,7 +347,7 @@ def klipy(out, only=None, procs=None):
     """Klipy ujęć (numery od 1) do katalogu out; zwraca {indeks: (plik, klatki)}."""
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    idx = [i for i in range(len(SCENES)) if FNS[i] is not None and (not only or i + 1 in only)]
+    idx = [i for i in range(len(SCENES)) if rysowane(i) and (not only or i + 1 in only)]
     if (procs or PROCESY) > 1 and sys.platform != "win32":
         rozgrzej(set(idx))
     idx = [i for i in idx if not (out / f"{ODN[i]}.mp4").exists() or os.environ.get("NADPISZ") == "1"]  # wznowienie: gotowe zostają
@@ -359,7 +365,7 @@ if __name__ == "__main__":
     if cmd == "klatka":
         frame(float(sys.argv[2])).save(sys.argv[3] if len(sys.argv) > 3 else str(HERE / "klatka.png"))
     elif cmd == "kontrola":
-        idx = [i for i in range(len(SCENES)) if FNS[i] is not None and (not only or i + 1 in only)]
+        idx = [i for i in range(len(SCENES)) if rysowane(i) and (not only or i + 1 in only)]
         if PROCESY > 1:
             rozgrzej(set(idx))
         bad = 0
