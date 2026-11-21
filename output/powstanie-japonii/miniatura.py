@@ -7,6 +7,9 @@ Reżyser 21.11.2026 („zrób miniaturkę w podobnym stylu co Pierwszy cesarz, b
       zły”: burza na morzu, pioruny trafiają łodzie dwóch braci, po lewej duży Susanoo w wirze wiatru;
   B — „na ujęciu 26, ale wkładamy te łódki z piorunami na te pole ryżowe, że się zatapiają jak w bagnie, a w tle burza”:
       niebiańska równina z ujęcia „susanoo”, łodzie z piorunami toną w polu ryżowym, nad nimi burza, Susanoo jak w A.
+Reżyser 21.11.2026 („2 kompletnie inne miniatury do A/B”):
+  C — czterech braci, przeżył jeden: świt nad Yamato, słońce za Iwarebiko, trzej bracia przekreśleni, „AM I NEXT?!”;
+  D — wąż o ośmiu głowach w nocy nad Izumo: najbliższa głowa w zbliżeniu, mały Susanoo z mieczem, „8 HEADS?!”.
 
   WARIANT=A python3 miniatura.py [en|pl]     → miniatura/miniatura_A_<język>.jpg i .png (1280 × 720)
   JAKOSC=1 …                                 → szybki podgląd (rysowane w 1280 × 720 zamiast w 2560 × 1440)
@@ -37,7 +40,7 @@ ROZMIAR = int(os.environ.get("ROZMIAR", "0"))
 papier.Q = ROZMIAR / 1280 if ROZMIAR else float(os.environ.get("JAKOSC", "2"))
 
 import numpy as np  # noqa: E402
-from PIL import Image, ImageDraw, ImageFilter  # noqa: E402
+from PIL import Image, ImageDraw, ImageFilter, ImageOps  # noqa: E402
 
 import scena as S  # noqa: E402
 import zestaw_jp as J  # noqa: E402
@@ -186,12 +189,13 @@ def ramie_k(s, k, palec=False):
     return M0.stack_k(w, h, parts, seed=31 + len(str(tun)), k=k)
 
 
-def postac(key, k, rece=(0.0, 0.0), mina="zly", palec=False, napis=None):
+def postac(key, k, rece=(0.0, 0.0), mina="zly", palec=False, napis=None, miecz=False, lustro=False):
     """Cała lalka w jednym arkuszu (ręce na zawiasach w barkach, przednia przed korpusem, tylna za nim), twarzą w prawo.
     rece — kąt przedniej i tylnej ręki w stopniach (0 opuszczona, 90 przed siebie, 180 w górę, 200 w górę i do tyłu).
+    miecz — miecz w pięści przedniej ręki, ostrze przedłużeniem ręki (jak scena.MIECZ); lustro — twarzą w lewo.
     Zwraca (wycinek, kotwica stóp jako ułamek arkusza, wysokość arkusza / wysokość postaci)."""
     s = J.spec(key)
-    M, TOP = 270, 230  # zapas wokół korpusu na uniesione ręce
+    M, TOP = (400, 580) if miecz else (270, 230)  # zapas wokół korpusu na uniesione ręce (i miecz nad głową)
     CW, CH = J.FIG_W + 2 * M, J.FIG_H + TOP + 10
     im = Image.new("RGBA", (round(CW * k), round(CH * k)), (0, 0, 0, 0))
     body = korpus_k(s, k, mina, napis)
@@ -202,6 +206,10 @@ def postac(key, k, rece=(0.0, 0.0), mina="zly", palec=False, napis=None):
         bx, by = (M + bx) * k, (TOP + by) * k
         layer = Image.new("RGBA", im.size, (0, 0, 0, 0))
         zx, zy = J.RAMIE_ZAWIAS
+        if miecz and name == "przod":  # rękojeść pod pięścią: ręka przykrywa uchwyt (wytyczne 1.28: chwyt za uchwyt)
+            mi = miecz_k(k)
+            hx, hy = bx + (56 - zx) * k, by + (230 - zy) * k
+            layer.alpha_composite(mi, (round(hx - mi.size[0] / 2), round(hy - 40 * k)))
         layer.alpha_composite(arm[name], (round(bx - zx * k), round(by - zy * k)))
         return layer.rotate(ang, resample=Image.BICUBIC, center=(bx, by))
 
@@ -218,14 +226,16 @@ def postac(key, k, rece=(0.0, 0.0), mina="zly", palec=False, napis=None):
     box = im.getbbox()
     im = im.crop(box)
     stopa = ((M + J.FIG_W / 2) * k - box[0], (TOP + J.STOPA) * k - box[1])
-    spr = Sprite(im, f"mini-{key}-{k:.2f}-{rece}-{mina}-{palec}-{napis}", rim=2, clean=False, crop=False)
+    if lustro:
+        im, stopa = ImageOps.mirror(im), (im.size[0] - stopa[0], stopa[1])
+    spr = Sprite(im, f"mini-{key}-{k:.2f}-{rece}-{mina}-{palec}-{napis}-{miecz}-{lustro}", rim=2, clean=False, crop=False)
     return spr, (stopa[0] / im.size[0], stopa[1] / im.size[1]), im.size[1] / (k * (J.STOPA - J.CZUBEK))
 
 
-def postaw(st, key, x, y, h, p, rece, mina, obrys, palec=False, rot=0.0, kolor=(252, 250, 244), napis=None, **kw):
+def postaw(st, key, x, y, h, p, rece, mina, obrys, palec=False, rot=0.0, kolor=(252, 250, 244), napis=None, miecz=False, lustro=False, **kw):
     """Lalka stopami w (x, y) ekranu, h — wysokość postaci (od stóp do czubka głowy) w pikselach ekranu; obrys w px ekranu."""
     k = max(1.0, round(h / (J.STOPA - J.CZUBEK) * papier.Q * 4) / 4)
-    spr, kot, ark = postac(key, k, rece, mina, palec, napis)
+    spr, kot, ark = postac(key, k, rece, mina, palec, napis, miecz, lustro)
     M0.poloz_obrys(st, spr, x, y, p, h * ark, kot, kolor=kolor, gruby=obrys, k=k, rot=rot, **kw)
 
 
@@ -442,6 +452,211 @@ def szyld_made_in(k):
     return Sprite(M0.stack_k(w, h, parts, seed=17, k=k), f"szyld-made-in-{k:.2f}", rim=round(3 * k), clean=False)
 
 
+# ---------- C i D: dwie zupełnie inne miniaturki do testu A/B (reżyser 21.11: „2 kompletnie inne miniatury do A/B”) ----------
+
+def miecz_k(k):
+    """Prosty miecz (jak zestaw_jp.miecz_jp) w skali k, pionowo: głowica u góry, uchwyt, jelec, ostrze w dół."""
+    parts = [(ell(30, 8, 9, 8), J.GOLD), (rect(24, 12, 36, 68), (52, 38, 32)), (rect(6, 66, 54, 80), J.GOLD),
+             (poly([(21, 80), (39, 80), (37, 336), (30, 362), (23, 336)]), (214, 222, 230), dict(kind="gladki", contrast=1.3)),
+             (rect(29, 84, 31, 330), (168, 178, 190))]
+    return M0.stack_k(60, 366, parts, seed=61, k=k)
+
+
+def glowa_k(k, v=0, bohater=False):
+    """zestaw_jp.waz_glowa w skali k (pyskiem w prawo). bohater — głowa z pierwszego planu: paszcza rozwarta szerzej,
+    kły, brew nad okiem, rozwidlony język."""
+    body = ((70, 92, 70), (84, 100, 66), (64, 84, 72))[v % 3]
+    if not bohater:
+        w, h = 300, 200
+        parts = [(poly([(10, 70), (90, 40), (200, 50), (286, 84), (240, 100), (200, 104), (284, 120), (250, 140), (150, 150),
+                        (60, 140), (10, 120)]), body, dict(edge=2, contrast=1.2)),
+                 (poly([(200, 100), (280, 86), (280, 92), (204, 108)]), (190, 50, 40)),
+                 (poly([(204, 108), (282, 120), (276, 126), (206, 116)]), (190, 50, 40)),
+                 (poly([(70, 40), (110, 10), (120, 44)]), shade(body, 0.8)), (poly([(120, 44), (150, 16), (158, 48)]), shade(body, 0.8)),
+                 (ell(176, 72, 14, 11), (230, 200, 60)), (ell(178, 72, 5, 9), (180, 30, 30))]
+        im = M0.stack_k(w, h, parts, seed=300 + v, k=k)
+        d = ImageDraw.Draw(im)
+        q = lambda pts: [(x * k, y * k) for x, y in pts]
+        for x in (230, 248, 262):
+            d.polygon(q([(x, 94), (x + 5, 104), (x + 9, 94)]), fill=(244, 240, 226, 255))
+        for n in range(8):
+            d.arc(q([(30 + n * 18, 80), (50 + n * 18, 104)]), 200, 340, fill=shade(body, 0.6) + (200,), width=max(1, round(2 * k)))
+        return im
+    w, h = 380, 200
+    parts = [(poly([(340, 112), (300, 116), (238, 112)]), (200, 40, 50)),  # język (pod głową, wychodzi z paszczy)
+             (poly([(236, 110), (300, 112), (346, 98), (352, 104), (316, 116), (356, 124), (350, 130), (300, 120), (236, 118)]),
+              (206, 44, 54), dict(kind="gladki")),
+             (poly([(222, 100), (290, 84), (294, 146), (226, 116)]), (120, 22, 22), dict(kind="gladki", contrast=0.7)),  # wnętrze
+             (poly([(10, 70), (90, 36), (200, 44), (292, 74), (290, 86), (222, 100), (226, 116), (292, 144), (276, 160), (150, 162),
+                    (60, 150), (10, 122)]), body, dict(edge=3, contrast=1.25)),
+             (poly([(40, 52), (64, 14), (84, 46)]), shade(body, 0.75)), (poly([(84, 44), (112, 4), (128, 42)]), shade(body, 0.75)),
+             (poly([(128, 42), (156, 10), (166, 46)]), shade(body, 0.75)),
+             (ell(178, 76, 19, 15), (244, 196, 52)), (ell(180, 76, 6, 13), (176, 22, 22)),
+             (poly([(148, 54), (210, 60), (214, 70), (150, 66)]), shade(body, 0.55)),  # brew zmarszczona nad okiem
+             (ell(270, 78, 6, 4), shade(body, 0.45))]
+    im = M0.stack_k(w, h, parts, seed=340 + v, k=k)
+    d = ImageDraw.Draw(im)
+    q = lambda pts: [(x * k, y * k) for x, y in pts]
+    for x0, x1, dl in ((228, 238, 14), (244, 254, 16), (262, 272, 20), (278, 288, 22)):  # kły u góry
+        f = (x0 - 222) / 70
+        y = 100 - 16 * f
+        d.polygon(q([(x0, y), (x1, y - 2), ((x0 + x1) / 2, y + dl)]), fill=(248, 244, 230, 255), outline=INK + (255,))
+    for x0, x1, dl in ((234, 244, 12), (254, 264, 16), (274, 284, 18)):  # kły na dole
+        f = (x0 - 226) / 68
+        y = 118 + 26 * f
+        d.polygon(q([(x0, y), (x1, y + 4), ((x0 + x1) / 2, y - dl)]), fill=(248, 244, 230, 255), outline=INK + (255,))
+    for n in range(8):
+        d.arc(q([(24 + n * 22, 92), (48 + n * 22, 122)]), 200, 340, fill=shade(body, 0.6) + (210,), width=max(1, round(2.5 * k)))
+    return im
+
+
+def luska_k(k, v=0):
+    body = ((70, 92, 70), (84, 100, 66), (64, 84, 72))[v % 3]
+    parts = [(ell(60, 60, 54, 54), body, dict(edge=2, contrast=1.2)), (ell(60, 76, 34, 26), (176, 120, 70))]
+    im = M0.stack_k(120, 120, parts, seed=310 + v, k=k)
+    d = ImageDraw.Draw(im)
+    for x in (34, 60, 86):
+        d.arc([(x - 14) * k, 30 * k, (x + 14) * k, 58 * k], 200, 340, fill=shade(body, 0.55) + (200,), width=max(1, round(3 * k)))
+    return im
+
+
+def _obroc_pkt(x, y, cx, cy, ang):
+    """Punkt po PIL rotate(ang) wokół (cx, cy) — obrót przeciwny do wskazówek zegara na ekranie."""
+    a = math.radians(ang)
+    dx, dy = x - cx, y - cy
+    return cx + dx * math.cos(a) + dy * math.sin(a), cy - dx * math.sin(a) + dy * math.cos(a)
+
+
+def waz_bohater(k, K):
+    """Najbliższa głowa węża razem z szyją z łusek w jednym arkuszu (gruby biały obrys idzie dookoła całej sylwetki).
+    Jednostki arkusza = piksele ekranu 1280 × 720. Zwraca (wycinek, oko w ułamkach arkusza)."""
+    W_, H_ = K["bohater_ark"]
+    (b0, b1, b2), sh, kat, v = K["bohater_szyja"], K["bohater_skala"], K["bohater_kat"], 0
+    im = Image.new("RGBA", (round(W_ * k), round(H_ * k)), (0, 0, 0, 0))
+    duza = luska_k(k * 2.3, v)
+    n = 15
+    for j in range(n + 1):  # szyja: łuski od dołu (spod kadru) ku głowie, coraz mniejsze
+        u = j / n
+        x = (1 - u) ** 2 * b0[0] + 2 * (1 - u) * u * b1[0] + u * u * b2[0]
+        y = (1 - u) ** 2 * b0[1] + 2 * (1 - u) * u * b1[1] + u * u * b2[1]
+        sz = S.lerp(1.0, 0.68, u)
+        l = duza.resize((round(duza.size[0] * sz), round(duza.size[1] * sz)), Image.LANCZOS)
+        im.alpha_composite(l, (round(x * k - l.size[0] / 2), round(y * k - l.size[1] / 2)))
+    g = glowa_k(k * sh, v, True)
+    zaw = (52, 100)  # nasada głowy na arkuszu głowy (tył czaszki)
+    layer = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    ox, oy = b2[0] * k - zaw[0] * k * sh, b2[1] * k - zaw[1] * k * sh
+    layer.alpha_composite(g, (round(ox), round(oy)))
+    layer = layer.rotate(kat, resample=Image.BICUBIC, center=(b2[0] * k, b2[1] * k))
+    im.alpha_composite(layer)
+    ex, ey = _obroc_pkt(ox + 180 * k * sh, oy + 76 * k * sh, b2[0] * k, b2[1] * k, kat)
+    return Sprite(im, f"waz-bohater-{k:.2f}", rim=2, clean=False, crop=False), (ex / im.size[0], ey / im.size[1])
+
+
+def szyja_k(st, base, head, hh, v, p, seed):
+    """scena.szyja w skali ekranu (nieruchoma): łuk łusek od nasady za wzgórzem do głowy o wysokości hh."""
+    kk = max(1.0, round(hh / 74 * papier.Q * 0.9 * 4) / 4)
+    lus = Sprite(luska_k(kk, v), f"luska-{v}-{kk:.2f}", rim=2, clean=False)
+    (bx, by), (hx, hy) = base, head
+    cx, cy = (bx + hx) / 2 + 80 * math.sin(seed), min(by, hy) - 170
+    pts, n = [], 30  # szyja cieńsza niż w filmie, więc łusek gęściej: zachodzą na siebie, nie stoją jak stos monet
+    for j in range(n + 1):
+        u = j / n
+        pts.append(((1 - u) ** 2 * bx + 2 * (1 - u) * u * cx + u * u * hx, (1 - u) ** 2 * by + 2 * (1 - u) * u * cy + u * u * hy))
+    for j, (x, y) in enumerate(pts[:-1]):
+        M0.poloz(st, lus, x, y, p + 0.0002 * j, h=S.lerp(78, 50, j / n) * hh / 74 * 0.72, anchor=(0.5, 0.5), shadow=(3, 4, 5, 0.3))
+    (ax, ay), (zx, zy) = pts[-2], pts[-1]
+    face = 1 if zx >= ax else -1
+    ang = math.degrees(math.atan2(zy - ay, zx - ax))
+    rot = ang if face > 0 else ang - 180
+    gk = max(1.0, round(hh / 140 * papier.Q * 4) / 4)
+    gl = Sprite(glowa_k(gk, v), f"glowa-{v}-{gk:.2f}", rim=2, clean=False)
+    M0.poloz(st, gl, zx, zy, p + 0.006, h=hh, anchor=(0.18, 0.5), rot=rot, sx=face, shadow=(3, 4, 5, 0.35))
+
+
+def iks_k(k):
+    """Czerwony krzyż (słownik znaków 1.20: wyrok, śmierć) z dwóch pasków papieru, w skali k."""
+    def pasek(a):
+        c, s_ = math.cos(math.radians(a)), math.sin(math.radians(a))
+        return poly([(100 + c * x - s_ * y, 100 + s_ * x + c * y) for x, y in ((-96, -15), (96, -13), (94, 15), (-95, 13))])
+    parts = [(pasek(45), (196, 34, 30), dict(edge=2, contrast=1.2)), (pasek(-45), (210, 40, 34), dict(edge=2, contrast=1.2))]
+    return Sprite(M0.stack_k(200, 200, parts, seed=91, k=k), f"iks-{k:.2f}", rim=2, clean=False)
+
+
+def strzala_k(k):
+    """Strzała wbita grotem (grotu nie widać): drzewce w prawo, lotki na końcu. Kotwica: lewy koniec (w ramieniu)."""
+    parts = [(rect(0, 21, 300, 29), (156, 114, 72), dict(edge=1)),
+             (poly([(240, 24), (296, 24), (310, 4), (262, 6)]), (238, 232, 220)), (poly([(240, 26), (296, 26), (310, 46), (262, 44)]),
+                                                                                    (196, 52, 40)),
+             (rect(294, 20, 304, 30), (60, 44, 36))]
+    return Sprite(M0.stack_k(312, 50, parts, seed=93, k=k), f"strzala-{k:.2f}", rim=2, clean=False)
+
+
+def kropla_k(k):
+    """Kropla potu (słownik znaków: strach, nerwy) — błękitna łezka z białym odblaskiem."""
+    parts = [(poly([(50, 0)] + [(50 + 34 * math.sin(a), 74 + 34 * math.cos(a)) for a in np.linspace(math.pi * 0.62, -math.pi * 0.62, 28)]),
+              (96, 170, 232), dict(edge=4, contrast=1.1)),
+             (ell(40, 82, 8, 13), (246, 250, 255), dict(kind="gladki"))]
+    return Sprite(M0.stack_k(100, 112, parts, seed=95, k=k), f"kropla-{k:.2f}", rim=2, clean=False)
+
+
+def slonce_k(k):
+    """Wielkie słońce z papieru (promienie, tarcza) — za głową Iwarebiko jak aureola („Son of the Sun”)."""
+    parts = []
+    for n in range(18):
+        a = 2 * math.pi * n / 18
+        b = 0.09
+        parts.append((poly([(200 + 120 * math.cos(a - b), 200 + 120 * math.sin(a - b)), (200 + 196 * math.cos(a), 200 + 196 * math.sin(a)),
+                            (200 + 120 * math.cos(a + b), 200 + 120 * math.sin(a + b))]), (246, 196, 92) if n % 2 else (240, 172, 70)))
+    parts += [(ell(200, 200, 134, 134), (232, 120, 52), dict(edge=3)), (ell(200, 200, 112, 112), (246, 176, 72), dict(kind="gladki")),
+              (ell(186, 186, 70, 70), (252, 214, 120), dict(kind="gladki", contrast=0.6))]
+    return Sprite(M0.stack_k(400, 400, parts, seed=97, k=k), f"slonce-mini-{k:.2f}", rim=2, clean=False)
+
+
+def scena_c(st, K):
+    """C: czterech braci, przeżył jeden — świt nad Yamato, wielkie słońce za Iwarebiko; trzej bracia przekreśleni
+    czerwonymi krzyżami (najstarszy ze strzałą w ramieniu), Iwarebiko z kroplą potu: „AM I NEXT?!”."""
+    w = S.stan(S.I["yamato"])
+    w.sun = 0.0
+    S.kraj(st, K["t"], w, niebieskie=1.0, wzgorza=1.0, slonce_k=0.0, tint=K["tint"], kul=False)
+    sx, sy, sw = K["slonce"]
+    M0.poloz(st, J.glow(), sx, sy, P.slonce - 0.001, w=sw * 2.2, anchor=(0.5, 0.5), mode="add", alpha=0.55, shadow=None, tint=(1.0, 0.8, 0.5))
+    M0.poloz(st, slonce_k(max(1.0, sw / 400 * papier.Q)), sx, sy, P.slonce, w=sw, anchor=(0.5, 0.5), shadow=(5, 7, 9, 0.3))
+    ki = max(1.0, papier.Q * 0.75)
+    for key, x, h, rece, kat in K["bracia"]:
+        postaw(st, key, x, S.STOPY, h, P.lalki - 0.01, rece, "krzyk", 5, rot=kat, kolor=(236, 224, 196), tint=K["szarosc"])
+        if key == "itsuse":  # strzała w barku (ujęcie 13: przyszła ze wschodu, z prawej)
+            s_ = h / (J.STOPA - J.CZUBEK)
+            ax, ay = x + (182 - 150) * s_, S.STOPY - (J.STOPA - 232) * s_
+            M0.poloz(st, strzala_k(max(1.0, papier.Q * 0.6)), ax, ay, P.lalki - 0.005, w=h * 0.34, anchor=(0.03, 0.5), rot=40,
+                     shadow=(2, 3, 3, 0.4), tint=K["szarosc"])
+        M0.poloz(st, iks_k(ki), x + 4, S.STOPY - h * 0.64, P.rekwizyty + 0.01, h=h * 0.52, anchor=(0.5, 0.5), rot=kat - 4,
+                 shadow=(4, 6, 6, 0.45))
+    ix, iy, ih = K["iwarebiko"]
+    postaw(st, "iwarebiko", ix, iy, ih, P.lalki + 0.01, K["rece"], "krzyk", K["obrys"], palec=True, rot=-2)
+    kx, ky, kh = K["kropla"]
+    M0.poloz(st, kropla_k(max(1.0, kh / 112 * papier.Q)), kx, ky, P.lalki + 0.02, h=kh, anchor=(0.5, 0.5), rot=-14, shadow=(3, 4, 4, 0.35))
+
+
+def scena_d(st, K):
+    """D: wąż o ośmiu głowach w nocy nad Izumo — najbliższa głowa w zbliżeniu po lewej (paszcza, kły, język), siedem
+    głów nad wzgórzami, po prawej mały Susanoo z mieczem nad głową: „8 HEADS?!”."""
+    w = S.stan(S.I["orochi"])
+    w.noc, w.sun, w.moon = K["noc"], 0.0, 1.0
+    S.kraj(st, K["t"], w, rzeka=1.0, slonce_k=0.0, sosny=(0.0, 1.0), kul=False)  # bez wiśni: różowe kwiaty za szyją
+    for n, (bx, hx, hy, hh) in enumerate(K["glowy"]):
+        szyja_k(st, (bx, S.ziemia("srodek", bx) + 70), (hx, hy), hh, n % 3, P.miasto + 0.012 + 0.0015 * n, n)
+    ux, uy, uh, lustro, rece = K["susanoo_d"]
+    postaw(st, "susanoo", ux, uy, uh, P.lalki, rece, "krzyk", 6, rot=K.get("susanoo_kat_d", 4), miecz=True, lustro=lustro)
+    bx_, by_ = K["bohater_xy"]
+    kb = papier.Q
+    spr, (ex, ey) = waz_bohater(kb, K)
+    W_, H_ = K["bohater_ark"]
+    M0.poloz_obrys(st, spr, bx_, by_, P.lalki + 0.01, H_, (0.0, 0.0), kolor=(252, 250, 244), gruby=K["obrys"], k=kb)
+    M0.poloz(st, J.glow(), bx_ + ex * W_, by_ + ey * H_, P.lalki + 0.02, w=150, anchor=(0.5, 0.5), mode="add", alpha=0.75, shadow=None,
+             tint=(1.0, 0.45, 0.2))
+
+
 # ---------- scena ----------
 
 def burza_niebo(st, K):
@@ -516,18 +731,10 @@ def scena(K):
     cx, cy, m = K["kamera"]
     st.cam = Cam(cx, cy, m, 0.8, lens=m, truck=0.0)
     st.focus, st.dof = P.lalki, K.get("dof", 0.35)
-    (scena_a if WARIANT == "A" else scena_b)(st, K)
+    {"A": scena_a, "B": scena_b, "C": scena_c, "D": scena_d}[WARIANT](st, K)
 
-    # Susanoo po lewej: wir wiatru za nim, gruby biały obrys, mina złości, palcem wskazuje łodzie, druga pięść w górze
-    sx, sy, sh = K["susanoo"]
-    wx, wy, ww = K["wir"]
-    M0.poloz(st, wir_k(max(1.0, ww / 400 * papier.Q)), wx, wy, P.lalki + 0.004, w=ww, anchor=(0.5, 0.5), rot=K.get("wir_kat", -20),
-             shadow=None, alpha=0.95)
-    postaw(st, "susanoo", sx, sy, sh, P.lalki + 0.01, K["rece"], "zly", K["obrys"], palec=True, rot=K.get("susanoo_kat", -3),
-           napis=K.get("napis"))
-    zx, zy, zh = K["zylka"]
-    M0.poloz(st, zylka_k(max(1.0, zh / 120 * papier.Q)), zx, zy, P.lalki + 0.02, h=zh, anchor=(0.5, 0.5), rot=12, shadow=(3, 4, 4, 0.35))
-
+    if K.get("susanoo"):
+        susanoo_z_wirem(st, K)
     # tabliczki z okrzykami (słownik znaków) i szyld z tytułem
     for txt, (tx, ty, th, kat) in K["tabliczki"].items():
         M0.nitki(st, M0.tabliczka(txt, 64, M0.K_TAB), tx, ty, P.rekwizyty + 0.03, h=th, xs=(0.2, 0.8), rot=kat)
@@ -540,6 +747,18 @@ def scena(K):
         M0.poloz(st, szyld_made_in(M0.K_TAB), mx, my, P.rampa - 0.01, h=mh, anchor=(0.5, 1.0), rot=1.2, shadow=(5, 8, 8, 0.45))
     st.grade = K["grade"]
     return st
+
+
+def susanoo_z_wirem(st, K):
+    # Susanoo po lewej: wir wiatru za nim, gruby biały obrys, mina złości, palcem wskazuje łodzie, druga pięść w górze
+    sx, sy, sh = K["susanoo"]
+    wx, wy, ww = K["wir"]
+    M0.poloz(st, wir_k(max(1.0, ww / 400 * papier.Q)), wx, wy, P.lalki + 0.004, w=ww, anchor=(0.5, 0.5), rot=K.get("wir_kat", -20),
+             shadow=None, alpha=0.95)
+    postaw(st, "susanoo", sx, sy, sh, P.lalki + 0.01, K["rece"], "zly", K["obrys"], palec=True, rot=K.get("susanoo_kat", -3),
+           napis=K.get("napis"))
+    zx, zy, zh = K["zylka"]
+    M0.poloz(st, zylka_k(max(1.0, zh / 120 * papier.Q)), zx, zy, P.lalki + 0.02, h=zh, anchor=(0.5, 0.5), rot=12, shadow=(3, 4, 4, 0.35))
 
 
 # Układ kadru w pikselach ekranu (1280 × 720); kamera 1:1 z kadrem wzorcowym filmu (morze, niebo jak w ujęciach)
@@ -560,6 +779,7 @@ WSPOLNE = dict(
     blysk=(900, 160, 1500),
     grade=(0.96, 0.98, 1.04),
 )
+BAZA = {k: WSPOLNE[k] for k in ("kamera", "obrys", "szyld", "made_in")}
 KADRY = {
     "A": dict(WSPOLNE, t=2.3, tint=(0.46, 0.5, 0.66),
               # reżyser 21.11: „łódki trochę wyżej i trzecia na środku w trąbie powietrznej”
@@ -574,6 +794,24 @@ KADRY = {
               pioruny=((700, 0), (1180, 0)),
               poletka=((470, 330, -30), (560, 230, 40)),
               tabliczki={"GRRR!": (470, 150, 72, -7), "AAAA!": (650, 270, 62, 6), "BRACIE!": (1040, 230, 58, -5)}),
+    # C i D — dwie zupełnie inne miniaturki do testu A/B (reżyser 21.11), z tym samym szyldem i „made in JAPAN” co A,
+    # żeby test porównywał scenę, a nie markę. C pasuje do tytułu „Four Brothers Set Out to Rule Japan. Only One Survived.”,
+    # D do „Japanese Mythology, Told in Paper Theatre”.
+    "C": dict(BAZA, t=2.0, tint=(1.06, 0.9, 0.78), grade=(1.03, 0.98, 0.94),
+              slonce=(330, 300, 470),  # środek i szerokość słońca za głową Iwarebiko
+              iwarebiko=(300, 1250, 1000), rece=(100, 0),  # przednia wskazuje braci, tylna schowana za plecami
+              kropla=(378, 292, 72),
+              bracia=(("itsuse", 700, 400, (25, 0), -3), ("brat2", 905, 385, (160, 200), 3), ("brat3", 1100, 370, (150, 190), -2)),
+              szarosc=(0.8, 0.8, 0.86),
+              tabliczki={{"en": "AM I NEXT?!", "pl": "JA NASTĘPNY?!"}[JEZ]: (575, 150, 64, 5)}),
+    "D": dict(BAZA, t=2.0, noc=0.6, grade=(0.84, 0.88, 1.02),
+              # siedem głów za wzgórzami: nasada x, głowa x, y, wysokość głowy
+              glowy=((560, 500, 250, 84), (660, 640, 175, 80), (780, 780, 250, 84), (880, 900, 175, 78), (1000, 1060, 230, 84),
+                     (1130, 1190, 180, 76), (1230, 1240, 300, 80)),
+              bohater_ark=(920, 560), bohater_xy=(-60, 200), bohater_szyja=((150, 620), (40, 360), (250, 250)),
+              bohater_skala=2.1, bohater_kat=8,
+              susanoo_d=(1040, 708, 400, True, (145, 25)),  # x, y stóp, wysokość, twarzą w lewo, ręce (miecz w górze)
+              tabliczki={{"en": "8 HEADS?!", "pl": "8 GŁÓW?!"}[JEZ]: (1110, 36, 62, -5)}),
 }
 
 
