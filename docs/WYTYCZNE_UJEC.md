@@ -247,6 +247,11 @@ Teatr składa się na oczach widza (reżyser 10.11: „wcześniej te elementy na
 - Mapy, liczby, stroje i budowle są zgodne ze źródłami filmu (decyzje w księdze świata).
 - Ujęcie bez słów pokazuje tylko to, co widz zrozumie sam. Jeśli obraz potrzebuje wyjaśnienia, mówi o nim lektor
   (ogień sygnałowy, reżyser 16.11: „opisz w narracji, co oznacza ten ogień sygnałowy”; Rytm 4).
+- Scena w teatrze cieni (sylwetki za parawanem) sama nic nie wyjaśnia: kwestia mówi kiedy, gdzie, kto i co się stało, a w kadrze
+  wiszą zawieszka miejsca i czasu i podpisy na słowo („ARMORED CAR”, „Buck Barrow”, „Blanche”); wydarzenie kończy się skutkiem
+  (gang ucieka). Reżyser 23.11 o Platte City: „więcej wyjaśnień w tej scenie”. Kwestia mówi też o tym, co widać: „family picnics”
+  wymaga auta rodzin i koszyka w kadrze, „the Dallas sheriff” — szeryfa z podpisem, „both of them… in their legs” — dwóch „OUCH!”
+  (Sowers: „zastanów się, czy dobrze jest narysowane całe to ujęcie według opisu sceny i narracji”).
 
 ### 1.20 Słownik znaków teatru papierowego
 Reżyser opowiada gagami i znakami jak z komiksu. Znak znaczy w każdym filmie to samo, ma swój dźwięk w tej samej chwili
@@ -268,6 +273,11 @@ Reżyser opowiada gagami i znakami jak z komiksu. Znak znaczy w każdym filmie t
 
 Znak wisi nad postacią, której dotyczy: serce nad każdym z zakochanych, kajdanki nad tym, kogo aresztują — nie pośrodku
 między nimi (markery 21.11: „nad nią serce”, „nad nim serce”, „nad nim kajdanki”).
+
+**Tabliczka z markera** („tabliczka no way!”, „tabliczka yeah I saw”) wisi w miejscu kreski i już w sekundzie markera, a nie
+dopiero od niej zjeżdża (`ujecia_a.tab_tu`: punkt ekranu → kadr wzorcowy, zjazd 0,7 s wcześniej). „Następna dopiero po 1,5 s”
+to odstęp między chwilami, w których tabliczki już wiszą. Kilka takich samych okrzyków nad grupą (sześć „WE GOT THEM!”) wisi
+na przemian wyżej i niżej, po jednej nad każdym.
 
 Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, która go rysuje.
 
@@ -318,6 +328,10 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
   w górze, niedźwiedź „BOO!”. Radość widać ruchem (brat podskakuje), zamiar czynem (zamiast wskazać góry — strzela w nie).
 - Rekwizyt, który postać bierze, trafia do jej dłoni; nie wisi obok ręki (miecz Ninigiego). Rzecz, o której mówi
   kwestia albo gest (słońce, na które wskazuje Itsuse), jest w kadrze cała i żyje, a nie ucięta krawędzią.
+- Film na ekranie kina i zdjęcie w dłoni też grają: postacie na płótnie chodzą, tańczą, pozują, auto wjeżdża, obraz migocze
+  jak z projektora (reżyser 23.11: „poruszaj tymi postaciami… tak, jakby film po prostu leciał”); Bonnie na zdjęciu „robi
+  pajacyka” (`zestaw_bc.zdjecie_pajacyk`). Światło żyje: lampa mruga albo zapala się na wydarzenie (`scena.mruganie`,
+  `wnetrze(jasnosc=…)`), auto daje znak światłami (`ujecia_a.swiatla`, `miga`).
 - Zwrot postaci zaczyna się od przeciwnego kierunku, żeby był widoczny (Iwarebiko najpierw patrzy w lewo, potem
   zwraca się ku słońcu). Ujęcie przejścia albo przybycia ma końcówkę „już na miejscu” (Ninigi stoi na szczycie, wojsko
   wchodzi w las) — 1.18.
@@ -446,6 +460,16 @@ pod połą przy dłoni na piersi — nie przy biodrze sukienki (marker 21.11: �
 (skok) na ziemię, a wsiada łukiem do okna i dalej siedzi w nim widoczna — nie znika w przenikaniu (marker 21.11: „clyde
 w aucie”). Jeździec na koniu: biodra na grzbiecie, nogi zakrywa koń.
 
+**Nakrycie głowy zdejmuje ręka**: dłoń idzie do czubka głowy (ręka w skrócie), kapelusz przechodzi z głowy do dłoni w jednej
+klatce (lalka bez kapelusza + sam kapelusz z tego samego rysunku), potem uchylony wraca na głowę albo zostaje w dłoni przy boku
+(`ujecia_a.kapelusz_reka`; reżyser 23.11: Gault „ściąga ręką kapelusz z głowy i uchyla, i znowu odkłada na głowę, a rękę daje
+w dół przy ciele”; ukłony: „i tak dla wszystkich, co mają coś na głowie”). Nie podmienia się lalki na „bez kapelusza” z kapeluszem
+przyklejonym do ręki. Cecha postaci (słoma w ustach Gaulta) jest w lalce, więc idzie za nią do każdego ujęcia (`scena.SLOMA`).
+
+**Rzecz rzucona i upuszczona leci z dłoni** po łuku przez punkt z kreski markera i ląduje tam, gdzie leży potem (moneta z ręki
+kobiety do kasetki, broń Hamera w górę i do ręki z drugiej strony, kapelusz z okna auta na ziemię, pranie z okna przez dach do
+koszyka); ręka rzucającego robi zamach.
+
 **Kontakt dwóch postaci** (pocałunek, uścisk): podchodzą, aż głowy albo dłonie się zetkną, i nie wchodzą jedna w drugą;
 wyższa się pochyla (`lean`), niższa unosi (`lift`); potem wracają na swoje miejsca.
 
@@ -540,6 +564,11 @@ Wszystko naraz: `python3 scripts/uwagi_rezysera.py <projekt>` (tylko czyta plik 
 - Kreska leży w kadrze **ekranu na tej klatce**, z ruchem kamery, a nie w kadrze wzorcowym: punkt przelicza się przez
   kamerę ujęcia w tej chwili. Przed poprawką obejrzyj klatkę markera razem z jego kreską — zwój poprawiany „na oko”
   dostał drugą uwagę o tym samym (16.11).
+- **Sekunda markera jest na osi Studio**, a od nagrania lektora ujęcie ma długość z prawdziwej kwestii, nie z tempa szacunkowego
+  (akcja ujęć jest przełożona przez `render.czas_akcji`). Chwilę z uwagi albo markera zapisuje się w stałej w sekundach osi
+  i przelicza przy rysowaniu `scena.rs(klucz, s)`, a w dźwięku `efekty.rr(s)` — inaczej zdarzenie mija się z markerem
+  (23.11: ujęcia skróciły się nawet o 2,4 s). Każdy marker ogląda się na klatce z jego sekundy z narysowaną kreską i tekstem,
+  a poprawkę sprawdza na tej samej klatce.
 - Marker trzyma się klatki ujęcia z dnia, w którym go narysowano. Jeśli ujęcie potem się wydłużyło albo zmieniło, czas
   markera wskazuje miejsce w tamtej wersji — szukaj zdarzenia, a nie samej sekundy.
 
@@ -729,6 +758,7 @@ i błędy znalezione w kontroli.
 | Bonnie and Clyde, recenzja 114 ujęć (19.11, kontrola wykonawcy na prośbę reżysera) | lustrzane „EXTRA!” na przewracanej stronie i „SHERIFF” na aucie jadącym w lewo; „THE OUTLAWS MADE OF PAPER” i „BONNIE AND CLYDE” wystawały poza tablice; w zapowiedzi na 0,1 s mignął podpis Hamera; teczka, kapelusz, karabin, puszka i list wisiały nad pustym płótnem w czasie budowy; Bonnie „niesiona” wisiała za plecami Clyde'a; karabin „na kolanach” stojącego Clyde'a; podpis Buchera poza kadrem, W.D. podpisany już w aucie, „undertaker” w podpisie 8 s przed puentą; kanapka za karoserią, teczka i „HA HA HA!” pod napisem; nazwy cmentarzy za żałobnikami; „SEE THE DEATH CAR” biały na białym pasie | 1.27 |
 | Syn słońca EN, zapowiedź i hak (20.11, reżyser) | burza i wąż były w zapowiedzi, zaraz potem w haku (ujęcia 15 i 17) i jeszcze raz w ciele filmu — „czemu nie tylko 2 razy?” | 1.26 |
 | Bonnie and Clyde, 28 markerów i uwaga (21.11, reżyser) | rewolwer znikał z dłoni, kiedy ta sama ręka wyjmowała cygaro z ust; strzał padał poza kadrem; chłopak dawał cygaro Bonnie do ręki zamiast do ust; gazeta klienta na głowie i w tułowiu; łyżka obok garnka; serca pośrodku zamiast nad każdym z zakochanych; „pod płaszcz” bez płaszcza; Clyde znikał przy wsiadaniu do auta; kwestia „palce” mówiła o czym innym niż obraz; plan nadpisał uwagę reżysera, a dźwięk nie poszedł za nowymi ujęciami | 1.11, 1.20, 1.27, 1.28, 4.1 |
+| Bonnie and Clyde, 91 markerów i 13 uwag (23.11, reżyser) | tabliczki zjeżdżały dopiero w sekundzie markera i nie tam, gdzie kreska; kapelusze były wklejone w głowę (zdjęcie = podmiana lalki); scena za parawanem w Platte City i Sowers nie mówiła kiedy, gdzie i kto; ekran kina i zdjęcie stały nieruchomo; rzeczy rzucane brały się znikąd; słońce, lampy i światła aut nie grały; Gault bez cechy, po której się go rozpozna | 1.19, 1.20, 1.25, 1.28, 4.2 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
