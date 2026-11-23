@@ -27,6 +27,14 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parents[1] / "docs/filmy/bonnie-i-clyde/ujecia"))
 from dane import okno_kwestii, ujecia  # noqa: E402
 
+
+class Sek(float):
+    """Sekunda na osi Studio (z markera reżysera), nie w rytmie akcji ujęcia — nie przechodzi przez render.czas_ujecia."""
+
+
+def rr(s):
+    return Sek(s)
+
 SR = 44100
 OUT = Path(os.environ.get("DZWIEK_DO", HERE / "dzwiek_en"))
 RNG = np.random.default_rng(19)
@@ -838,6 +846,7 @@ def muzyka(total, starts, durs, voice, ciecia=None):
     for klucz, (a, b, powrot) in CISZA.items():
         if klucz not in starts:
             continue
+        a, b = [float(v) if isinstance(v, Sek) else czas_ujecia(klucz, v) for v in (a, b)]  # rytm akcji → nagranie
         i0, i1 = max(0, N(starts[klucz] + a)), min(n, N(starts[klucz] + b))
         r = N(0.12)
         gain[i0:i1] = 0.0
@@ -851,7 +860,7 @@ def muzyka(total, starts, durs, voice, ciecia=None):
     for klucz, tp in GAG_PUENTA.items():
         if klucz not in starts:
             continue
-        a = starts[klucz] + czas_ujecia(klucz, tp)
+        a = starts[klucz] + (float(tp) if isinstance(tp, Sek) else czas_ujecia(klucz, tp))
         i0, i1, i2 = N(a - 0.06), N(a + GAG_PRZYSTANEK_S), N(a + GAG_PRZYSTANEK_S + 0.5)
         if i0 < 0 or i2 >= n:
             continue
@@ -1994,6 +2003,61 @@ ZDARZENIA["kawiarnia"] = [(1.45, "nalewanie", 1.5), (3.6, "lomot", 0.9)] + [(7.0
 ZDARZENIA["waco_przed"] = [(2.1, "whoosh", 0.3), (2.33, "metal", 0.3), (2.97, "klik", 0.3), (3.97, "papier", 0.3), (6.3, "drzwi", 0.6)]
 ZDARZENIA["po_bramie"] = [(0.3, "skrzyp", 2.5), (3.4, "thud", 0.4), (3.9, "drzwi", 0.8)]  # kula na siedzenie, Clyde wskakuje
 
+# ---- markery i uwagi reżysera 23.11 (sekundy na osi Studio: rr(); stałe wspólne z rysunkiem w ujecia_a/b) ----
+import ujecia_a as UA  # noqa: E402
+ZDARZENIA["wagon"] += [(rr(UA.WAGON_SLONCE - 0.4), "pytanie", 0.5), (rr(UA.WAGON_SLONCE + 0.1), "slide_up", 0.7)]  # słońce drży i ucieka
+ZDARZENIA["drzewo"] = ([(rr(UA.DRZ_WIAZE[0] + 0.05), "pff", 0.6)]
+                       + [(rr(UA.DRZ_WIAZE[0] + 0.1 + 0.27 * n), "whoosh", 0.22) for n in range(8)]
+                       + [(rr(UA.DRZ_WIAZE[0] + 0.3 + 0.55 * n), "drut", 0.6) for n in range(4)]
+                       + [(rr(UA.DRZ_WIAZE[0] + 0.7), "cios", 0.5), (rr(UA.DRZ_WIAZE[0] + 1.4), "gwiazdka", 0.5),
+                          (rr(UA.DRZ_WIAZE[1] - 0.1), "pff", 0.7), (rr(UA.DRZ_SKOK), "skok", 0.7), (rr(UA.DRZ_SKOK + 0.36), "thud", 0.35),
+                          (rr(UA.DRZ_ODJAZD - 0.2), "klakson", 0.9)])
+import ujecia_b as UB  # noqa: E402
+ZDARZENIA["hamer"] = ([(rr(s0 + 0.27), "kula", 0.5) for s0, _, _ in UB.HAM_KULE] + [(rr(UB.HAM_RZUT - 0.6), "zamek", 0.8),
+                       (rr(UB.HAM_RZUT), "whoosh", 0.5), (rr(UB.HAM_RZUT + 0.3), "whoosh", 0.35), (rr(UB.HAM_LAP), "klik", 0.7),
+                       (rr(UB.HAM_LAP + 0.02), "metal", 0.5), (0.8, "bujak", 8.2)])  # fotel buja się sam od początku (gag 41)
+ZDARZENIA["hak_teczka"] += [(rr(UB.TECZKA_PRZESUW - 0.45), "papier", 0.4), (rr(UB.TECZKA_KAWA[1]), "kubek", 0.8),
+                             (rr(UB.TECZKA_PODNOSI), "kubek", 0.4)]
+ZDARZENIA["podkreslenie"] = [(2.0, "olowek", 2.0), (4.6, "olowek", 1.4), (rr(UB.PODK_TRZASK), "klik", 0.9),
+                             (rr(UB.PODK_TRZASK + 0.03), "boing_m", 0.4), (rr(UB.PODK_TRZASK + 0.1), "whoosh", 0.25)]
+GAG_PUENTA["podkreslenie"] = rr(UB.PODK_TRZASK)
+ZDARZENIA["hamer_motel"] += [(rr(UB.MOTEL_PUSZKA + 0.3), "metal", 0.45), (rr(UB.MOTEL_PUSZKA + 0.42), "metal", 0.25),
+                             (rr(4.55), "papier", 0.3)]
+ZDARZENIA["mapa"] = ([(1.4 + 1.2 * n, "stuk", 0.7) for n in range(3)] + [(1.75 + 1.2 * n, "nitka", 0.8) for n in range(1, 3)]
+                     + [(rr(sek), "stuk", 0.9 if n == 3 else 0.7) for n, (sek, _) in enumerate(UB.MAPA_KROPKI)]
+                     + [(rr(sek + 0.15), "nitka", 0.7) for sek, _ in UB.MAPA_KROPKI]
+                     + [(rr(UB.MAPA_NIC_PEKA), "nitka", 0.8), (rr(UB.MAPA_SUPEL), "klik", 0.4)])
+GAG_PUENTA["mapa"] = rr(UB.MAPA_NIC_PEKA)
+TAB_DZWIEK["STOP!!!"] = None
+TAB_GLOS["STOP!!!"] = "stop"
+ZDARZENIA["grapevine"] = ZDARZENIA.get("grapevine", []) + [(rr(UB.GRAPE_SWIATLA + 0.32 * n), "klik", 0.35) for n in range(3)]
+ZDARZENIA["commerce"] = ZDARZENIA.get("commerce", []) + [(rr(UB.COMM_LAMPY + 0.32 * n), "klik", 0.35) for n in range(3)]
+ZDARZENIA["prasa_cygaro"] = ZDARZENIA.get("prasa_cygaro", []) + [(rr(UB.PRASA_LAMPA), "klik", 0.5), (rr(UB.PRASA_KAPELUSZ), "papier", 0.2)]
+ZDARZENIA["methvin"] = [(3.0, "papier", 0.7), (rr(UB.METH_BIERZE), "papier", 0.5), (rr(UB.METH_BIERZE + 2.0), "papier", 0.4)]
+GAG_PUENTA["methvin"] = rr(UB.METH_BIERZE + 2.6)
+ZDARZENIA["zasadzka"] = [(0.5, "szklo", 0.8), (1.4, "szklo", 0.7), (2.6, "zgrzyt", 1.6), (rr(UB.ZAS_KAPELUSZ[0] + 0.1), "whoosh", 0.3),
+                         (rr(UB.ZAS_KAPELUSZ[1]), "thud", 0.4)]
+ZDARZENIA["dym"] = [(1.5, "krzaki", 1.0), (rr(UB.DYM_KAPELUSZ + 0.35), "whoosh", 0.25)]
+ZDARZENIA["dym"] += [(rr(UB.DYM_TABLICZKI - 0.7 + 0.15 * n), "tab", 0.5) for n in range(6)]
+ZDARZENIA["pamiatki"] = ZDARZENIA.get("pamiatki", []) + [(rr(UB.PAM_LATAJA + 0.4 * n), "whoosh", 0.18) for n in range(6)]
+ZDARZENIA["darby_zaklad"] = ZDARZENIA.get("darby_zaklad", []) + [(rr(UB.DARBY_IDZIE), "klik", 0.35)]
+# dwie pierwsze monety gagu lecą teraz z rąk kobiety i farmera (markery 23.11) — ich dźwięk w chwili wpadnięcia do kasetki
+ZDARZENIA["auto_jarmark"] = ([ev for ev in ZDARZENIA["auto_jarmark"] if not (ev[1] == "coin" and ev[0] in (4.4, 5.0))]
+                             + [(rr(s_ + 0.6), "coin", 0.5) for s_, _ in UB.JAR_RZUTY] + [(rr(s_ - 0.2), "whoosh", 0.15) for s_, _ in UB.JAR_RZUTY])
+ZDARZENIA["gra"] = ZDARZENIA.get("gra", []) + [(rr(UB.GRA_WYSKOK), "chip_start", 0.4), (rr(UB.GRA_WYSKOK + 0.7), "skok", 0.4)]
+ZDARZENIA["koniec"] = [(3.0, "papier", 0.8), (4.6, "plask", 0.6), (4.9, "plask", 0.6), (rr(UB.KON_TECZKA + 0.9), "teczka", 0.9),
+                       (rr(UB.KON_KARTA + 1.4), "papier", 0.4), (rr(UB.KON_DO_TECZKI + 0.6), "teczka", 0.6), (10.0, "kurtyna_z", 1.0)]
+ZDARZENIA["rodziny"] = ZDARZENIA.get("rodziny", []) + [(8.9 + 0.38 * n, "whoosh", 0.22) for n in range(8)] + [(9.6 + 0.38 * n, "papier", 0.25) for n in range(8)]
+ZDARZENIA["list_ford"] = ZDARZENIA.get("list_ford", []) + [(0.4 + 0.8 * n, "papier", 0.3) for n in range(5)] + [(UA.LIST_LOT[1], "plask", 0.6)]
+ZDARZENIA["rzeka"] = [(0.3, "woda", 8.0), (UA.RZEKA_RYBA, "plusk", 0.8), (UA.RZEKA_RYBA + 1.0, "plusk", 0.6)]
+GAG_PUENTA["rzeka"] = UA.RZEKA_RYBA + 0.3
+ZDARZENIA["platte"] = ([(UA.PL_PANCERNY, "silnik_jalowy", 2.0), (UA.PL_BLANCHE, "szklo", 0.8), (UA.PL_UCIECZKA + 0.8, "pisk", 0.7),
+                        (UA.PL_UCIECZKA + 0.9, "silnik_jalowy", 1.6)])
+ZDARZENIA["straznik"] = ([(rr(UB.STR_KAPELUSZ[0] + 0.25 + 0.6 * n), "whoosh", 0.18) for n in range(3)]
+                         + [(rr(UB.STR_KAPELUSZ[1]), "thud", 0.25)])
+CISZA["odbicie"] = (rr(UB.ODB_STRZAL - 1.0), rr(UB.ODB_STRZAL + 0.6), False)  # cisza przed strzałem w 4 s (uwaga 23.11)
+ZDARZENIA["sowers"] = [(1.2, "krzaki", 0.5), (2.6, "krzaki", 0.9), (3.4, "szklo", 0.8), (3.55, "szklo", 0.6), (4.6, "pisk", 0.8)]
+
 
 # =====================================================================================================================
 # PRZEGLĄD FILMU: podsłuch funkcji ujęć (auta, lalki, błyski, tabliczki, zawieszki, nitki, dekoracje)
@@ -2033,15 +2097,23 @@ def skan():
             return orig(st, t, key, x, h, *a, **kw)
         return f
 
+    def chwila(t, t0):
+        """Chwila filmu dla zdarzenia w sekundzie t0 akcji ujęcia (t — czas akcji w tej klatce). Skrót (WYCINEK) gra akcję
+        oryginału bez przełożenia; zwykłe ujęcie przez render.czas_ujecia (akcja w rytmie tempa lektora → prawdziwe nagranie)."""
+        i = S["i"]
+        if R.KOL[i] in R.WYCINEK:
+            return S["t"] - t + t0
+        return R.SCENES[i][0] + R.czas_ujecia(i, t0)
+
     def w_blysk(st, x, y, p, t, t0, r=260, kolor=(1.0, 0.9, 0.6), dl=0.12):
-        at = S["t"] - t + t0
+        at = chwila(t, t0)
         pierwszy(("b", S["i"], round(t0, 2), round(x)), at, "flesz" if min(kolor) > 0.94 else "strzal")
 
     def w_podpis(w, t, txt, x, y, t0, dur=2.8):
-        pierwszy(("p", S["i"], txt, round(t0, 2)), S["t"] - t + t0, "podpis", txt)
+        pierwszy(("p", S["i"], txt, round(t0, 2)), chwila(t, t0), "podpis", txt)
 
     def w_tab(w, t, txt, x, y, t0, dur=2.2):
-        pierwszy(("t", S["i"], txt, round(t0, 2)), S["t"] - t + t0, "tab", txt)
+        pierwszy(("t", S["i"], txt, round(t0, 2)), chwila(t, t0), "tab", txt)
 
     def w_koniec(st, w, t, *a, **kw):
         noc[S["i"]] = max(noc.get(S["i"], 0.0), float(w.get("noc") or 0.0))
@@ -2272,9 +2344,12 @@ def main():
             i = N(a)
             fx[i:i + len(amb)] += amb[:n - i]
         if src == klucz:  # sekundy zdarzeń są w rytmie akcji ujęcia — przełożone na prawdziwe nagranie (render.czas_akcji)
-            evs = [(R.czas_ujecia(idx, at), kind, g) for at, kind, g in ZDARZENIA.get(klucz, []) if 0 <= at < R.SZKIC_CZAS[idx][0]]
+            evs = [(float(at) if isinstance(at, Sek) else R.czas_ujecia(idx, at), kind, g) for at, kind, g in ZDARZENIA.get(klucz, [])
+                   if 0 <= at < (sec if isinstance(at, Sek) else R.SZKIC_CZAS[idx][0])]
         else:  # skrót innego ujęcia gra akcję oryginału w jej rytmie od chwili `od`
-            evs = [(at - od, kind, g) for at, kind, g in ZDARZENIA.get(src, []) if od <= at < od + sec]
+            j_ = R.KOL.index(src)
+            evs = [(ta - od, kind, g) for ta, kind, g in ((R.czas_akcji(j_, at)[0] if isinstance(at, Sek) else at, kind, g)
+                                                          for at, kind, g in ZDARZENIA.get(src, [])) if od <= ta < od + sec]
             evs += [e for e in ZDARZENIA.get(klucz, [])]
         g = R.GRANICE[idx]
         zam, dl, czekaj, otw = R.KURTYNA

@@ -89,6 +89,9 @@ def czas_akcji(i, lt):
     return float(np.interp(lt, x, y)), y[-1]
 
 
+swiat.CZAS["akcji"] = lambda klucz, s: czas_akcji(KOL.index(klucz), s)[0]  # scena.rs: sekunda reżysera → czas akcji
+
+
 def czas_ujecia(i, ta):
     """Odwrotność czas_akcji: chwila ujęcia i, w której akcja jest w chwili ta (zdarzenia dźwięku, puenty gagów)."""
     x, y = _wezly(i)

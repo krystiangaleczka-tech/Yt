@@ -31,6 +31,15 @@ RAMPA = 676  # górna krawędź rampy: lalki stoją za nią
 STOPY = 708  # linia stóp lalek na planie lalek (stopy chowają się za rampą)
 DROGA_Y = 694  # linia kół aut na planie aut (P.auta)
 BUDOWA = {"t": None}  # render: sekundy od początku budowania dekoracji w bieżącym ujęciu (None — dekoracja już stoi)
+# Sekundy z uwag i markerów reżysera są na osi Studio, w ujęciu z prawdziwym nagraniem lektora; akcja ujęcia biegnie w rytmie
+# tempa lektora (render.czas_akcji). render ustawia CZAS["akcji"]: (klucz ujęcia, sekunda na osi) → czas akcji.
+CZAS = {"akcji": None}
+
+
+def rs(klucz, s):
+    """Sekunda reżysera w ujęciu `klucz` (oś Studio) → czas akcji ujęcia; bez renderu (np. testy) bez zmian."""
+    f = CZAS["akcji"]
+    return f(klucz, s) if f else s
 
 
 def dekoracja(st, *a, **kw):
@@ -109,17 +118,21 @@ def _off(du, dv, rot):
 OCZY = ((137, 124), (171, 122))  # środki oczu na arkuszu korpusu (zestaw_bc._korpus_img)
 CZUBEK_GLOWY = (152, 70)
 USTA = (174, 160)
+SLOMA = {"gault"}  # źdźbło słomy w ustach we wszystkich ujęciach (marker reżysera 23.11, ujęcie „noc”)
 
 
 def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink=0.0, lift=0.0, rece=(0.0, 0.0), tint=None,
           trzyma=None, seed=None, hop=0.0, alpha=1.0, shadow=True, blur=None, oczy_x=0.0, gwiazdki=0.0, kuleje=0.0, siedzi=False,
-          skrot=(1.0, 1.0), tyl_przed=False):
+          skrot=(1.0, 1.0), tyl_przed=False, trzyma_tyl=None, kapelusz_reka=False, kapelusz_rot=0.0):
     """Lalka na patyczku: wysuwa się zza rampy (k), opada pod nią (sink), obraca się (flip: 1 w prawo, -1 w lewo),
     pochyla (lean, stopnie). hop — podskok przy jeździe na listwie (z położenia x). kuleje — przy jeździe lalka kołysze się
     na jedną stronę (Bonnie po Wellington, Clyde po Eastham). trzyma = (sprite, wysokość, kotwica, obrót, za_ręką).
     oczy_x — śmierć: X na oczach; gwiazdki — zamroczenie (słownik znaków, wytyczne 1.20). skrot = (przednia, tylna) — skrót ręki
     zgiętej ku kamerze (dłoń przy ustach: ręka jest jednym odcinkiem, więc zgięcie w łokciu gra jej skrócenie); tyl_przed — tylna
     ręka przed tułowiem (sięga do ust albo przez pierś, kiedy przednia trzyma rewolwer; marker reżysera 21.11, ujęcie 12).
+    trzyma_tyl — rzecz w tylnej dłoni (jedna ręka — jedna rzecz, 1.28; pióro i zeszyt Bonnie, marker 23.11).
+    kapelusz_reka — nakrycie głowy zdjęte i trzymane w przedniej dłoni (tak, jak leżało na głowie, gdy dłoń była przy czubku
+    głowy — zamiana w jednej klatce, 1.28), kapelusz_rot — jego przechył (uchylanie). Lalki z SLOMA mają źdźbło w ustach.
     Zwraca położenie dłoni."""
     seed = sum(map(ord, key)) if seed is None else seed
     k = k * wejscie(1.0 + 0.08 * (seed % 5))
@@ -142,12 +155,26 @@ def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink
         arot = rot - flip * ang
         z = (0.03 if tyl_przed else -0.05) if name == "tyl" else 0.05
         st.put(f.arm, sx_, sy_, p, h=f.ah * sc, anchor=(f.zawias[0] / f.aw, f.zawias[1] / f.ah), rot=arot, sx=flip, sy=sk, z=z, **kw)
+        hx, hy = _off(0, f.dlon * sc * sk, arot)
         if name == "przod":
-            hx, hy = _off(0, f.dlon * sc * sk, arot)
             out = (sx_ + hx, sy_ + hy, arot)
-    st.put(f.siedzi if siedzi else f.body, x, yy, p, h=f.ch * sc, anchor=(ax, ay), rot=rot, sx=flip, **kw)
+        elif trzyma_tyl:
+            spr_, ph_, anc_, orot_, follow_ = trzyma_tyl[:5]
+            st.put(spr_, sx_ + hx, sy_ + hy, p, h=ph_, anchor=anc_, rot=(arot if follow_ else rot) + orot_ * flip, sx=flip,
+                   z=z + 0.004, **kw)
+    kap = f.kapelusz if kapelusz_reka else None
+    st.put(f.siedzi if siedzi else (f.bez_kapelusza if kap else f.body), x, yy, p, h=f.ch * sc, anchor=(ax, ay), rot=rot, sx=flip, **kw)
     kk = f.s["szer"]
     na_ark = lambda u, v: _off((f.cw / 2 + (u - 150) * kk - af[0]) * sc * flip, (v - af[1]) * sc, rot)
+    if kap and out:
+        spr_k, (hxp, hyp) = kap
+        gx, gy = f.cw / 2 + (CZUBEK_GLOWY[0] - 150) * kk, CZUBEK_GLOWY[1] + 22
+        ox, oy = _off((hxp - gx) * sc * flip, (hyp - gy) * sc, rot + kapelusz_rot * flip)
+        st.put(spr_k, out[0] + ox, out[1] + oy, p, h=spr_k.h * sc, anchor=(0.5, 0.5), rot=rot + kapelusz_rot * flip, sx=flip, z=0.06, **kw)
+    if key in SLOMA and not siedzi:
+        ux, uy = na_ark(*USTA)
+        st.put(J.rek("slomka"), x + ux, yy + uy + 2 * sc, p, h=6 * sc / 0.9, anchor=(0.04, 0.5), rot=rot + 18 * flip, sx=flip, z=0.065,
+               shadow=None, tint=tint, alpha=alpha)
     if oczy_x > 0:
         for u, v in OCZY:
             ex, ey = na_ark(u, v)
@@ -290,18 +317,26 @@ def motocykl(st, t, x, h=150, y=DROGA_Y, p=None, flip=1.0, jezdziec=None, droga=
 
 
 def ciezarowka(st, t, x, h=220, y=DROGA_Y, p=None, flip=1.0, lewarek=0.0, kierowca=None):
+    """Ciężarówka Ivy'ego; lewarek 0..1 — podniesiona na lewarku pod kabiną. Markery reżysera 23.11 („niżej to koło w ziemię”,
+    „podnieś wyżej przód auta i tył niżej”): obraca się wokół tylnego koła, które stoi na ziemi, a przód z przednim kołem
+    wisi wyraźnie wyżej na lewarku."""
     p = P.auta if p is None else p
     k = h / 360.0
-    przechyl = -3.5 * lewarek * flip
+    przechyl = -7.0 * lewarek * flip
+    kx0, ky0 = J.CIEZ_KOLA[0]
+    tyl = (x + (kx0 - 410) * k * flip, y + (ky0 - 350) * k)  # oś tylnego koła: zostaje na ziemi
+    ox, oy = _off((410 - kx0) * k * flip, (350 - ky0) * k, przechyl)
+    bx, by = tyl[0] + ox, tyl[1] + oy + 3 * lewarek
     if kierowca:
-        lalka(st, t, kierowca, x + (494 - 410) * k * flip, h * 0.92, y=y - 230 * k + (676 - 128) / 614 * h * 0.92 - 20 * lewarek,
-              p=p - 0.004, flip=flip, shadow=None)
-    st.put(J.ciezarowka(), x, y - 20 * lewarek, p, h=h, anchor=(0.5, 350 / 360.0), rot=przechyl, sx=flip)
+        kx_, ky_ = _off((494 - 410) * k * flip, -230 * k, przechyl)
+        lalka(st, t, kierowca, bx + kx_, h * 0.92, y=by + ky_ + (676 - 128) / 614 * h * 0.92, p=p - 0.004, flip=flip, shadow=None)
+    st.put(J.ciezarowka(), bx, by, p, h=h, anchor=(0.5, 350 / 360.0), rot=przechyl, sx=flip)
     for n, (kx, ky) in enumerate(J.CIEZ_KOLA):
-        uniesienie = 26 * lewarek if n == 1 else 0
-        st.put(J.kolo(52), x + (kx - 410) * k * flip, y + (ky - 350) * k - uniesienie * k, p + 0.002, h=104 * k, anchor=(0.5, 0.5))
+        wx, wy = _off((kx - 410) * k * flip, (ky - 350) * k, przechyl)
+        st.put(J.kolo(52), bx + wx, by + wy + (4 * lewarek if n == 0 else 0), p + 0.002, h=104 * k, anchor=(0.5, 0.5))
     if lewarek > 0:
-        st.put(J.lewarek(), x + (676 - 410) * k * flip, y + 4, p + 0.003, h=140 * k * (0.6 + 0.4 * lewarek), anchor=(0.5, 1.0))
+        jx, jy = _off((676 - 410) * k * flip, 0, przechyl)
+        st.put(J.lewarek(), bx + jx, y + 4, p + 0.003, h=max(1.0, (y + 4) - (by + jy) + 6), anchor=(0.5, 1.0))
 
 
 # ---------- znaki teatru ----------
@@ -463,8 +498,18 @@ def miasto(st, t, w, fasady=(("kawiarnia", 300), ("stacja", 900)), tyl=(("dom", 
         kulisy(st, t, w, dol=False)
 
 
+def mruganie(t, t0, dl=None):
+    """Jasność migającej lampy (markery reżysera 23.11: „zacznij mrugać lampą”, „lampa zamrugała”): 1 przed t0, potem
+    nieregularne przygasanie przez dl s (None — do końca ujęcia)."""
+    if t < t0 or (dl is not None and t > t0 + dl):
+        return 1.0
+    f = t - t0
+    v = math.sin(f * 29) * math.sin(f * 7.3 + 1.0) + 0.4 * math.sin(f * 53)
+    return 0.22 if v > 0.35 else 1.0
+
+
 def wnetrze(st, t, w, sciana="kwiaty", podloga=(130, 96, 66), okna=(), drzwi=(), meble=(), zarowki=(), kul=True, noc_za_oknem=None,
-            kolor_drzwi=(110, 76, 52), tint=None):
+            kolor_drzwi=(110, 76, 52), tint=None, jasnosc=1.0):
     """Wnętrze: ściana z tapetą (plan ściany), okna i drzwi, podłoga, meble na planie mebli, wisząca żarówka.
     meble = [(klucz, x, wysokość, plan albo None)] — mebel stoi na podłodze (dół na linii STOPY)."""
     st.put(J.sciana(sciana), CX, 720, P.miasto, w=2200, anchor=(0.5, 1.0), shadow=None, tint=tint)
@@ -478,8 +523,9 @@ def wnetrze(st, t, w, sciana="kwiaty", podloga=(130, 96, 66), okna=(), drzwi=(),
     for n, (key, x, hh, pp) in enumerate(meble):
         Z0.rise(st, J.mebel(key), x, 712, pp or P.wzgorza, bk(w, 0.45 + 0.08 * n), t, 130 + n, h=hh, wob=0.1)
     for n, x in enumerate(zarowki):
-        J.hang(st, J.zarowka(), x, -10, P.drzewa, bk(w, 0.6), t, 140 + n, h=300, drop=420, sway=1.0, string=False)
-        st.put(J.glow(), x, 250, P.drzewa, w=520, anchor=(0.5, 0.5), mode="add", alpha=0.18 * bk(w, 0.7), shadow=None)
+        J.hang(st, J.zarowka(), x, -10, P.drzewa, bk(w, 0.6), t, 140 + n, h=300, drop=420, sway=1.0, string=False,
+               tint=None if jasnosc >= 1 else (0.55, 0.52, 0.48))
+        st.put(J.glow(), x, 250, P.drzewa, w=520, anchor=(0.5, 0.5), mode="add", alpha=0.18 * bk(w, 0.7) * jasnosc, shadow=None)
     rampa(st, bk(w, 0.6, 0.6))
     if kul:
         kulisy(st, t, w, dol=False)
@@ -625,10 +671,10 @@ def widownia(st, t, k=1.0):
     Z0.rise(st, J.widownia(0), CX, 800, P.rampa - 0.01, k, t, 231, w=2200, wob=0.0, blur=2.0, lift=200, anchor=(0.5, 1.0))
 
 
-def west_dallas(st, t, w, woz=True, kul=True):
+def west_dallas(st, t, w, woz=True, kul=True, slonce_k=None):
     """West Dallas lat 20. („Devil's Back Porch”): dymiące kominy cementowni, wiadukt, szałasy i namioty w błocie, wóz Barrowów."""
     niebo(st, w)
-    slonce(st, t, w, alpha=0.7)
+    slonce(st, t, w, k=slonce_k, alpha=0.7)
     chmury(st, t, w, haze=1.6)
     for n, x in enumerate((180, 300, 1100)):
         k = bk(w, 0.1 + 0.05 * n)

@@ -1,6 +1,6 @@
 # Bonnie and Clyde: The Outlaws Made of Paper — rozpiska (teatr papierowy, EN)
 
-**Długość:** 18:05.4 · **akty:** 9 · **ujęć:** 119
+**Długość:** 18:19.0 · **akty:** 9 · **ujęć:** 119
 
 Kody czasowe od początku filmu. „L:” = kwestia lektora po angielsku (3. osoba, czas przeszły); pozostały opis dźwięku to efekty.
 W nawiasie: (kadr · ruch kamery · klucz funkcji ujęcia w `output/bonnie-i-clyde`).
@@ -163,7 +163,7 @@ Strzelanina w Joplin, klisza w ciemni redakcji, gazety sprzedają legendę, Bonn
 - **Beat 3.8.1 · Mapa z gazet** `7:27.2–7:39.4`
   - `7:27.2–7:39.4` d03_12 (plan ogólny · odjazd · `plakaty`) Mapa z gazet: pinezki w Teksasie, Oklahomie, Missouri, Luizjanie; na mapie wyrastają ich twarze z listów gończych. Gag: ostatni list gończy zjeżdża do góry nogami i po chwili przekręca się z „boing” — *L: For now, their faces were on wanted posters in five states, but what happens when America's most famous getaway driver misses a road sign?*
 
-## Akt 4 · What does life on the run really look like? `7:39.4–10:16.0` (156.6 s)
+## Akt 4 · What does life on the run really look like? `7:39.4–10:29.6` (170.2 s)
 
 Most w Wellington, poparzona noga Bonnie, szeryf przywiązany do drzewa, życie w samochodzie, list do Forda, Platte City i Dexfield (śmierć Bucka), odejście W.D., spotkania z matkami, zasadzka w Sowers.
 
@@ -190,183 +190,183 @@ Most w Wellington, poparzona noga Bonnie, szeryf przywiązany do drzewa, życie 
 - **Beat 4.5.1 · Obóz przy drodze** `8:38.3–8:50.0`
   - `8:38.3–8:50.0` d04_08 (plan ogólny · jazda za postacią · `oboz`) Wieczór przy drodze: auto z otwartymi drzwiami, pranie suszy się na drzwiach, puszka fasoli na ognisku, Bonnie pisze, Clyde czyści karabin; obok drugiego auta bordo siedzą Buck i Blanche. Gag: na „glamorous” złote iskry i blask jak w Hollywood; na „cold beans” iskry gasną, a łyżka stoi w zimnej fasoli na baczność — *L: This was the glamorous outlaw life: sleeping in stolen cars, eating cold beans from cans and washing in rivers.*
 
-### Scena 4.6 · Rzeka `8:50.0–8:52.3` · rzeka
-- **Beat 4.6.1 · Rzeka** `8:50.0–8:52.3`
-  - `8:50.0–8:52.3` d04_09 (plan średni · najazd · `rzeka`) Bonnie myje włosy w rzece; ryba wyskakuje jej spod ręki; tabliczka „BRRR!” — *plusk, ryba, „brrr”*
+### Scena 4.6 · Rzeka `8:50.0–8:59.4` · rzeka
+- **Beat 4.6.1 · Rzeka** `8:50.0–8:59.4`
+  - `8:50.0–8:59.4` d04_09 (plan średni · najazd · `rzeka`) Bonnie myje włosy w rzece; kamera powoli najeżdża na jej głowę (Ken Burns); po chwili ryba wyskakuje jej spod ręki; tabliczka „BRRR!” — *L: Bonnie still tried to look like a movie star, even when her only mirror was a cold river.*
 
-### Scena 4.7 · Obóz przy drodze `8:52.3–9:04.4` · obóz przy drodze
-- **Beat 4.7.1 · Obóz przy drodze** `8:52.3–9:04.4`
-  - `8:52.3–9:04.4` d04_10 (detal · statyczna · `list_ford`) Na masce Forda leży list na papierze firmowym; zjeżdża podpis „Clyde?” i tabliczka ze znakiem zapytania. Gag: na „fine getaway car” Ford mruga reflektorem i nieśmiało trąbi — *L: Clyde preferred stolen Fords, and Henry Ford even received a letter thanking him for such a fine getaway car, though nobody is sure Clyde really wrote it.*
+### Scena 4.7 · Obóz przy drodze `8:59.4–9:11.5` · obóz przy drodze
+- **Beat 4.7.1 · Obóz przy drodze** `8:59.4–9:11.5`
+  - `8:59.4–9:11.5` d04_10 (detal · statyczna · `list_ford`) Na masce Forda leży list na papierze firmowym; zjeżdża podpis „Clyde?” i tabliczka ze znakiem zapytania. Gag: na „fine getaway car” Ford mruga reflektorem i nieśmiało trąbi — *L: Clyde preferred stolen Fords, and Henry Ford even received a letter thanking him for such a fine getaway car, though nobody is sure Clyde really wrote it.*
 
-### Scena 4.8 · Platte City `9:04.4–9:16.9` · Platte City
-- **Beat 4.8.1 · Platte City** `9:04.4–9:16.9`
-  - `9:04.4–9:16.9` d04_11 (plan ogólny · statyczna · `platte`) Policja otacza dwa domki motelu, podjeżdża opancerzone auto; za parawanem błyski, sylwetka Bucka chwieje się, szyba pęka przed Blanche — *L: In July, police surrounded them at a motel in Missouri; Buck was shot in the head, and flying glass blinded Blanche in one eye.*
+### Scena 4.8 · Platte City `9:11.5–9:30.5` · Platte City
+- **Beat 4.8.1 · Platte City** `9:11.5–9:30.5`
+  - `9:11.5–9:30.5` d04_11 (plan ogólny · statyczna · `platte`) Platte City, lipiec 1933, teatr cieni: policja otacza dwa domki motelu, podjeżdża opancerzone auto z podpisem; błyski, gang odpowiada ogniem; sylwetka Bucka chwieje się (podpis), szyba pęka przed Blanche (podpis); Ford gangu wyrywa się spod domków i ucieka — *L: In July 1933, police surrounded their two motel cabins near Platte City, Missouri, and even brought an armored car; the gang shot their way out, but Buck was hit in the head, and flying glass blinded Blanche in one eye.*
 
-### Scena 4.9 · Dexfield Park `9:16.9–9:30.2` · Dexfield Park
-- **Beat 4.9.1 · Dexfield Park** `9:16.9–9:30.2`
-  - `9:16.9–9:30.2` d04_12 (plan ogólny · jazda za postacią · `dexfield`) Świt w lesie w Iowie: z krzaków wychodzą farmerzy i policjanci; Buck leży przy ognisku, Blanche klęczy przy nim i nie chce odejść — *L: Days later, in an Iowa park, a posse of police and farmers found their camp, and Buck was captured, dying, while Blanche refused to leave him.*
+### Scena 4.9 · Dexfield Park `9:30.5–9:43.8` · Dexfield Park
+- **Beat 4.9.1 · Dexfield Park** `9:30.5–9:43.8`
+  - `9:30.5–9:43.8` d04_12 (plan ogólny · jazda za postacią · `dexfield`) Świt w lesie w Iowie: z krzaków wychodzą farmerzy i policjanci; Buck leży przy ognisku, Blanche klęczy przy nim i nie chce odejść — *L: Days later, in an Iowa park, a posse of police and farmers found their camp, and Buck was captured, dying, while Blanche refused to leave him.*
 
-### Scena 4.10 · Rzeka w Iowie `9:30.2–9:40.0` · rzeka w Iowie
-- **Beat 4.10.1 · Rzeka w Iowie** `9:30.2–9:40.0`
-  - `9:30.2–9:40.0` d04_13 (plan pełny · statyczna · `przeprawa`) Clyde, Bonnie i W.D. brną przez rzekę; Clyde ciągnie Bonnie za rękę; na brzegu za nimi błyski — *L: Clyde, Bonnie and W.D. waded across a river and escaped, wounded, with almost nothing left.*
+### Scena 4.10 · Rzeka w Iowie `9:43.8–9:53.6` · rzeka w Iowie
+- **Beat 4.10.1 · Rzeka w Iowie** `9:43.8–9:53.6`
+  - `9:43.8–9:53.6` d04_13 (plan pełny · statyczna · `przeprawa`) Clyde, Bonnie i W.D. brną przez rzekę; Clyde ciągnie Bonnie za rękę; na brzegu za nimi błyski — *L: Clyde, Bonnie and W.D. waded across a river and escaped, wounded, with almost nothing left.*
 
-### Scena 4.11 · Droga `9:40.0–9:48.6` · droga
-- **Beat 4.11.1 · Droga** `9:40.0–9:48.6`
-  - `9:40.0–9:48.6` d04_14 (plan średni · najazd · `wd_odchodzi`) Nocą W.D. wysiada po cichu i odchodzi w ciemność; Bonnie patrzy za nim przez szybę. Gag: W.D. wymyka się na palcach jak w kreskówce; z prawej krawędzi ręka matki wyciąga go za ucho — *L: Soon even W.D. Jones slipped away in the night and went home to his mother.*
+### Scena 4.11 · Droga `9:53.6–10:02.2` · droga
+- **Beat 4.11.1 · Droga** `9:53.6–10:02.2`
+  - `9:53.6–10:02.2` d04_14 (plan średni · najazd · `wd_odchodzi`) Nocą W.D. wysiada po cichu i odchodzi w ciemność; Bonnie patrzy za nim przez szybę. Gag: W.D. wymyka się na palcach jak w kreskówce; z prawej krawędzi ręka matki wyciąga go za ucho — *L: Soon even W.D. Jones slipped away in the night and went home to his mother.*
 
-### Scena 4.12 · Droga pod Dallas `9:48.6–10:02.7` · droga pod Dallas
-- **Beat 4.12.1 · Droga pod Dallas** `9:48.6–10:02.7`
-  - `9:48.6–10:02.7` d04_15 (plan ogólny · jazda za postacią · `rodziny`) Nocą przy polnej drodze stoją dwa auta z wygaszonymi światłami; matki podają przez okna koszyki z jedzeniem, Bonnie oddaje pranie. Gag: na „bringing laundry” Bonnie podaje matce stos prania wyższy od auta, matka oddaje maleńki talerzyk z ciastem — *L: Bonnie and Clyde went home too, in their own way: every few weeks they met their families on dark country roads outside Dallas, bringing laundry and taking home-cooked food.*
+### Scena 4.12 · Droga pod Dallas `10:02.2–10:16.3` · droga pod Dallas
+- **Beat 4.12.1 · Droga pod Dallas** `10:02.2–10:16.3`
+  - `10:02.2–10:16.3` d04_15 (plan ogólny · jazda za postacią · `rodziny`) Nocą przy polnej drodze stoją dwa auta z wygaszonymi światłami; matki podają przez okna koszyki z jedzeniem, Bonnie oddaje pranie. Gag: na „bringing laundry” Bonnie podaje matce stos prania wyższy od auta, matka oddaje maleńki talerzyk z ciastem — *L: Bonnie and Clyde went home too, in their own way: every few weeks they met their families on dark country roads outside Dallas, bringing laundry and taking home-cooked food.*
 
-### Scena 4.13 · Sowers `10:02.7–10:16.0` · Sowers
-- **Beat 4.13.1 · Sowers** `10:02.7–10:16.0`
-  - `10:02.7–10:16.0` d04_16 (plan ogólny · statyczna · `sowers`) Nocą przy drodze z krzaków wyskakują policjanci; błyski za parawanem za wcześnie, Ford z przestrzelonymi szybami odjeżdża; tabliczka „OUCH!” — *L: In November, the Dallas sheriff tried to ambush one of these family picnics, and both of them escaped with bullets in their legs, so why didn't they just stop?*
+### Scena 4.13 · Sowers `10:16.3–10:29.6` · Sowers
+- **Beat 4.13.1 · Sowers** `10:16.3–10:29.6`
+  - `10:16.3–10:29.6` d04_16 (plan ogólny · statyczna · `sowers`) Nocą przy drodze z krzaków wyskakują policjanci; błyski za parawanem za wcześnie, Ford z przestrzelonymi szybami odjeżdża; tabliczka „OUCH!” — *L: In November, the Dallas sheriff tried to ambush one of these family picnics, and both of them escaped with bullets in their legs, so why didn't they just stop?*
 
-## Akt 5 · Who finally went after them? `10:16.0–12:35.2` (139.2 s)
+## Akt 5 · Who finally went after them? `10:29.6–12:48.8` (139.2 s)
 
 Odbicie więźniów z Eastham, Simmons wynajmuje Hamera; Hamer przestaje gonić, otwiera teczkę, DAY 1, DAY 20, granica stanów, pętle prowadzą do matek.
 
-### Scena 5.1 · Eastham `10:16.0–10:35.9` · Eastham
-- **Beat 5.1.1 · Eastham** `10:16.0–10:35.9`
-  - `10:16.0–10:27.5` d05_01 (plan ogólny · jazda za postacią · `odbicie`) Kurtyna „Act V · Who finally went after them?”; mgła nad polami Eastham; więźniowie wyciągają broń z rowu, strażnik pada; z mgły trąbi klakson, wyjeżdża Ford, więźniowie wskakują na stopnie — *L: Instead, in January 1934, Clyde went back to Eastham to free his friends, while Bonnie honked the horn in the fog to guide them.*
-  - `10:27.5–10:35.9` d05_02 (plan średni · najazd · `straznik`) Mgła rzednie; na drodze zostaje kapelusz strażnika; z nitki zjeżdża podpis „Major Joe Crowson”; światło przygasa — *L: Five prisoners got away, but a guard named Joe Crowson was shot and later died.*
+### Scena 5.1 · Eastham `10:29.6–10:49.5` · Eastham
+- **Beat 5.1.1 · Eastham** `10:29.6–10:49.5`
+  - `10:29.6–10:41.1` d05_01 (plan ogólny · jazda za postacią · `odbicie`) Kurtyna „Act V · Who finally went after them?”; mgła nad polami Eastham; więźniowie wyciągają broń z rowu, strażnik pada; z mgły trąbi klakson, wyjeżdża Ford, więźniowie wskakują na stopnie — *L: Instead, in January 1934, Clyde went back to Eastham to free his friends, while Bonnie honked the horn in the fog to guide them.*
+  - `10:41.1–10:49.5` d05_02 (plan średni · najazd · `straznik`) Mgła rzednie; na drodze zostaje kapelusz strażnika; z nitki zjeżdża podpis „Major Joe Crowson”; światło przygasa — *L: Five prisoners got away, but a guard named Joe Crowson was shot and later died.*
 
-### Scena 5.2 · Biuro więziennictwa `10:35.9–10:46.5` · biuro więziennictwa
-- **Beat 5.2.1 · Biuro więziennictwa** `10:35.9–10:46.5`
-  - `10:35.9–10:46.5` d05_03 (plan średni · najazd · `simmons`) Szef więziennictwa wali pięścią w biurko, aż podskakuje kałamarz; podpis „Lee Simmons, Texas prisons chief”. Gag: po trzecim uderzeniu w biurko pęka prawa nitka szyldu TEXAS PRISON SYSTEM, szyld zwisa krzywo (W3) — *L: The head of the Texas prisons, Lee Simmons, took it personally, and he went looking for one particular man.*
+### Scena 5.2 · Biuro więziennictwa `10:49.5–11:00.1` · biuro więziennictwa
+- **Beat 5.2.1 · Biuro więziennictwa** `10:49.5–11:00.1`
+  - `10:49.5–11:00.1` d05_03 (plan średni · najazd · `simmons`) Szef więziennictwa wali pięścią w biurko, aż podskakuje kałamarz; podpis „Lee Simmons, Texas prisons chief”. Gag: po trzecim uderzeniu w biurko pęka prawa nitka szyldu TEXAS PRISON SYSTEM, szyld zwisa krzywo (W3) — *L: The head of the Texas prisons, Lee Simmons, took it personally, and he went looking for one particular man.*
 
-### Scena 5.3 · Ganek w Austin `10:46.5–10:57.5` · ganek w Austin
-- **Beat 5.3.1 · Ganek w Austin** `10:46.5–10:57.5`
-  - `10:46.5–10:57.5` d05_04 (plan pełny · statyczna · `hamer`) Na ganku wysoki mężczyzna w kapeluszu wstaje powoli z bujanego fotela i sięga po karabin; podpis „Frank Hamer, retired Texas Ranger”. Gag: kiedy Hamer odchodzi, pusty fotel buja się dalej sam, coraz mocniej; Hamer ogląda się na niego — *L: Frank Hamer was a retired Texas Ranger who had survived dozens of gunfights, and in February 1934 he quietly took the job.*
+### Scena 5.3 · Ganek w Austin `11:00.1–11:11.1` · ganek w Austin
+- **Beat 5.3.1 · Ganek w Austin** `11:00.1–11:11.1`
+  - `11:00.1–11:11.1` d05_04 (plan pełny · statyczna · `hamer`) Na ganku wysoki mężczyzna w kapeluszu wstaje powoli z bujanego fotela i sięga po karabin; podpis „Frank Hamer, retired Texas Ranger”. Gag: kiedy Hamer odchodzi, pusty fotel buja się dalej sam, coraz mocniej; Hamer ogląda się na niego — *L: Frank Hamer was a retired Texas Ranger who had survived dozens of gunfights, and in February 1934 he quietly took the job.*
 
-### Scena 5.4 · Droga w Teksasie `10:57.5–11:09.0` · droga w Teksasie
-- **Beat 5.4.1 · Droga w Teksasie** `10:57.5–11:09.0`
-  - `10:57.5–11:09.0` d05_05 (plan ogólny · odjazd · `poscigi`) Radiowóz goni Forda po zakrętach; Ford znika za wzgórzem, radiowóz wylatuje z zakrętu i ląduje w rowie kołami do góry; tabliczka „AGAIN?!” — *L: Police in five states had been chasing Bonnie and Clyde for two years, and those chases usually ended the same way, with the police car in a ditch.*
+### Scena 5.4 · Droga w Teksasie `11:11.1–11:22.6` · droga w Teksasie
+- **Beat 5.4.1 · Droga w Teksasie** `11:11.1–11:22.6`
+  - `11:11.1–11:22.6` d05_05 (plan ogólny · odjazd · `poscigi`) Radiowóz goni Forda po zakrętach; Ford znika za wzgórzem, radiowóz wylatuje z zakrętu i ląduje w rowie kołami do góry; tabliczka „AGAIN?!” — *L: Police in five states had been chasing Bonnie and Clyde for two years, and those chases usually ended the same way, with the police car in a ditch.*
 
-### Scena 5.5 · Biuro Hamera `11:09.0–11:38.0` · biuro Hamera
-- **Beat 5.5.1 · Biuro Hamera** `11:09.0–11:38.0`
-  - `11:09.0–11:15.2` d05_06 (plan średni · najazd · `hak_szuflada`) Hamer zdejmuje z biurka zabawkowy radiowóz i chowa go do szuflady; tabliczka „NO MORE CHASING” — *L: So Hamer did something nobody expected: he stopped chasing them.*
-  - `11:15.2–11:23.7` d05_07 (plan średni · najazd · `hak_teczka`) Hamer otwiera grubą teczkę z aktu III; wycinki wyfruwają i same przypinają się do mapy; Hamer stawia kubek kawy i siada wygodnie — *L: Instead, he sat down with that file of newspaper clippings and a map, and he waited for them to make one mistake.*
-  - `11:23.7–11:38.0` d05_08 (detal · statyczna · `podkreslenie`) Hamer podkreśla w aktach jedno zdanie czerwonym ołówkiem, dwa razy; z nitki zjeżdża tabliczka „HE WON'T GO BACK”. Gag: przy drugim podkreśleniu łamie się grafit, ołówek podskakuje, czubek odlatuje, „SNAP!” — *L: He underlined one line twice, a line the papers reportedly quoted from Clyde after Eastham: he would never go back, which meant there would never be a surrender, only the question of where.*
+### Scena 5.5 · Biuro Hamera `11:22.6–11:51.6` · biuro Hamera
+- **Beat 5.5.1 · Biuro Hamera** `11:22.6–11:51.6`
+  - `11:22.6–11:28.8` d05_06 (plan średni · najazd · `hak_szuflada`) Hamer zdejmuje z biurka zabawkowy radiowóz i chowa go do szuflady; tabliczka „NO MORE CHASING” — *L: So Hamer did something nobody expected: he stopped chasing them.*
+  - `11:28.8–11:37.3` d05_07 (plan średni · najazd · `hak_teczka`) Hamer otwiera grubą teczkę z aktu III; wycinki wyfruwają i same przypinają się do mapy; Hamer stawia kubek kawy i siada wygodnie — *L: Instead, he sat down with that file of newspaper clippings and a map, and he waited for them to make one mistake.*
+  - `11:37.3–11:51.6` d05_08 (detal · statyczna · `podkreslenie`) Hamer podkreśla w aktach jedno zdanie czerwonym ołówkiem, dwa razy; z nitki zjeżdża tabliczka „HE WON'T GO BACK”. Gag: przy drugim podkreśleniu łamie się grafit, ołówek podskakuje, czubek odlatuje, „SNAP!” — *L: He underlined one line twice, a line the papers reportedly quoted from Clyde after Eastham: he would never go back, which meant there would never be a surrender, only the question of where.*
 
-### Scena 5.6 · Droga w Teksasie `11:38.0–11:48.2` · droga w Teksasie
-- **Beat 5.6.1 · Droga w Teksasie** `11:38.0–11:48.2`
-  - `11:38.0–11:48.2` d05_09 (plan ogólny · odjazd · `dzien1`) Zjeżdża zawieszka „DAY 1”; Hamer jedzie starym autem przez prerię z mapą na kolanach. Gag: Hamer jedzie tak wolno, że wyprzedza go starsza pani z laską; Hamer uchyla kapelusza — *L: On day one, Hamer started driving, not after them, but through every town where they had already been.*
+### Scena 5.6 · Droga w Teksasie `11:51.6–12:01.8` · droga w Teksasie
+- **Beat 5.6.1 · Droga w Teksasie** `11:51.6–12:01.8`
+  - `11:51.6–12:01.8` d05_09 (plan ogólny · odjazd · `dzien1`) Zjeżdża zawieszka „DAY 1”; Hamer jedzie starym autem przez prerię z mapą na kolanach. Gag: Hamer jedzie tak wolno, że wyprzedza go starsza pani z laską; Hamer uchyla kapelusza — *L: On day one, Hamer started driving, not after them, but through every town where they had already been.*
 
-### Scena 5.7 · Motel przy drodze `11:48.2–11:59.6` · motel przy drodze
-- **Beat 5.7.1 · Motel przy drodze** `11:48.2–11:59.6`
-  - `11:48.2–11:59.6` d05_10 (plan średni · najazd · `hamer_motel`) Hamer pokazuje recepcjoniście zdjęcie Bonnie; recepcjonista kiwa głową i wskazuje drogę; na ladzie stos pustych puszek po fasoli. Gag: na „a pile of empty cans” Hamer dotyka jednej puszki, cała piramida się rozsypuje; Hamer nawet nie mrugnie — *L: Everywhere he went, someone remembered them: a limping girl, a young man in a hat, a new Ford and a pile of empty cans.*
+### Scena 5.7 · Motel przy drodze `12:01.8–12:13.2` · motel przy drodze
+- **Beat 5.7.1 · Motel przy drodze** `12:01.8–12:13.2`
+  - `12:01.8–12:13.2` d05_10 (plan średni · najazd · `hamer_motel`) Hamer pokazuje recepcjoniście zdjęcie Bonnie; recepcjonista kiwa głową i wskazuje drogę; na ladzie stos pustych puszek po fasoli. Gag: na „a pile of empty cans” Hamer dotyka jednej puszki, cała piramida się rozsypuje; Hamer nawet nie mrugnie — *L: Everywhere he went, someone remembered them: a limping girl, a young man in a hat, a new Ford and a pile of empty cans.*
 
-### Scena 5.8 · Granica stanów `11:59.6–12:15.0` · granica stanów
-- **Beat 5.8.1 · Granica stanów** `11:59.6–12:15.0`
-  - `11:59.6–12:15.0` d05_11 (plan ogólny · jazda za postacią · `dzien20`) Zawieszka „DAY 20”; na drodze tablica „STATE LINE”; Ford przemyka przez granicę, radiowóz hamuje przed nią z piskiem. Gag: szeryf przy STATE LINE: przelatuje ptak, plask na kapeluszu; szeryf zastyga i powoli patrzy w górę, „…” — *L: By day twenty, he understood their main trick: in those days, police could rarely follow a car across a state line, so Clyde simply drove into the next state.*
+### Scena 5.8 · Granica stanów `12:13.2–12:28.6` · granica stanów
+- **Beat 5.8.1 · Granica stanów** `12:13.2–12:28.6`
+  - `12:13.2–12:28.6` d05_11 (plan ogólny · jazda za postacią · `dzien20`) Zawieszka „DAY 20”; na drodze tablica „STATE LINE”; Ford przemyka przez granicę, radiowóz hamuje przed nią z piskiem. Gag: szeryf przy STATE LINE: przelatuje ptak, plask na kapeluszu; szeryf zastyga i powoli patrzy w górę, „…” — *L: By day twenty, he understood their main trick: in those days, police could rarely follow a car across a state line, so Clyde simply drove into the next state.*
 
-### Scena 5.9 · Biuro Hamera `12:15.0–12:35.2` · biuro Hamera
-- **Beat 5.9.1 · Biuro Hamera** `12:15.0–12:35.2`
-  - `12:15.0–12:23.4` d05_12 (plan średni · najazd · `mapa`) Hamer przypina do mapy papierowe znaczniki: Teksas, Oklahoma, Missouri, Luizjana; łączy je czerwoną nicią. Gag: Hamer naciąga czerwoną nić po mapie, nić pęka, on bez patrzenia zawiązuje supeł (W3) — *L: So Hamer stopped marking where they had been and started marking where they kept coming back to.*
-  - `12:23.4–12:35.2` d05_13 (detal · statyczna · `petle`) Czerwona nić na mapie układa się w pętle wzdłuż granic stanów; każda pętla wraca do Dallas, do dwóch małych domków — *L: The loops always ran along state lines, and sooner or later every one of them led home to their mothers, so how long would Hamer have to wait?*
+### Scena 5.9 · Biuro Hamera `12:28.6–12:48.8` · biuro Hamera
+- **Beat 5.9.1 · Biuro Hamera** `12:28.6–12:48.8`
+  - `12:28.6–12:37.0` d05_12 (plan średni · najazd · `mapa`) Hamer przypina do mapy papierowe znaczniki: Teksas, Oklahoma, Missouri, Luizjana; łączy je czerwoną nicią. Gag: Hamer naciąga czerwoną nić po mapie, nić pęka, on bez patrzenia zawiązuje supeł (W3) — *L: So Hamer stopped marking where they had been and started marking where they kept coming back to.*
+  - `12:37.0–12:48.8` d05_13 (detal · statyczna · `petle`) Czerwona nić na mapie układa się w pętle wzdłuż granic stanów; każda pętla wraca do Dallas, do dwóch małych domków — *L: The loops always ran along state lines, and sooner or later every one of them led home to their mothers, so how long would Hamer have to wait?*
 
-## Akt 6 · When did America stop cheering? `12:35.2–14:21.7` (106.5 s)
+## Akt 6 · When did America stop cheering? `12:48.8–14:35.3` (106.5 s)
 
 DAY 50: Grapevine (poważnie od tej chwili), Maree Tullis, gazety odwracają się, nagrody, Commerce, komendant Boyd i wiadomość o cygarach; gazeta na biurku Hamera.
 
-### Scena 6.1 · Grapevine `12:35.2–12:56.1` · Grapevine
-- **Beat 6.1.1 · Grapevine** `12:35.2–12:56.1`
-  - `12:35.2–12:49.2` d06_01 (plan ogólny · jazda za postacią · `grapevine`) Kurtyna „Act VI · When did America stop cheering?”; zawieszka „DAY 50 · Easter Sunday”; wiejska droga, kwitnące drzewa, Ford stoi na poboczu; nadjeżdżają dwaj motocykliści i zwalniają — *L: On day fifty of Hamer's hunt, Easter Sunday 1934, two young highway patrolmen stopped near Grapevine, Texas, to help what they thought was a stranded car.*
-  - `12:49.2–12:56.1` d06_02 (plan ogólny · statyczna · `grapevine_cien`) Muzyka milknie; za parawanem dwa błyski, dwie sylwetki z motocyklami padają; motocykl przewraca się z łoskotem (szczyt 2) — *L: They were shot before they could draw their guns.*
+### Scena 6.1 · Grapevine `12:48.8–13:09.7` · Grapevine
+- **Beat 6.1.1 · Grapevine** `12:48.8–13:09.7`
+  - `12:48.8–13:02.8` d06_01 (plan ogólny · jazda za postacią · `grapevine`) Kurtyna „Act VI · When did America stop cheering?”; zawieszka „DAY 50 · Easter Sunday”; wiejska droga, kwitnące drzewa, Ford stoi na poboczu; nadjeżdżają dwaj motocykliści i zwalniają — *L: On day fifty of Hamer's hunt, Easter Sunday 1934, two young highway patrolmen stopped near Grapevine, Texas, to help what they thought was a stranded car.*
+  - `13:02.8–13:09.7` d06_02 (plan ogólny · statyczna · `grapevine_cien`) Muzyka milknie; za parawanem dwa błyski, dwie sylwetki z motocyklami padają; motocykl przewraca się z łoskotem (szczyt 2) — *L: They were shot before they could draw their guns.*
 
-### Scena 6.2 · Cmentarz w Alto `12:56.1–13:09.3` · cmentarz w Alto
-- **Beat 6.2.1 · Cmentarz w Alto** `12:56.1–13:09.3`
-  - `12:56.1–13:09.3` d06_03 (plan średni · najazd · `tullis`) Przy trumnie stoi młoda kobieta w białej sukni ślubnej; z góry powoli spadają płatki; podpis „Maree Tullis” — *L: One of them, H.D. Murphy, was supposed to marry his sweetheart, Maree Tullis, that month, and local historians say she came to his funeral in her wedding dress.*
+### Scena 6.2 · Cmentarz w Alto `13:09.7–13:22.9` · cmentarz w Alto
+- **Beat 6.2.1 · Cmentarz w Alto** `13:09.7–13:22.9`
+  - `13:09.7–13:22.9` d06_03 (plan średni · najazd · `tullis`) Przy trumnie stoi młoda kobieta w białej sukni ślubnej; z góry powoli spadają płatki; podpis „Maree Tullis” — *L: One of them, H.D. Murphy, was supposed to marry his sweetheart, Maree Tullis, that month, and local historians say she came to his funeral in her wedding dress.*
 
-### Scena 6.3 · Ulica `13:09.3–13:31.3` · ulica
-- **Beat 6.3.1 · Ulica** `13:09.3–13:31.3`
-  - `13:09.3–13:19.0` d06_04 (plan ogólny · odjazd · `gazety_zle`) Nowe gazety z nagłówkiem o bezlitosnej Bonnie; ludzie zgniatają je i rzucają na ziemię; kolejka przy kiosku się rozchodzi — *L: The papers claimed Bonnie had laughed over a dying man, which was probably not true, but after Grapevine nobody was cheering for them anymore.*
-  - `13:19.0–13:31.3` d06_05 (plan pełny · statyczna · `listy_gon`) Na słupie wyrastają kolejne listy gończe z nagrodą; farmer z dubeltówką przystaje, czyta i odwraca się w stronę drogi. Gag: farmer z wiatrówką na widok pojazdu robi musztrę jak na paradzie w takt werbla — a to wóz z sianem i koniem — *L: Rewards were posted across the South, and from then on every farmer with a shotgun was watching the road for a stolen Ford.*
+### Scena 6.3 · Ulica `13:22.9–13:44.9` · ulica
+- **Beat 6.3.1 · Ulica** `13:22.9–13:44.9`
+  - `13:22.9–13:32.6` d06_04 (plan ogólny · odjazd · `gazety_zle`) Nowe gazety z nagłówkiem o bezlitosnej Bonnie; ludzie zgniatają je i rzucają na ziemię; kolejka przy kiosku się rozchodzi — *L: The papers claimed Bonnie had laughed over a dying man, which was probably not true, but after Grapevine nobody was cheering for them anymore.*
+  - `13:32.6–13:44.9` d06_05 (plan pełny · statyczna · `listy_gon`) Na słupie wyrastają kolejne listy gończe z nagrodą; farmer z dubeltówką przystaje, czyta i odwraca się w stronę drogi. Gag: farmer z wiatrówką na widok pojazdu robi musztrę jak na paradzie w takt werbla — a to wóz z sianem i koniem — *L: Rewards were posted across the South, and from then on every farmer with a shotgun was watching the road for a stolen Ford.*
 
-### Scena 6.4 · Commerce `13:31.3–13:59.1` · Commerce
-- **Beat 6.4.1 · Commerce** `13:31.3–13:59.1`
-  - `13:31.3–13:41.8` d06_06 (plan pełny · statyczna · `commerce`) Ford ugrzązł w rowie pod Commerce w Oklahomie; dwaj stróże prawa idą przez pole, żeby pomóc — *L: Five days later, near Commerce, Oklahoma, their car slid into a ditch again, and two lawmen walked over to help.*
-  - `13:41.8–13:49.3` d06_07 (plan ogólny · statyczna · `commerce_cien`) Za parawanem błysk, starszy konstabl pada; komendant podnosi ręce i wsiada do Forda — *L: Clyde killed Constable Cal Campbell and took the police chief, Percy Boyd, as a hostage.*
-  - `13:49.3–13:59.1` d06_08 (plan średni · najazd · `boyd`) Komendant na tylnym siedzeniu z rękami w górze; Bonnie odwraca się do niego z uniesionym palcem; podpis „Percy Boyd, police chief” — *L: They drove Boyd around for hours, and before letting him go in Kansas, Bonnie gave him one message for the newspapers.*
+### Scena 6.4 · Commerce `13:44.9–14:12.7` · Commerce
+- **Beat 6.4.1 · Commerce** `13:44.9–14:12.7`
+  - `13:44.9–13:55.4` d06_06 (plan pełny · statyczna · `commerce`) Ford ugrzązł w rowie pod Commerce w Oklahomie; dwaj stróże prawa idą przez pole, żeby pomóc — *L: Five days later, near Commerce, Oklahoma, their car slid into a ditch again, and two lawmen walked over to help.*
+  - `13:55.4–14:02.9` d06_07 (plan ogólny · statyczna · `commerce_cien`) Za parawanem błysk, starszy konstabl pada; komendant podnosi ręce i wsiada do Forda — *L: Clyde killed Constable Cal Campbell and took the police chief, Percy Boyd, as a hostage.*
+  - `14:02.9–14:12.7` d06_08 (plan średni · najazd · `boyd`) Komendant na tylnym siedzeniu z rękami w górze; Bonnie odwraca się do niego z uniesionym palcem; podpis „Percy Boyd, police chief” — *L: They drove Boyd around for hours, and before letting him go in Kansas, Bonnie gave him one message for the newspapers.*
 
-### Scena 6.5 · Droga w Kansas `13:59.1–14:08.0` · droga w Kansas
-- **Beat 6.5.1 · Droga w Kansas** `13:59.1–14:08.0`
-  - `13:59.1–14:08.0` d06_09 (zbliżenie · statyczna · `boyd_tab`) Boyd stoi przy drodze i patrzy za odjeżdżającym Fordem; zjeżdża nad nim tabliczka „SHE DOESN'T SMOKE CIGARS!” — *L: Not that she was innocent, and not that she was sorry, only that Bonnie Parker did not smoke cigars.*
+### Scena 6.5 · Droga w Kansas `14:12.7–14:21.6` · droga w Kansas
+- **Beat 6.5.1 · Droga w Kansas** `14:12.7–14:21.6`
+  - `14:12.7–14:21.6` d06_09 (zbliżenie · statyczna · `boyd_tab`) Boyd stoi przy drodze i patrzy za odjeżdżającym Fordem; zjeżdża nad nim tabliczka „SHE DOESN'T SMOKE CIGARS!” — *L: Not that she was innocent, and not that she was sorry, only that Bonnie Parker did not smoke cigars.*
 
-### Scena 6.6 · Drukarnia `14:08.0–14:21.7` · drukarnia
-- **Beat 6.6.1 · Drukarnia** `14:08.0–14:21.7`
-  - `14:08.0–14:21.7` d06_10 (plan ogólny · jazda za postacią · `prasa_cygaro`) Maszyna drukarska wypluwa gazety z nagłówkiem „BONNIE: NO CIGARS!”; jedna gazeta ląduje na biurku Hamera obok mapy. Gag: drukarz czyta świeży nagłówek BONNIE: NO CIGARS! i zapala sobie cygaro — *L: The papers printed that too, and one of them landed on Hamer's desk, next to a map that was finally full, but he still needed someone to tell him the day.*
+### Scena 6.6 · Drukarnia `14:21.6–14:35.3` · drukarnia
+- **Beat 6.6.1 · Drukarnia** `14:21.6–14:35.3`
+  - `14:21.6–14:35.3` d06_10 (plan ogólny · jazda za postacią · `prasa_cygaro`) Maszyna drukarska wypluwa gazety z nagłówkiem „BONNIE: NO CIGARS!”; jedna gazeta ląduje na biurku Hamera obok mapy. Gag: drukarz czyta świeży nagłówek BONNIE: NO CIGARS! i zapala sobie cygaro — *L: The papers printed that too, and one of them landed on Hamer's desk, next to a map that was finally full, but he still needed someone to tell him the day.*
 
-## Akt 7 · How do you set a trap for a ghost? `14:21.7–16:17.5` (115.8 s)
+## Akt 7 · How do you set a trap for a ghost? `14:35.3–16:31.1` (115.8 s)
 
 Układ z Ivym Methvinem, wiersz dla matki, ostatnie pożegnanie, Shreveport, noc w krzakach, sześciu ludzi, DAY 102: ciężarówka na lewarku, kanapka, zasadzka.
 
-### Scena 7.1 · Chata w Luizjanie `14:21.7–14:35.7` · chata w Luizjanie
-- **Beat 7.1.1 · Chata w Luizjanie** `14:21.7–14:35.7`
-  - `14:21.7–14:35.7` d07_01 (plan średni · najazd · `methvin`) Kurtyna „Act VII · How do you set a trap for a ghost?”; chata w Luizjanie; Hamer siedzi przy stole naprzeciw brodatego farmera, między nimi papier z pieczęcią „PARDON”; farmer kiwa głową; podpis „Ivy Methvin”. Gag: po „pardoned” Ivy podnosi papier PARDON pod żarówkę i sprawdza go jak banknot, „HMM…” — *L: Hamer found that someone in Ivy Methvin, the father of Henry Methvin, a young convict they had freed at Eastham: help set a trap, and your son will be pardoned.*
+### Scena 7.1 · Chata w Luizjanie `14:35.3–14:49.3` · chata w Luizjanie
+- **Beat 7.1.1 · Chata w Luizjanie** `14:35.3–14:49.3`
+  - `14:35.3–14:49.3` d07_01 (plan średni · najazd · `methvin`) Kurtyna „Act VII · How do you set a trap for a ghost?”; chata w Luizjanie; Hamer siedzi przy stole naprzeciw brodatego farmera, między nimi papier z pieczęcią „PARDON”; farmer kiwa głową; podpis „Ivy Methvin”. Gag: po „pardoned” Ivy podnosi papier PARDON pod żarówkę i sprawdza go jak banknot, „HMM…” — *L: Hamer found that someone in Ivy Methvin, the father of Henry Methvin, a young convict they had freed at Eastham: help set a trap, and your son will be pardoned.*
 
-### Scena 7.2 · Dom matki Bonnie `14:35.7–14:45.9` · dom matki Bonnie
-- **Beat 7.2.1 · Dom matki Bonnie** `14:35.7–14:45.9`
-  - `14:35.7–14:45.9` d07_02 (plan średni · najazd · `wiersz`) Bonnie kuleje do matki i wręcza jej zeszyt; matka czyta przy lampie, a za oknem czeka Ford z zapalonymi światłami — *L: Around that time, Bonnie gave her mother a new poem, which said that one day she and Clyde would go down together and be buried side by side.*
+### Scena 7.2 · Dom matki Bonnie `14:49.3–14:59.5` · dom matki Bonnie
+- **Beat 7.2.1 · Dom matki Bonnie** `14:49.3–14:59.5`
+  - `14:49.3–14:59.5` d07_02 (plan średni · najazd · `wiersz`) Bonnie kuleje do matki i wręcza jej zeszyt; matka czyta przy lampie, a za oknem czeka Ford z zapalonymi światłami — *L: Around that time, Bonnie gave her mother a new poem, which said that one day she and Clyde would go down together and be buried side by side.*
 
-### Scena 7.3 · Dallas `14:45.9–14:52.1` · Dallas
-- **Beat 7.3.1 · Dallas** `14:45.9–14:52.1`
-  - `14:45.9–14:52.1` d07_03 (plan ogólny · jazda za postacią · `pozegnanie`) Ford przejeżdża powoli obok dwóch domów; w oknach dwie matki machają; Ford znika za zakrętem. Gag: na „the only home” w tylnej szybie Forda kołysze się tabliczka HOME SWEET HOME — *L: Then they drove on, because a car was the only home they had left.*
+### Scena 7.3 · Dallas `14:59.5–15:05.7` · Dallas
+- **Beat 7.3.1 · Dallas** `14:59.5–15:05.7`
+  - `14:59.5–15:05.7` d07_03 (plan ogólny · jazda za postacią · `pozegnanie`) Ford przejeżdża powoli obok dwóch domów; w oknach dwie matki machają; Ford znika za zakrętem. Gag: na „the only home” w tylnej szybie Forda kołysze się tabliczka HOME SWEET HOME — *L: Then they drove on, because a car was the only home they had left.*
 
-### Scena 7.4 · Shreveport `14:52.1–15:14.3` · Shreveport
-- **Beat 7.4.1 · Shreveport** `14:52.1–15:14.3`
-  - `14:52.1–15:00.1` d07_04 (plan średni · najazd · `henry_wsiada`) Na poboczu drogi pod Shreveport chłopak w kaszkiecie, jeden z więźniów z Eastham, macha do Forda; Ford zwalnia i zabiera go na tylne siedzenie; podpis „Henry Methvin” — *L: On the road outside Shreveport, they picked up one of the Eastham prisoners, a boy named Henry Methvin.*
-  - `15:00.1–15:14.3` d07_05 (plan pełny · odjazd · `shreveport`) Przed kawiarnią w Shreveport chłopak wysiada z Forda i znika w tłumie; podpis „Henry Methvin”; Ford czeka chwilę i odjeżdża bez niego. Gag: Henry wchodzi do kawiarni, a kiedy wychodzi z dwiema kanapkami, Forda już nie ma; rozgląda się, „...?” — *L: On May 21, Henry Methvin got separated from Bonnie and Clyde in Shreveport, and Hamer knew where he would go: home to his father's farm, where they would come looking for him.*
+### Scena 7.4 · Shreveport `15:05.7–15:27.9` · Shreveport
+- **Beat 7.4.1 · Shreveport** `15:05.7–15:27.9`
+  - `15:05.7–15:13.7` d07_04 (plan średni · najazd · `henry_wsiada`) Na poboczu drogi pod Shreveport chłopak w kaszkiecie, jeden z więźniów z Eastham, macha do Forda; Ford zwalnia i zabiera go na tylne siedzenie; podpis „Henry Methvin” — *L: On the road outside Shreveport, they picked up one of the Eastham prisoners, a boy named Henry Methvin.*
+  - `15:13.7–15:27.9` d07_05 (plan pełny · odjazd · `shreveport`) Przed kawiarnią w Shreveport chłopak wysiada z Forda i znika w tłumie; podpis „Henry Methvin”; Ford czeka chwilę i odjeżdża bez niego. Gag: Henry wchodzi do kawiarni, a kiedy wychodzi z dwiema kanapkami, Forda już nie ma; rozgląda się, „...?” — *L: On May 21, Henry Methvin got separated from Bonnie and Clyde in Shreveport, and Hamer knew where he would go: home to his father's farm, where they would come looking for him.*
 
-### Scena 7.5 · Droga w Luizjanie `15:14.3–16:17.5` · droga w Luizjanie
-- **Beat 7.5.1 · Droga w Luizjanie** `15:14.3–16:17.5`
-  - `15:14.3–15:27.7` d07_06 (plan ogólny · jazda za postacią · `noc`) Zawieszka „DAY 101”; noc w lesie, sześciu mężczyzn kuli się w krzakach; nad kapeluszami krążą komary, jeden mężczyzna bezgłośnie klepie się w kark. Gag: na „swatting mosquitoes” szeryfowie po kolei klepią komary, jeden klepie sąsiada w policzek; obaj zastygają, „SHHH!” — *L: On the night of May 22, Hamer and five other lawmen hid in the bushes along a country road in Louisiana, and they waited there until dawn, swatting mosquitoes in silence.*
-  - `15:27.7–15:42.9` d07_07 (plan średni · najazd · `posse`) W krzakach sześciu mężczyzn; nad każdym po kolei zjeżdża podpis: Hamer, Gault, Alcorn, Hinton, Jordan, Oakley; Hinton przeciera okulary. Gag: ostatni podpis spada za nisko i stuka młodego Oakleya w kapelusz; Oakley się kuli, „OUCH!” — *L: Hamer had brought his old partner Manny Gault, two Dallas deputies who knew Clyde by sight, Bob Alcorn and Ted Hinton, and the local sheriff, Henderson Jordan, with his deputy, Prentiss Oakley.*
-  - `15:42.9–15:54.0` d07_08 (plan ogólny · jazda za postacią · `zasadzka_rano`) Zawieszka „DAY 102”; świt na leśnej drodze; ciężarówka Ivy'ego stoi na lewarku jak z przebitą oponą; w krzakach sześć kapeluszy i luf — *L: On the morning of day one hundred and two, May 23, Ivy Methvin's truck stood by the road on a jack as bait.*
-  - `15:54.0–16:00.9` d07_09 (zbliżenie · statyczna · `kanapka`) Wnętrze Forda: Bonnie w czerwonej sukience je kanapkę z papierka; Clyde prowadzi w skarpetkach i ciemnych okularach. Gag: liść sałaty z kanapki Bonnie spada na okulary Clyde'a; Clyde go nie zdejmuje i prowadzi dalej — *L: Clyde was driving in his socks, and Bonnie was eating a sandwich from a café in town.*
-  - `16:00.9–16:03.1` d07_10 (plan pełny · statyczna · `zwolnienie`) Ford zwalnia przy ciężarówce; Ivy macha z pobocza; Clyde opuszcza szybę i wychyla się — *warkot silnika zwalnia, chrzęst żwiru*
-  - `16:03.1–16:07.9` d07_11 (plan ogólny · statyczna · `zasadzka`) Muzyka milknie; za parawanem dziesiątki błysków jeden po drugim, papierowy Ford drży i powoli zjeżdża do rowu; spada kapelusz; cisza (szczyt 3) — *cisza muzyki, seria strzałów za parawanem, szkło, potem cisza (szczyt 3)*
-  - `16:07.9–16:17.5` d07_12 (plan średni · najazd · `dym`) Dym opada; mężczyźni wychodzą z krzaków z bronią; jeden zdejmuje kapelusz; nikt nic nie mówi — *L: The lawmen fired more than a hundred rounds in a few seconds, and it was over before Clyde could reach for a gun.*
+### Scena 7.5 · Droga w Luizjanie `15:27.9–16:31.1` · droga w Luizjanie
+- **Beat 7.5.1 · Droga w Luizjanie** `15:27.9–16:31.1`
+  - `15:27.9–15:41.3` d07_06 (plan ogólny · jazda za postacią · `noc`) Zawieszka „DAY 101”; noc w lesie, sześciu mężczyzn kuli się w krzakach; nad kapeluszami krążą komary, jeden mężczyzna bezgłośnie klepie się w kark. Gag: na „swatting mosquitoes” szeryfowie po kolei klepią komary, jeden klepie sąsiada w policzek; obaj zastygają, „SHHH!” — *L: On the night of May 22, Hamer and five other lawmen hid in the bushes along a country road in Louisiana, and they waited there until dawn, swatting mosquitoes in silence.*
+  - `15:41.3–15:56.5` d07_07 (plan średni · najazd · `posse`) W krzakach sześciu mężczyzn; nad każdym po kolei zjeżdża podpis: Hamer, Gault, Alcorn, Hinton, Jordan, Oakley; Hinton przeciera okulary. Gag: ostatni podpis spada za nisko i stuka młodego Oakleya w kapelusz; Oakley się kuli, „OUCH!” — *L: Hamer had brought his old partner Manny Gault, two Dallas deputies who knew Clyde by sight, Bob Alcorn and Ted Hinton, and the local sheriff, Henderson Jordan, with his deputy, Prentiss Oakley.*
+  - `15:56.5–16:07.6` d07_08 (plan ogólny · jazda za postacią · `zasadzka_rano`) Zawieszka „DAY 102”; świt na leśnej drodze; ciężarówka Ivy'ego stoi na lewarku jak z przebitą oponą; w krzakach sześć kapeluszy i luf — *L: On the morning of day one hundred and two, May 23, Ivy Methvin's truck stood by the road on a jack as bait.*
+  - `16:07.6–16:14.5` d07_09 (zbliżenie · statyczna · `kanapka`) Wnętrze Forda: Bonnie w czerwonej sukience je kanapkę z papierka; Clyde prowadzi w skarpetkach i ciemnych okularach. Gag: liść sałaty z kanapki Bonnie spada na okulary Clyde'a; Clyde go nie zdejmuje i prowadzi dalej — *L: Clyde was driving in his socks, and Bonnie was eating a sandwich from a café in town.*
+  - `16:14.5–16:16.7` d07_10 (plan pełny · statyczna · `zwolnienie`) Ford zwalnia przy ciężarówce; Ivy macha z pobocza; Clyde opuszcza szybę i wychyla się — *warkot silnika zwalnia, chrzęst żwiru*
+  - `16:16.7–16:21.5` d07_11 (plan ogólny · statyczna · `zasadzka`) Muzyka milknie; za parawanem dziesiątki błysków jeden po drugim, papierowy Ford drży i powoli zjeżdża do rowu; spada kapelusz; cisza (szczyt 3) — *cisza muzyki, seria strzałów za parawanem, szkło, potem cisza (szczyt 3)*
+  - `16:21.5–16:31.1` d07_12 (plan średni · najazd · `dym`) Dym opada; mężczyźni wychodzą z krzaków z bronią; jeden zdejmuje kapelusz; nikt nic nie mówi — *L: The lawmen fired more than a hundred rounds in a few seconds, and it was over before Clyde could reach for a gun.*
 
-## Akt 8 · Who owns the legend? `16:17.5–18:05.4` (107.9 s)
+## Akt 8 · Who owns the legend? `16:31.1–18:19.0` (107.9 s)
 
 Kto ma legendę: pamiątkarze w Arcadii, Darby przy ciele, osobne groby, auto na jarmarkach, Blanche, milczenie Hamera, Hollywood 1967, gra 2026, puenta i podziękowanie.
 
-### Scena 8.1 · Arcadia `16:17.5–16:31.4` · Arcadia
-- **Beat 8.1.1 · Arcadia** `16:17.5–16:31.4`
-  - `16:17.5–16:31.4` d08_01 (plan ogólny · odjazd · `pamiatki`) Kurtyna „Act VIII · Who owns the legend?”; tłum otacza podziurawionego Forda w Arcadii; ktoś odcina nożyczkami pukiel włosów, ktoś kawałek sukienki; szeryf odgania ludzi — *L: Within hours thousands of people crowded into the little town of Arcadia, and souvenir hunters cut locks of Bonnie's hair and pieces of her dress.*
+### Scena 8.1 · Arcadia `16:31.1–16:45.0` · Arcadia
+- **Beat 8.1.1 · Arcadia** `16:31.1–16:45.0`
+  - `16:31.1–16:45.0` d08_01 (plan ogólny · odjazd · `pamiatki`) Kurtyna „Act VIII · Who owns the legend?”; tłum otacza podziurawionego Forda w Arcadii; ktoś odcina nożyczkami pukiel włosów, ktoś kawałek sukienki; szeryf odgania ludzi — *L: Within hours thousands of people crowded into the little town of Arcadia, and souvenir hunters cut locks of Bonnie's hair and pieces of her dress.*
 
-### Scena 8.2 · Zakład pogrzebowy w Arcadii `16:31.4–16:40.0` · zakład pogrzebowy w Arcadii
-- **Beat 8.2.1 · Zakład pogrzebowy w Arcadii** `16:31.4–16:40.0`
-  - `16:31.4–16:40.0` d08_02 (plan średni · najazd · `darby_zaklad`) W zakładzie pogrzebowym młody mężczyzna w fartuchu zakłada rękawice; z nitki zjeżdża jego stary podpis „Dillard Darby, undertaker” — *L: And according to local accounts, the undertaker Bonnie had laughed at a year earlier helped prepare her body.*
+### Scena 8.2 · Zakład pogrzebowy w Arcadii `16:45.0–16:53.6` · zakład pogrzebowy w Arcadii
+- **Beat 8.2.1 · Zakład pogrzebowy w Arcadii** `16:45.0–16:53.6`
+  - `16:45.0–16:53.6` d08_02 (plan średni · najazd · `darby_zaklad`) W zakładzie pogrzebowym młody mężczyzna w fartuchu zakłada rękawice; z nitki zjeżdża jego stary podpis „Dillard Darby, undertaker” — *L: And according to local accounts, the undertaker Bonnie had laughed at a year earlier helped prepare her body.*
 
-### Scena 8.3 · Dwa cmentarze w Dallas `16:40.0–16:53.3` · dwa cmentarze w Dallas
-- **Beat 8.3.1 · Dwa cmentarze w Dallas** `16:40.0–16:53.3`
-  - `16:40.0–16:53.3` d08_03 (plan ogólny · odjazd · `pogrzeby`) Dwa osobne pogrzeby na dwóch cmentarzach, między nimi droga; tłumy przy obu; matka Bonnie odwraca się plecami do cmentarza Clyde'a — *L: Her poem got almost everything right except the last line: her mother refused to let them share a grave, so they were buried in different cemeteries.*
+### Scena 8.3 · Dwa cmentarze w Dallas `16:53.6–17:06.9` · dwa cmentarze w Dallas
+- **Beat 8.3.1 · Dwa cmentarze w Dallas** `16:53.6–17:06.9`
+  - `16:53.6–17:06.9` d08_03 (plan ogólny · odjazd · `pogrzeby`) Dwa osobne pogrzeby na dwóch cmentarzach, między nimi droga; tłumy przy obu; matka Bonnie odwraca się plecami do cmentarza Clyde'a — *L: Her poem got almost everything right except the last line: her mother refused to let them share a grave, so they were buried in different cemeteries.*
 
-### Scena 8.4 · Jarmark `16:53.3–17:03.2` · jarmark
-- **Beat 8.4.1 · Jarmark** `16:53.3–17:03.2`
-  - `16:53.3–17:03.2` d08_04 (plan ogólny · odjazd · `auto_jarmark`) Na jarmarku pod namiotem stoi podziurawiony Ford; kolejka ludzi płaci za wejście i zagląda w dziury po kulach; nad namiotem kręci się karuzela. Gag: kasetka „10¢ A LOOK” pęka od monet, które sypią się na trawę (W1: puenta) — *L: Even their bullet-riddled car went on tour, and people paid to look at it at fairs across the country.*
+### Scena 8.4 · Jarmark `17:06.9–17:16.8` · jarmark
+- **Beat 8.4.1 · Jarmark** `17:06.9–17:16.8`
+  - `17:06.9–17:16.8` d08_04 (plan ogólny · odjazd · `auto_jarmark`) Na jarmarku pod namiotem stoi podziurawiony Ford; kolejka ludzi płaci za wejście i zagląda w dziury po kulach; nad namiotem kręci się karuzela. Gag: kasetka „10¢ A LOOK” pęka od monet, które sypią się na trawę (W1: puenta) — *L: Even their bullet-riddled car went on tour, and people paid to look at it at fairs across the country.*
 
-### Scena 8.5 · Dom Blanche `17:03.2–17:12.3` · dom Blanche
-- **Beat 8.5.1 · Dom Blanche** `17:03.2–17:12.3`
-  - `17:03.2–17:12.3` d08_05 (plan średni · najazd · `blanche_po`) Starsza Blanche w okularach z jednym ciemnym szkłem podlewa kwiaty przed domkiem; zjeżdża zawieszka „1988” — *L: Blanche served six years in prison and lived quietly until 1988, the only one of the four who grew old.*
+### Scena 8.5 · Dom Blanche `17:16.8–17:25.9` · dom Blanche
+- **Beat 8.5.1 · Dom Blanche** `17:16.8–17:25.9`
+  - `17:16.8–17:25.9` d08_05 (plan średni · najazd · `blanche_po`) Starsza Blanche w okularach z jednym ciemnym szkłem podlewa kwiaty przed domkiem; zjeżdża zawieszka „1988” — *L: Blanche served six years in prison and lived quietly until 1988, the only one of the four who grew old.*
 
-### Scena 8.6 · Ganek w Austin `17:12.3–17:19.2` · ganek w Austin
-- **Beat 8.6.1 · Ganek w Austin** `17:12.3–17:19.2`
-  - `17:12.3–17:19.2` d08_06 (plan średni · najazd · `hamer_ganek`) Hamer na ganku odkłada gazetę z nagłówkiem o zasadzce, zakłada kapelusz i odwraca się od reporterów — *L: Hamer rarely talked about that morning, and he never wrote a book about it.*
+### Scena 8.6 · Ganek w Austin `17:25.9–17:32.8` · ganek w Austin
+- **Beat 8.6.1 · Ganek w Austin** `17:25.9–17:32.8`
+  - `17:25.9–17:32.8` d08_06 (plan średni · najazd · `hamer_ganek`) Hamer na ganku odkłada gazetę z nagłówkiem o zasadzce, zakłada kapelusz i odwraca się od reporterów — *L: Hamer rarely talked about that morning, and he never wrote a book about it.*
 
-### Scena 8.7 · Kino `17:19.2–17:42.6` · kino
-- **Beat 8.7.1 · Kino** `17:19.2–17:42.6`
-  - `17:19.2–17:33.5` d08_07 (plan ogólny · jazda za postacią · `film_hamer`) Gazety składają się w ekran kina: piękna para z filmu z 1967 roku, potem aktor grający Hamera stoi związany, a filmowa Bonnie robi sobie z nim zdjęcie; widownia się śmieje; obok ekranu prawdziwy Hamer z tabliczką „THAT'S NOT ME!” — *L: Thirty years later, a Hollywood hit made Bonnie and Clyde young and beautiful, and showed Hamer captured and humiliated by the gang, something that never happened, so his family sued the studio.*
-  - `17:33.5–17:42.6` d08_08 (plan ogólny · jazda za postacią · `gra`) Ekran z gazet migocze: zamiast filmu pojawia się kolorowa, pikselowa para uciekinierów w aucie z gry wideo; widzowie w pierwszym rzędzie trzymają pady. Gag: pikselowe auto podskakuje i ląduje w pikselowym rowie; zjeżdża „AGAIN?!” (W2: puenta) — *L: And in 2026, a new video game built its heroes on the same old romance.*
+### Scena 8.7 · Kino `17:32.8–17:56.2` · kino
+- **Beat 8.7.1 · Kino** `17:32.8–17:56.2`
+  - `17:32.8–17:47.1` d08_07 (plan ogólny · jazda za postacią · `film_hamer`) Gazety składają się w ekran kina: piękna para z filmu z 1967 roku, potem aktor grający Hamera stoi związany, a filmowa Bonnie robi sobie z nim zdjęcie; widownia się śmieje; obok ekranu prawdziwy Hamer z tabliczką „THAT'S NOT ME!” — *L: Thirty years later, a Hollywood hit made Bonnie and Clyde young and beautiful, and showed Hamer captured and humiliated by the gang, something that never happened, so his family sued the studio.*
+  - `17:47.1–17:56.2` d08_08 (plan ogólny · jazda za postacią · `gra`) Ekran z gazet migocze: zamiast filmu pojawia się kolorowa, pikselowa para uciekinierów w aucie z gry wideo; widzowie w pierwszym rzędzie trzymają pady. Gag: pikselowe auto podskakuje i ląduje w pikselowym rowie; zjeżdża „AGAIN?!” (W2: puenta) — *L: And in 2026, a new video game built its heroes on the same old romance.*
 
-### Scena 8.8 · Teatr z gazet `17:42.6–17:55.5` · teatr z gazet
-- **Beat 8.8.1 · Teatr z gazet** `17:42.6–17:55.5`
-  - `17:42.6–17:55.5` d08_09 (plan średni · najazd · `koniec`) Papierowa Bonnie z cygarem i Clyde kładą się płasko w stronę gazety; obok zamyka się teczka Hamera; kurtyna zasuwa się — *L: The real Bonnie and Clyde were two broke kids from Dallas who left at least nine dead lawmen behind them; newspapers made them legends, and a patient man reading their file brought them down.*
+### Scena 8.8 · Teatr z gazet `17:56.2–18:09.1` · teatr z gazet
+- **Beat 8.8.1 · Teatr z gazet** `17:56.2–18:09.1`
+  - `17:56.2–18:09.1` d08_09 (plan średni · najazd · `koniec`) Papierowa Bonnie z cygarem i Clyde kładą się płasko w stronę gazety; obok zamyka się teczka Hamera; kurtyna zasuwa się — *L: The real Bonnie and Clyde were two broke kids from Dallas who left at least nine dead lawmen behind them; newspapers made them legends, and a patient man reading their file brought them down.*
 
-### Scena 8.9 · Teatr `17:55.5–18:05.4` · teatr
-- **Beat 8.9.1 · Teatr** `17:55.5–18:05.4`
-  - `17:55.5–18:05.4` d08_10 (plan średni · najazd · `dzieki`) Przed kurtyną wychodzą wszystkie lalki filmu i kłaniają się po kolei; Hamer zdejmuje kapelusz, Bonnie macha. Gag: kurtyna zacina się w połowie, Bonnie i Clyde szarpią ją razem, spada im na głowy; zza kulis wychyla się maszynista i macha (W3: puenta) — *L: Thank you for watching! If you like my videos, support me, and I'll do my best.*
+### Scena 8.9 · Teatr `18:09.1–18:19.0` · teatr
+- **Beat 8.9.1 · Teatr** `18:09.1–18:19.0`
+  - `18:09.1–18:19.0` d08_10 (plan średni · najazd · `dzieki`) Przed kurtyną wychodzą wszystkie lalki filmu i kłaniają się po kolei; Hamer zdejmuje kapelusz, Bonnie macha. Gag: kurtyna zacina się w połowie, Bonnie i Clyde szarpią ją razem, spada im na głowy; zza kulis wychyla się maszynista i macha (W3: puenta) — *L: Thank you for watching! If you like my videos, support me, and I'll do my best.*
 

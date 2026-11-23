@@ -121,6 +121,8 @@ LALKI = {
                     szer=1.12),
     "darby": dict(fryzura="zaczesane", wlosy=(40, 32, 28), gora=(30, 30, 34), dol=(28, 28, 32), krawat=(20, 20, 22),
                   koszula=(244, 242, 236), szer=0.94),
+    "darby_czapka": dict(fryzura="zaczesane", wlosy=(40, 32, 28), gora=(30, 30, 34), dol=(28, 28, 32), krawat=(20, 20, 22),
+                         koszula=(244, 242, 236), szer=0.94, kapelusz="kaszkiet", kapelusz_kolor=(40, 40, 46)),  # ukłony: czapka z daszkiem (marker 23.11)
     "darby_fartuch": dict(fryzura="zaczesane", wlosy=(40, 32, 28), stroj="koszula", gora=(244, 242, 236), dol=(28, 28, 32),
                           fartuch=(230, 232, 228), koszula=(244, 242, 236), szer=0.94),
     "stone": dict(kobieta=True, wlosy=(110, 76, 50), fryzura="fala", kapelusz="kapelusik", kapelusz_kolor=(120, 70, 60),
@@ -299,7 +301,8 @@ def _kapelusz(s, parts):
         parts += [(poly([(108, 98), (198, 98), (153, 52)]), c, dict(edge=2))]
 
 
-def _korpus_img(s):
+def _korpus_img(s, seed_spec=None):
+    """seed_spec — spec, z którego liczy się ziarno faktury (korpus bez kapelusza ma tę samą fakturę co z kapeluszem)."""
     L = s["nogi"]
     w, h = FIG_W, FIG_H + L
     Y = lambda y: y + L if y >= BIODRO else y
@@ -383,7 +386,7 @@ def _korpus_img(s):
     if s["wasy"] or s["broda"]:
         parts.append((poly([(160, 154), (192, 148), (190, 157), (166, 160)]), _shade(s["wlosy"], 0.8)))
     _kapelusz(s, parts)
-    im = stack(w, h, parts, seed=sum(map(ord, str(sorted(s.items())))) % 997)
+    im = stack(w, h, parts, seed=sum(map(ord, str(sorted((seed_spec or s).items())))) % 997)
     d = ImageDraw.Draw(im)
     ink = INK + (235,)
     hair = s["wlosy"]
@@ -496,6 +499,33 @@ class Figura:
         self._siedzi = None
 
     @property
+    def bez_kapelusza(self):
+        """Korpus bez nakrycia głowy, z tą samą fakturą (kapelusz w dłoni — uwagi reżysera 23.11 w ujęciach 104 i 119)."""
+        if getattr(self, "_bez", None) is None:
+            self._bez = Sprite(_korpus_img(dict(self.s, kapelusz=None), seed_spec=self.s), f"lalka-bez-{self.key}", rim=2, clean=False,
+                               crop=False)
+        return self._bez
+
+    @property
+    def kapelusz(self):
+        """Samo nakrycie głowy (te same części i ziarno co w korpusie): (wycinek, środek w pikselach arkusza) albo None
+        (bez nakrycia albo welon, który się nie zdejmuje)."""
+        if getattr(self, "_kap", None) is None:
+            self._kap = False
+            if self.s.get("kapelusz") and self.s["kapelusz"] != "welon":
+                L = self.s["nogi"]
+                parts = []
+                _kapelusz(self.s, parts)
+                im = stack(FIG_W, FIG_H + L, parts, seed=sum(map(ord, str(sorted(self.s.items())))) % 997)
+                if self.s["szer"] != 1.0:
+                    im = im.resize((round(FIG_W * self.s["szer"]), FIG_H + L), Image.LANCZOS)
+                bb = im.getchannel("A").point(lambda v: 255 if v > 30 else 0).getbbox()
+                if bb:
+                    spr = Sprite(im.crop(bb), f"kapelusz-{self.key}", rim=2, clean=False, crop=False)
+                    self._kap = (spr, ((bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2))
+        return self._kap or None
+
+    @property
     def siedzi(self):
         """Korpus bez nóg (ucięty tuż pod biodrami): pasażer w aucie, lalka za stołem — nogi nie wystają spod karoserii."""
         if self._siedzi is None:
@@ -519,7 +549,21 @@ NAGLOWKI = ["BARROW GANG ESCAPES", "OUTLAW GIRL WITH CIGAR", "BANK ROBBED", "POL
 TYTULY_GAZET = ["THE DALLAS DISPATCH", "JOPLIN GLOBE", "TEXAS HERALD", "DAILY STAR", "THE EVENING NEWS", "TULSA TRIBUNE"]
 
 
-def _gazeta_img(w, h, naglowek, tytul, seed=0, zdjecie=True, kolor=GAZETA):
+def _buzia_bonnie(d, cx, cy, r):
+    """Duża śmiejąca się buzia Bonnie na stronie gazety (marker reżysera 23.11, ujęcie „gazety_zle”): blond loki, czerwony beret,
+    oczy zmrużone ze śmiechu, szeroko otwarte usta."""
+    d.ellipse([cx - r * 1.08, cy - r * 1.02, cx + r * 1.08, cy + r * 0.7], fill=(222, 186, 96, 255))  # włosy
+    d.ellipse([cx - r * 0.82, cy - r * 0.8, cx + r * 0.82, cy + r * 0.86], fill=(238, 204, 176, 255))  # twarz
+    d.ellipse([cx - r * 1.05, cy - r * 1.32, cx + r * 0.55, cy - r * 0.62], fill=(184, 40, 38, 255))  # beret
+    for sx in (-1, 1):  # oczy zmrużone (łuki)
+        d.arc([cx + sx * r * 0.42 - r * 0.2, cy - r * 0.28, cx + sx * r * 0.42 + r * 0.2, cy - r * 0.02], 200, 340, fill=(40, 30, 26, 255),
+              width=max(2, int(r * 0.07)))
+    d.chord([cx - r * 0.48, cy + r * 0.0, cx + r * 0.48, cy + r * 0.66], 0, 180, fill=(70, 20, 20, 255))  # usta
+    d.chord([cx - r * 0.26, cy + r * 0.34, cx + r * 0.26, cy + r * 0.64], 180, 360, fill=(200, 70, 70, 255))  # język
+    d.rectangle([cx - r * 0.36, cy + r * 0.02, cx + r * 0.36, cy + r * 0.1], fill=(250, 248, 240, 255))  # zęby
+
+
+def _gazeta_img(w, h, naglowek, tytul, seed=0, zdjecie=True, kolor=GAZETA, buzia=False):
     """Strona gazety: papier gazetowy, winieta, nagłówek, zdjęcie (szara plama z sylwetkami), szpalty kresek."""
     r = random.Random(seed)
     parts = [(poly([(0, 0), (w, 0), (w, h), (0, h)]), kolor, dict(kind="gladki", edge=3, contrast=1.1, rough=1.0))]
@@ -544,6 +588,10 @@ def _gazeta_img(w, h, naglowek, tytul, seed=0, zdjecie=True, kolor=GAZETA):
         d.text((w / 2, y), rz, font=f2, fill=FARBA + (250,), anchor="mm")
         y += h * 0.11
     top = y - h * 0.02
+    if buzia:
+        r_ = min(w * 0.3, (h * 0.94 - top) * 0.42)
+        _buzia_bonnie(d, w / 2, top + (h * 0.94 - top) * 0.52, r_)
+        return im
     if zdjecie:
         x0, x1 = w * 0.08, w * 0.56
         y0, y1 = top, top + h * 0.36
@@ -565,9 +613,10 @@ def _gazeta_img(w, h, naglowek, tytul, seed=0, zdjecie=True, kolor=GAZETA):
 
 
 @lru_cache(None)
-def gazeta(naglowek="EXTRA!", seed=0, w=360, h=480, zdjecie=True, tytul=None):
+def gazeta(naglowek="EXTRA!", seed=0, w=360, h=480, zdjecie=True, tytul=None, buzia=False):
     tytul = tytul or TYTULY_GAZET[seed % len(TYTULY_GAZET)]
-    return Sprite(_gazeta_img(w, h, naglowek, tytul, seed, zdjecie), f"gazeta-{naglowek}-{seed}", rim=2, clean=False)
+    return Sprite(_gazeta_img(w, h, naglowek, tytul, seed, zdjecie, buzia=buzia), f"gazeta-{naglowek}-{seed}{'-buzia' if buzia else ''}",
+                  rim=2, clean=False)
 
 
 @lru_cache(None)
@@ -1211,6 +1260,32 @@ REKWIZYTY = {
     "kubek": (80, 80, lambda: [(rect(10, 10, 60, 76), (244, 240, 230)), (ell(64, 40, 12, 16), (244, 240, 230))]),
     "kajdanki": (160, 80, lambda: [(ell(40, 40, 30, 30), (150, 150, 156)), (ell(120, 40, 30, 30), (150, 150, 156)), (rect(64, 34, 96, 46), (150, 150, 156))]),
     "olowek": (220, 26, lambda: [(rect(4, 6, 190, 20), (190, 40, 36)), (poly([(190, 6), (216, 13), (190, 20)]), (230, 200, 160))]),
+    # pióro gołębia do pisania (marker reżysera 23.11, ujęcie „poezja”): szare piórko z ciemną końcówką, stosina i stalówka
+    "pioro": (260, 70, lambda: [(poly([(40, 38), (92, 16), (170, 8), (236, 14), (256, 30), (238, 46), (164, 60), (92, 56)]), (182, 184, 194)),
+                                (poly([(176, 8), (236, 14), (256, 30), (238, 46), (196, 56), (206, 30)]), (104, 106, 122)),
+                                (poly([(60, 34), (120, 16), (126, 22), (70, 40)]), (226, 228, 236)),
+                                (_band((10, 40), (250, 30), 3), (240, 236, 224)), (poly([(0, 42), (16, 35), (20, 44)]), (40, 36, 34))]),
+    # obłok bójki jak w kreskówce (marker reżysera 23.11, ujęcie „drzewo”): papierowy kłąb z kilku kul
+    "oblok": (240, 170, lambda: [(ell(120, 92, 112, 72), (214, 208, 198), dict(edge=2)), (ell(70, 70, 60, 54), (236, 232, 224), dict(edge=2)),
+                                 (ell(160, 58, 66, 52), (240, 236, 228), dict(edge=2)), (ell(116, 112, 70, 50), (228, 224, 214)),
+                                 (ell(190, 110, 46, 40), (232, 228, 220)), (ell(52, 118, 44, 38), (226, 222, 212))]),
+    # odznaka strażnika Teksasu na piersi Hamera (marker reżysera 23.11): gwiazda w kole
+    "odznaka": (60, 60, lambda: [(ell(30, 30, 28, 28), (206, 172, 82), dict(edge=2)), (ell(30, 30, 21, 21), (176, 142, 60)),
+                                 (poly([(30 + 19 * math.cos(-math.pi / 2 + k * math.pi / 5) * (1 if k % 2 == 0 else 0.42),
+                                         30 + 19 * math.sin(-math.pi / 2 + k * math.pi / 5) * (1 if k % 2 == 0 else 0.42)) for k in range(10)]),
+                                  (232, 204, 120))]),
+    # złamany ołówek (marker reżysera 23.11, ujęcie „podkreslenie”: „trzask i niech ten grafit gdzieś poleci, kredka się łamie”)
+    "olowek_zlamany": (190, 26, lambda: [(rect(4, 6, 176, 20), (190, 40, 36)), (poly([(176, 6), (186, 9), (180, 12), (188, 16), (176, 20)]),
+                                                                                (230, 200, 160))]),
+    "olowek_czubek": (46, 26, lambda: [(poly([(2, 6), (8, 9), (3, 12), (9, 16), (2, 20), (30, 13)]), (230, 200, 160)),
+                                       (poly([(24, 10), (44, 13), (24, 16)]), (50, 48, 52))]),
+    # suknia ślubna rozciągnięta w dzwon (marker reżysera 23.11, ujęcie „tullis”: „tak jej rozciągnij tę suknię”)
+    "suknia_slub": (220, 140, lambda: [(poly([(84, 0), (136, 0), (214, 134), (6, 134)]), (246, 244, 238), dict(edge=2)),
+                                       (poly([(40, 96), (180, 96), (196, 110), (24, 110)]), (232, 228, 220)),
+                                       (poly([(60, 60), (160, 60), (170, 68), (50, 68)]), (236, 232, 226))]),
+    "kwiatek": (40, 120, lambda: [(rect(18, 40, 22, 118), (80, 120, 60)), (ell(20, 22, 16, 16), (250, 250, 244)), (ell(20, 22, 6, 6), (230, 190, 70))]),
+    # źdźbło słomy w ustach Gaulta (marker reżysera 23.11, ujęcie „noc”: „ma słomę w ustach i na następnych ujęciach też”)
+    "slomka": (70, 10, lambda: [(rect(2, 3, 68, 7), (226, 200, 110)), (rect(50, 2, 68, 8), (206, 176, 90))]),
     "pinezka": (40, 40, lambda: [(ell(20, 20, 16, 16), (190, 40, 36))]),
     "kwiaty": (200, 260, lambda: [(rect(90, 120, 110, 256), (80, 120, 60))] + [(ell(100 + 50 * math.cos(a), 90 + 40 * math.sin(a), 30, 30), c)
                                                                                for a, c in zip((0, 1.3, 2.6, 3.9, 5.2), ((236, 236, 230), (240, 200, 210),
@@ -1279,7 +1354,7 @@ REKWIZYTY = {
 }
 
 
-def sylwetka(key, rece=(0.0, 0.0), lean=0.0, rzecz=None):
+def sylwetka(key, rece=(0.0, 0.0), lean=0.0, rzecz=None, kolor=False):
     """Czarna sylwetka lalki w pozie (obraz PIL, wysokość arkusza korpusu): ręce pod kątami jak w scena.lalka (flip=1),
     rzecz = (nazwa rekwizytu, wysokość w px arkusza, kotwica chwytu) w przedniej dłoni. Do mikro-klatek na kliszy."""
     s = spec(key)
@@ -1310,6 +1385,8 @@ def sylwetka(key, rece=(0.0, 0.0), lean=0.0, rzecz=None):
             can.alpha_composite(body, (ox, oy))
     if lean:
         can = can.rotate(-lean, resample=Image.BICUBIC, center=(ox + cw / 2, oy + STOPA))
+    if kolor:  # lalka w pozie w kolorach (zdjęcie „pajacyk”), nie czarna sylwetka
+        return can.crop(can.getbbox())
     a = can.getchannel("A")
     out = Image.new("RGBA", can.size, (14, 12, 12, 0))
     out.putalpha(a)
@@ -1777,6 +1854,39 @@ def wstega_luk(txt="HAPPY EVER AFTER", w=520, h=160, cx=260, cy=232, rx=205, ry=
 
 
 @lru_cache(None)
+def sylwetka_w_oknie(key, reka, rzecz=None, ar=0.9):
+    """Czarna sylwetka postaci za szybą (głowa, ramiona i ręka z rzeczą), przycięta do prostokąta o proporcjach okna ar
+    (szerokość / wysokość) — rysuje się w obrębie otworu (1.1). Marker reżysera 23.11, ujęcie „shreveport”."""
+    im = sylwetka(key, rece=(reka, 15), rzecz=rzecz)
+    ref = sylwetka(key, rece=(30, 15), rzecz=rzecz)  # ta sama ramka dla każdej pozy ręki: postać nie zmienia wielkości
+    rw, rh = ref.size
+    cw = int(rh * 0.62 * ar)
+    ch = int(cw / ar)
+    w_, h_ = im.size
+    x0 = int(rw / 2 - cw / 2)  # od lewej krawędzi (plecy) — ręka wyciągnięta w prawo nie przesuwa postaci
+    y0 = h_ - rh  # wyrównanie do stóp: ręka w górze nie przesuwa głowy
+    can = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+    can.alpha_composite(im.crop((max(0, x0), max(0, y0), min(w_, x0 + cw), min(h_, y0 + ch))), (max(0, -x0), max(0, -y0)))
+    return Sprite(can, f"sylw-okno-{key}-{reka}-{rzecz}", rim=1, clean=False)
+
+
+@lru_cache(None)
+def zdjecie_pajacyk(faza, w=420, h=320):
+    """Zdjęcie Bonnie, która na nim robi pajacyka (uwaga reżysera 23.11, ujęcie 84): faza 0 — ręce w dół, 1 — ręce w górę
+    i podskok. Ta sama odbitka co zdjecie_bonnie (biała ramka, sepia)."""
+    im = Image.new("RGBA", (w, h), (244, 240, 230, 255))
+    foto = Image.new("RGBA", (w - 40, h - 40), (150, 146, 138, 255))
+    body = sylwetka("bonnie", rece=(170, 170) if faza else (28, 28), kolor=True)
+    bh = int((h - 50) * (0.86 if faza else 0.8))
+    body = body.resize((int(body.width * bh / body.height), bh), Image.LANCZOS)
+    foto.alpha_composite(body, (int((w - 40) / 2 - body.width / 2), (h - 40) - bh + 10 - (22 if faza else 0)))
+    g = np.asarray(foto.convert("L"), np.float32)
+    sep = np.dstack([g * 1.05, g * 0.95, g * 0.8, np.full_like(g, 255)]).clip(0, 255).astype(np.uint8)
+    im.alpha_composite(Image.fromarray(sep, "RGBA"), (20, 20))
+    return Sprite(im, f"zdjecie-pajacyk-{faza}", rim=2, clean=False)
+
+
+@lru_cache(None)
 def zdjecie_bonnie(w=420, h=320):
     """Odbitka zdjęcia z Joplin: biała ramka, szare tło, Bonnie z cygarem (z arkusza lalki) przy błotniku Forda — w sepii."""
     im = Image.new("RGBA", (w, h), (244, 240, 230, 255))
@@ -1799,12 +1909,49 @@ def platek(kolor=(244, 200, 210)):
 
 
 @lru_cache(None)
-def gra_piksele():
-    """Gra wideo 2026 na ekranie kina: pikselowe auto i para uciekinierów w jaskrawych kolorach."""
+def teczka_akt(txt="BONNIE & CLYDE"):
+    """Duża teczka akt Hamera z dużym napisem (markery reżysera 23.11, ujęcie „koniec”: „wjeżdża ta duża teczka z dużym napisem
+    Bonnie & Clyde”, „większa teczka”)."""
+    w, h = 420, 210
+    parts = [(rect(8, 26, 412, 206), (196, 160, 100), dict(edge=2)), (rect(8, 10, 150, 36), (196, 160, 100)),
+             (rect(40, 78, 380, 158), (240, 232, 214), dict(edge=2)),
+             (glyphs(tr(txt), 40, FONT_PL, PL_IDX, (210, 120), "mm"), (120, 30, 26), dict(kind="gladki", rough=0.5))]
+    return Sprite(stack(w, h, parts, seed=71), f"teczka-akt-{txt}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def karta_akt(txt="BARROW · PARKER"):
+    """Karta z aktami (marker reżysera 23.11: „powoli zjeżdża karta z ich aktami”): biała karta, nagłówek, wiersze pisma."""
+    w, h = 300, 200
+    parts = [(rect(4, 4, 296, 196), (244, 240, 228), dict(edge=2)), (rect(4, 4, 296, 44), (210, 70, 60)),
+             (glyphs(tr(txt), 24, FONT_PL, PL_IDX, (150, 24), "mm"), (250, 246, 236), dict(kind="gladki", rough=0.4))]
+    parts += [(rect(24, 62 + 22 * k, 276 - 40 * (k % 3), 66 + 22 * k), (90, 84, 78)) for k in range(6)]
+    return Sprite(stack(w, h, parts, seed=73), f"karta-akt-{txt}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def gra_postac(kto):
+    """Pikselowa postać z gry (marker reżysera 23.11, ujęcie „gra”: „pikselowa Bonnie / Clyde wyskakuje z auta”)."""
+    px = {"bonnie": ["..RRR.", ".RRRR.", ".YYYY.", ".YSSY.", ".YSSY.", "..BB..", ".BBBB.", "BBBBBB", ".BBBB.", ".S..S."],
+          "clyde": ["..DD..", ".DDDD.", "DDDDDD", ".SSSS.", ".SSSS.", "..NN..", ".NNNN.", "NNNNNN", ".NNNN.", ".N..N."]}[kto]
+    kol = {"R": (230, 60, 70), "Y": (250, 220, 80), "B": (80, 160, 240), "S": (250, 200, 160), "D": (50, 50, 60), "N": (60, 90, 200)}
+    c = 24
+    im = Image.new("RGBA", (len(px[0]) * c, len(px) * c), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    for y, row in enumerate(px):
+        for x, ch in enumerate(row):
+            if ch in kol:
+                d.rectangle([x * c, y * c, x * c + c - 2, y * c + c - 2], fill=kol[ch] + (255,))
+    return Sprite(im, f"gra-postac-{kto}", rim=0, clean=False)
+
+
+@lru_cache(None)
+def gra_piksele(pusty=False):
+    """Gra wideo 2026 na ekranie kina: pikselowe auto i para uciekinierów w jaskrawych kolorach (pusty — auto bez nich)."""
     px = [
         "..........RRRRRR..........",
-        ".........R.YY.BB.R........",
-        "........R..YY.BB..R.......",
+        ".........R.YY.BB.R........" if not pusty else ".........R.......R........",
+        "........R..YY.BB..R......." if not pusty else "........R.........R.......",
         "..KKKKKKKKKKKKKKKKKKKKK...",
         ".KKKKKKKKKKKKKKKKKKKKKKKW.",
         ".KKKKKKKKKKKKKKKKKKKKKKKK.",
@@ -1820,4 +1967,4 @@ def gra_piksele():
         for x, ch in enumerate(row):
             if ch in kol:
                 d.rectangle([x * c, y * c, x * c + c - 2, y * c + c - 2], fill=kol[ch] + (255,))
-    return Sprite(im, "gra-piksele", rim=0, clean=False)
+    return Sprite(im, f"gra-piksele{'-pusty' if pusty else ''}", rim=0, clean=False)

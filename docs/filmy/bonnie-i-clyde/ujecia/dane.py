@@ -626,9 +626,11 @@ AKTY = [(0,
       [('rzeka',
         'PŚ',
         'naj',
-        2.3,
-        'Bonnie myje włosy w rzece; ryba wyskakuje jej spod ręki; tabliczka „BRRR!”',
-        'plusk, ryba, „brrr”')])]),
+        # reżyser 23.11: „wydłuż scenę i daj narrację, oraz Ken Burns na myjący kadr głowy i wyskakującą rybę po chwili”
+        None,
+        'Bonnie myje włosy w rzece; kamera powoli najeżdża na jej głowę (Ken Burns); po chwili ryba wyskakuje jej spod ręki; '
+        'tabliczka „BRRR!”',
+        'L: Bonnie still tried to look like a movie star, even when her only mirror was a cold river.')])]),
    ('Obóz przy drodze',
     'obóz przy drodze',
     [('Obóz przy drodze',
@@ -646,10 +648,13 @@ AKTY = [(0,
         'PO',
         'stat',
         None,
-        'Policja otacza dwa domki motelu, podjeżdża opancerzone auto; za parawanem błyski, sylwetka Bucka chwieje się, szyba '
-        'pęka przed Blanche',
-        'L: In July, police surrounded them at a motel in Missouri; Buck was shot in the head, and flying glass blinded Blanche '
-        'in one eye.')])]),
+        # reżyser 23.11: „więcej wyjaśnień w tej scenie” — kwestia mówi kiedy, gdzie, co przywiozła policja i jak się wyrwali;
+        # w kadrze zawieszka miejsca i czasu, podpisy „ARMORED CAR”, „Buck Barrow”, „Blanche”, na końcu Ford gangu ucieka
+        'Platte City, lipiec 1933, teatr cieni: policja otacza dwa domki motelu, podjeżdża opancerzone auto z podpisem; błyski, '
+        'gang odpowiada ogniem; sylwetka Bucka chwieje się (podpis), szyba pęka przed Blanche (podpis); Ford gangu wyrywa się '
+        'spod domków i ucieka',
+        'L: In July 1933, police surrounded their two motel cabins near Platte City, Missouri, and even brought an armored car; '
+        'the gang shot their way out, but Buck was hit in the head, and flying glass blinded Blanche in one eye.')])]),
    ('Dexfield Park',
     'Dexfield Park',
     [('Dexfield Park',
@@ -1119,7 +1124,7 @@ AKTY = [(0,
         'Przed kurtyną wychodzą wszystkie lalki filmu i kłaniają się po kolei; Hamer zdejmuje kapelusz, Bonnie macha',
         "L: Thank you for watching! If you like my videos, support me, and I'll do my best.")])])])]
 
-WYDLUZ = {'akt2': 1.0,
+WYDLUZ = {'akt2': 1.0, 'rzeka': 1.6,
  'atoka': 1.0,
  'auto_jarmark': 1.5,
  'buck': 1.0,
@@ -1146,7 +1151,7 @@ WYDLUZ = {'akt2': 1.0,
  'pamiatki': 2.5,
  'petle': 2.0,
  'plakaty': 1.0,
- 'platte': 1.5,
+ 'platte': 2.6,
  'pogrzeby': 2.0,
  'posse': 1.0,
  'prasa': 2.0,
