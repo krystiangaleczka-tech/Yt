@@ -95,6 +95,12 @@ Pliki w `output/powstanie-japonii/` (gałąź `powstanie-japonii`). Sposoby, kt�
 ## Zasady rysowania
 
 - Czasy wydarzeń liczy się od początku ujęcia (`t`), nie bezwzględnie.
+- Akcję układa się w rytmie tempa lektora (słowa / `TEMPO_EN`), zanim powstanie nagranie. Prawdziwe nagranie bywa
+  krótsze albo dłuższe o 2 s i więcej, więc render przekłada chwilę ujęcia na czas akcji (`render.czas_akcji`;
+  odwrotnie `czas_ujecia` dla `efekty.ZDARZENIA` i puent gagów). Przed oddechem czas się nie zmienia, kwestia
+  przechodzi w kwestię, a pauza po kwestii w pauzę po kwestii. Gag na słowie lektora trafia wtedy w to słowo, a puenta
+  w pauzę. Ujęcia o długości wpisanej ręką grają w swoim czasie. Bez tego gagi wypadały za cięciem: w „Bonnie and
+  Clyde” 23.11.2026 „matka_obietnica” skróciła się z 11,5 do 9,1 s.
 - Bliżej kamery = rysowane później; otwór przycina to, co za nim (Wytyczne ujęć).
 - Ruch po schodach i pochylniach pokazuje się w osi ruchu (postać od przodu albo od tyłu); stopy stoją na stopniach
   policzonych z geometrii miejsca, krok to przeniesienie jednej stopy (Wytyczne ujęć 1.10).
