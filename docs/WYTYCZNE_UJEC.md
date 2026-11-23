@@ -145,7 +145,9 @@ przeskoki ze stopnia na stopień albo sunięcie ukosem nad stopniami.
 
 ### 1.11 Rekwizyt w ręce jest w dłoni, a czynność z kwestii widać
 Miecz, sztylet, czarka czy list, które postać trzyma, mają rękojeść albo brzeg **w jej dłoni** i idą za nią, kiedy się
-porusza lub odwraca (ten sam punkt dłoni w każdym ujęciu tej sceny). O czym mówi lektor, to lalka robi na scenie:
+porusza lub odwraca (ten sam punkt dłoni w każdym ujęciu tej sceny). Kwestia mówi o tym, co widać w tym ujęciu; to, co pokazuje następne ujęcie, mówi się w następnym (reżyser 21.11 o ujęciu
+„palce”: „zmień narrację, bo opis sceny jest kompletnie inny” — kwestia o obciętych palcach i zwolnieniu leżała na obrazie
+siekiery spadającej na stopę). O czym mówi lektor, to lalka robi na scenie:
 „wypił truciznę” — podnosi czarkę do ust; „kopali studnię” — narzędzie uderza w ziemię i lecą grudy; „zachorował” —
 kaszle; „zginął” — widać śmierć, a nie tylko zniknięcie. Postać ma stałą skalę: grozę pokazuje się gestem, cieniem
 i światłem, nie powiększeniem lalki.
@@ -264,6 +266,9 @@ Reżyser opowiada gagami i znakami jak z komiksu. Znak znaczy w każdym filmie t
 | kaszel, chwianie, X na oczach, opadanie pod rampę, rzężenie | konanie | `s_koniec`, `s_list` |
 | spirale na oczach | oszołomienie (miniaturka) | 5.1 |
 
+Znak wisi nad postacią, której dotyczy: serce nad każdym z zakochanych, kajdanki nad tym, kogo aresztują — nie pośrodku
+między nimi (markery 21.11: „nad nią serce”, „nad nim serce”, „nad nim kajdanki”).
+
 Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, która go rysuje.
 
 ### 1.21 Akcja ma fazy, a gag ma takt
@@ -375,8 +380,8 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
   przy krawędzi kadru; nowa tabliczka nie zasłania dekoracji, o której jest ujęcie (serca nad łukiem z kwiatów, nie na nim).
 - **Rzecz w dłoni ma kierunek, jaki ma w życiu**, a nie przedłuża ręki jak patyk (reżyser 19.11: „musisz poprawić ich
   umiejscowienie w rękach”): karabin w gotowości albo na warcie stoi pionowo przy boku, lufą w górę (`KARABIN_PION`;
-  sąsiedzi z karabinami pod kątem tworzyli X); gazetę czyta się przed twarzą, dłoń przy bliższym brzegu, ręce ok. 150°
-  (`GAZETA`); łyżka miesza w garnku (garnek przed łyżką); laska sięga ziemi; miarka zwisa z dłoni wzdłuż mierzonego;
+  sąsiedzi z karabinami pod kątem tworzyli X); gazeta jest w dłoni przed postacią, obok głowy — nie na głowie i nie
+  w tułowiu (marker 21.11: „gazeta za ręką, a nie w nim i na głowie”) — dłoń leży na bliższym brzegu kartki; łyżka miesza w garnku (garnek przed łyżką); laska sięga ziemi; miarka zwisa z dłoni wzdłuż mierzonego;
   kapelusz uniesiony w dłoni w oknie auta (pasażer może trzymać rzecz). Każdą trzymaną rzecz sprawdza się na arkuszu
   zbliżeń dłoni (wycinek 240 px wokół dłoni w kilku chwilach ujęcia).
 - **Postać niesiona leży na rękach niosącego**, po stronie, w którą wyciąga ręce; stojący trzyma karabin w dłoniach
@@ -425,8 +430,21 @@ obiektu”). Nigdy nie skaluje się jednej rzeczy w drugą.
 (`siegnij`), rzecz przeskakuje między dłońmi w jednej klatce. Nie ma rąk bez właściciela — jeśli coś podaje ktoś, to ten ktoś
 stoi w kadrze (marker 19.11: „skąd ta ręka? tu ma stać gościu”).
 
+**Jedna ręka — jedna rzecz.** Co ręka trzyma, zostaje w niej, dopóki historia tego nie odkłada; druga czynność idzie drugą ręką
+(marker 21.11: „w tej ręce cały czas trzyma pistolet”, „w drugiej ręce bierze z buzi papieros”). Dłoń przy ustach, piersi czy
+kieszeni jest bliżej barku niż długość ręki, więc ręka zgina się ku kamerze — w rysunku jest krótsza (`scena.do_punktu` → `rece`
+i `skrot`), a tylna ręka, która sięga przez pierś, idzie przed tułów (`tyl_przed`). Rzecz wkładana komuś do ust idzie z dłoni
+dającego prosto do ust (dający stoi tak blisko, że dosięga — `stan_przy`), podmiana w jednej klatce.
+
+**Strój do czynności.** Jeśli opis albo kwestia mówi „chowa pod płaszcz”, lalka ma płaszcz (`bonnie_plaszcz`), a rzecz znika
+pod połą przy dłoni na piersi — nie przy biodrze sukienki (marker 21.11: „skryj go pod płaszcz”).
+
+**Strzał widać**: strzela się, kiedy kamera pokazuje strzelca; błysk na końcu lufy, lufa w kierunku lotu kuli, potem dymek
+(marker 21.11: „teraz strzel z końcówki rewolweru” — wcześniej strzał padał poza kadrem, kula brała się znikąd).
+
 **Postać na pojeździe**: siedzi (`siedzi=True`, biodra na siedzisku, pace, grzbiecie konia), nie stoi obok; zsiada łukiem
-(skok) na ziemię. Jeździec na koniu: biodra na grzbiecie, nogi zakrywa koń.
+(skok) na ziemię, a wsiada łukiem do okna i dalej siedzi w nim widoczna — nie znika w przenikaniu (marker 21.11: „clyde
+w aucie”). Jeździec na koniu: biodra na grzbiecie, nogi zakrywa koń.
 
 **Kontakt dwóch postaci** (pocałunek, uścisk): podchodzą, aż głowy albo dłonie się zetkną, i nie wchodzą jedna w drugą;
 wyższa się pochyla (`lean`), niższa unosi (`lift`); potem wracają na swoje miejsca.
@@ -485,7 +503,12 @@ Zanim ujęcie trafi do Studio do oceny:
   się potem drugi raz (podwójne przesunięcie, a przy wczesnym dniu ponad 200 operacji i odmowa serwera; 6.11.2026).
   Zmiana samych kwestii albo długości: `docs/filmy/oddzial-c/ujecia/podmien_w_miejscu.py` — bez kasowania ujęć.
 - Plik ujęcia ma pokryć całą długość ujęcia na osi (zaokrąglaj liczbę klatek renderu w górę).
-- Nie usuwaj uwag ani markerów reżysera — to jego notatki.
+- Nie usuwaj uwag ani markerów reżysera — to jego notatki. Narzędzie wgrywające plan zostawia w polu uwag wiersze reżysera i zmienia tylko wiersz
+  z rozpiski (21.11 `studio_film.py plan` nadpisywał uwagę „zmień narrację…”); przycięcie ujęcia w Studio przenosi się do rozpiski
+  jako długość ujęcia, żeby następne wgranie go nie cofnęło.
+- Po zmianie liczby albo długości ujęć przelicz dźwięk (muzyka i efekty na cały film) i wgraj go od nowa razem z planem —
+  21.11 w Studio grały ścieżki o długości 1086,9 s przy filmie 1106,4 s: od pierwszego nowego ujęcia dźwięk się rozjeżdżał,
+  a ostatnie 20 s było ciche.
 
 ### 4.2 Uwagi i markery reżysera — jak je czytać
 
@@ -705,6 +728,7 @@ i błędy znalezione w kontroli.
 | Bonnie and Clyde, próbka głosów (19.11, reżyser) | „wygląda to jakby dwie historie nachodziły na siebie… na 2:48 jak kurtyna wjeżdża, pojawiają się dwie różne tabliczki po sobie” — próbka była zlepkiem fragmentów z różnych aktów bez plansz (kurtyna aktu III, zaraz potem akt VIII); w filmie cztery sceny w tym samym miejscu budowały się od pustego płótna | 1.27 |
 | Bonnie and Clyde, recenzja 114 ujęć (19.11, kontrola wykonawcy na prośbę reżysera) | lustrzane „EXTRA!” na przewracanej stronie i „SHERIFF” na aucie jadącym w lewo; „THE OUTLAWS MADE OF PAPER” i „BONNIE AND CLYDE” wystawały poza tablice; w zapowiedzi na 0,1 s mignął podpis Hamera; teczka, kapelusz, karabin, puszka i list wisiały nad pustym płótnem w czasie budowy; Bonnie „niesiona” wisiała za plecami Clyde'a; karabin „na kolanach” stojącego Clyde'a; podpis Buchera poza kadrem, W.D. podpisany już w aucie, „undertaker” w podpisie 8 s przed puentą; kanapka za karoserią, teczka i „HA HA HA!” pod napisem; nazwy cmentarzy za żałobnikami; „SEE THE DEATH CAR” biały na białym pasie | 1.27 |
 | Syn słońca EN, zapowiedź i hak (20.11, reżyser) | burza i wąż były w zapowiedzi, zaraz potem w haku (ujęcia 15 i 17) i jeszcze raz w ciele filmu — „czemu nie tylko 2 razy?” | 1.26 |
+| Bonnie and Clyde, 28 markerów i uwaga (21.11, reżyser) | rewolwer znikał z dłoni, kiedy ta sama ręka wyjmowała cygaro z ust; strzał padał poza kadrem; chłopak dawał cygaro Bonnie do ręki zamiast do ust; gazeta klienta na głowie i w tułowiu; łyżka obok garnka; serca pośrodku zamiast nad każdym z zakochanych; „pod płaszcz” bez płaszcza; Clyde znikał przy wsiadaniu do auta; kwestia „palce” mówiła o czym innym niż obraz; plan nadpisał uwagę reżysera, a dźwięk nie poszedł za nowymi ujęciami | 1.11, 1.20, 1.27, 1.28, 4.1 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
