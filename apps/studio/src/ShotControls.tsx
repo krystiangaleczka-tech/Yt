@@ -47,6 +47,27 @@ export function useShotPlayback(
     handle = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(handle);
   }, [playing, externalClock]);
+  // Spacja: odtwórz / zatrzymaj ujęcie (poza polami tekstowymi).
+  const toggleRef = useRef(() => {});
+  toggleRef.current = () => {
+    if (!playing && frame >= total - 1) setFrame(0);
+    setPlaying(!playing);
+  };
+  useEffect(() => {
+    function key(e: KeyboardEvent) {
+      if (e.code !== "Space" || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+      const t = e.target;
+      if (
+        t instanceof HTMLElement &&
+        (["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName) || t.isContentEditable)
+      )
+        return;
+      e.preventDefault();
+      toggleRef.current();
+    }
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, []);
   useEffect(() => {
     const pause = () => {
       if (document.hidden) setPlaying(false);

@@ -46,6 +46,25 @@ export default function ShotEditor() {
   const entries = shotEntries(p),
     index = entries.findIndex((entry) => entry.scene.id === s.targetScene);
   const entry = entries[index];
+  useEffect(() => {
+    function key(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      const t = e.target;
+      if (
+        t instanceof HTMLElement &&
+        (["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName) ||
+          t.isContentEditable)
+      )
+        return;
+      const target = entries[index + (e.key === "ArrowRight" ? 1 : -1)];
+      if (index < 0 || !target) return;
+      e.preventDefault();
+      s.setTargetScene(target.scene.id);
+    }
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  });
   return (
     <div className="shot-editor-page">
       <header className="shot-editor-header">
@@ -54,7 +73,13 @@ export default function ShotEditor() {
         </Button>
         <div className="shot-editor-title">
           <span className="small muted">
-            EDYCJA UJĘCIA {index >= 0 ? String(index + 1).padStart(2, "0") : ""}
+            EDYCJA UJĘCIA{" "}
+            {index >= 0 && (
+              <b className="shot-editor-number">
+                {String(index + 1).padStart(2, "0")}
+                <small> / {entries.length}</small>
+              </b>
+            )}
           </span>
           <h1>{entry?.scene.title || "Ujęcie niedostępne"}</h1>
         </div>
@@ -83,16 +108,76 @@ export default function ShotEditor() {
           Wróć do scen i wybierz ujęcie do edycji.
         </Empty>
       ) : entry.kind === "stage" ? (
-        <SceneBoard key={p.id} shotId={entry.scene.id} />
+        <>
+          <div className="shot-editor-tabs">
+            <ShotStrip entries={entries} index={index} />
+          </div>
+          <SceneBoard key={p.id} shotId={entry.scene.id} />
+        </>
       ) : (
-        <MediaShotEditor key={entry.scene.id} scene={entry.scene} />
+        <MediaShotEditor
+          key={entry.scene.id}
+          scene={entry.scene}
+          strip={<ShotStrip entries={entries} index={index} />}
+        />
       )}
     </div>
   );
 }
 
+/** Pasek wszystkich ujęć filmu: klik przeskakuje do ujęcia, obecne jest podświetlone i zawsze widoczne. */
+function ShotStrip({
+  entries,
+  index,
+}: {
+  entries: ReturnType<typeof shotEntries>;
+  index: number;
+}) {
+  const s = useStudio(),
+    p = s.project!;
+  const strip = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    strip.current
+      ?.querySelector<HTMLElement>(".shot-strip-item.active")
+      ?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [index]);
+  return (
+    <div className="shot-strip" ref={strip} aria-label="Ujęcia filmu">
+      {entries.map((item, i) => {
+        const asset =
+          item.kind === "media"
+            ? p.assets.find((a) => a.id === item.scene.asset_id)
+            : undefined;
+        const image =
+          asset && (asset.thumbnail || asset.kind === "image")
+            ? mediaUrl(p.id, asset.id, !!asset.thumbnail)
+            : "";
+        return (
+          <button
+            key={item.scene.id}
+            type="button"
+            className={`shot-strip-item ${i === index ? "active" : ""}`}
+            title={`${i + 1}. ${item.scene.title}`}
+            aria-current={i === index ? "true" : undefined}
+            onClick={() => s.setTargetScene(item.scene.id)}
+          >
+            {image && <img src={image} alt="" loading="lazy" />}
+            <span>{String(i + 1).padStart(2, "0")}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /** The shot workspace uses its own clock. Clips from other shots never enter the preview. */
-function MediaShotEditor({ scene }: { scene: Scene }) {
+function MediaShotEditor({
+  scene,
+  strip,
+}: {
+  scene: Scene;
+  strip?: React.ReactNode;
+}) {
   const s = useStudio(),
     p = s.project!,
     rate = fps(p);
@@ -381,6 +466,7 @@ function MediaShotEditor({ scene }: { scene: Scene }) {
             Przygotowanie warstw
           </Button>
         )}
+        {strip}
         {scene.locked && (
           <Button onClick={() => change({ locked: false })}>
             Odblokuj ujęcie
