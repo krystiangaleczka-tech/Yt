@@ -60,7 +60,7 @@ BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
 # miejsca w filmie i z jego długością (kamera i zdarzenia liczą się tak jak w oryginale) — to skrót, a nie nowa scena.
 # Trzeci element: długość, z jaką liczy się oryginał, gdy ujęcie skraca samo siebie (teatr: od 1 s, za kurtyną zapala się
 # lampa, szyld „SON OF THE SUN” widać, gdy kurtyna się rozsunie, bracia wysuwają się na polanę, kamera dojeżdża do 5 s).
-WYCINEK = {"zap_wellington_most": ("wellington_most", 1.2), "zap_zdjecie": ("zdjecie", 4.1), "zap_prasa": ("prasa", 2.0),
+WYCINEK = {"zap_wellington_most": ("wellington_most", 1.2), "zap_zdjecie": ("zdjecie", 5.95), "zap_prasa": ("prasa", 2.0),
            "zap_kiosk": ("kiosk", 3.0), "zap_kaufman": ("kaufman", 4.8), "zap_poscigi": ("poscigi", 5.3), "zap_boyd": ("boyd", 2.6),
            "zap_sowers": ("sowers", 3.3), "zap_hamer": ("hamer", 9.3), "zap_zasadzka": ("zasadzka", 0.6),
            "tytul": ("tytul", 1.0, 5.0)}

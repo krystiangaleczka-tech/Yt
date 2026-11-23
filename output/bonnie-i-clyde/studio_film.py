@@ -19,6 +19,7 @@ import json
 import math
 import mimetypes
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -34,6 +35,7 @@ sys.path.insert(0, str(REPO / "docs/filmy/bonnie-i-clyde/ujecia"))
 import ksiega  # noqa: E402
 from dane import AKTY, JEZYK, kwestia, okno_kwestii, ujecia  # noqa: E402
 
+AUTO_UWAGA = re.compile(r"^(Kadr|Typ|Beat|Dźwięk|Cel|Przejście):")  # wiersze z rozpiski w polu uwag (reszta to uwagi reżysera)
 API = f"http://127.0.0.1:{os.environ.get('DOCOS_API_PORT', '8876')}/api"
 HEAD = {"Content-Type": "application/json", "X-Docos-Request": "1"}
 EN = JEZYK == "en"
@@ -179,8 +181,12 @@ def plan():
         s = by_key.get(r["klucz"]) or (stare if stare and not stare["legacy"].get("klucz") else None) or {
             "mode": "search", "asset_id": None, "voice_asset_id": None, "variants": [], "fact_ids": [],
             "role": "illustration", "locked": False, "animation": "static", "timing": "estimated"}
+        # pierwszy wiersz to opis z rozpiski; dalsze wiersze pisze reżyser — zostają (Wytyczne 4.1: „nie usuwaj uwag reżysera”;
+        # 21.11.2026 plan nadpisywał uwagę „zmień narrację…” w ujęciu palce)
+        jego = [l for l in (s.get("director_notes") or "").split("\n") if l.strip() and not AUTO_UWAGA.match(l.strip())]
+        auto_ = f"Kadr: {KADR[r['kadr']]} · {RUCH[r['ruch']]}. Beat: {r['btitle']}. Dźwięk: {r['snd']}"
         s.update(title=f"{r['stitle']} · {r['nr']:02d} · {r['title']}", narration=kwestia(r["snd"]), description=r["opis"],
-                 director_notes=f"Kadr: {KADR[r['kadr']]} · {RUCH[r['ruch']]}. Beat: {r['btitle']}. Dźwięk: {r['snd']}"[:3000],
+                 director_notes=("\n\n".join([auto_] + (["\n".join(jego)] if jego else [])))[:3000],
                  start=cursor, duration=frames, prompt=f"Rysowane kodem: output/bonnie-i-clyde, funkcja s_{r['klucz']} ({r['ref']}).",
                  motion_prompt=RUCH[r["ruch"]] if r["ruch"] != "stat" else "", search_query=r["title"],
                  legacy={**s.get("legacy", {}), "flow_act_id": f"act_{max(1, r['akt']):02d}", "flow_section_id": f"seq_d{r['akt']:02d}",

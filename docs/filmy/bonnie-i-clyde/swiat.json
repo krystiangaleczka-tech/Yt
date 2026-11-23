@@ -95,7 +95,7 @@
           "state": "poparzona noga, kuleje"
         },
         {
-          "from": "d07_10~papierowy Ford",
+          "from": "d07_11~papierowy Ford",
           "state": "nie żyje"
         }
       ]
@@ -110,17 +110,21 @@
       "id": "clyde",
       "name": "Clyde Barrow",
       "role": "złodziej z West Dallas, kierowca",
-      "look": "szczupły, ciemne włosy, fedora, garnitur; od d01_12~siekiera kuleje (obcięte palce u stopy)",
+      "look": "szczupły, ciemne włosy, fedora, garnitur; od d01_13~siekiera kuleje (obcięte palce u stopy)",
       "namedIn": [
         "d*"
       ],
       "states": [
         {
-          "from": "d01_12~siekiera",
+          "from": "d01_13~siekiera",
           "state": "kuleje"
         },
         {
-          "from": "d07_10~papierowy Ford",
+          "from": "d01_16~kule",
+          "state": "kuleje na kulach, potem bez kul; kule na tylnym siedzeniu"
+        },
+        {
+          "from": "d07_11~papierowy Ford",
           "state": "nie żyje"
         }
       ]
@@ -137,7 +141,7 @@
       "role": "starszy brat Clyde'a",
       "look": "krępy, kaszkiet, kamizelka",
       "joins": "d02_09~Buck",
-      "leaves": "d04_11~Buck"
+      "leaves": "d04_12~Buck"
     },
     {
       "id": "blanche",
@@ -145,10 +149,10 @@
       "role": "żona Bucka",
       "look": "kapelusik, płaszczyk, biały piesek na rękach",
       "joins": "d02_09~Blanche",
-      "leaves": "d04_11~Blanche",
+      "leaves": "d04_12~Blanche",
       "states": [
         {
-          "from": "d04_10~Blanche",
+          "from": "d04_11~Blanche",
           "state": "ślepa na jedno oko (od Platte City)"
         }
       ]
@@ -159,7 +163,7 @@
       "role": "szesnastolatek z sąsiedztwa",
       "look": "chudy chłopak w kaszkiecie",
       "joins": "d02_08~W.D. Jones",
-      "leaves": "d04_13~W.D."
+      "leaves": "d04_14~W.D."
     },
     {
       "id": "roy",
@@ -218,7 +222,8 @@
       "look": "chłopak w koszuli, kaszkiet",
       "namedIn": [
         "d07_*"
-      ]
+      ],
+      "joins": "d07_04~Henry Methvin"
     },
     {
       "id": "boyd",
@@ -317,7 +322,7 @@
     {
       "id": "list_forda",
       "name": "List do Henry'ego Forda",
-      "seeded": "d04_09~letter"
+      "seeded": "d04_10~letter"
     },
     {
       "id": "pardon",
@@ -328,9 +333,9 @@
       "id": "ciezarowka",
       "name": "Ciężarówka Ivy'ego na lewarku",
       "owner": "Ivy Methvin",
-      "seeded": "d07_07~truck",
+      "seeded": "d07_08~truck",
       "uses": [
-        "d07_09~ciężarówce"
+        "d07_10~ciężarówce"
       ]
     },
     {
@@ -347,7 +352,31 @@
       "id": "obraczka",
       "name": "Obrączka Roya",
       "owner": "Bonnie",
-      "seeded": "d01_05~ring"
+      "seeded": "d01_05~ring",
+      "uses": [
+        "d01_05~obrączka"
+      ],
+      "note": "Widoczna na palcu w kawiarni (21.11): kwestia „still wearing his ring” ma pokrycie w obrazie."
+    },
+    {
+      "id": "ford_farmera",
+      "name": "Szary Ford farmera (gang bierze go po zniszczeniu Forda w Wellington)",
+      "owner": "farmer",
+      "seeded": "d04_04~Forda farmera",
+      "uses": [
+        "d04_06~Forda farmera",
+        "d04_10~Forda"
+      ]
+    },
+    {
+      "id": "bordo_auto",
+      "name": "Bordowe auto gangu (Buck za kierownicą, Blanche obok)",
+      "owner": "Buck Barrow",
+      "seeded": "d03_07~bordowy",
+      "uses": [
+        "d04_08~Buck",
+        "d07_04~Henry Methvin"
+      ]
     }
   ],
   "resources": [],
@@ -355,26 +384,44 @@
     {
       "id": "clyde_wolny",
       "name": "Clyde na wolności",
-      "from": "d01_13~parole",
-      "to": "d07_10~papierowy Ford"
+      "from": "d01_14~parole",
+      "to": "d07_11~papierowy Ford"
     },
     {
       "id": "buck_zyje",
       "name": "Buck żyje i jest z gangiem",
       "from": "d02_09~Buck",
-      "to": "d04_11~Buck"
+      "to": "d04_12~Buck"
+    },
+    {
+      "id": "clyde_kuleje",
+      "name": "Clyde kuleje od Eastham do zasadzki",
+      "from": "d01_13~siekiera",
+      "to": "d07_11~papierowy Ford"
+    },
+    {
+      "id": "bonnie_kuleje",
+      "name": "Bonnie kuleje od Wellington do zasadzki",
+      "from": "d04_03~noga",
+      "to": "d07_11~papierowy Ford"
+    },
+    {
+      "id": "ford_farmera",
+      "name": "Gang jeździ szarym Fordem farmera od Wellington",
+      "from": "d04_04~Forda farmera",
+      "to": "d04_10~Forda"
     },
     {
       "id": "wd_w_gangu",
       "name": "W.D. jest z gangiem",
       "from": "d02_08~W.D.",
-      "to": "d04_13~W.D."
+      "to": "d04_14~W.D."
     },
     {
       "id": "hamer_poluje",
       "name": "Hamer prowadzi pościg",
       "from": "d05_04~took the job",
-      "to": "d07_11~rounds"
+      "to": "d07_12~rounds"
     },
     {
       "id": "powaga",
@@ -393,7 +440,7 @@
       ]
     },
     {
-      "at": "d04_10~Buck",
+      "at": "d04_11~Buck",
       "note": "Buck ranny w Platte City",
       "needs": [
         "buck_zyje"
@@ -407,14 +454,14 @@
       ]
     },
     {
-      "at": "d04_12~W.D.",
+      "at": "d04_13~W.D.",
       "note": "W.D. ucieka z nimi przez rzekę",
       "needs": [
         "wd_w_gangu"
       ]
     },
     {
-      "at": "d04_14~families",
+      "at": "d04_15~families",
       "note": "spotkania z matkami bez W.D. i Bucka",
       "needsOff": [
         "wd_w_gangu",
@@ -436,10 +483,31 @@
       ]
     },
     {
-      "at": "d07_07~May 23",
+      "at": "d07_08~May 23",
       "note": "zasadzka = 102. dzień",
       "needs": [
         "hamer_poluje",
+        "clyde_wolny"
+      ]
+    },
+    {
+      "at": "d01_16~kule",
+      "note": "Clyde wychodzi z Eastham na kulach i wsiada do Forda Bonnie",
+      "needs": [
+        "clyde_wolny"
+      ]
+    },
+    {
+      "at": "d04_04~Forda farmera",
+      "note": "gang zabiera szarego Forda farmera (po zniszczeniu Forda w Wellington)",
+      "needs": [
+        "wd_w_gangu"
+      ]
+    },
+    {
+      "at": "d07_04~Henry Methvin",
+      "note": "Henry Methvin wsiada do gangu w Luizjanie",
+      "needs": [
         "clyde_wolny"
       ]
     }
@@ -486,7 +554,7 @@
         "d07_02~side by side"
       ],
       "clues": [
-        "d07_11~rounds"
+        "d07_12~rounds"
       ],
       "payoff": [
         "d08_03~cemeteries"
@@ -507,28 +575,28 @@
       "id": "przysiega",
       "title": "Clyde nie wróci do Eastham",
       "setup": [
-        "d01_14~swore"
+        "d01_15~swore"
       ],
       "clues": [
         "d05_01~Eastham"
       ],
       "payoff": [
-        "d05_08~promise"
+        "d05_08~never go back"
       ]
     },
     {
       "id": "matki",
       "title": "Pętle prowadzą do matek",
       "setup": [
-        "d04_14~families"
+        "d04_15~families"
       ],
       "clues": [
-        "d04_15~picnics",
+        "d04_16~picnics",
         "d05_13~mothers"
       ],
       "payoff": [
-        "d07_04~father's farm",
-        "d07_07~truck"
+        "d07_05~father's farm",
+        "d07_08~truck"
       ]
     },
     {
@@ -551,6 +619,7 @@
         "d05_01~free his friends"
       ],
       "payoff": [
+        "d07_04~Henry Methvin",
         "d07_01~Henry Methvin"
       ]
     },
@@ -655,6 +724,12 @@
       "text": "Pomost między historią Clyde'a a historią Bonnie: ujęcie „poezja” w Cement City („Meanwhile, a few miles away…”), w które spada indyk z poprzedniego ujęcia. Reżyser 19.11.2026: „dlaczego z ujęcia o indykach robi się nagle ślub? … pomiędzy te dwa daj jedno przechodzące do tego weddingu, o ile ma to pokrycie w scenariuszu”. Pokrycie: Bonnie w Cement City pisała wiersze i marzyła o scenie (Biblia, miejsce cement_city), ślub 1926.",
       "at": "2026-11-19",
       "by": "reżyser"
+    },
+    {
+      "id": "D8",
+      "text": "Szwy ciągłości wg uwag reżysera 21.11.2026 („popraw wszystko”, drobne uwagi najważniejsze): (1) po zniszczeniu Forda w Wellington gang bierze szarego Forda farmera (farma_auto) i nim odjeżdża w d04_05; (2) Buck i Blanche jadą bordowym drugim autem (d03_07, d04_08), więc są w gangu od Joplin do Platte City; (3) Henry Methvin wsiada w Luizjanie przed Shreveport (henry_wsiada) — zdrajca dalej dopiero w akcie VII; (4) indyk odlatuje z czapki policjanta (d01_02) i wraca w pomoście (d01_03); (5) obrączka widoczna w kawiarni (d01_05); (6) Clyde na kulach wraca do Forda Bonnie (po_bramie, bez skoku w czasie), kuleje w ujęciach (stacja, wiersz: Bonnie); (7) ogień w Wellington z dziury po kuli z prologu (wprowadzenie2 → wellington_most); (8) Hamer nie zna obietnicy z bramy — wie z wycinka prasy („reportedly”); (9) zapowiedź łowcy bez nazwiska; (10) tempo aktów w granicach 80–160 s, film ok. 18:30.",
+      "at": "2026-11-21",
+      "by": "Claude"
     }
   ]
 }

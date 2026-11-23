@@ -541,7 +541,9 @@ def s_wiersz(st, w, t, T):
     zesz = (J.rek("zeszyt"), 40, (0.5, 0.5), 80, True)
     lalka(st, t, "matka_bonnie", 520, 290, flip=1, sink=0.12, lean=6 * podala, rece=(lerp(20, 80, ease(pr(t, 1.6, 0.6))), 60 * podala),
           trzyma=zesz if podala else None)
-    lalka(st, t, "bonnie", 760, 290, flip=-1 if t < 6.0 else 1, rece=(lerp(80, 10, ease(pr(t, 2.2, 0.5))), 0), trzyma=zesz if not podala else None)
+    # Bonnie po Sowers kuleje (noga z Wellington): od drzwi idzie do matki, kuśtykając
+    lalka(st, t, "bonnie", lerp(900, 760, ease(pr(t, 0.0, 2.2))), 290, flip=-1 if t < 6.0 else 1, kuleje=1.0,
+          rece=(lerp(80, 10, ease(pr(t, 2.2, 0.5))), 0), trzyma=zesz if not podala else None)
     koniec(st, w, t)
 
 
@@ -561,6 +563,24 @@ def s_pozegnanie(st, w, t, T):
         st.put(J.tag("HOME SWEET HOME", 26), x + (225 - 450) * k, DROGA_Y + (100 - 356) * k, P.auta - 0.002, h=15 * back(kt, 1.4),
                anchor=(0.5, 0.0), rot=6 * math.sin(t * 5), shadow=None)
     _reflektory(st, x, DROGA_Y, P.auta, k=0.6)
+    koniec(st, w, t)
+
+
+def s_henry_wsiada(st, w, t, T):
+    """Na poboczu drogi pod Shreveport chłopak w kaszkiecie macha do Forda; Ford zwalnia, chłopak wsiada na tylne siedzenie
+    (podpis „Henry Methvin”). Pierwsze pokazanie Henry'ego w gangu: w akcie V był jednym z uwolnionych w Eastham."""
+    kam(st, t, 135, 640, 440, 1.05, 0.79)
+    preria(st, t, w, slupy=True, plot=False)
+    if t < 2.6:
+        x = jazda(t, 0.0, 2.6, -320, 640, ease_out)[0]
+    else:
+        x = 640 + 1400 * ease(pr(t, 4.4, 1.4))
+    wsiada = pr(t, 2.9, 0.4)
+    pas = [("bonnie", 0, (0, 0)), ("clyde", 1, (40, 0))] + ([("henry", (410, 128), (0, 0))] if wsiada > 0.5 else [])
+    auto(st, t, x, 230, pasazerowie=pas)
+    if wsiada < 1:
+        lalka(st, t, "henry", 800, 290, flip=-1, rece=(120 + 40 * math.sin(t * 8), 0), alpha=1.0 - wsiada)
+    podpis(w, t, "Henry Methvin", 800, 240, 3.2, 3.0)
     koniec(st, w, t)
 
 

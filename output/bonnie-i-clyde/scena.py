@@ -112,11 +112,15 @@ USTA = (174, 160)
 
 
 def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink=0.0, lift=0.0, rece=(0.0, 0.0), tint=None,
-          trzyma=None, seed=None, hop=0.0, alpha=1.0, shadow=True, blur=None, oczy_x=0.0, gwiazdki=0.0, kuleje=0.0, siedzi=False):
+          trzyma=None, seed=None, hop=0.0, alpha=1.0, shadow=True, blur=None, oczy_x=0.0, gwiazdki=0.0, kuleje=0.0, siedzi=False,
+          skrot=(1.0, 1.0), tyl_przed=False):
     """Lalka na patyczku: wysuwa się zza rampy (k), opada pod nią (sink), obraca się (flip: 1 w prawo, -1 w lewo),
     pochyla (lean, stopnie). hop — podskok przy jeździe na listwie (z położenia x). kuleje — przy jeździe lalka kołysze się
     na jedną stronę (Bonnie po Wellington, Clyde po Eastham). trzyma = (sprite, wysokość, kotwica, obrót, za_ręką).
-    oczy_x — śmierć: X na oczach; gwiazdki — zamroczenie (słownik znaków, wytyczne 1.20). Zwraca położenie dłoni."""
+    oczy_x — śmierć: X na oczach; gwiazdki — zamroczenie (słownik znaków, wytyczne 1.20). skrot = (przednia, tylna) — skrót ręki
+    zgiętej ku kamerze (dłoń przy ustach: ręka jest jednym odcinkiem, więc zgięcie w łokciu gra jej skrócenie); tyl_przed — tylna
+    ręka przed tułowiem (sięga do ust albo przez pierś, kiedy przednia trzyma rewolwer; marker reżysera 21.11, ujęcie 12).
+    Zwraca położenie dłoni."""
     seed = sum(map(ord, key)) if seed is None else seed
     k = k * wejscie(1.0 + 0.08 * (seed % 5))
     if k <= 0 or sink >= 1:
@@ -131,15 +135,15 @@ def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink
     ax, ay = af[0] / f.cw, af[1] / f.ch
     out = None
     kw = dict(tint=tint, alpha=alpha, shadow=shadow, blur=blur)
-    for name, ang in (("tyl", rece[1]), ("przod", rece[0])):
+    for name, ang, sk in (("tyl", rece[1], skrot[1]), ("przod", rece[0], skrot[0])):
         bx, by = f.bark[name]
         dx, dy = _off((bx - af[0]) * sc * flip, (by - af[1]) * sc, rot)
         sx_, sy_ = x + dx, yy + dy
         arot = rot - flip * ang
-        z = -0.05 if name == "tyl" else 0.05
-        st.put(f.arm, sx_, sy_, p, h=f.ah * sc, anchor=(f.zawias[0] / f.aw, f.zawias[1] / f.ah), rot=arot, sx=flip, z=z, **kw)
+        z = (0.03 if tyl_przed else -0.05) if name == "tyl" else 0.05
+        st.put(f.arm, sx_, sy_, p, h=f.ah * sc, anchor=(f.zawias[0] / f.aw, f.zawias[1] / f.ah), rot=arot, sx=flip, sy=sk, z=z, **kw)
         if name == "przod":
-            hx, hy = _off(0, f.dlon * sc, arot)
+            hx, hy = _off(0, f.dlon * sc * sk, arot)
             out = (sx_ + hx, sy_ + hy, arot)
     st.put(f.siedzi if siedzi else f.body, x, yy, p, h=f.ch * sc, anchor=(ax, ay), rot=rot, sx=flip, **kw)
     kk = f.s["szer"]
@@ -168,15 +172,15 @@ def lalka(st, t, key, x, h=300, k=1.0, y=STOPY, p=None, flip=1.0, lean=0.0, sink
 
 # ---- biomechanika lalki (Wytyczne 1.28): ręka to jeden odcinek od barku do dłoni, więc dłoń sięga tylko punktów w odległości
 # długości ręki od barku. Najpierw punkt (filiżanka, blat, dłoń partnera), potem kąt ręki z tego punktu — nigdy odwrotnie.
-def bark(key, x, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0, ktora="przod"):
-    """Bark lalki w kadrze i długość ręki do dłoni: (x, y, L)."""
+def bark(key, x, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0, ktora="przod", skrot=1.0):
+    """Bark lalki w kadrze i długość ręki do dłoni: (x, y, L); skrot — ręka zgięta ku kamerze (lalka(skrot=…))."""
     f = J.figura(key)
     sc = h / f.wys
     yy = y + ease(sink) * h * 1.12 - lift
     af = (f.cw / 2, f.stopa)
     bx, by = f.bark[ktora]
     dx, dy = _off((bx - af[0]) * sc * flip, (by - af[1]) * sc, lean)
-    return x + dx, yy + dy, f.dlon * sc
+    return x + dx, yy + dy, f.dlon * sc * skrot
 
 
 def siegnij(key, x, cel, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0, ktora="przod"):
@@ -187,11 +191,19 @@ def siegnij(key, x, cel, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0,
     return (lean - arot) * flip, math.hypot(dx, dy) <= L * 1.06
 
 
-def dlon(key, x, kat, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0, ktora="przod"):
+def dlon(key, x, kat, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0, ktora="przod", skrot=1.0):
     """Położenie dłoni przy kącie ręki `kat` (także dla ręki tylnej, która nie ma `trzyma`)."""
-    sx, sy, L = bark(key, x, h, y, flip, lean, sink, lift, ktora)
+    sx, sy, L = bark(key, x, h, y, flip, lean, sink, lift, ktora, skrot)
     hx, hy = _off(0, L, lean - flip * kat)
     return sx + hx, sy + hy
+
+
+def do_punktu(key, x, cel, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0, ktora="przod"):
+    """Kąt i skrót ręki (do `rece` i `skrot`), przy których dłoń leży dokładnie w punkcie `cel` bliżej barku niż długość ręki
+    (dłoń przy ustach, na guziku, przy kieszeni): ręka zgina się ku kamerze, więc w rysunku jest krótsza."""
+    sx, sy, L = bark(key, x, h, y, flip, lean, sink, lift, ktora)
+    kat, _ = siegnij(key, x, cel, h, y, flip, lean, sink, lift, ktora)
+    return kat, clamp(math.hypot(cel[0] - sx, cel[1] - sy) / L, 0.35, 1.0)
 
 
 def stan_przy(key, cel, kat, h=300, y=STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0):
@@ -548,17 +560,18 @@ def parawan(st, t, w, pw=1000, y0=700, p0=0.79, swiatlo_k=1.0):
     return y0, p0, ph
 
 
-def drukarnia(st, t, w, obrot=0.0, kul=True):
-    """Drukarnia gazety: ceglana ściana, maszyna z kręcącymi się wałkami, stos świeżych gazet."""
+def drukarnia(st, t, w, obrot=0.0, kul=True, podskok=0.0):
+    """Drukarnia gazety: ceglana ściana, maszyna z kręcącymi się wałkami, stos świeżych gazet. podskok — maszyna podskakuje
+    (px w górę, razem z wałkami; marker reżysera 21.11: „zaczyna podskakiwać lekko maszyna”)."""
     st.put(J.sciana("cegla"), CX, 720, P.miasto, w=2200, anchor=(0.5, 1.0), shadow=None)
     spod(st, (96, 90, 84))
     Z0.rise(st, J.podloga((96, 90, 84)), CX, 820, P.droga, bk(w, 0.2), t, 200, w=2200, wob=0.0, lift=220, anchor=(0.5, 1.0))
     k = bk(w, 0.3)
-    Z0.rise(st, J.maszyna(), 600, 700, P.wzgorza, k, t, 201, h=470, wob=0.0)
+    Z0.rise(st, J.maszyna(), 600, 700 - podskok, P.wzgorza, k, t, 201, h=470, wob=0.0)
     if k > 0:
         s_ = 470 / 620.0
         for n, (wx, wy) in enumerate(((330, 315), (520, 315), (330, 435), (520, 435), (700, 435))):
-            st.put(J.walek(), 600 + (wx - 450) * s_, 700 - (620 - wy) * s_ + (1 - back(k, 1.3)) * 500, P.wzgorza + 0.003, h=110 * s_ * 1.3,
+            st.put(J.walek(), 600 + (wx - 450) * s_, 700 - podskok - (620 - wy) * s_ + (1 - back(k, 1.3)) * 500, P.wzgorza + 0.003, h=110 * s_ * 1.3,
                    anchor=(0.5, 0.5), rot=obrot * (1 if n % 2 else -1), shadow=(2, 3, 3, 0.3))
     for n, x in enumerate((1040, 1120)):
         Z0.rise(st, J.gazeta("EXTRA!", 40 + n, 360, 480, False), x, 712, P.drzewa, bk(w, 0.5 + 0.1 * n), t, 205 + n, h=170, wob=0.0)

@@ -62,7 +62,8 @@ SWIAT = {
         {"id": "bonnie_mala", "name": "mała Bonnie", "role": "Bonnie w szkole", "look": "dziewczynka w sukience z kokardą"},
         {"id": "clyde", "name": "Clyde Barrow", "role": "złodziej z West Dallas, kierowca", "look": "szczupły, ciemne włosy, fedora, "
          "garnitur; od " + r("palce", "siekiera") + " kuleje (obcięte palce u stopy)", "namedIn": ["d*"],
-         "states": [{"from": r("palce", "siekiera"), "state": "kuleje"}, {"from": r("zasadzka", "papierowy Ford"), "state": "nie żyje"}]},
+         "states": [{"from": r("palce", "siekiera"), "state": "kuleje"}, {"from": r("po_bramie", "kule"), "state": "kuleje na kulach, potem bez kul; kule na tylnym siedzeniu"},
+                    {"from": r("zasadzka", "papierowy Ford"), "state": "nie żyje"}]},
         {"id": "clyde_maly", "name": "mały Clyde", "role": "Clyde jako dziecko pod wozem", "look": "chłopiec w łatanych ogrodniczkach"},
         {"id": "buck", "name": "Buck Barrow", "role": "starszy brat Clyde'a", "look": "krępy, kaszkiet, kamizelka",
          "joins": r("buck", "Buck"), "leaves": r("dexfield", "Buck")},
@@ -81,7 +82,7 @@ SWIAT = {
         {"id": "ivy", "name": "Ivy Methvin", "role": "farmer z Luizjany, ojciec Henry'ego", "look": "broda, ogrodniczki, kapelusz słomkowy",
          "namedIn": ["d07_*"]},
         {"id": "henry", "name": "Henry Methvin", "role": "młody więzień uwolniony w Eastham", "look": "chłopak w koszuli, kaszkiet",
-         "namedIn": ["d07_*"]},
+         "namedIn": ["d07_*"], "joins": r("henry_wsiada", "Henry Methvin")},
         {"id": "boyd", "name": "Percy Boyd", "role": "komendant policji z Commerce", "look": "mundur, czapka"},
         {"id": "murphy", "name": "H.D. Murphy", "role": "młody policjant drogowy z Grapevine", "look": "mundur, bryczesy, motocykl",
          "leaves": r("grapevine_cien", "shot")},
@@ -109,12 +110,20 @@ SWIAT = {
          "uses": [r("zwolnienie", "ciężarówce")]},
         {"id": "wiersz", "name": "Wiersz dla matki („The Trail's End”)", "owner": "Bonnie", "seeded": r("wiersz", "poem"),
          "uses": [r("pogrzeby", "poem")], "note": "Tylko parafraza; prawa autorskie niesprawdzone."},
-        {"id": "obraczka", "name": "Obrączka Roya", "owner": "Bonnie", "seeded": r("kawiarnia", "ring")},
+        {"id": "obraczka", "name": "Obrączka Roya", "owner": "Bonnie", "seeded": r("kawiarnia", "ring"),
+         "uses": [r("kawiarnia", "obrączka")], "note": "Widoczna na palcu w kawiarni (21.11): kwestia „still wearing his ring” ma pokrycie w obrazie."},
+        {"id": "ford_farmera", "name": "Szary Ford farmera (gang bierze go po zniszczeniu Forda w Wellington)", "owner": "farmer",
+         "seeded": r("farma_auto", "Forda farmera"), "uses": [r("drzewo", "Forda farmera"), r("list_ford", "Forda")]},
+        {"id": "bordo_auto", "name": "Bordowe auto gangu (Buck za kierownicą, Blanche obok)", "owner": "Buck Barrow",
+         "seeded": r("darby_auto", "bordowy"), "uses": [r("oboz", "Buck"), r("henry_wsiada", "Henry Methvin")]},
     ],
     "resources": [],
     "rules": [
         {"id": "clyde_wolny", "name": "Clyde na wolności", "from": r("parol", "parole"), "to": r("zasadzka", "papierowy Ford")},
         {"id": "buck_zyje", "name": "Buck żyje i jest z gangiem", "from": r("buck", "Buck"), "to": r("dexfield", "Buck")},
+        {"id": "clyde_kuleje", "name": "Clyde kuleje od Eastham do zasadzki", "from": r("palce", "siekiera"), "to": r("zasadzka", "papierowy Ford")},
+        {"id": "bonnie_kuleje", "name": "Bonnie kuleje od Wellington do zasadzki", "from": r("wellington_bonnie", "noga"), "to": r("zasadzka", "papierowy Ford")},
+        {"id": "ford_farmera", "name": "Gang jeździ szarym Fordem farmera od Wellington", "from": r("farma_auto", "Forda farmera"), "to": r("list_ford", "Forda")},
         {"id": "wd_w_gangu", "name": "W.D. jest z gangiem", "from": r("wd", "W.D."), "to": r("wd_odchodzi", "W.D.")},
         {"id": "hamer_poluje", "name": "Hamer prowadzi pościg", "from": r("hamer", "took the job"), "to": r("dym", "rounds")},
         {"id": "powaga", "name": "ton poważny (bez żartów z ofiar)", "from": r("grapevine", "Easter"), "to": r("pogrzeby", "cemeteries"),
@@ -130,6 +139,9 @@ SWIAT = {
         {"at": r("dzien1", "day one"), "note": "pierwszy dzień pościgu Hamera", "needs": ["hamer_poluje"]},
         {"at": r("grapevine", "day fifty"), "note": "Grapevine = 50. dzień pościgu", "needs": ["hamer_poluje"]},
         {"at": r("zasadzka_rano", "May 23"), "note": "zasadzka = 102. dzień", "needs": ["hamer_poluje", "clyde_wolny"]},
+        {"at": r("po_bramie", "kule"), "note": "Clyde wychodzi z Eastham na kulach i wsiada do Forda Bonnie", "needs": ["clyde_wolny"]},
+        {"at": r("farma_auto", "Forda farmera"), "note": "gang zabiera szarego Forda farmera (po zniszczeniu Forda w Wellington)", "needs": ["wd_w_gangu"]},
+        {"at": r("henry_wsiada", "Henry Methvin"), "note": "Henry Methvin wsiada do gangu w Luizjanie", "needs": ["clyde_wolny"]},
     ],
     "threads": [
         {"id": "cygaro", "title": "Bonnie nie paliła cygar", "setup": [r("zdjecie", "cigar")], "clues": [r("hak_cygaro", "cigars"),
@@ -142,12 +154,12 @@ SWIAT = {
         {"id": "teczka", "title": "Wycinki trafią do jednej teczki", "setup": [r("teczka_zasiew", "file")],
          "payoff": [r("hak_teczka", "file"), r("koniec", "file")]},
         {"id": "przysiega", "title": "Clyde nie wróci do Eastham", "setup": [r("przysiega", "swore")],
-         "clues": [r("odbicie", "Eastham")], "payoff": [r("podkreslenie", "promise")]},
+         "clues": [r("odbicie", "Eastham")], "payoff": [r("podkreslenie", "never go back")]},
         {"id": "matki", "title": "Pętle prowadzą do matek", "setup": [r("rodziny", "families")], "clues": [r("sowers", "picnics"),
          r("petle", "mothers")], "payoff": [r("shreveport", "father's farm"), r("zasadzka_rano", "truck")]},
         {"id": "obietnica", "title": "Łowca, który nie gonił", "setup": [r("obietnica", "without ever chasing")],
          "clues": [r("poscigi", "ditch")], "payoff": [r("hak_szuflada", "stopped chasing")]},
-        {"id": "methvin", "title": "Henry Methvin", "setup": [r("odbicie", "free his friends")], "payoff": [r("methvin", "Henry Methvin")]},
+        {"id": "methvin", "title": "Henry Methvin", "setup": [r("odbicie", "free his friends")], "payoff": [r("henry_wsiada", "Henry Methvin"), r("methvin", "Henry Methvin")]},
         # gagi powracające (D6, Podręcznik → Humor i gagi: zasiew, powtórka, zwrot)
         {"id": "gag_kasa", "title": "W1 · Pusta kasa (ćma)", "setup": [r("wagon", "ćma")], "clues": [r("stacja", "ćma"), r("kiosk", "ćma")],
          "payoff": [r("auto_jarmark", "kasetka")]},
@@ -181,6 +193,14 @@ SWIAT = {
          "away…”), w które spada indyk z poprzedniego ujęcia. Reżyser 19.11.2026: „dlaczego z ujęcia o indykach robi się nagle ślub? "
          "… pomiędzy te dwa daj jedno przechodzące do tego weddingu, o ile ma to pokrycie w scenariuszu”. Pokrycie: Bonnie w Cement "
          "City pisała wiersze i marzyła o scenie (Biblia, miejsce cement_city), ślub 1926.", "at": "2026-11-19", "by": "reżyser"},
+        {"id": "D8", "text": "Szwy ciągłości wg uwag reżysera 21.11.2026 („popraw wszystko”, drobne uwagi najważniejsze): (1) po zniszczeniu Forda "
+         "w Wellington gang bierze szarego Forda farmera (farma_auto) i nim odjeżdża w d04_05; (2) Buck i Blanche jadą bordowym drugim "
+         "autem (d03_07, d04_08), więc są w gangu od Joplin do Platte City; (3) Henry Methvin wsiada w Luizjanie przed Shreveport "
+         "(henry_wsiada) — zdrajca dalej dopiero w akcie VII; (4) indyk odlatuje z czapki policjanta (d01_02) i wraca w pomoście (d01_03); "
+         "(5) obrączka widoczna w kawiarni (d01_05); (6) Clyde na kulach wraca do Forda Bonnie (po_bramie, bez skoku w czasie), kuleje "
+         "w ujęciach (stacja, wiersz: Bonnie); (7) ogień w Wellington z dziury po kuli z prologu (wprowadzenie2 → wellington_most); "
+         "(8) Hamer nie zna obietnicy z bramy — wie z wycinka prasy („reportedly”); (9) zapowiedź łowcy bez nazwiska; "
+         "(10) tempo aktów w granicach 80–160 s, film ok. 18:30.", "at": "2026-11-21", "by": "Claude"},
     ],
 }
 

@@ -787,7 +787,7 @@ CIECIE_WYJSCIE, CIECIE_WEJSCIE = 0.12, 0.03
 # początku ujęcia — chwila puenty, a nie początek gagu. Lekko: −9 dB na 0,6 s, bez muzycznych „mickey-mousingów” na każdym
 # kroku (przy 46 gagach muzyka by się jąkała).
 GAG_PRZYSTANEK_DB, GAG_PRZYSTANEK_S = -9.0, 0.6
-GAG_PUENTA = {"wprowadzenie2": 1.6, "zdjecie": 4.25, "hak_cygaro": 2.6, "indyki": 5.0, "poezja": 2.3, "slub": 7.7, "kawiarnia": 7.0,
+GAG_PUENTA = {"wprowadzenie2": 5.37, "zdjecie": 6.35, "hak_cygaro": 2.6, "indyki": 5.0, "poezja": 2.3, "slub": 7.7, "kawiarnia": 7.0,
               "kuchnia": 9.5, "akt2": 7.3, "stacja": 6.6, "wd": 6.4, "joplin_dom": 9.2, "ciemnia": 5.0, "kiosk": 9.9, "darby_auto": 2.0,
               "darby_tyl": 9.6, "darby_puszczeni": 5.3, "oboz": 4.4, "list_ford": 6.4, "wd_odchodzi": 6.4, "rodziny": 9.0, "dzien1": 4.6,
               "hamer_motel": 8.85, "dzien20": 11.45, "mapa": 6.1, "listy_gon": 9.4, "prasa_cygaro": 5.6, "noc": 10.6, "kanapka": 5.3,
@@ -1747,6 +1747,23 @@ def zapalka():
     return out / (np.abs(out).max() + 1e-9) * 0.55
 
 
+def kot():
+    """Rozzłoszczony kot poza kadrem (marker reżysera 21.11, ujęcie 18: „dźwięk kota, bo dostał tym papierem”): „mrrrAAAU!”
+    — ton z harmonicznymi, wysokość w górę i w dół, formant przechodzi i→a→u, na końcu krótkie syknięcie."""
+    sec = 0.8
+    n, t = N(sec), tt(N(sec))
+    f0 = np.interp(t, [0, 0.1, 0.32, 0.6, sec], [430, 760, 900, 640, 380]) * (1 + 0.025 * np.sin(2 * math.pi * 9 * t))
+    ph = 2 * math.pi * np.cumsum(f0) / SR
+    F1 = np.interp(t, [0, 0.15, 0.45, sec], [600, 1250, 1000, 520])
+    x = np.zeros(n)
+    for k in range(1, 12):
+        a = np.exp(-((k * f0 - F1) / 380.0) ** 2) + 0.35 * np.exp(-((k * f0 - 2.6 * F1) / 600.0) ** 2) + 0.05
+        x += a * np.sin(k * ph) / k ** 0.3
+    x *= np.minimum(1, t / 0.05) * np.clip((sec - 0.08 - t) / 0.25, 0, 1) ** 0.7
+    x += np.concatenate([np.zeros(N(0.55)), _szum(n - N(0.55), 2500, 8000, 77) * np.exp(-tt(n - N(0.55)) / 0.08) * 0.5])
+    return x / (np.abs(x).max() + 1e-9) * 0.7
+
+
 # Nowe rodzaje dźwięku gagów (reżyser 19.11: „gagi robimy wszystkie”). Zgodnie z zasadą „nowy rodzaj dźwięku → próbka”
 # są w filmie dopiero po akceptacji reżysera: NOWE_DZWIEKI=1 (próbka) albo wpis do NOWE_ZATWIERDZONE.
 NOWE = {"kaszel_silnika", "werbel_fx", "zapalka"}
@@ -1769,7 +1786,7 @@ KROTKIE = {
     "whoosh": whoosh, "thud": thud, "knock": knock, "coin": coin, "splash": splash, "plusk": lambda: splash(0.8) * 0.8,
     "kurtyna_z": kurtyna_zasuwa, "kurtyna_r": kurtyna_rozsuwa, "klaps": klaps, "skok": lambda: thud(0.3) * 0.5,
     "papier": lambda: whoosh(0.5, 1200, 7000) * 0.6, "strona": lambda: whoosh(1.4, 500, 6000) * 0.9,
-    "kaszel_silnika": kaszel_silnika, "werbel_fx": lambda: werbel(0.9) * 1.3, "zapalka": zapalka,
+    "kaszel_silnika": kaszel_silnika, "werbel_fx": lambda: werbel(0.9) * 1.3, "zapalka": zapalka, "kot": kot,
 }
 DLUGIE = {
     "ogien": fire, "woda": woda, "brodzenie": brodzenie, "bloto": bloto, "pisanie": pisanie, "oklaski": oklaski, "brama": brama,
@@ -1789,12 +1806,12 @@ TAB_DZWIEK = {"AGAIN?!": "wahwah", "THAT'S IT?": "wahwah", "OH NO": "wahwah", ".
               # gagi (GAGI.md)
               "SERIOUSLY?": "wahwah_k", "OOF!": "thud", "O!": "pytanie", "…": "wahwah_k", "beep": "beep",
               "MMPH!": "wahwah_k", "YAP!": "boing_m", "!": "pytanie", "OVER HERE!": "tab", "SNAP!": "boing_m", "HMM…": "wahwah_k",
-              "GOBBLE!": "indyk"}
+              "GOBBLE!": "indyk", "OOO…": "tab"}
 
 # Głos postaci pod tabliczką (napis → rodzaj z glosy.py); wyjątki dla ujęcia, gdy ten sam napis mówi kto inny.
 TAB_GLOS = {"HA HA!": "smiech_b", "AAAA!": "krzyk_b", "UGH!": "ugh_b", "SIGH…": "westchnienie_b", "BRRR!": "brr_b", "OW!": "au_b",
             "HEY!": "hej_b", "SHHH!": "shh", "STOP!": "stop", "GO!": "go", "OH NO": "ojnie", "AW!": "au_c", "OUCH!": "ouch", "BYE!": "bye",
-            "THAT'S IT?": "thats_it", "BACK OFF!": "back_off", "EXTRA!": "extra", "HA HA HA!": "*smiech_tlum"}
+            "THAT'S IT?": "thats_it", "BACK OFF!": "back_off", "EXTRA!": "extra", "HA HA HA!": "*smiech_tlum", "OOO…": "gasp_m"}
 TAB_GLOS_UJ = {("darby_auto", "HEY!"): "hej_m"}
 TAB_DZWIEK.update({"HA HA!": "tab", "SIGH…": "tab", "BRRR!": "tab", "HA HA HA!": "tab"})  # śmiech i westchnienie robi teraz głos
 GLOS_G = {"extra": 0.35, "krzyk_b": 0.6, "smiech_b": 0.6}
@@ -1953,6 +1970,23 @@ for _k in ("zap_wellington_most", "zap_zdjecie", "zap_prasa", "zap_kiosk", "zap_
            "zap_hamer", "zap_zasadzka"):
     ZDARZENIA.setdefault(_k, []).append((0.0, "boom", 0.55))
 ZDARZENIA["zap_wellington_most"].append((0.0, "whoosh", 0.6))
+# szwy z uwag 21.11: nowe ujęcia-mosty (po_bramie, farma_auto, henry_wsiada) i odlot indyka z czapki (indyki, t 5.7)
+ZDARZENIA["po_bramie"] = [(0.3, "skrzyp", 2.5), (3.6, "drzwi", 0.8)]
+ZDARZENIA["farma_auto"] = [(0.8, "silnik_jalowy", 3.5), (3.9, "drzwi", 0.7)]
+ZDARZENIA["henry_wsiada"] = [(2.4, "pisk", 0.4), (2.9, "drzwi", 0.8)]
+ZDARZENIA["indyki"].append((5.7, "skrzydla", 1.0))
+# markery reżysera 21.11 (wieczór, 28 markerów w ujęciach 12–35): dźwięk w tej samej chwili co nowe zdarzenie w obrazie
+ZDARZENIA["wprowadzenie"] = [(4.6, "pff", 0.5), (7.15, "whoosh", 0.35), (8.17, "pff", 0.35), (8.2, "syk", 0.5)]  # cygaro z ust, rzut, upadek
+ZDARZENIA["wprowadzenie2"] = ([(0.9, "zamek", 0.5)] + [(c, "kula", 0.7) for c in (1.94, 2.72, 3.12, 4.3, 4.57)]  # rykoszety
+                              + [(5.37, "metal", 0.75), (5.63, "lanie", 5.0), (6.3, "woda", 4.4)])  # kula w baku, paliwo, zalew
+ZDARZENIA["zdjecie"] = [(0.7, "whoosh", 0.3), (2.0, "pff", 0.4), (2.6, "whoosh", 0.25), (3.6, "whoosh", 0.22), (3.85, "whoosh", 0.2),
+                        (4.25, "klik", 0.6), (5.2, "papier", 0.35), (6.3, "aparat", 0.7)]  # cygaro do ust, aparat z kieszeni, migawka
+ZDARZENIA["prasa"] += [(7.17 + n / 3.2, "stuk", 0.35) for n in range(1, 8) if 7.17 + n / 3.2 < 9.3]  # maszyna podskakuje
+ZDARZENIA["hak_cygaro"].append((5.72, "kot", 0.9))  # kulka papieru trafia kota za kadrem; Bonnie podskakuje na 6,1 s
+ZDARZENIA["obietnica"] += [(c, "pisk", 0.3) for c in (3.4, 5.0, 7.44, 8.0, 9.6)] + [(c, "pisk", 0.25) for c in (4.4, 6.8, 7.7, 9.1)]
+ZDARZENIA["kawiarnia"] = [(1.45, "nalewanie", 1.5), (3.6, "lomot", 0.9)] + [(7.0 + 0.55 * n, "papier", 0.45) for n in range(5)]
+ZDARZENIA["waco_przed"] = [(2.1, "whoosh", 0.3), (2.33, "metal", 0.3), (2.97, "klik", 0.3), (3.97, "papier", 0.3), (6.3, "drzwi", 0.6)]
+ZDARZENIA["po_bramie"] = [(0.3, "skrzyp", 2.5), (3.4, "thud", 0.4), (3.9, "drzwi", 0.8)]  # kula na siedzenie, Clyde wskakuje
 
 
 # =====================================================================================================================

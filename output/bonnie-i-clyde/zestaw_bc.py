@@ -78,6 +78,9 @@ LALKI = {
     "bonnie_cygaro": dict(kobieta=True, wlosy=(214, 176, 104), fryzura="loki", kapelusz="beret", kapelusz_kolor=(150, 40, 46),
                           stroj="sukienka", gora=(84, 112, 150), dol=(84, 112, 150), wzor="kropki", wzor_kolor=(240, 232, 214),
                           kolnierzyk=(240, 234, 222), pas=(150, 40, 46), szer=0.94, cygaro=True),
+    # Waco 1930: płaszcz, pod który Bonnie chowa rewolwer (marker reżysera 21.11, ujęcie 27: „skryj go pod płaszcz”)
+    "bonnie_plaszcz": dict(kobieta=True, wlosy=(214, 176, 104), fryzura="loki", kapelusz="beret", kapelusz_kolor=(150, 40, 46),
+                           stroj="plaszcz", gora=(150, 112, 78), dol=(150, 112, 78), kolnierzyk=(236, 226, 206), szer=0.96),
     "bonnie_kelnerka": dict(kobieta=True, wlosy=(214, 176, 104), fryzura="loki", stroj="sukienka", gora=(196, 160, 150),
                             dol=(196, 160, 150), fartuch=(244, 240, 230), kolnierzyk=(244, 240, 230), szer=0.94),
     "bonnie_czerwona": dict(kobieta=True, wlosy=(214, 176, 104), fryzura="loki", kapelusz=None, stroj="sukienka",
@@ -144,6 +147,9 @@ LALKI = {
                        odznaka=True, pas=(70, 50, 36), wasy=True, szer=1.08),
     "detektyw": dict(kapelusz="fedora", kapelusz_kolor=(90, 70, 54), stroj="plaszcz", gora=(120, 96, 70), dol=(90, 80, 70),
                      odznaka=True, wasy=True),
+    # ta sama lalka z otwartymi ustami (marker reżysera 21.11, ujęcie 14: „otwiera buzię i tabliczkę ooo..”) — podmiana w jednej klatce
+    "detektyw_o": dict(kapelusz="fedora", kapelusz_kolor=(90, 70, 54), stroj="plaszcz", gora=(120, 96, 70), dol=(90, 80, 70),
+                       odznaka=True, wasy=True, usta="o"),
     "szeryf": dict(kapelusz="stetson", kapelusz_kolor=(160, 140, 110), stroj="kamizelka", gora=(110, 90, 64), dol=(96, 88, 80),
                    odznaka=True, wasy=True, szer=1.08),
     "straznik": dict(kapelusz="stetson", kapelusz_kolor=(140, 120, 90), stroj="koszula", gora=(170, 150, 112), dol=(110, 96, 80),
@@ -404,6 +410,8 @@ def _korpus_img(s):
         d.line([(164, 162), (176, 161)], fill=(180, 40, 50, 240), width=5)
     elif not (s["broda"] or s["wasy"]):
         d.line([(162, 162), (176, 160)], fill=ink, width=3)
+    if s["usta"] == "o":  # okrągłe, otwarte usta pod wąsem („OOO…”)
+        d.ellipse([163, 160, 179, 180], fill=(70, 26, 26, 245), outline=INK + (235,), width=2)
     if s["cygaro"]:
         d.line([(172, 162), (214, 152)], fill=(96, 62, 40, 255), width=8)
         d.line([(210, 153), (216, 151)], fill=(190, 186, 180, 255), width=8)
@@ -1219,6 +1227,19 @@ REKWIZYTY = {
     "garnek": (160, 110, lambda: [(rect(20, 20, 140, 106), (150, 150, 156), dict(kind="gladki")), (rect(0, 30, 24, 40), (60, 60, 64)),
                                   (ell(80, 22, 62, 10), (90, 60, 40))]),
     "lyzka": (40, 160, lambda: [(rect(16, 40, 24, 156), (190, 190, 196)), (ell(20, 24, 14, 22), (190, 190, 196))]),
+    # dziura po kuli w karoserii (ujęcie 13, marker reżysera 21.11: „tu się wbija kula”)
+    "dziura": (40, 40, lambda: [(ell(20, 20, 17, 17), (150, 150, 156)), (ell(20, 20, 11, 11), (22, 20, 20))]),
+    # patelnia z kuchni (marker reżysera 21.11, ujęcia 26–27: „daj jej patelnię!”): chwyt za koniec rączki (0.93, 0.5)
+    "patelnia": (300, 90, lambda: [(poly([(4, 30), (150, 30), (140, 70), (14, 70)]), (54, 52, 56), dict(edge=2)),
+                                   (ell(77, 32, 73, 9), (84, 82, 86)), (rect(146, 38, 290, 54), (54, 52, 56), dict(edge=2)),
+                                   (ell(284, 46, 9, 9), (40, 38, 40))]),
+    # stary aparat prasowy z wielką czaszą lampy błyskowej z boku (marker reżysera 21.11, ujęcie 15); chwyt: spód korpusu (0.6, 0.95),
+    # środek czaszy (0.2, 0.22) — stamtąd błyska flesz
+    "aparat_lampa": (220, 200, lambda: [(rect(78, 92, 196, 188), (46, 42, 40), dict(edge=2)), (rect(178, 104, 214, 176), (70, 64, 58)),
+                                        (ell(206, 140, 16, 20), (30, 34, 44)), (rect(100, 76, 150, 94), (60, 56, 52)),
+                                        (rect(36, 70, 52, 148), (150, 146, 140)), (rect(36, 132, 84, 148), (150, 146, 140)),
+                                        (ell(44, 44, 40, 40), (214, 214, 218), dict(kind="gladki", edge=2)),
+                                        (ell(44, 44, 26, 26), (186, 186, 192), dict(kind="gladki")), (ell(44, 44, 11, 11), (250, 248, 236))]),
     "gwizdek": (80, 50, lambda: [(ell(36, 26, 22, 18), (200, 196, 180)), (rect(50, 18, 78, 30), (200, 196, 180))]),
     "papieros": (60, 14, lambda: [(rect(2, 3, 50, 11), (244, 240, 230)), (rect(48, 3, 58, 11), (230, 120, 60))]),
     "wiadro": (110, 120, lambda: [(poly([(6, 20), (104, 20), (94, 116), (16, 116)]), (150, 150, 156)), (lambda d, s: d.arc([10 * s, -20 * s, 100 * s, 50 * s], 180, 360, fill=255, width=int(5 * s)), (90, 90, 96))]),
@@ -1256,6 +1277,80 @@ REKWIZYTY = {
                                  dict(edge=2))]),
     "laska": (40, 220, lambda: [(_band((20, 214), (20, 30), 8), (96, 64, 42)), (_band((20, 30), (34, 10), 8), (96, 64, 42))]),
 }
+
+
+def sylwetka(key, rece=(0.0, 0.0), lean=0.0, rzecz=None):
+    """Czarna sylwetka lalki w pozie (obraz PIL, wysokość arkusza korpusu): ręce pod kątami jak w scena.lalka (flip=1),
+    rzecz = (nazwa rekwizytu, wysokość w px arkusza, kotwica chwytu) w przedniej dłoni. Do mikro-klatek na kliszy."""
+    s = spec(key)
+    body, arm = _korpus_img(s), _ramie_img(s)
+    cw, ch = body.size
+    k = s["szer"]
+    can = Image.new("RGBA", (cw + 600, ch + 600), (0, 0, 0, 0))
+    ox, oy = 300, 300
+    zaw = (RAMIE_ZAWIAS[0] * k + (arm.size[0] - RAMIE_W * k) / 2, RAMIE_ZAWIAS[1])
+    dl = DLON[1] - RAMIE_ZAWIAS[1]
+    for nazwa, ang in (("tyl", rece[1]), ("przod", rece[0])):
+        bx, by = BARK[nazwa]
+        bx = cw / 2 + (bx - FIG_W / 2) * k
+        R = max(arm.size) * 2
+        tmp = Image.new("RGBA", (R, R), (0, 0, 0, 0))
+        tmp.paste(arm, (int(R / 2 - zaw[0]), int(R / 2 - zaw[1])), arm)
+        tmp = tmp.rotate(ang, resample=Image.BICUBIC)
+        can.alpha_composite(tmp, (int(ox + bx - R / 2), int(oy + by - R / 2)))
+        if nazwa == "przod" and rzecz:
+            a = math.radians(ang)
+            hx, hy = ox + bx + math.sin(a) * dl, oy + by + math.cos(a) * dl
+            nm, rh, anc = rzecz
+            rw, rh_, fn = REKWIZYTY[nm]
+            im = stack(rw, rh_, fn(), seed=300 + len(nm))
+            im = im.resize((max(1, int(im.size[0] * rh / im.size[1])), int(rh)))
+            can.alpha_composite(im, (int(hx - anc[0] * im.size[0]), int(hy - anc[1] * im.size[1])))
+        if nazwa == "tyl":
+            can.alpha_composite(body, (ox, oy))
+    if lean:
+        can = can.rotate(-lean, resample=Image.BICUBIC, center=(ox + cw / 2, oy + STOPA))
+    a = can.getchannel("A")
+    out = Image.new("RGBA", can.size, (14, 12, 12, 0))
+    out.putalpha(a)
+    return out.crop(out.getbbox())
+
+
+@lru_cache(None)
+def ciecz(kolor=(196, 148, 60)):
+    """Tafla cieczy (paliwo zalewające scenę, ujęcie 13): pas z falistym brzegiem i jaśniejszą linią powierzchni; kotwica u góry."""
+    w, h = 1300, 160
+    a = np.zeros((h, w), np.uint8)
+    yy, xx = np.mgrid[:h, :w]
+    fala = 14 + 5 * np.sin(xx / 47.0) + 3 * np.sin(xx / 13.0 + 1.3)
+    a[yy >= fala] = 255
+    rgb = np.zeros((h, w, 3), np.uint8)
+    rgb[:] = kolor
+    jasna = (yy >= fala) & (yy < fala + 5)
+    rgb[jasna] = tuple(min(255, int(c * 1.35)) for c in kolor)
+    im = Image.fromarray(np.dstack([rgb, a]), "RGBA")
+    return Sprite(im, f"ciecz-{kolor}", rim=0, clean=False)
+
+
+@lru_cache(None)
+def klisza_pozy():
+    """Klisza z aparatu z Joplin: w każdej klatce czarna, mikro sylwetka Bonnie w innej pozie (marker reżysera 21.11, ujęcie 14:
+    „na tych klatkach z filmu są pozy czarne Bonnie, różne mikro”). Arkusz jak „klisza” (360 × 90, cztery klatki)."""
+    w, h = 360, 90
+    base = stack(w, h, [(rect(0, 10, 360, 80), (40, 34, 30))] + [(rect(20 + k * 84, 22, 84 + k * 84, 68), (196, 174, 132)) for k in range(4)]
+                 + [(rect(8 + k * 22, 13, 16 + k * 22, 19), (210, 200, 180)) for k in range(16)]
+                 + [(rect(8 + k * 22, 71, 16 + k * 22, 77), (210, 200, 180)) for k in range(16)], seed=1931)
+    pozy = [dict(rece=(90, 10), rzecz=("rewolwer", 70, (0.3, 0.75))),   # z rewolwerem
+            dict(rece=(150, 30), lean=-6),                               # macha
+            dict(rece=(35, 35)),                                         # ręce na biodrach
+            dict(rece=(120, 160), lean=6)]                               # obie ręce w górze
+    for kk, pz in enumerate(pozy):
+        # klisza wisi pionowo (obrót 90° w kadrze), więc sylwetka leży na arkuszu głową w lewo — w kadrze stoi prosto
+        sil = sylwetka("bonnie", **pz).rotate(90, expand=True)
+        sc = min(56 / sil.size[0], 42 / sil.size[1])
+        sil = sil.resize((max(1, int(sil.size[0] * sc)), max(1, int(sil.size[1] * sc))), Image.LANCZOS)
+        base.alpha_composite(sil, (20 + kk * 84 + (64 - sil.size[0]) // 2, 22 + (46 - sil.size[1]) // 2))
+    return Sprite(base, "rek-klisza-pozy", rim=2, clean=False)
 
 
 @lru_cache(None)

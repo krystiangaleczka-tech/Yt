@@ -2,11 +2,11 @@
  "pid": "prj_dad935cf1d7446fa",
  "klipy": {
   "d00_01": {
-   "asset": "asset_77b053bb718c0c569c79",
+   "asset": "asset_81c2551a33708e9ebf32",
    "tryb": "klatka"
   },
   "d00_02": {
-   "asset": "asset_a7b3e35a23ab834156a3",
+   "asset": "asset_c664a809fae5350e46e3",
    "tryb": "klatka"
   },
   "d00_03": {
@@ -46,19 +46,19 @@
    "tryb": "klatka"
   },
   "d00_12": {
-   "asset": "asset_0970ce3cd23653130d84",
+   "asset": "asset_02c9509daa63ec388ab7",
    "tryb": "klatka"
   },
   "d00_13": {
-   "asset": "asset_4654d06b453dd1965042",
+   "asset": "asset_ac238759b0aa5cd300b8",
    "tryb": "klatka"
   },
   "d00_14": {
-   "asset": "asset_c3b4d0af5d8aca6e9c12",
+   "asset": "asset_80ae13e1780831b8d3ea",
    "tryb": "klatka"
   },
   "d00_15": {
-   "asset": "asset_df0af71a73e3ce1b5cb3",
+   "asset": "asset_7a77ae49ea121da4e18d",
    "tryb": "klatka"
   },
   "d00_16": {
@@ -82,23 +82,23 @@
    "tryb": "klatka"
   },
   "d01_05": {
-   "asset": "asset_25630db7138e63aa5b59",
+   "asset": "asset_b1fe564e6115417d9f16",
    "tryb": "klatka"
   },
   "d01_06": {
-   "asset": "asset_1ba4c9ff96c182d2d21a",
+   "asset": "asset_321391f85a298f0d9238",
    "tryb": "klatka"
   },
   "d01_07": {
-   "asset": "asset_c7efc529aeed5cbfcf3e",
+   "asset": "asset_2643eb456b1636919ee1",
    "tryb": "klatka"
   },
   "d01_08": {
-   "asset": "asset_4b49420b1d28b847b073",
+   "asset": "asset_602efc31b577acfe1788",
    "tryb": "klatka"
   },
   "d01_09": {
-   "asset": "asset_3ffb61b0ae95a1ad647d",
+   "asset": "asset_71241ec26a28f3a17d84",
    "tryb": "klatka"
   },
   "d01_10": {
@@ -114,23 +114,23 @@
    "tryb": "klatka"
   },
   "d01_13": {
-   "asset": "asset_bfe7a2e0a1abaf34f454",
+   "asset": "asset_ede6dac958ddcc1d5408",
    "tryb": "klatka"
   },
   "d01_14": {
-   "asset": "asset_12a7f729e51169406ede",
+   "asset": "asset_d0c469145ac716852afb",
    "tryb": "klatka"
   },
   "d01_15": {
-   "asset": "asset_587d8c0c7d7f919e73f0",
+   "asset": "asset_570ad8a818c394b2255d",
    "tryb": "klatka"
   },
   "d02_01": {
-   "asset": "asset_aa4e5eac3cadf7cfeed3",
+   "asset": "asset_07ae1680c56a711c42b6",
    "tryb": "klatka"
   },
   "d02_02": {
-   "asset": "asset_ac51a27e1511bc610888",
+   "asset": "asset_e40c568dc8dc6ce805f2",
    "tryb": "klatka"
   },
   "d02_03": {
@@ -178,7 +178,7 @@
    "tryb": "klatka"
   },
   "d03_03": {
-   "asset": "asset_8380c0231aaaa43fca59",
+   "asset": "asset_f9db2a02fd811a22c1e7",
    "tryb": "klatka"
   },
   "d03_04": {
@@ -194,7 +194,7 @@
    "tryb": "klatka"
   },
   "d03_07": {
-   "asset": "asset_4b3f01d7a8c58e65f450",
+   "asset": "asset_bd562e8f0e54b7664ff1",
    "tryb": "klatka"
   },
   "d03_08": {
@@ -226,55 +226,55 @@
    "tryb": "klatka"
   },
   "d04_03": {
-   "asset": "asset_a0c915662eaedc82a2d0",
+   "asset": "asset_5d063307dda87d006b0b",
    "tryb": "klatka"
   },
   "d04_04": {
-   "asset": "asset_f4a0df3193d936c5d3f5",
+   "asset": "asset_dbf71f0761c70c6a22d2",
    "tryb": "klatka"
   },
   "d04_05": {
-   "asset": "asset_16bcfbea934229e2a695",
+   "asset": "asset_f4a0df3193d936c5d3f5",
    "tryb": "klatka"
   },
   "d04_06": {
-   "asset": "asset_be73fc1da30000da9699",
+   "asset": "asset_16bcfbea934229e2a695",
    "tryb": "klatka"
   },
   "d04_07": {
-   "asset": "asset_b1f31abc281080b7f87c",
+   "asset": "asset_be73fc1da30000da9699",
    "tryb": "klatka"
   },
   "d04_08": {
-   "asset": "asset_1530fb061394dd4b9249",
+   "asset": "asset_a0b00e4ba38bd48c39fd",
    "tryb": "klatka"
   },
   "d04_09": {
-   "asset": "asset_7e8c1e8930ac221a7c49",
+   "asset": "asset_1530fb061394dd4b9249",
    "tryb": "klatka"
   },
   "d04_10": {
-   "asset": "asset_f4f4a07ffd6ba082f265",
+   "asset": "asset_7e8c1e8930ac221a7c49",
    "tryb": "klatka"
   },
   "d04_11": {
-   "asset": "asset_0605b99205b52cb50fe2",
+   "asset": "asset_f4f4a07ffd6ba082f265",
    "tryb": "klatka"
   },
   "d04_12": {
-   "asset": "asset_8787c01da19e2b3ae4a3",
+   "asset": "asset_0605b99205b52cb50fe2",
    "tryb": "klatka"
   },
   "d04_13": {
-   "asset": "asset_1f5d65192df34801f708",
+   "asset": "asset_8787c01da19e2b3ae4a3",
    "tryb": "klatka"
   },
   "d04_14": {
-   "asset": "asset_14ee72d943610994cbac",
+   "asset": "asset_1f5d65192df34801f708",
    "tryb": "klatka"
   },
   "d04_15": {
-   "asset": "asset_22ae3c67306939699928",
+   "asset": "asset_14ee72d943610994cbac",
    "tryb": "klatka"
   },
   "d05_01": {
@@ -306,7 +306,7 @@
    "tryb": "klatka"
   },
   "d05_08": {
-   "asset": "asset_b6b5bbd17bd8be9d3c1a",
+   "asset": "asset_1bda34c2d43f1f910a48",
    "tryb": "klatka"
   },
   "d05_09": {
@@ -374,7 +374,7 @@
    "tryb": "klatka"
   },
   "d07_02": {
-   "asset": "asset_86325ba6570d29b94ae2",
+   "asset": "asset_db8385bfeb4e08467001",
    "tryb": "klatka"
   },
   "d07_03": {
@@ -382,35 +382,35 @@
    "tryb": "klatka"
   },
   "d07_04": {
-   "asset": "asset_f118a5e946dd3a578032",
+   "asset": "asset_2ab184d11411475a1407",
    "tryb": "klatka"
   },
   "d07_05": {
-   "asset": "asset_1661b6e26f9419636651",
+   "asset": "asset_f118a5e946dd3a578032",
    "tryb": "klatka"
   },
   "d07_06": {
-   "asset": "asset_6d4bb7555a70a45f3286",
+   "asset": "asset_1661b6e26f9419636651",
    "tryb": "klatka"
   },
   "d07_07": {
-   "asset": "asset_11f79ef1327cb1b3f406",
+   "asset": "asset_6d4bb7555a70a45f3286",
    "tryb": "klatka"
   },
   "d07_08": {
-   "asset": "asset_f0c9d0ebca0bb1e8325b",
+   "asset": "asset_11f79ef1327cb1b3f406",
    "tryb": "klatka"
   },
   "d07_09": {
-   "asset": "asset_85d9622e1a77c86841f9",
+   "asset": "asset_f0c9d0ebca0bb1e8325b",
    "tryb": "klatka"
   },
   "d07_10": {
-   "asset": "asset_b11d175edaf83173f525",
+   "asset": "asset_85d9622e1a77c86841f9",
    "tryb": "klatka"
   },
   "d07_11": {
-   "asset": "asset_c0254fd6882ad28690c2",
+   "asset": "asset_b11d175edaf83173f525",
    "tryb": "klatka"
   },
   "d08_01": {
@@ -462,7 +462,19 @@
    "tryb": "klatka"
   },
   "d00_19": {
-   "asset": "asset_37123a4d9d64f424cc5c",
+   "asset": "asset_bcc9fb99945336935cbf",
+   "tryb": "klatka"
+  },
+  "d01_16": {
+   "asset": "asset_55b797ad5bb977668659",
+   "tryb": "klatka"
+  },
+  "d04_16": {
+   "asset": "asset_22ae3c67306939699928",
+   "tryb": "klatka"
+  },
+  "d07_12": {
+   "asset": "asset_c0254fd6882ad28690c2",
    "tryb": "klatka"
   }
  }
