@@ -30,6 +30,7 @@ import papier  # noqa: E402
 import ujecia_a  # noqa: E402
 import ujecia_b  # noqa: E402
 import zestaw_bc as Z  # noqa: E402
+import dane  # noqa: E402
 from dane import AKTY, HAK, kwestia, okno_kwestii, ujecia  # noqa: E402
 from papier import FPS, H, W, Stage, back, ease, noise  # noqa: E402
 
@@ -51,6 +52,47 @@ for _akt, _k, _klucz, _kadr, _ruch, _sec, _opis, _snd in UJ:
     SCENES.append((_t, _t + _sec, _ruch, kwestia(_snd), *okno_kwestii(_snd, _klucz in HAK)))
     _t += _sec
 DUR = _t
+
+# Rytm, w którym ułożono akcję ujęć (sekundy w ujecia_a/b.py, efekty.ZDARZENIA, GAG_PUENTA): długość ujęcia i kwestii z tempa
+# lektora, sprzed nagrania. Prawdziwe nagranie bywa krótsze albo dłuższe (23.11.2026: „matka_obietnica” 11,5 → 9,1 s, gag
+# z zawieszkami WEEK wypadał za cięciem) — czas_akcji() przekłada chwilę ujęcia na czas akcji: do oddechu bez zmian, kwestia
+# do kwestii, pauza po kwestii do pauzy po kwestii. Gag na słowie lektora trafia w to słowo, puenta w pauzę po kwestii.
+dane.BEZ_NAGRAN[0] = True  # dane.ujecia_szkicu() i okna kwestii z tempa lektora
+try:
+    SZKIC_CZAS = [(u[5], okno_kwestii(u[7], u[2] in HAK)[1]) for u in ujecia()]
+finally:
+    dane.BEZ_NAGRAN[0] = False
+assert len(SZKIC_CZAS) == len(SCENES)
+
+
+# Ujęcia o długości wpisanej ręką w rozpisce (reżyser przyciął w Studio, „Szybkie” itp.): akcja wypełnia tę długość
+# niezależnie od kwestii, więc gra w swoim czasie (bez przełożenia).
+STALA_DLUGOSC = {_x[0] for _n, _tyt, _o, _sceny in AKTY for _st, _pl, _beaty in _sceny for _b, _sh in _beaty for _x in _sh
+                 if _x[3] is not None}
+
+
+def _wezly(i):
+    a, b, _, _, vs, vl = SCENES[i]
+    T, (T0, vl0) = b - a, SZKIC_CZAS[i]
+    x, y = [0.0], [0.0]
+    if KOL[i] in STALA_DLUGOSC:
+        return [0.0, T], [0.0, T]
+    if vl and vl0 and vs + vl < T - 0.05 and vs + vl0 < T0 - 0.05:
+        x += [vs, vs + vl]
+        y += [vs, vs + vl0]
+    return x + [T], y + [T0]
+
+
+def czas_akcji(i, lt):
+    """(czas akcji, długość akcji) ujęcia i w chwili lt ujęcia z prawdziwym nagraniem lektora."""
+    x, y = _wezly(i)
+    return float(np.interp(lt, x, y)), y[-1]
+
+
+def czas_ujecia(i, ta):
+    """Odwrotność czas_akcji: chwila ujęcia i, w której akcja jest w chwili ta (zdarzenia dźwięku, puenty gagów)."""
+    x, y = _wezly(i)
+    return float(np.interp(ta, y, x))
 
 
 BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
@@ -231,7 +273,7 @@ def uloz(t, void=None):
     if KOL[i] in WYCINEK:  # skrót innego ujęcia: oryginał od chwili `od`, jego świat i jego długość
         src, od, *dl = WYCINEK[KOL[i]]
         j = swiat.I[src]
-        Tj = dl[0] if dl else SCENES[j][1] - SCENES[j][0]
+        Tj = dl[0] if dl else SZKIC_CZAS[j][0]  # skrót gra akcję oryginału w jej rytmie (od jak w czas_akcji)
         st = Stage(od + lt, seed=ziarno(j))  # czas sceny jak w oryginale (mruganie, drżenie, kołysanie)
         st.void = void
         w = swiat.stan(j)
@@ -251,9 +293,10 @@ def uloz(t, void=None):
         if KOL[i] in BUDUJ:
             w.build = lt
         swiat.BUDOWA["t"] = w.build
-        st.T = T
+        ta, Ta = czas_akcji(i, lt)
+        st.T = Ta
         po_budowie(st)
-        FNS[i](st, w, lt, T)
+        FNS[i](st, w, ta, Ta)
         if not void:
             przejscie(st, i, lt, T)
     if not void:
@@ -329,7 +372,7 @@ def rozgrzej(ktore=None):
         if FNS[i] is None or (ktore and i not in ktore):
             continue
         for f in (0.5, 0.93):
-            FNS[i](Stage(a, seed=i), swiat.stan(i), (b - a) * f, b - a)  # samo ułożenie sceny tworzy wycinki
+            FNS[i](Stage(a, seed=i), swiat.stan(i), SZKIC_CZAS[i][0] * f, SZKIC_CZAS[i][0])  # samo ułożenie sceny tworzy wycinki
     for n in range(10):
         Z.flame(n)
 

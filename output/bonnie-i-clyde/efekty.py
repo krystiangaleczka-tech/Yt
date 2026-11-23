@@ -796,6 +796,12 @@ GAG_PUENTA = {"wprowadzenie2": 5.37, "zdjecie": 6.35, "hak_cygaro": 2.6, "indyki
               "methvin": 11.9, "pozegnanie": 3.8, "shreveport": 11.1, "posse": 11.75}
 
 
+def czas_ujecia(klucz, ta):
+    """Chwila ujęcia z prawdziwym nagraniem lektora dla chwili ta w rytmie akcji ujęcia (render.czas_ujecia)."""
+    import render as R
+    return R.czas_ujecia(R.KOL.index(klucz), ta) if klucz in R.KOL else ta
+
+
 def muzyka(total, starts, durs, voice, ciecia=None):
     n = N(total)
     out = np.zeros(n)
@@ -845,7 +851,7 @@ def muzyka(total, starts, durs, voice, ciecia=None):
     for klucz, tp in GAG_PUENTA.items():
         if klucz not in starts:
             continue
-        a = starts[klucz] + tp
+        a = starts[klucz] + czas_ujecia(klucz, tp)
         i0, i1, i2 = N(a - 0.06), N(a + GAG_PRZYSTANEK_S), N(a + GAG_PRZYSTANEK_S + 0.5)
         if i0 < 0 or i2 >= n:
             continue
@@ -2265,8 +2271,10 @@ def main():
             amb = tlo(rodzaj_tla(d), sec + 0.3, idx, noc.get(idx, 0) > 0.5 or d.get("noc"), d.get("swit"))
             i = N(a)
             fx[i:i + len(amb)] += amb[:n - i]
-        evs = [(at - od, kind, g) for at, kind, g in ZDARZENIA.get(src, []) if od <= at < od + sec]
-        if src != klucz:
+        if src == klucz:  # sekundy zdarzeń są w rytmie akcji ujęcia — przełożone na prawdziwe nagranie (render.czas_akcji)
+            evs = [(R.czas_ujecia(idx, at), kind, g) for at, kind, g in ZDARZENIA.get(klucz, []) if 0 <= at < R.SZKIC_CZAS[idx][0]]
+        else:  # skrót innego ujęcia gra akcję oryginału w jej rytmie od chwili `od`
+            evs = [(at - od, kind, g) for at, kind, g in ZDARZENIA.get(src, []) if od <= at < od + sec]
             evs += [e for e in ZDARZENIA.get(klucz, [])]
         g = R.GRANICE[idx]
         zam, dl, czekaj, otw = R.KURTYNA

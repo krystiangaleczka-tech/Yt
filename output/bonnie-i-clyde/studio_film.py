@@ -33,7 +33,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "docs/filmy/bonnie-i-clyde/ujecia"))
 import ksiega  # noqa: E402
-from dane import AKTY, JEZYK, kwestia, okno_kwestii, ujecia  # noqa: E402
+from dane import AKTY, HAK, JEZYK, kwestia, okno_kwestii, ujecia  # noqa: E402
 
 AUTO_UWAGA = re.compile(r"^(Kadr|Typ|Beat|Dźwięk|Cel|Przejście):")  # wiersze z rozpiski w polu uwag (reszta to uwagi reżysera)
 API = f"http://127.0.0.1:{os.environ.get('DOCOS_API_PORT', '8876')}/api"
@@ -302,7 +302,7 @@ def dzwiek(lektor=False):
             cached = {"asset": upload(pid, wav, f"lektor {r['ref']} {r['klucz']}.wav"), "sha": _sha(wav)}
             st["lektor"][r["klucz"]] = cached
             save_state(st)
-        start = sc["start"] + round(okno_kwestii(r["snd"])[0] * fps)
+        start = sc["start"] + round(okno_kwestii(r["snd"], r["klucz"] in HAK)[0] * fps)  # w haku krótszy oddech, jak napis
         ops.append({"type": "add_clip", "clip": {"track_id": "a1", "asset_id": cached["asset"], "scene_id": sc["id"],
                                                  "title": f"Lektor · {kwestia(r['snd'])[:80]}", "start": start,
                                                  "duration": max(1, math.ceil(meta["duration"] * fps))}})

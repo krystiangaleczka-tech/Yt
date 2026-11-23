@@ -297,7 +297,8 @@ AKTY = [(0,
        ('parol',
         'PP',
         'stat',
-        4.0,
+        # 23.11: nagranie kwestii trwa 2,6 s — 4,2 s daje 1 s pauzy po kwestii przed cięciem (Rytm 3)
+        4.2,
         'Szybkie: brama się otwiera; Clyde wychodzi o kulach; strażnik macha za nim kartką z pieczątką „PAROLE” (kwestia z „palce”, '
         'reżyser 21.11)',
         'L: Six days later: paroled anyway.'),
@@ -1174,10 +1175,13 @@ def kwestia(dzwiek):
     return dzwiek[2:].strip() if dzwiek.startswith("L:") else ""
 
 
+BEZ_NAGRAN = [False]  # True: długości z tempa lektora (TEMPO_EN), jak przy układaniu akcji ujęć — zob. ujecia_szkicu()
+
+
 def nagranie(dzwiek):
     """Długość nagranej kwestii (lektor_en/<klucz>.json) albo None, gdy jeszcze jej nie ma albo tekst się zmienił."""
     txt = kwestia(dzwiek)
-    for f in LEKTOR.glob("*.json") if txt and LEKTOR.exists() else ():
+    for f in LEKTOR.glob("*.json") if txt and LEKTOR.exists() and not BEZ_NAGRAN[0] else ():
         meta = json.loads(f.read_text(encoding="utf-8"))
         if meta.get("text") == txt:
             return meta["duration"]
@@ -1297,6 +1301,17 @@ def ujecia(akt=None):
                     prev = sec
                     out.append((n, k, klucz, kadr, ruch, sec, opis, dzwiek))
     return [u for u in out if akt is None or u[0] == akt]
+
+
+def ujecia_szkicu():
+    """Ujęcia z długościami z tempa lektora (słowa / TEMPO_EN), bez nagrań. Akcję ujęć (sekundy w ujecia_a/b.py,
+    efekty.ZDARZENIA, GAG_PUENTA) układano w tym rytmie, zanim powstał lektor; render.czas_akcji() przekłada ją na
+    prawdziwe nagranie (23.11.2026: po nagraniu klonu ujęcia skróciły się nawet o 2,4 s i gagi wypadały za cięciem)."""
+    BEZ_NAGRAN[0] = True
+    try:
+        return ujecia()
+    finally:
+        BEZ_NAGRAN[0] = False
 
 
 if __name__ == "__main__":
