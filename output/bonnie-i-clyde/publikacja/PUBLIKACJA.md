@@ -10,7 +10,7 @@ i domyślne ustawienia przesyłania są wspólne z „Pierwszym cesarzem”: `ou
 |---|---|
 | Film | `output/bonnie-i-clyde/build/Bonnie_and_Clyde_1440p_YouTube.mp4` (2560 × 1440, 24 kl./s; poza repo) |
 | Miniaturka | `output/bonnie-i-clyde/miniatura/miniatura_C_en_4k_fuji.png` (3840 × 2160, ok. 15 MB). Zapas z telefonu: `miniatura_C_en_fuji.jpg` |
-| Miniaturka D (24.11 wieczorem) | `output/bonnie-i-clyde/miniatura/miniatura_D_en_4k_fuji.png` — łowcy w krzakach, podziurawiony Ford zapadnięty tyłem w rowie, na dachu Bonnie (biała suknia ślubna, czerwony beret) strzela w lewo, Clyde w prawo, w tle Teksas i pociski, „THE REAL ENDING”. Pasuje do tytułu 2 (GTA 6) |
+| Miniaturka D (24.11 wieczorem) | `output/bonnie-i-clyde/miniatura/miniatura_D_en_4k_fuji.png` — łowcy w małych krzakach z ujęcia 104 (kapelusze, oczy, lufy), cały podziurawiony Ford zapadnięty tyłem w rowie, przodem do góry; Bonnie (biała suknia ślubna, czerwony beret) na opadającym dachu strzela w lewo, Clyde na przedniej szybie, jedną nogą na masce, strzela w prawo; w tle Teksas, pociski, iskry trafień, poświata świtu, „THE REAL ENDING”. Pasuje do tytułu 2 (GTA 6) |
 | Opis z rozdziałami | `opis_en.txt` — wklej w całości (stała część „How this video was made” już w nim jest) |
 | Napisy | `output/bonnie-i-clyde/napisy_yt/Bonnie_and_Clyde_en.srt` (angielskie) i `_pl.srt` (polskie) |
 

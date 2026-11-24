@@ -188,43 +188,81 @@ def stoi(st, key, x, y, h, p, rece, rzecz, flip=1.0, rot=0.0, gruby=9):
     M0.poloz_obrys(st, spr, x, y, p, h, (ax if flip > 0 else ax, 1.0), kolor=BIALY, gruby=gruby, k=max(1.0, papier.Q), sx=flip, rot=rot)
 
 
+def na_aucie(u, v):
+    """Punkt arkusza Forda (900 × 360: dach 300–560 × 70, przednia szyba do (600, 150), maska do (800, 168)) na ekranie, dla auta
+    z AUTO_D obróconego o ROT_AUTA wokół środka (te same wzory co scena.auto i ujecia_a.auto_srodek)."""
+    from scena import _off
+    cx, cy, ah = AUTO_D
+    k = ah / 360.0
+    ox, oy = _off(0, -ah * 0.5, ROT_AUTA)
+    x0, y0 = cx - ox, cy - oy  # kotwica auta: środek linii kół
+    dx, dy = _off((u - 450) * k, (v - 356) * k, ROT_AUTA)
+    return x0 + dx, y0 + dy
+
+
 def scena_d():
-    """Ostatnia scena jako plakat (reżyser 24.11.2026): na pierwszym planie sześciu łowców w krzakach (jak w ujęciu 104), za
-    nimi podziurawiony Ford zapadnięty tyłem w rowie, przodem do góry; na nim stoją Bonnie (biała suknia ślubna, czerwony
-    beret) strzelająca w lewo i Clyde strzelający w prawo; w tle Teksas i pełno przelatujących pocisków. W filmie nie
-    zdążyli strzelić (kwestia „dym”) — na miniaturce to plakatowa przesada, za zgodą reżysera."""
+    """Ostatnia scena jako plakat (reżyser 24.11.2026): na pierwszym planie sześciu łowców w małych krzakach z ujęcia 104 —
+    widać tylko kapelusze i oczy; za nimi cały podziurawiony Ford zapadnięty tyłem w rowie, przodem do góry; Bonnie (biała
+    suknia ślubna, czerwony beret) stoi na opadającym dachu i strzela w lewo, Clyde stoi na przedniej szybie, jedną nogą na
+    masce, i strzela w prawo; w tle Teksas, pełno pocisków, z krzaków lecą kule w auto, na karoserii iskry trafień, spod tylnego
+    koła lecą grudy ziemi, za parą ciepła poświata świtu. W filmie nie zdążyli strzelić (kwestia „dym”) — na miniaturce to
+    plakatowa przesada, za zgodą reżysera."""
     from ujecia_a import auto_srodek
     st, w = scena_poczatek("drzewo")
     S.preria(st, 0.0, w, slupy=True, kul=False, tablice=[("TEXAS", 1170)])
     kule_w_tle(st)
     cx, cy, ah = AUTO_D
+    # poświata świtu za parą: postacie odcinają się od nieba (jak słońce za Iwarebiko w „Synu słońca”, miniaturka C)
+    st.put(J.glow(r=256, color=(255, 214, 150)), cx - 10, cy - 240, P.auta - 0.03, w=760, anchor=(0.5, 0.5), mode="add", alpha=0.42,
+           shadow=None)
     auto_srodek(st, 0.0, cx, cy, ah, ROT_AUTA, dziury=110, p=P.auta - 0.02)
-    # Bonnie i Clyde stoją na dachu przechylonego auta, plecami do siebie: Bonnie strzela w lewo, Clyde w prawo
-    (bx, by), (kx, ky) = STOPY_D
-    stoi(st, "bonnie_slub_beret", bx, by, 290, P.auta - 0.005, (90.0, 10.0), ("rewolwer", 40, (0.3, 0.75)), flip=-1, rot=ROT_AUTA * 0.4)
-    stoi(st, "clyde", kx, ky, 320, P.auta - 0.004, (90.0, 10.0), ("karabin", 50, (0.3, 0.55)), rot=ROT_AUTA * 0.4)
+    # grudy ziemi z rowu pod tylnym kołem
+    r = random.Random(5)
+    tx, ty = na_aucie(232, 330)
+    for n in range(9):
+        st.put(J.rek("plama"), tx - 40 - r.uniform(0, 150), ty - r.uniform(10, 120), P.auta - 0.015, h=r.uniform(10, 20), anchor=(0.5, 0.5),
+               rot=r.uniform(0, 360), tint=(0.55, 0.42, 0.28), shadow=None)
+    # iskry trafień na karoserii
+    for u, v in ((380, 230), (520, 200), (700, 200), (820, 230), (300, 250), (640, 250)):
+        ix, iy = na_aucie(u, v)
+        st.put(J.glow(r=256, color=(255, 210, 120)), ix, iy, P.auta - 0.018, w=46, anchor=(0.5, 0.5), mode="add", alpha=0.95, shadow=None)
+    # Bonnie na opadającym dachu, Clyde na przedniej szybie z jedną nogą na masce (stopy z geometrii auta)
+    bx, by = na_aucie(*STOPY_D[0])
+    kx, ky = na_aucie(*STOPY_D[1])
+    stoi(st, "bonnie_slub_beret", bx, by + 4, 300, P.auta - 0.005, (90.0, 10.0), ("rewolwer", 40, (0.3, 0.75)), flip=-1, rot=ROT_AUTA * 0.35)
+    stoi(st, "clyde", kx, ky + 4, 330, P.auta - 0.004, (88.0, 10.0), ("karabin", 50, (0.3, 0.55)), rot=ROT_AUTA * 0.55)
     for (sx_, sy_, kier, wk) in STRZALY_D:
         strzal(st, sx_, sy_, kier, P.auta, wk)
-    # pierwszy plan: sześciu łowców w krzakach, widać kapelusze, twarze i lufy wycelowane w auto; ciemniejsi (bliżej kamery)
+    # kule z krzaków w stronę auta (smugi od łowców ku karoserii)
+    for n, (x0, (u, v)) in enumerate(((300, (380, 230)), (495, (520, 200)), (785, (700, 200)), (980, (820, 230)))):
+        ix, iy = na_aucie(u, v)
+        f0 = 0.35 + 0.1 * n
+        st.line([(lerp_(x0, ix, f0), lerp_(600, iy, f0)), (lerp_(x0, ix, f0 + 0.3), lerp_(600, iy, f0 + 0.3))], P.lalki + 0.01, width=3,
+                color=(255, 236, 190), alpha=0.75)
+    # pierwszy plan: sześciu łowców nisko w małych krzakach z ujęcia 104 (J.krzak(n), barwa z filmu) — kapelusze, oczy, lufy
     for n, ((key, _), x) in enumerate(zip(LOWCY_MIN, (90, 300, 495, 785, 980, 1190))):
         fl = 1 if x < 640 else -1
         spr = postac(key, rece=(75.0, 10.0), rzecz=("karabin", 46, (0.3, 0.55)))
         ax = kotwica_tulowia(key, spr)
-        M0.poloz(st, spr, x, 840, P.lalki + 0.02 + 0.001 * n, h=360, anchor=(ax, 1.0), sx=fl, rot=-14 * fl, tint=(0.8, 0.8, 0.78))
-    for n, x in enumerate((-40, 140, 320, 500, 680, 860, 1040, 1220, 1360)):
-        M0.poloz(st, J.krzak(n % 6, (56, 84, 48)), x, 760, P.lalki + 0.03 + 0.001 * n, h=190, anchor=(0.5, 1.0))
-    tab(st, "THE REAL ENDING", 965, 48, 74, rot=2)
-    tab(st, "BANG!", 200, 200, 54, rot=-8, xs=(0.5,))
-    tab(st, "BANG!", 1110, 180, 54, rot=7, xs=(0.5,))
+        M0.poloz(st, spr, x, 838, P.lalki + 0.02 + 0.001 * n, h=300, anchor=(ax, 1.0), sx=fl, rot=-14 * fl, tint=(0.82, 0.82, 0.8))
+    for n, x in enumerate((20, 175, 330, 485, 640, 795, 950, 1105, 1260)):
+        M0.poloz(st, J.krzak(n % 6), x, 728, P.lalki + 0.03 + 0.001 * n, h=118, anchor=(0.5, 1.0))
+    tab(st, "THE REAL ENDING", 975, 12, 66, rot=2)
+    tab(st, "BANG!", 190, 190, 54, rot=-8, xs=(0.5,))
+    tab(st, "BANG!", 1120, 170, 54, rot=7, xs=(0.5,))
     szyld(st)
-    st.grade = (1.04, 0.98, 0.9)
+    st.grade = (1.05, 0.98, 0.9)
     return st
 
 
+def lerp_(a, b, f):
+    return a + (b - a) * f
+
+
 ROT_AUTA = -16  # przód auta w górę (tył w rowie)
-AUTO_D = (640, 470, 260)  # środek auta na ekranie i jego wysokość
-STOPY_D = ((582, 420), (676, 396))  # stopy Bonnie i Clyde'a na dachu (linia dachu przechylonego auta)
-STRZALY_D = ((438, 214, -1, 1.0), (812, 150, 1, 1.1))  # (x, y, kierunek, wielkość) błysków z końców luf
+AUTO_D = (640, 440, 300)  # środek auta na ekranie i jego wysokość
+STOPY_D = ((385, 72), (598, 150))  # stopy na arkuszu Forda: Bonnie na dachu, Clyde na dole przedniej szyby, przy masce
+STRZALY_D = ((408, 162, -1, 1.0), (950, 124, 1, 1.1))  # (x, y, kierunek, wielkość) błysków z końców luf
 LOWCY_MIN = (("hamer", ""), ("gault", ""), ("alcorn", ""), ("hinton", ""), ("jordan", ""), ("oakley", ""))
 
 
