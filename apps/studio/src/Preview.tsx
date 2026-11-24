@@ -151,6 +151,9 @@ export default function Preview({
     // Klip wideo, którego klatka jeszcze się nie wczytała (np. tuż po cięciu): zamiast tła pokazujemy ostatnią pełną
     // klatkę podglądu, żeby każde cięcie nie migało ciemnym tłem.
     let stalled = false;
+    // Ujęcie teatru na żywo, którego ruch serwer jeszcze liczy: do tego czasu widać klatkę zapasową z osi (stara wersja),
+    // więc podgląd mówi wprost, że ujęcie się liczy — reżyser 24.11 brał ją za zacięcie („to ujęcie jest zacięte”).
+    let liczy = false;
     const { transitions, byTrack, longest } = layout;
     const solo = p.sequence.tracks.some((t) => t.solo),
       audible = p.sequence.tracks.filter((t) => !t.muted && (!solo || t.solo)),
@@ -241,6 +244,7 @@ export default function Preview({
         const odnKlipu =
           teatr && track.kind === "video" ? odnSceny(p, c.scene_id) : null;
         const zywa = odnKlipu ? teatr!.klatka(odnKlipu, seconds) : null;
+        if (odnKlipu && !zywa && !teatr!.bladGL) liczy = true; // bez WebGL2 zostają klipy mp4 — to nie liczenie
         if (zywa) {
           image = zywa;
           iw = zywa.width;
@@ -388,6 +392,20 @@ export default function Preview({
       if (held.current.width !== W) held.current.width = W;
       if (held.current.height !== H) held.current.height = H;
       held.current.getContext("2d")?.drawImage(node, 0, 0);
+    }
+    if (liczy) {
+      const fs = Math.max(12, Math.round(W * 0.022)),
+        tekst = "Liczę ujęcie z kodu… (na razie stara klatka zapasowa)";
+      ctx.save();
+      ctx.font = `600 ${fs}px system-ui, sans-serif`;
+      const tw = ctx.measureText(tekst).width;
+      ctx.fillStyle = "rgba(16, 19, 24, 0.78)";
+      ctx.fillRect(fs * 0.8, fs * 0.8, tw + fs * 1.4, fs * 2);
+      ctx.fillStyle = "#f2c94c";
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "left";
+      ctx.fillText(tekst, fs * 1.5, fs * 1.8);
+      ctx.restore();
     }
     for (const [cid, a] of audios.current)
       if (!activeAudio.has(cid)) pauseMedia(a);
