@@ -14,6 +14,21 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 HERE = Path(__file__).parent
 W, H, SS, FPS, DUR = 1280, 720, 2, 24, 27.5
+# FILM_RES=1440 → klatka wyjściowa 2560×1440, rysowana w 3× (3840×2160) i zmniejszana; współrzędne rysunku bez zmian (1280×720)
+RES = int(os.environ.get("FILM_RES", "720"))
+SS = {720: 2, 1080: 3, 1440: 3, 2160: 4}[RES]
+KS = RES / 720
+OW, OH = round(W * KS), round(H * KS)
+_GRID = None
+
+
+def grid():
+    """(yy, xx) klatki wyjściowej w układzie 1280×720 — winieta i maski światła w każdej rozdzielczości."""
+    global _GRID
+    if _GRID is None:
+        yy, xx = np.ogrid[:OH, :OW]
+        _GRID = (yy / KS, xx / KS)
+    return _GRID
 INK = (22, 20, 20)
 _FONTS = [("/System/Library/Fonts/Supplemental/Arial.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
           ("C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf"),
@@ -23,6 +38,21 @@ FONT, FONT_B = next((f for f in _FONTS if Path(f[0]).exists()), _FONTS[0])
 LANG = os.environ.get("FILM_LANG", "pl")
 VOICE_DIR = HERE / "voice" if LANG == "pl" else HERE / "voice" / LANG
 SUFFIX = "" if LANG == "pl" else f"-{LANG}"
+
+
+def tr(s):
+    """Napis w kadrze (tabliczki, karty, ściana) w języku filmu."""
+    if LANG != "en":
+        return s
+    import sys as _s
+    _s.path.insert(0, str(HERE.parents[1] / "docs/filmy/oddzial-c/ujecia"))
+    from kwestie_en import napis
+    out = napis(s)
+    DRAWN.add(s)
+    return out
+
+
+DRAWN = set()
 EN = {
     "l1.wav": "At the asylum on Forest Road,\nsomeone was always screaming.",
     "l2.wav": "But that night,\nall of Ward C went silent.",
@@ -88,6 +118,9 @@ def voice_len(fn):
         return 2.0
 
 
+SMALL_CAP = False  # kit_a włącza dla dni (zimne otwarcie rysuje się po staremu)
+
+
 class Pen:
     """Rysuje w układzie 1280x720 przez kamerę; kreska lekko „gotuje się” 8 razy na sekundę."""
 
@@ -95,8 +128,30 @@ class Pen:
         self.img, self.d = img, ImageDraw.Draw(img)
         self.boil = int(t * 8)
         self.zoom, self.cx, self.cy, self.shake = zoom, cx, cy, shake
+        self.xf = []  # stos przekształceń rigu (kit_a.rig): głowa obraca się wokół szyi, tułów pochyla — pusty = bez zmian
+        self.wscale = 1.0  # grubość kreski postaci w oddali (kit_a.scaled): mniejsza postać = cieńsza kreska, jak w zbliżeniu
+        self.ascale = 1.0  # i proporcjonalnie mniejsze drżenie kreski
+        self.small_cap = SMALL_CAP
+
+    def push(self, pivot=(0.0, 0.0), rot=0.0, dx=0.0, dy=0.0, sx=1.0, sy=None):
+        """Lokalny układ części ciała: skala sx/sy i obrót rot (stopnie) wokół pivot, potem przesunięcie (dx, dy)."""
+        a = math.radians(rot)
+        self.xf.append((pivot[0], pivot[1], math.cos(a), math.sin(a), dx, dy, sx, sx if sy is None else sy))
+
+    def pop(self):
+        self.xf.pop()
+
+    def local(self, p):
+        """Punkt z układu części ciała do układu kadru 1280×720 (bez kamery)."""
+        x, y = p
+        for px, py, c, s, dx, dy, sx, sy in reversed(self.xf):
+            u, v = (x - px) * sx, (y - py) * sy
+            x, y = px + u * c - v * s + dx, py + u * s + v * c + dy
+        return x, y
 
     def tp(self, p):
+        if self.xf:
+            p = self.local(p)
         x = ((p[0] - self.cx) * self.zoom + W / 2 + self.shake[0]) * SS
         y = ((p[1] - self.cy) * self.zoom + H / 2 + self.shake[1]) * SS
         return (x, y)
@@ -116,20 +171,22 @@ class Pen:
         return out
 
     def line(self, pts, w=4, color=INK, amp=1.6):
-        q = [self.tp(p) for p in self.wob(pts, amp)]
-        self.d.line(q, fill=color, width=max(1, int(w * self.zoom * SS)), joint="curve")
+        q = [self.tp(p) for p in self.wob(pts, amp * self.ascale)]
+        self.d.line(q, fill=color, width=max(1, int(w * self.wscale * self.zoom * SS)), joint="curve")
 
     def poly(self, pts, fill, w=4, color=INK, amp=1.6):
-        q = [self.tp(p) for p in self.wob(pts, amp, closed=True)]
+        q = [self.tp(p) for p in self.wob(pts, amp * self.ascale, closed=True)]
         if fill is not None:
             self.d.polygon(q, fill=fill)
         if w:
-            self.d.line(q, fill=color, width=max(1, int(w * self.zoom * SS)), joint="curve")
+            self.d.line(q, fill=color, width=max(1, int(w * self.wscale * self.zoom * SS)), joint="curve")
 
     def rect(self, x0, y0, x1, y1, fill, w=4, **k):
         self.poly([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], fill, w, **k)
 
     def ell(self, cx, cy, rx, ry, fill, w=4, n=26, rot=0.0, **k):
+        if self.small_cap:  # małe elipsy (oczy, źrenice, uszy, usta) nie mogą „gotować się” w kleks; duże kształty bez zmian
+            k["amp"] = min(k.get("amp", 1.6), 0.25 + 0.12 * min(abs(rx), abs(ry)))
         pts = []
         for i in range(n):
             a = 2 * math.pi * i / n
@@ -144,7 +201,7 @@ class Pen:
 
     def text(self, x, y, s, size, fill=INK):
         f = ImageFont.truetype(FONT_B, int(size * self.zoom * SS))
-        self.d.text(self.tp((x, y)), s, font=f, fill=fill, anchor="mm")
+        self.d.text(self.tp((x, y)), tr(s), font=f, fill=fill, anchor="mm")
 
 
 # ---------- postacie ----------
@@ -315,7 +372,7 @@ def corridor(p, t, flicker, vp=(640, 330), doors_open=0.0):
 
 
 def light_mask(arr, cx, cy, r, ambient):
-    yy, xx = np.ogrid[:H, :W]
+    yy, xx = grid()
     d = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2) / r
     m = ambient + (1 - ambient) * np.clip(1 - d, 0, 1) ** 0.7
     return arr * m[..., None]
@@ -573,14 +630,16 @@ def handheld(t, amp, seed=0):
 
 def subtitle(img, txt):
     d = ImageDraw.Draw(img)
-    f = ImageFont.truetype(FONT, 30)
+    k = img.size[0] / W  # napis w skali klatki (720p → 1440p: wszystko ×2)
+    cx = img.size[0] / 2
+    f = ImageFont.truetype(FONT, round(30 * k))
     lines = txt.split("\n")
-    y = H - 40 - 40 * len(lines)
+    y = (H - 40 - 40 * len(lines)) * k
     for ln in lines:
         w = d.textlength(ln, font=f)
-        d.rectangle([W / 2 - w / 2 - 8, y - 2, W / 2 + w / 2 + 8, y + 38], fill=(0, 0, 0))
-        d.text((W / 2, y + 18), ln, font=f, fill=(255, 255, 255), anchor="mm")
-        y += 40
+        d.rectangle([cx - w / 2 - 8 * k, y - 2 * k, cx + w / 2 + 8 * k, y + 38 * k], fill=(0, 0, 0))
+        d.text((cx, y + 18 * k), ln, font=f, fill=(255, 255, 255), anchor="mm")
+        y += 40 * k
 
 
 def frame(t):
@@ -591,7 +650,7 @@ def frame(t):
     img = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 255))
     p = Pen(img, t, **framed(CAMERAS[i](lt, T), shake_at(t)))
     SCENE_FN[i](p, lt, T)
-    img = img.convert("RGB").resize((W, H), Image.LANCZOS)
+    img = img.convert("RGB").resize((OW, OH), Image.LANCZOS)
     arr = np.asarray(img).astype(np.float32)
     arr *= np.array(GRADE[i], dtype=np.float32)
     if i == 1:
@@ -608,10 +667,10 @@ def frame(t):
         arr = arr * (1 - dark) + arr * eyes * dark
         arr[..., 0] += 30 * max(0, math.sin(lt * 9)) * (1 - dark)
     # winieta + ziarno
-    yy, xx = np.ogrid[:H, :W]
+    yy, xx = grid()
     vig = 1 - 0.45 * (((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2) ** 1.2
     arr *= np.clip(vig, 0.35, 1)[..., None]
-    arr += np.random.default_rng(int(t * FPS)).normal(0, 5, (H, W, 1))
+    arr += np.random.default_rng(int(t * FPS)).normal(0, 5, (OH, OW, 1))
     # krótkie wejście z czerni i cięcia przez czerń
     fade = min(1.0, t / 0.4, max(0.0, (DUR - 0.15 - t) / 0.3))
     arr *= fade

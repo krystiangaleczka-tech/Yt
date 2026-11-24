@@ -159,10 +159,9 @@ def s_pack(p, t, T):
     K.duty_room(p, dark=False)
     k = ease(t / T)
     reach = math.sin(min(1.0, k * 3 % 1.0) * math.pi)  # sięga po kolejne rzeczy
-    K.figure(p, 640, 640, 0.85, t, "narrator", look=0.0, gaze=(0, 1), arms={"l": (40, 60 - 10 * reach), "r": (-40 + 20 * reach, 60)})
-    p.rect(470, 420, 790, 450, (110, 84, 60))
-    p.rect(490, 450, 520, 560, (96, 72, 52))
-    p.rect(740, 450, 770, 560, (96, 72, 52))
+    K.figure(p, 640, K.DESK_STAND, K.DESK_S, t, "narrator", look=0.0, gaze=(0, 1),
+             arms={"l": (40, 60 - 10 * reach), "r": (-40 + 20 * reach, 60)})  # za biurkiem, stopy za przednimi nogami
+    K.duty_desk(p)
     p.poly([(560, 420), (720, 420), (700, 360 + 20 * k), (580, 360 + 20 * k)], (110, 120, 96), w=3)  # torba
     if k < 0.35:
         p.ell(520, 400, 26, 22, (210, 210, 206), w=3)  # czajnik jeszcze na blacie

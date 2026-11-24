@@ -124,8 +124,9 @@ def s_smile(p, t, T):
     K.staff_room(p, t)
     K.face_cu(p, 640, 330, 1.0, "henryk", t, gaze=(0.4, 0.0), mouth=talk(t, T, 1.2, 0.4, 5) * 0.8)
     k = ease((t - 0.2) / 0.6)
-    for side in (-1, 1):  # uśmiech, zanim powie
-        p.line([(640 + side * 18, 412), (640 + side * (24 + 6 * k), 412 - 8 * k)], w=4)
+    with K.on_face(p, "henryk"):  # uśmiech, zanim powie
+        for side in (-1, 1):
+            p.line([(640 + side * 18, 412), (640 + side * (24 + 6 * k), 412 - 8 * k)], w=4)
 
 
 def s_lodge(p, t, T):

@@ -132,16 +132,31 @@ def s_radio(p, t, T):
 
 
 def s_soldier_sky(p, t, T):
+    """Za drugim oknem łącznika (w perspektywie ściany, kit_a.connector) żołnierz za płotem unosi rękę.
+    Przegląd 13.11.2026: widok był płaskim prostokątem naklejonym na okna w perspektywie — teraz żołnierz stoi
+    w obrębie okna, płot przed nim, rama okna na wierzchu (WYTYCZNE 1.1)."""
     K.connector(p, t)
     up = ease((t - 0.3) / 0.5)
+    vx, vy = 820, 330
+    bx0, by0, by1 = vx - 90, vy - 70, vy + 70
 
-    def win(q):
-        pass
-    p.rect(60, 180, 300, 440, (200, 190, 160), w=4)  # okno łącznika (zachód)
-    K.figure(p, 180, 440, 0.3, t, "soldier", arms={"r": (30, 95 - 200 * up)})
-    for x in range(60, 300, 20):  # siatka płotu przed nim
-        p.line([(x, 360), (x + 20, 440)], w=1.5, color=(70, 76, 72), amp=0.3)
-    p.rect(60, 180, 300, 440, None, w=6)
+    def at(ff, yy):
+        top, bot = by0 * ff, H + (by1 - H) * ff
+        return (bx0 * ff, top + (bot - top) * yy)
+    f, f2 = 0.3, 0.48  # drugie okno na lewej ścianie (jak w connector)
+    a, b, c2, d = at(f, 0.15), at(f2, 0.15), at(f2, 0.7), at(f, 0.7)
+    p.poly([a, b, c2, d], (200, 190, 160))  # zachodzące niebo
+    ground = lambda ff: at(ff, 0.58)  # noqa: E731 — linia ziemi za płotem
+    p.poly([ground(f), ground(f2), c2, d], (120, 128, 104))
+    gx, gy = (a[0] + b[0]) / 2, (ground(f)[1] + ground(f2)[1]) / 2 + 6
+    K.figure(p, gx, gy, 0.22, t, "soldier", arms={"r": (30, 95 - 200 * up)})
+    for k in range(1, 6):  # słupki i siatka płotu przed nim
+        xx = a[0] + (b[0] - a[0]) * k / 6
+        y_top = a[1] + (b[1] - a[1]) * k / 6 + (d[1] - a[1]) * 0.48
+        y_bot = d[1] + (c2[1] - d[1]) * k / 6
+        p.line([(xx, y_top), (xx, y_bot)], w=1.5, color=(70, 76, 72), amp=0.3)
+    p.line([(a[0], a[1] + (d[1] - a[1]) * 0.48), (b[0], b[1] + (c2[1] - b[1]) * 0.48)], w=2, color=(70, 76, 72))
+    p.poly([a, b, c2, d], None, w=5)  # rama okna
     K.figure(p, 700, 760, 1.0, t * 0.5, "narrator", walk=t * 0.5, look=-0.8, gaze=(-1.0, -0.2))
     K.figure(p, 900, 760, 1.0, t * 0.5 + 0.3, "kuba", walk=t * 0.5 + 0.3, look=-0.8, gaze=(-1.0, -0.2))
 

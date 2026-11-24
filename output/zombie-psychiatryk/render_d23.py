@@ -87,7 +87,8 @@ def s_breathe(p, t, T):
     br = math.sin(t * 2 * math.pi / 4.0)  # oddychają w jednym rytmie
     R.nurse_face(p, 420, 360, 0.8, 0.5 - 0.3 * ease(t / T), t, gaze=(0.6, 0.0), breath=br * 2)
     K.face_cu(p, 900, 340, 0.8, "henryk", t, gaze=(-0.6, 0.0), breath=br * 2)
-    K.limb(p, (980, H + 40), (520, 560 + 6 * br), 70, K.WHO["henryk"]["top"], outline=4)  # dłoń na piersi narratora
+    # dłoń na piersi narratora: ręka idzie od lewego barku Henryka (nie spod kadru, jak ręka kogoś trzeciego)
+    K.limb(p, (900 - 92, 340 + 136 - 1.6 * br), (520, 560 + 6 * br), 56, K.WHO["henryk"]["sleeve"], outline=4)
     p.ell(510, 556 + 6 * br, 46, 34, K.WHO["henryk"]["skin"])
 
 

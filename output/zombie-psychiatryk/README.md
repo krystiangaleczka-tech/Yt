@@ -88,3 +88,62 @@ python3 studio_import.py media <id projektu>
 ```
 
 `studio_signatures.mjs` liczy podpisy planów kodem Studio (`flowTypes.ts`), żeby plany nie były „nieaktualne”.
+
+## Rig postaci i efekty dźwiękowe (PC, 11.11.2026)
+
+Ujęcia dni 1–30 w większości stały w miejscu (575 z 689 ma kamerę „stat”). 256 z nich dostało grę aktorską:
+
+- `rig_a.py` — rig: głowa obraca się na szyi i skręca (yaw), tułów pochyla się i unosi ramiona, ręka gestykuluje,
+  usta idą za prawdziwym oknem kwestii EN. Akcje: `mowi`, `slucha`, `kiwa`, `kreci`, `odwraca`, `patrzy`, `w_gore`,
+  `w_dol`, `wzrusza`, `nachyla`, `cofa`, `wstrzymuje`, `oddycha`, `rozglada`, `wzdycha`, `budzi`, `kolysze`, `ciezar`,
+  `gest`, `kaszle`, `przelyka`. `Pen.push/pop` w `render.py` to stos przekształceń (pusty = rysunek bez zmian).
+- `rig_dni.py` — tabela: dzień → ujęcie → postać → akcja (z komentarzem: opis kadru i kwestia). Bez rigu zostały celowo
+  twarze za szybą i w okienkach (WYTYCZNE 1.1), rzeczy przy twarzy (słuchawka, kubek, ręcznik, lornetka), dłoń na ustach
+  i ujęcia, w których bezruch pana Henryka jest treścią. Rzeczy rysowane na twarzy po `face_cu` (łzy, uśmiech, nadęte
+  policzki, słuchawka) idą przez `kit_a.on_face`, więc trzymają się głowy.
+- `FILM_RIG=0` — render bez rigu (porównania); ujęcia bez wpisu w tabeli są piksel w piksel takie jak wcześniej.
+- `arkusz_rig.py <png> dzien=N` — arkusz klatek ujęć z rigiem (6 chwil na ujęcie).
+- Kurz w świetle piwnicy i apteki (looki BASE/CELL) — `dzien_base.dust`; `FILM_KURZ=0` wyłącza.
+
+Efekty: `efekty_dni.py` (na PC napisany od nowa — wersja z Maca nie trafiła do repo) syntezuje tło miejsca (piwnica
+z kapaniem, oddział ze świetlówkami wg stanu sieci/agregatu, noc z wiatrem, podwórze, płonące miasto od d20) i dźwięk
+każdego wydarzenia z rozpiski i opisu kadru: kroki, drzwi, kraty, zamki, walenie w drzwi, huki, metal, szuranie, jęki
+zarażonych, oddechy, kaszel, iskry, agregat, woda, strzały, dron, pianino, nucenie, karta dnia („dum”), narastanie przed
+kolejnym dniem. Uderzenia trafiają w chwilę ruchu w kadrze (różnice klatek wideo). Alarm d14, alarm karetki d10,
+alarm z kołysanką d30 płyną przez kilka ujęć: blisko w miejscu źródła, z oddali gdzie indziej.
+`film_en.py dzwiek` miksuje `build/efekty/eNN.wav` z lektorem (−6 dB pod głosem); `eNN_studio.wav` (−8 dB pod
+kwestiami) idzie na ścieżkę Efekty w Studio.
+
+Render 1440p: `FILM_ENC=nvenc python -I film_en.py obraz 1 … 30 -j 6` (koder karty — rysowanie jest wtedy wąskim
+gardłem, ok. 1 h; x264 slow trwał ok. 5 h). Wszystkie jednostki muszą mieć ten sam koder, bo `sklej` łączy je bez
+przekodowania (zimne otwarcie przekodowane NVENC-iem z poprzedniego renderu).
+
+Studio na PC: `python -I studio_pc.py` — zakłada projekt „Oddział C · Do świtu (EN 1440p, PC)”, każde ujęcie jako scenę
+z klipem 720p, kwestie EN na ścieżce Lektor, efekty dzień po dniu na ścieżce Efekty; ujęcia z rigiem mają w opisie
+„Rig (gra aktorska): …”.
+
+### Poprawki po pierwszym przeglądzie reżysera (12.11.2026)
+
+- **Bez bzyczenia:** tło nie ma już buczeń sieciowych (fala prostokątna 100 Hz świetlówek, 55/49/25 Hz pod spodem)
+  ani przesterowanego pogłosu (ogon pogłosu był nienormalizowany, +20 dB).
+- **Plan miksu:** każdy dźwięk ma poziom ze skali zdarzenia, napięcia sceny i tempa ujęcia (zasada w Podręczniku →
+  Rytm 10–12, liczby w `build/efekty/eNN.json` → `ujecia[].zdarzenia[].db`). Osobne pliki: `eNN_tlo.wav`,
+  `eNN_zdarzenia.wav` (+ wersje `_studio` ściszone pod kwestiami).
+- **Muzyka:** `muzyka_dni.py` — syntezowana, nastrój z beatów rozpiski (pad, puls, napęd, motyw kołysanki, finał);
+  `build/muzyka/mNN.wav` i frazy `cue/dNN_KK.wav`; `film_en.py dzwiek` miksuje ją pod lektorem (−8 dB pod głosem).
+- **Profil i postacie w oddali:** `kit_a._profile_face` (głowa skręcona o ≥ 0,55 rysuje się z profilu, jak zarażony
+  ze zbliżenia d04_22) i `kit_a.scaled` (kreska i jej drżenie w skali postaci, małe elipsy bez „gotowania się”).
+- Studio: `studio_aktualizuj.py <projekt> --obraz --dzwiek` — nowy obraz ujęć i ścieżki Tło / Efekty / Muzyka.
+
+### Przegląd całego filmu (13.11.2026)
+
+- **Rytm kwestii EN:** ujęcia były liczone pod polskie kwestie, a `en_film.placement` wpychał dłuższe angielskie nagrania
+  pod cięcie (124 z 287 kwestii kończyło się 0,25 s przed cięciem, d01_18 wychodziła za cięcie). `en_film.timing`
+  wydłuża ujęcie z kwestią: oddech przed ≥ 0,5 s, pauza po 0,6–1,2 s; `separate` trzyma ¼ s różnicy z sąsiadami.
+  Używają go `dzien_base.setup` i `render_d01`. Dni 1–30 EN: 36,8 → 40,3 min.
+- **Kadry:** framugi (d01_12, d14_12), drzwi izolatki otwierane do środka (`kit_a.iso_door`, d16_16), biurko i stół
+  z miejscem za nimi (`kit_a.duty_desk`, `kit_a.staff_table`), słuchawka w dłoni (`kit_a.handset(..., who=)`,
+  `kit_a.listening`), okno łącznika w perspektywie (d13_12), ciągłość paczki (d10_01) i inne — tabela w WYTYCZNE 5.
+- Kolejność po zmianie długości ujęć: `FILM_ENC=nvenc python -I film_en.py obraz 1 … 30 --res 720 -j 6` → `build/en-720`,
+  skasuj `build/efekty/ruch_d*.npy`, `efekty_dni.py --wideo build/en-720`, `muzyka_dni.py`, potem
+  `studio_aktualizuj.py <projekt> --czasy --dzwiek` (obraz, oś, lektor i ścieżki dźwięku na nowych miejscach).

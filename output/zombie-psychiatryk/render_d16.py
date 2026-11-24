@@ -86,7 +86,8 @@ def s_irena(p, t, T):
     K.staff_room(p, t)
     K.face_cu(p, 640, 330, 1.0, "irena", t, gaze=(0.6, 0.0), mouth=talk(t, T), fear=0.6)
     tear = (t * 0.7) % 1.0  # łza spływa po policzku
-    p.poly([(560, 360 + 140 * tear), (568, 376 + 140 * tear), (560, 384 + 140 * tear), (552, 376 + 140 * tear)], (190, 220, 235), w=2)
+    with K.on_face(p, "irena"):
+        p.poly([(560, 360 + 140 * tear), (568, 376 + 140 * tear), (560, 384 + 140 * tear), (552, 376 + 140 * tear)], (190, 220, 235), w=2)
 
 
 def s_everyone(p, t, T):
@@ -128,11 +129,17 @@ def s_lead(p, t, T):
 
 
 def s_unlock(p, t, T):
-    op = ease((t - T * 0.5) / 0.5)  # klucz zgrzyta, drzwi się uchylają
+    op = ease((t - T * 0.5) / 0.5)  # klucz zgrzyta, drzwi się uchylają do środka
     K.iso_door(p, t, open_=op)
     if op < 0.05:
-        p.rect(790, 390, 830, 410, (170, 170, 160), w=2)
-    K.figure(p, 1000, 780, 1.05, t, "henryk", look=-0.6, arms={"l": (-140, -20)})
+        p.rect(790, 390, 830, 410, (170, 170, 160), w=2)  # klucz w zamku
+    # dłoń z kluczem na zamku (815, 400), po otwarciu ręka opada (przegląd 13.11.2026: dłoń wisiała pod zamkiem)
+    s = 1.05
+    sh = (1000 - 50 * s, 780 - 268 * s)
+    lock = ((815 - sh[0]) / s, (400 - sh[1]) / s)
+    down = ease((t - T * 0.5 - 0.15) / 0.45)
+    K.figure(p, 1000, 780, s, t, "henryk", look=-0.6,
+             arms={"l": (lock[0] + (-14 - lock[0]) * down, lock[1] + (95 - lock[1]) * down)})
 
 
 def s_inside(p, t, T):
