@@ -575,6 +575,9 @@ grafika. Reżyser wybrał **zbliżenie**; plan ogólny całej sceny przegrał, b
   ziemi na glinie wyglądają jak dziury, ostrze ucięte krawędzią arkusza wygląda jak grot włóczni, szyld z dłuższym
   tytułem EN dotyka krawędzi kadru).
 - Test pustki w barwie magenty jak w ujęciach (1.3): kadr nie odsłania końca dekoracji.
+- **Światło na ciemnym:** piorun, iskra, świecące oczy czytają się w 320 px tylko na ciemnym tle — rdzeń biały i gruby,
+  wokół miękka poświata; nie rozjaśniaj nieba za nimi (błysk na niebie za mieczem zjadał kontrast piorunów).
+  Porównuj warianty obok siebie w 320 i 168 px, zanim narysujesz 4K.
 
 ### 5.3 Najwyższa jakość pliku
 - YouTube zaleca **3840 × 2160** i przyjmuje do 50 MB przy wgrywaniu z komputera (z telefonu 2 MB). Rysuj wprost
@@ -705,6 +708,7 @@ i błędy znalezione w kontroli.
 | Bonnie and Clyde, próbka głosów (19.11, reżyser) | „wygląda to jakby dwie historie nachodziły na siebie… na 2:48 jak kurtyna wjeżdża, pojawiają się dwie różne tabliczki po sobie” — próbka była zlepkiem fragmentów z różnych aktów bez plansz (kurtyna aktu III, zaraz potem akt VIII); w filmie cztery sceny w tym samym miejscu budowały się od pustego płótna | 1.27 |
 | Bonnie and Clyde, recenzja 114 ujęć (19.11, kontrola wykonawcy na prośbę reżysera) | lustrzane „EXTRA!” na przewracanej stronie i „SHERIFF” na aucie jadącym w lewo; „THE OUTLAWS MADE OF PAPER” i „BONNIE AND CLYDE” wystawały poza tablice; w zapowiedzi na 0,1 s mignął podpis Hamera; teczka, kapelusz, karabin, puszka i list wisiały nad pustym płótnem w czasie budowy; Bonnie „niesiona” wisiała za plecami Clyde'a; karabin „na kolanach” stojącego Clyde'a; podpis Buchera poza kadrem, W.D. podpisany już w aucie, „undertaker” w podpisie 8 s przed puentą; kanapka za karoserią, teczka i „HA HA HA!” pod napisem; nazwy cmentarzy za żałobnikami; „SEE THE DEATH CAR” biały na białym pasie | 1.27 |
 | Syn słońca EN, zapowiedź i hak (20.11, reżyser) | burza i wąż były w zapowiedzi, zaraz potem w haku (ujęcia 15 i 17) i jeszcze raz w ciele filmu — „czemu nie tylko 2 razy?” | 1.26 |
+| Syn słońca EN, miniaturka D (23.11, reżyser) | „tych piorunów nie widać za mocno” — cienkie pioruny wokół miecza ginęły w małym rozmiarze; próba z błyskiem na niebie rozjaśniła tło i pioruny zbladły jeszcze bardziej | 5.2 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

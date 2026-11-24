@@ -9,7 +9,9 @@ Reżyser 21.11.2026 („zrób miniaturkę w podobnym stylu co Pierwszy cesarz, b
       niebiańska równina z ujęcia „susanoo”, łodzie z piorunami toną w polu ryżowym, nad nimi burza, Susanoo jak w A.
 Reżyser 21.11.2026 („2 kompletnie inne miniatury do A/B”):
   C — czterech braci, przeżył jeden: świt nad Yamato, słońce za Iwarebiko, trzej bracia przekreśleni, „AM I NEXT?!”;
-  D — wąż o ośmiu głowach w nocy nad Izumo: najbliższa głowa w zbliżeniu, mały Susanoo z mieczem, „8 HEADS?!”.
+  D — wąż o ośmiu głowach w nocy nad Izumo: najbliższa głowa w zbliżeniu, mały Susanoo z mieczem, „8 HEADS?!”;
+      reżyser 23.11: „wokół miecza zrób pioruny i nad głową węża mała tabliczka sss!” („więcej tego ssssss!”) —
+      pioruny_miecza() i tabliczka „Susssanoo!”.
 
   WARIANT=A python3 miniatura.py [en|pl]     → miniatura/miniatura_A_<język>.jpg i .png (1280 × 720)
   JAKOSC=1 …                                 → szybki podgląd (rysowane w 1280 × 720 zamiast w 2560 × 1440)
@@ -60,22 +62,30 @@ poly, ell, rect, shade = J.poly, J.ell, J.rect, J._shade
 
 # ---------- lalki w skali ekranu, z miną ----------
 
-def korpus_k(s, k, mina, napis=None):
+def _grzywa_pts(kolce=1.0):
+    """Dzika fryzura (Susanoo): kolce dookoła głowy i pasma za karkiem, w jednostkach arkusza lalki; kolce > 1 — dłuższe
+    same kolce, grzywa pod nimi bez zmian (rysuje ją wtedy postac() na zapasie arkusza, bo czubki wychodzą poza korpus)."""
+    r = random.Random(5)
+    pts = []
+    for i in range(17):
+        a = math.pi * (0.95 + 1.1 * i / 16)
+        rr = 70 + (24 * kolce if i % 2 else 0) + r.uniform(-6, 6)
+        pts.append((152 + rr * math.cos(a), 122 + rr * 1.05 * math.sin(a)))
+    return pts + [(214, 190), (200, 250), (150, 240), (96, 250), (88, 190)]
+
+
+def korpus_k(s, k, mina, napis=None, grzywa=True, tulow=1.0):
     """zestaw_jp._korpus_img w skali k (mężczyzna: fryzura mizura albo dzikie, broda, wąsy, miecz, naszyjnik, wzór), bez
-    oczu — oczy i usta rysuje twarz() według miny. napis — złote litery wycięte z papieru, naklejone na pierś (imię)."""
+    oczu — oczy i usta rysuje twarz() według miny. napis — złote litery wycięte z papieru, naklejone na pierś (imię).
+    tulow — szerokość tułowia (tunika, kołnierz, pas, naszyjnik, pochwa miecza) względem filmu; głowa, szyja i nogi bez zmian."""
     w, h = J.FIG_W, J.FIG_H
+    T = lambda x: 150 + (x - 150) * tulow  # x w poprzek tułowia (oś postaci: x = 150)
+    PT = lambda pts: poly([(T(x), y) for x, y in pts])
     hair, sk, sp = s["wlosy"], s["skora"], s["spodnie"]
     tie = s["wiazanie"] or s["pas"]
     parts = []
-    if s["fryzura"] == "dzikie":
-        r = random.Random(5)
-        pts = []
-        for i in range(17):
-            a = math.pi * (0.95 + 1.1 * i / 16)
-            rr = 70 + (24 if i % 2 else 0) + r.uniform(-6, 6)
-            pts.append((152 + rr * math.cos(a), 122 + rr * 1.05 * math.sin(a)))
-        pts += [(214, 190), (200, 250), (150, 240), (96, 250), (88, 190)]
-        parts.append((poly(pts), hair))
+    if s["fryzura"] == "dzikie" and grzywa:
+        parts.append((poly(_grzywa_pts()), hair))
     parts.append((rect(136, 158, 166, 216), shade(sk, 0.92)))  # szyja
     parts += [(poly([(84, 404), (152, 404), (156, 528), (80, 528)]), sp, dict(edge=2)),
               (poly([(148, 404), (218, 404), (222, 528), (146, 528)]), shade(sp, 0.92), dict(edge=2)),
@@ -86,31 +96,32 @@ def korpus_k(s, k, mina, napis=None):
               (poly([(92, 650), (142, 650), (160, 662), (156, 676), (92, 676)]), s["buty"]),
               (poly([(156, 650), (206, 650), (224, 662), (220, 676), (156, 676)]), shade(s["buty"], 0.9))]
     tun = s["tunika"]
-    parts.append((poly([(96, 204), (204, 204), (214, 300), (226, 448), (74, 448), (86, 300)]), tun, dict(edge=2)))
+    parts.append((PT([(96, 204), (204, 204), (214, 300), (226, 448), (74, 448), (86, 300)]), tun, dict(edge=2)))
     hem, wz, wk = 448, s["wzor"], s["wzor_kolor"] or s["pas"]
     if wz == "pasy":
-        parts += [(rect(84, hem - 34, 216, hem - 26), wk, dict(rough=0.8)), (rect(84, hem - 18, 216, hem - 12), wk, dict(rough=0.8))]
+        parts += [(rect(T(84), hem - 34, T(216), hem - 26), wk, dict(rough=0.8)), (rect(T(84), hem - 18, T(216), hem - 12), wk, dict(rough=0.8))]
     elif wz == "trojkaty":
         for x in range(82, 214, 16):
-            parts.append((poly([(x, hem - 4), (x + 8, hem - 20), (x + 16, hem - 4)]), wk, dict(rough=0.7)))
+            parts.append((PT([(x, hem - 4), (x + 8, hem - 20), (x + 16, hem - 4)]), wk, dict(rough=0.7)))
     kol = s["kolnierz"] or shade(tun, 0.78)
-    parts += [(poly([(118, 198), (184, 198), (178, 214), (124, 214)]), kol),
-              (poly([(126, 204), (152, 204), (180, 300), (166, 306)]), kol),
-              (poly([(84, 330), (216, 330), (218, 352), (82, 352)]), s["pas"]),
-              (ell(170, 341, 14, 11), shade(s["pas"], 1.1)),
-              (poly([(162, 350), (176, 350), (184, 420), (170, 424)]), s["pas"]),
-              (poly([(176, 350), (190, 350), (204, 412), (192, 418)]), shade(s["pas"], 0.9))]
+    parts += [(PT([(118, 198), (184, 198), (178, 214), (124, 214)]), kol),
+              (PT([(126, 204), (152, 204), (180, 300), (166, 306)]), kol),
+              (PT([(84, 330), (216, 330), (218, 352), (82, 352)]), s["pas"]),
+              (ell(T(170), 341, 14, 11), shade(s["pas"], 1.1)),
+              (PT([(162, 350), (176, 350), (184, 420), (170, 424)]), s["pas"]),
+              (PT([(176, 350), (190, 350), (204, 412), (192, 418)]), shade(s["pas"], 0.9))]
     if s["naszyjnik"]:
         for i in range(7):
             f = i / 6
-            parts.append((J._magatama(120 + 60 * f, 214 + 26 * math.sin(math.pi * f), 5.5, 30 + 40 * f), s["naszyjnik"],
+            parts.append((J._magatama(T(120 + 60 * f), 214 + 26 * math.sin(math.pi * f), 5.5, 30 + 40 * f), s["naszyjnik"],
                           dict(kind="gladki", rough=0.4)))
     if napis:  # między naszyjnikiem a pasem; ten sam krój i złoto co szyld z tytułem
         parts.append((M0.Z.glyphs(napis, 22, M0.Z.FONT_PL, M0.Z.PL_IDX, (150, 288), "mm"), (232, 192, 108),
                       dict(kind="gladki", edge=1, rough=0.5, contrast=1.2)))
     if s["miecz"]:
-        parts += [(J._band((100, 344), (50, 480), 13), (44, 36, 34), dict(contrast=1.2)), (J._band((50, 480), (46, 490), 13), J.GOLD),
-                  (J._band((104, 336), (96, 354), 18), J.GOLD), (ell(108, 328, 10, 10), J.GOLD, dict(edge=0))]
+        parts += [(J._band((T(100), 344), (T(50), 480), 13), (44, 36, 34), dict(contrast=1.2)),
+                  (J._band((T(50), 480), (T(46), 490), 13), J.GOLD),
+                  (J._band((T(104), 336), (T(96), 354), 18), J.GOLD), (ell(T(108), 328, 10, 10), J.GOLD, dict(edge=0))]
     if s["fryzura"] == "mizura":
         parts.append((ell(192, 148, 9, 24), shade(hair, 0.85)))
     parts += [(ell(118, 132, 9, 13), shade(sk, 0.95)),
@@ -189,20 +200,26 @@ def ramie_k(s, k, palec=False):
     return M0.stack_k(w, h, parts, seed=31 + len(str(tun)), k=k)
 
 
-def postac(key, k, rece=(0.0, 0.0), mina="zly", palec=False, napis=None, miecz=False, lustro=False):
+def postac(key, k, rece=(0.0, 0.0), mina="zly", palec=False, napis=None, miecz=False, lustro=False, kolce=1.0, tulow=1.0):
     """Cała lalka w jednym arkuszu (ręce na zawiasach w barkach, przednia przed korpusem, tylna za nim), twarzą w prawo.
     rece — kąt przedniej i tylnej ręki w stopniach (0 opuszczona, 90 przed siebie, 180 w górę, 200 w górę i do tyłu).
     miecz — miecz w pięści przedniej ręki, ostrze przedłużeniem ręki (jak scena.MIECZ); lustro — twarzą w lewo.
+    kolce — długość kolców dzikiej fryzury (1 jak w filmie; dłuższe rysowane na zapasie arkusza, za korpusem).
+    tulow — szerokość tułowia (korpus_k); barki odsuwają się razem z nim.
     Zwraca (wycinek, kotwica stóp jako ułamek arkusza, wysokość arkusza / wysokość postaci)."""
     s = J.spec(key)
     M, TOP = (400, 580) if miecz else (270, 230)  # zapas wokół korpusu na uniesione ręce (i miecz nad głową)
-    CW, CH = J.FIG_W + 2 * M, J.FIG_H + TOP + 10
+    # zapas u dołu: przed obrotem ręki miecz zwisa w dół i jego czubek (pięść + 322) wychodził poza arkusz — ostrze było
+    # ucięte o ok. 47 jednostek i tępe (wyszło 23.11 przy liczeniu piorunów wokół miecza)
+    CW, CH = J.FIG_W + 2 * M, J.FIG_H + TOP + (130 if miecz else 10)
     im = Image.new("RGBA", (round(CW * k), round(CH * k)), (0, 0, 0, 0))
-    body = korpus_k(s, k, mina, napis)
+    duza = s["fryzura"] == "dzikie" and kolce != 1.0
+    body = korpus_k(s, k, mina, napis, grzywa=not duza, tulow=tulow)
+    bark = lambda name: (150 + (J.BARK[name][0] - 150) * tulow, J.BARK[name][1])  # barki na brzegach szerszego tułowia
     arm = {n: ramie_k(s, k, palec and n == "przod") for n in ("przod", "tyl")}
 
     def reka(name, ang):
-        bx, by = J.BARK[name]
+        bx, by = bark(name)
         bx, by = (M + bx) * k, (TOP + by) * k
         layer = Image.new("RGBA", im.size, (0, 0, 0, 0))
         zx, zy = J.RAMIE_ZAWIAS
@@ -220,23 +237,50 @@ def postac(key, k, rece=(0.0, 0.0), mina="zly", palec=False, napis=None, miecz=F
         base.alpha_composite(top)
 
     im.alpha_composite(reka("tyl", rece[1]))
-    z_cieniem(im, (lambda L: (L.alpha_composite(body, (round(M * k), round(TOP * k))), L)[1])(Image.new("RGBA", im.size, (0, 0, 0, 0))))
+    L = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    if duza:  # grzywa z dłuższymi kolcami za korpusem: własny arkusz, bo czubki wychodzą poza arkusz korpusu
+        pts = _grzywa_pts(kolce)
+        x0, y0 = min(x for x, _ in pts) - 8, min(y for _, y in pts) - 8
+        gw, gh = max(x for x, _ in pts) - x0 + 8, max(y for _, y in pts) - y0 + 8
+        gr = M0.stack_k(gw, gh, [(poly([(x - x0, y - y0) for x, y in pts]), s["wlosy"])], seed=55, k=k)
+        L.alpha_composite(gr, (round((M + x0) * k), round((TOP + y0) * k)))
+    L.alpha_composite(body, (round(M * k), round(TOP * k)))
+    z_cieniem(im, L)
     twarz(im, s, k, M, TOP, mina)
     z_cieniem(im, reka("przod", rece[0]))
     box = im.getbbox()
     im = im.crop(box)
     stopa = ((M + J.FIG_W / 2) * k - box[0], (TOP + J.STOPA) * k - box[1])
+    ostrze = None
+    if miecz:  # czubek i jelec miecza w arkuszu (miecz_k: czubek (30, 362), jelec (30, 73); górny brzeg arkusza miecza 40 nad
+        # środkiem pięści), obrócone razem z ręką — pioruny wokół miecza idą za nim, gdy postać rośnie albo się obraca
+        bx, by = bark("przod")
+        bx, by = (M + bx) * k, (TOP + by) * k
+        zx, zy = J.RAMIE_ZAWIAS
+        hx, hy = bx + (56 - zx) * k, by + (230 - zy) * k
+        ostrze = [_obroc_pkt(hx, hy + (v - 40) * k, bx, by, rece[0]) for v in (362, 73)]
+        ostrze = [(x - box[0], y - box[1]) for x, y in ostrze]
     if lustro:
         im, stopa = ImageOps.mirror(im), (im.size[0] - stopa[0], stopa[1])
-    spr = Sprite(im, f"mini-{key}-{k:.2f}-{rece}-{mina}-{palec}-{napis}-{miecz}-{lustro}", rim=2, clean=False, crop=False)
+        ostrze = ostrze and [(im.size[0] - x, y) for x, y in ostrze]
+    spr = Sprite(im, f"mini-{key}-{k:.2f}-{rece}-{mina}-{palec}-{napis}-{miecz}-{lustro}-{kolce}-{tulow}", rim=2, clean=False, crop=False)
+    spr.ostrze = ostrze  # czubek i jelec miecza w pikselach wycinka (albo None)
     return spr, (stopa[0] / im.size[0], stopa[1] / im.size[1]), im.size[1] / (k * (J.STOPA - J.CZUBEK))
 
 
-def postaw(st, key, x, y, h, p, rece, mina, obrys, palec=False, rot=0.0, kolor=(252, 250, 244), napis=None, miecz=False, lustro=False, **kw):
+def postaw(st, key, x, y, h, p, rece, mina, obrys, palec=False, rot=0.0, kolor=(252, 250, 244), napis=None, miecz=False, lustro=False,
+           kolce=1.0, tulow=1.0, **kw):
     """Lalka stopami w (x, y) ekranu, h — wysokość postaci (od stóp do czubka głowy) w pikselach ekranu; obrys w px ekranu."""
     k = max(1.0, round(h / (J.STOPA - J.CZUBEK) * papier.Q * 4) / 4)
-    spr, kot, ark = postac(key, k, rece, mina, palec, napis, miecz, lustro)
+    spr, kot, ark = postac(key, k, rece, mina, palec, napis, miecz, lustro, kolce, tulow)
     M0.poloz_obrys(st, spr, x, y, p, h * ark, kot, kolor=kolor, gruby=obrys, k=k, rot=rot, **kw)
+    if spr.ostrze:  # czubek i jelec miecza na ekranie (wycinek: kotwica kot w (x, y), wysokość h·ark, obrót rot)
+        sk, c, s_ = h * ark / spr.h, math.cos(math.radians(rot)), math.sin(math.radians(rot))
+        out = []
+        for u, v in spr.ostrze:
+            du, dv = (u - kot[0] * spr.w) * sk, (v - kot[1] * spr.h) * sk
+            out.append((x + c * du - s_ * dv, y + s_ * du + c * dv))
+        return out
 
 
 # ---------- rekwizyty w skali ekranu ----------
@@ -570,8 +614,17 @@ def szyja_k(st, base, head, hh, v, p, seed):
     ang = math.degrees(math.atan2(zy - ay, zx - ax))
     rot = ang if face > 0 else ang - 180
     gk = max(1.0, round(hh / 140 * papier.Q * 4) / 4)
-    gl = Sprite(glowa_k(gk, v), f"glowa-{v}-{gk:.2f}", rim=2, clean=False)
+    gim = glowa_k(gk, v)
+    gl = Sprite(gim, f"glowa-{v}-{gk:.2f}", rim=2, clean=False)
     M0.poloz(st, gl, zx, zy, p + 0.006, h=hh, anchor=(0.18, 0.5), rot=rot, sx=face, shadow=(3, 4, 5, 0.35))
+    # oko na ekranie (do poświaty): środek oka w arkuszu głowy (176, 72) → wycinek przycięty jak w Sprite → obrót i odbicie
+    al = np.asarray(gim.getchannel("A"))
+    ys, xs = np.where(al > 0.03 * 255)
+    x0, y0 = max(0, xs.min() - 2), max(0, ys.min() - 2)
+    ks = hh / gl.h
+    du, dv = (176 * gk - x0 - 0.18 * gl.w) * ks * face, (72 * gk - y0 - 0.5 * gl.h) * ks
+    c, s_ = math.cos(math.radians(rot)), math.sin(math.radians(rot))
+    return zx + c * du - s_ * dv, zy + s_ * du + c * dv
 
 
 def iks_k(k):
@@ -644,17 +697,105 @@ def scena_d(st, K):
     w = S.stan(S.I["orochi"])
     w.noc, w.sun, w.moon = K["noc"], 0.0, 1.0
     S.kraj(st, K["t"], w, rzeka=1.0, slonce_k=0.0, sosny=(0.0, 1.0), kul=False)  # bez wiśni: różowe kwiaty za szyją
+    if K.get("blysk_d"):  # błysk pioruna na niebie za głowami: niebo i chmury jaśnieją, głowy odcinają się sylwetką
+        fx, fy, fw, fa = K["blysk_d"]
+        M0.poloz(st, J.glow(), fx, fy, P.miasto - 0.02, w=fw, anchor=(0.5, 0.5), mode="add", alpha=fa, shadow=None,
+                 tint=(0.75, 0.85, 1.0))
     for n, (bx, hx, hy, hh) in enumerate(K["glowy"]):
-        szyja_k(st, (bx, S.ziemia("srodek", bx) + 70), (hx, hy), hh, n % 3, P.miasto + 0.012 + 0.0015 * n, n)
+        p_ = P.miasto + 0.012 + 0.0015 * n
+        ox, oy = szyja_k(st, (bx, S.ziemia("srodek", bx) + 70), (hx, hy), hh, n % 3, p_, n)
+        if K.get("oczy_d"):  # osiem par oczu świeci w ciemności (reżyser 23.11: „żeby lepiej się klikała”)
+            M0.poloz(st, J.glow(), ox, oy, p_ + 0.007, w=K["oczy_d"], anchor=(0.5, 0.5), mode="add", alpha=0.85, shadow=None,
+                     tint=(1.0, 0.45, 0.2))
     ux, uy, uh, lustro, rece = K["susanoo_d"]
-    postaw(st, "susanoo", ux, uy, uh, P.lalki, rece, "krzyk", 6, rot=K.get("susanoo_kat_d", 4), miecz=True, lustro=lustro)
+    kl = float(os.environ.get("KOLCE", K.get("susanoo_kolce", 1.0)))  # KOLCE=1.6 … — szybkie porównanie kolców fryzury
+    ostrze = postaw(st, "susanoo", ux, uy, uh, P.lalki, rece, "krzyk", 6, rot=K.get("susanoo_kat_d", 4), miecz=True, lustro=lustro,
+                    kolce=kl, tulow=K.get("susanoo_tulow", 1.0))
     bx_, by_ = K["bohater_xy"]
     kb = papier.Q
     spr, (ex, ey) = waz_bohater(kb, K)
     W_, H_ = K["bohater_ark"]
     M0.poloz_obrys(st, spr, bx_, by_, P.lalki + 0.01, H_, (0.0, 0.0), kolor=(252, 250, 244), gruby=K["obrys"], k=kb)
-    M0.poloz(st, J.glow(), bx_ + ex * W_, by_ + ey * H_, P.lalki + 0.02, w=150, anchor=(0.5, 0.5), mode="add", alpha=0.75, shadow=None,
+    # poświata oka — reżyser 23.11: „oko ma mieć minimalnie większy glow” (150 → 185 px, 0,75 → 0,82)
+    M0.poloz(st, J.glow(), bx_ + ex * W_, by_ + ey * H_, P.lalki + 0.02, w=185, anchor=(0.5, 0.5), mode="add", alpha=0.82, shadow=None,
              tint=(1.0, 0.45, 0.2))
+    if K.get("pioruny_d"):
+        pioruny_miecza(st, K, ostrze)
+
+
+def _iskra(st, pts, p, gr):
+    """Łamana pioruna w pikselach ekranu (1280 × 720) jak piorun(): błękitna poświata, jasny środek, biały rdzeń;
+    PIORUN_GR mnoży grubość (reżyser 23.11: „tych piorunów nie widać za mocno”), a wzdłuż łamanej świeci poświata."""
+    g = st.cam.mag(p)
+    gr *= PIORUN_GR
+    w = [M0.ekran_na_swiat(st, x, y, p) for x, y in pts]
+    for (x, y), (x2, y2) in zip(pts[::2], pts[1::2]):
+        M0.poloz(st, J.glow(), (x + x2) / 2, (y + y2) / 2, p - 0.0004, w=34 * gr, anchor=(0.5, 0.5), mode="add", alpha=0.3,
+                 shadow=None, tint=(0.55, 0.75, 1.0))
+    st.line(w, p, width=9 * gr / g, color=(120, 170, 255), alpha=0.3)
+    st.line(w, p + 0.0003, width=5 * gr / g, color=(210, 232, 255), alpha=0.85)
+    st.line(w, p + 0.0006, width=3.2 * gr / g, color=(255, 255, 255), alpha=1.0)
+
+
+def _zygzak(r, x0, y0, dx, dy, dl, m, amp):
+    """Ostry zygzak pioruna z (x0, y0) w kierunku (dx, dy) na długość dl: m odcinków, na przemian w lewo i w prawo."""
+    pts, znak = [(x0, y0)], r.choice((-1, 1))
+    for i in range(1, m + 1):
+        f = i / m
+        z = znak * r.uniform(0.5, 1.0) * amp * (0.35 if i == m else 1.0)
+        znak = -znak
+        pts.append((x0 + dx * dl * f - dy * z, y0 + dy * dl * f + dx * z))
+    return pts
+
+
+def pioruny_miecza(st, K, ostrze):
+    """Miecz Susanoo naładowany burzą (reżyser 23.11: „wokół miecza zrób pioruny”): lekka błękitna poświata, dwa łuki
+    pełzające tuż obok ostrza (po jednym z każdej strony — samo ostrze zostaje widoczne), krótkie zygzaki strzelające
+    od krawędzi ostrza w bok i jeden dłuższy z czubka w niebo."""
+    (tx, ty), (jx, jy) = ostrze  # czubek i jelec miecza w pikselach ekranu (liczone z lalki w postaw())
+    L = math.hypot(jx - tx, jy - ty)
+    ux, uy = (jx - tx) / L, (jy - ty) / L  # wzdłuż ostrza, od czubka do jelca
+    nx, ny = -uy, ux  # w poprzek ostrza
+    BRZEG = 11  # pół szerokości ostrza z białym obrysem: pioruny zaczynają się na brzegu, nie na stali
+    p = P.lalki + 0.015  # przed Susanoo i jego mieczem
+    r = random.Random(K.get("pioruny_ziarno", 7))
+    na = lambda s, d: (tx + ux * s * L + nx * d, ty + uy * s * L + ny * d)  # s — ułamek ostrza od czubka, d — w bok
+    # reżyser 23.11: „tylko na końcówce ta iskra świecąca” — bez poświaty wzdłuż ostrza, świeci sam czubek (niżej)
+    sz = K.get("pioruny_szerzej", 1.0)  # reżyser 23.11: „pioruny po bokach miecza troszkę szersze” — sięgają dalej w bok
+    for s0, s1, strona, wyb in ((0.08, 0.55, 1, 16 * sz), (0.35, 0.88, -1, 18 * sz)):  # łuki tuż obok ostrza
+        m = 8
+        pts = []
+        for i in range(m + 1):
+            f = i / m
+            d = strona * (BRZEG + wyb * math.sin(math.pi * f) + (r.uniform(-5, 5) if 0 < i < m else -4))
+            pts.append(na(S.lerp(s0, s1, f), d))
+        _iskra(st, pts, p, 0.75)
+    # zygzaki od brzegu ostrza w bok: s — miejsce na ostrzu, strona, kąt odchylenia od poprzecznej (°), długość w px
+    for s, strona, kat, dl in ((0.18, 1, -25, 70 * sz), (0.42, -1, 20, 80 * sz), (0.64, 1, 15, 62 * sz), (0.8, -1, -15, 55 * sz)):
+        a = math.radians(kat * strona)
+        dx, dy = strona * (nx * math.cos(a) - ny * math.sin(a)), strona * (ny * math.cos(a) + nx * math.sin(a))
+        x0, y0 = na(s, strona * BRZEG)
+        pts = _zygzak(r, x0, y0, dx, dy, dl, 5, 9 * sz)
+        _iskra(st, pts, p, 0.9)
+        bx, by = pts[2]  # odnoga
+        b = a + r.choice((-1, 1)) * 0.7
+        ex, ey = strona * (nx * math.cos(b) - ny * math.sin(b)), strona * (ny * math.cos(b) + nx * math.sin(b))
+        _iskra(st, _zygzak(r, bx, by, ex, ey, dl * 0.4, 2, 5), p, 0.55)
+    # z nieba w czubek, od górnej krawędzi kadru (Susanoo — bóg burzy — przyzywa piorun), z dwiema odnogami
+    a = math.atan2(-1.0, -0.25)
+    dx, dy = math.cos(a), math.sin(a)
+    gl_ = _zygzak(r, tx - ux * 2, ty - uy * 2, dx, dy, K.get("pioruny_niebo", 120), 7, 14)
+    _iskra(st, gl_, p, 1.5)
+    for i, b in ((3, -0.8), (5, 0.7)):
+        bx, by = gl_[i]
+        ex, ey = math.cos(a + b), math.sin(a + b)
+        _iskra(st, _zygzak(r, bx, by, ex, ey, 45, 3, 7), p, 0.7)
+    # iskra na czubku — reżyser 23.11: „na czubku ma być większa iskra” (90 → 190 px), potem „teraz troszkę za duża” i
+    # „tylko na końcówce” → iskra_d px, z białym jądrem w środku
+    iw = K.get("iskra_d", 190)
+    M0.poloz(st, J.glow(), tx, ty, p + 0.001, w=iw, anchor=(0.5, 0.5), mode="add", alpha=0.85, shadow=None, tint=(0.7, 0.85, 1.0))
+    M0.poloz(st, J.glow(), tx, ty, p + 0.002, w=iw * 0.37, anchor=(0.5, 0.5), mode="add", alpha=1.0, shadow=None,
+             tint=(1.0, 1.0, 1.0))
 
 
 # ---------- scena ----------
@@ -726,6 +867,8 @@ def scena_b(st, K):
 
 
 def scena(K):
+    global PIORUN_GR
+    PIORUN_GR = K.get("piorun_gr", 1.0)
     st = Stage(0.0, seed=7)
     st.T = 1.0
     cx, cy, m = K["kamera"]
@@ -762,6 +905,9 @@ def susanoo_z_wirem(st, K):
 
 
 # Układ kadru w pikselach ekranu (1280 × 720); kamera 1:1 z kadrem wzorcowym filmu (morze, niebo jak w ujęciach)
+PIORUN_GR = 1.0  # grubość piorunów wokół miecza (D); ustawiana w KADRY["D"]["piorun_gr"]
+
+
 WSPOLNE = dict(
     kamera=(640, 360, 1.0),
     susanoo=(285, 1250, 1000),  # stopy: x, y; wysokość postaci (do pasa w kadrze)
@@ -804,14 +950,26 @@ KADRY = {
               bracia=(("itsuse", 700, 400, (25, 0), -3), ("brat2", 905, 385, (160, 200), 3), ("brat3", 1100, 370, (150, 190), -2)),
               szarosc=(0.8, 0.8, 0.86),
               tabliczki={{"en": "AM I NEXT?!", "pl": "JA NASTĘPNY?!"}[JEZ]: (575, 150, 64, 5)}),
-    "D": dict(BAZA, t=2.0, noc=0.6, grade=(0.84, 0.88, 1.02),
+    "D": dict(BAZA, t=2.0, noc=0.75, grade=(0.84, 0.88, 1.02),  # noc 0,6 → 0,75 (23.11): pioruny i oczy świecą na ciemnym
               # siedem głów za wzgórzami: nasada x, głowa x, y, wysokość głowy
               glowy=((560, 500, 250, 84), (660, 640, 175, 80), (780, 780, 250, 84), (880, 900, 175, 78), (1000, 1060, 230, 84),
                      (1130, 1190, 180, 76), (1230, 1240, 300, 80)),
               bohater_ark=(920, 560), bohater_xy=(-60, 200), bohater_szyja=((150, 620), (40, 360), (250, 250)),
               bohater_skala=2.1, bohater_kat=8,
-              susanoo_d=(1040, 708, 400, True, (145, 25)),  # x, y stóp, wysokość, twarzą w lewo, ręce (miecz w górze)
-              tabliczki={{"en": "8 HEADS?!", "pl": "8 GŁÓW?!"}[JEZ]: (1110, 36, 62, -5)}),
+              # x, y stóp, wysokość, twarzą w lewo, ręce (miecz w górze); reżyser 23.11: „minimalnie rozszerz Susanoo” → 400 → 440
+              susanoo_d=(1040, 708, 440, True, (145, 25)),
+              # reżyser 23.11: „te spike minimalnie większe, a nie same włosy” — kolce fryzury o 40% dłuższe, grzywa ta sama
+              susanoo_kolce=1.4,
+              susanoo_tulow=1.15,  # reżyser 23.11: „Susanoo ma być szerszy, po prostu rozszerz jego tułów o 15%”
+              # reżyser 23.11: „tych piorunów nie widać za mocno, i zrób, żeby lepiej się klikała” (CTR ok. 3%):
+              # grubsze pioruny z poświatą, piorun z nieba od górnej krawędzi w czubek miecza i świecące oczy wszystkich
+              # głów (szerokość poświaty). Błysk na niebie (blysk_d=(x, y, szerokość, siła)) sprawdzony i odrzucony: jasne
+              # niebo za mieczem zjadało kontrast piorunów w 320 px.
+              piorun_gr=1.6, pioruny_niebo=185, oczy_d=70, iskra_d=160, pioruny_szerzej=1.4,  # iskra: 130 → 160 („troszkę większy glow”)
+              pioruny_d=True,  # pioruny wokół miecza Susanoo (reżyser 23.11); miecz liczony z lalki, idzie za nią
+              # mała tabliczka nad głową węża z pierwszego planu: wąż syczy imię bohatera (reżyser 23.11: „sss!” → „więcej
+              # tego ssssss!” → „dłuższe te ssssssss!” → „SSSuSanoo!” → „zmień na Susssanoo”), w obu wersjach tak samo
+              tabliczki={{"en": "8 HEADS?!", "pl": "8 GŁÓW?!"}[JEZ]: (1110, 36, 62, -5), "Susssanoo!": (472, 150, 60, 4)}),  # wysokość 50 → 60 (reżyser 23.11: „o 20% większa”), wyżej: nie dotyka kolca ani głowy w tle
 }
 
 
