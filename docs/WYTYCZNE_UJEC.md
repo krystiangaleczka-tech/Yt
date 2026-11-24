@@ -476,6 +476,18 @@ wyższa się pochyla (`lean`), niższa unosi (`lift`); potem wracają na swoje m
 **Kontrola**: arkusz zbliżeń dłoni (wycinek 240 px wokół każdej dłoni z rzeczą w kilku chwilach ujęcia) i arkusz stołów
 (rzeczy na blacie, postacie przy meblach) przed oddaniem ujęć.
 
+### 1.29 Wycinek jest cały w każdym wariancie, a kostium jest jednym kawałkiem
+
+- **Nakładka kładzie się na wierzch.** Kurz, błoto, cień czy plama na wycinku to osobna warstwa nałożona na niego
+  (`alpha_composite`, tylko tam, gdzie wycinek ma papier). `ImageDraw` z półprzezroczystym kolorem na obrazie RGBA nie
+  miesza kolorów, tylko podmienia piksel razem z alfą — dół karoserii „auta w kurzu” robił się przezroczysty i spod niego
+  wystawały nogi pasażerów, w każdym ujęciu z `kurz=True` (reżyser 24.11: „w kilku nadal nie ma spodów aut”).
+- **Wariant sprawdza się jak nowy wycinek.** Każdy przełącznik wycinka (kurz, dziury, napis, noc) zmienia arkusz: obejrzyj
+  go raz obok wersji podstawowej, zanim pojedzie do ujęć.
+- **Kostium z jednego kawałka.** Strój, który zakłada się na lalkę (suknia ślubna, płaszcz), to jeden wycinek od linii
+  ramion do dołu, przed tułowiem i za przednią ręką, z pochyleniem lalki — nie dzwon doklejony od pasa do sukienki z arkusza
+  lalki (reżyser 24.11: „suknia ma być w jednej całości, a nie w dwóch częściach”).
+
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
 - Osobne warstwy: tło bez postaci, postać (PNG RGBA, przezroczyste tło), **pierwszy plan zasłaniający** (drzwi z
@@ -538,6 +550,10 @@ Zanim ujęcie trafi do Studio do oceny:
 
 Reżyser pisze krótko, w trakcie oglądania, często bez polskich znaków i z angielskimi słowami z wersji EN. Każda uwaga
 to polecenie z jednym właściwym odczytaniem — poniżej, jak je odczytywaliśmy, kiedy reżyser przyjmował poprawkę.
+
+**Data uwagi.** Studio zapisuje pole „Uwagi reżysera” w całości, więc po edycji jednej uwagi stare uwagi w innych ujęciach
+mogą dostać nową datę (24.11 jedenaście uwag z 23.11 miało godzinę 16:01). Przed pracą porównaj tekst uwagi z raportem
+poprzedniej rundy (`docs/filmy/<film>/uwagi_rezysera_<data>.md`): zrobione nie wraca do pracy, nowe są dopisane linie.
 
 **Gdzie są.** Uwaga w ujęciu: pole „Uwagi reżysera” (w pliku projektu `scenes[].director_notes`; w filmach z rozpiski
 pierwszy wiersz bywa opisem z rozpiski — „Kadr: … Beat: …”, „Typ: …” — a uwaga reżysera to dalsze wiersze). Marker:
@@ -759,6 +775,7 @@ i błędy znalezione w kontroli.
 | Syn słońca EN, zapowiedź i hak (20.11, reżyser) | burza i wąż były w zapowiedzi, zaraz potem w haku (ujęcia 15 i 17) i jeszcze raz w ciele filmu — „czemu nie tylko 2 razy?” | 1.26 |
 | Bonnie and Clyde, 28 markerów i uwaga (21.11, reżyser) | rewolwer znikał z dłoni, kiedy ta sama ręka wyjmowała cygaro z ust; strzał padał poza kadrem; chłopak dawał cygaro Bonnie do ręki zamiast do ust; gazeta klienta na głowie i w tułowiu; łyżka obok garnka; serca pośrodku zamiast nad każdym z zakochanych; „pod płaszcz” bez płaszcza; Clyde znikał przy wsiadaniu do auta; kwestia „palce” mówiła o czym innym niż obraz; plan nadpisał uwagę reżysera, a dźwięk nie poszedł za nowymi ujęciami | 1.11, 1.20, 1.27, 1.28, 4.1 |
 | Bonnie and Clyde, 91 markerów i 13 uwag (23.11, reżyser) | tabliczki zjeżdżały dopiero w sekundzie markera i nie tam, gdzie kreska; kapelusze były wklejone w głowę (zdjęcie = podmiana lalki); scena za parawanem w Platte City i Sowers nie mówiła kiedy, gdzie i kto; ekran kina i zdjęcie stały nieruchomo; rzeczy rzucane brały się znikąd; słońce, lampy i światła aut nie grały; Gault bez cechy, po której się go rozpozna | 1.19, 1.20, 1.25, 1.28, 4.2 |
+| Bonnie and Clyde, 21 markerów, uwagi i czat (24.11, reżyser) | spód auta znikał w każdym ujęciu z kurzem (półprzezroczysty kolor podmieniał alfę wycinka); suknia Maree z dwóch części; ujęcia 20, 118 i 119 statyczne, „nic się nie dzieje”, a śpiąca rodzina z opisu ujęcia 20 leżała schowana za rampą; czapki leżały od pierwszej klatki zamiast spaść; saksofon przy ręce, nie przy ustach; nić na mapie zwisała z dwóch kropek; brakowało dźwięków przy miauczeniu, trąbieniu, gwizdkach i hamowaniu | 1.8, 1.12, 1.25, 1.28, 1.29, 4.2 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
