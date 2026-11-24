@@ -318,7 +318,10 @@ def scena_d():
         bez, kap = kapelusz_w_dloni(key)
         spr = postac(bez, rece=(135.0, 10.0), rzecz=kap)
         ax = kotwica_tulowia(bez, spr)
-        M0.poloz(st, spr, x, 822, P.lalki + 0.02 + 0.001 * n, h=300, anchor=(ax, 1.0), sx=fl, rot=-6 * fl, tint=(0.84, 0.84, 0.82))
+        # biały obrys (cieńszy niż u Bonnie i Clyde'a): kapelusze w dłoniach odcinają się od pola (reżyser 24.11: „czapki
+        # bardziej odznacz, może biała obwódka”)
+        M0.poloz_obrys(st, spr, x, 822, P.lalki + 0.02 + 0.001 * n, 300, (ax, 1.0), kolor=BIALY, gruby=6, k=max(1.0, papier.Q), sx=fl,
+                       rot=-6 * fl, tint=(0.84, 0.84, 0.82))
     for n, x in enumerate((20, 175, 330, 485, 640, 795, 950, 1105, 1260)):
         M0.poloz(st, J.krzak(n % 6), x, 728, P.lalki + 0.03 + 0.001 * n, h=118, anchor=(0.5, 1.0))
     M0.nitki(st, tabliczka_gruba("THE REAL ENDING", 64, K_TAB), 1030, 14, P.rekwizyty + 0.03, h=64, xs=(0.2, 0.8), rot=2)
