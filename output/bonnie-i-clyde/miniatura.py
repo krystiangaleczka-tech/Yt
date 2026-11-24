@@ -56,11 +56,38 @@ K_TAB = papier.Q  # tabliczki i szyld: w 4K trzykrotnie
 BIALY = (252, 250, 244)
 
 
+def _rozkrok(body, s, ang):
+    """Korpus lalki z nogami w rozkroku: nogi (od dołu marynarki albo spódnicy) rozcięte w kroku i obrócone na boki o ang
+    stopni wokół bioder; góra kładzie się na wierzch, więc szew pod biodrami nie widać. Tylko do miniaturki — arkusze lalek
+    w filmie zostają z nogami razem."""
+    from PIL import Image as _I
+    W_, H_ = body.size
+    cx = W_ / 2
+    sy = int((566 if s["kobieta"] else 452) + s["nogi"])
+    out = _I.new("RGBA", body.size, (0, 0, 0, 0))
+    for strona, kat in ((-1, -ang), (1, ang)):
+        noga = _I.new("RGBA", body.size, (0, 0, 0, 0))
+        x0, x1 = (0, int(cx)) if strona < 0 else (int(cx), W_)
+        noga.paste(body.crop((x0, sy, x1, H_)), (x0, sy))
+        out.alpha_composite(noga.rotate(kat, resample=_I.BICUBIC, center=(cx + strona * 26, sy)))
+    gora = _I.new("RGBA", body.size, (0, 0, 0, 0))
+    gora.paste(body.crop((0, 0, W_, sy + 8)), (0, 0))
+    out.alpha_composite(gora)
+    return out
+
+
 @lru_cache(None)
-def postac(key, rece=(20.0, 10.0), lean=0.0, rzecz=None):
-    """Lalka filmu w pozie, w kolorach (zestaw_bc.sylwetka(kolor=True)) — jeden wycinek, który dostaje biały obrys."""
-    return Sprite(J.sylwetka(key, rece=rece, lean=lean, rzecz=rzecz, kolor=True), f"miniatura-{key}-{rece}-{lean}-{rzecz}", rim=2,
-                  clean=False)
+def postac(key, rece=(20.0, 10.0), lean=0.0, rzecz=None, rozkrok=0.0):
+    """Lalka filmu w pozie, w kolorach (zestaw_bc.sylwetka(kolor=True)) — jeden wycinek, który dostaje biały obrys.
+    rozkrok — kąt nóg na boki (reżyser 24.11: „zrób ich w rozkroku, Bonnie i Clyde'a”)."""
+    korpus = J._korpus_img
+    if rozkrok:
+        J._korpus_img = lambda sp, seed_spec=None: _rozkrok(korpus(sp, seed_spec), sp, rozkrok)
+    try:
+        img = J.sylwetka(key, rece=rece, lean=lean, rzecz=rzecz, kolor=True)
+    finally:
+        J._korpus_img = korpus
+    return Sprite(img, f"miniatura-{key}-{rece}-{lean}-{rzecz}-{rozkrok}", rim=2, clean=False)
 
 
 def obrys(st, spr, x, y, h, p=P.lalki + 0.01, anchor=(0.5, 1.0), gruby=9, **kw):
@@ -174,17 +201,17 @@ def strzal(st, x, y, kierunek, p, wielkosc=1.0):
     st.line([(x + kierunek * 30, y), (x + kierunek * 160 * wielkosc, y - 6)], p, width=4, color=(255, 236, 190), alpha=0.8)
 
 
-def kotwica_tulowia(key, spr):
+def kotwica_tulowia(key, spr, rozkrok=0.0):
     """Kotwica x środka tułowia w wycinku postaci z wyciągniętą ręką (wycinek jest przycięty do całej sylwetki, więc jego
     środek leży w stronę ręki): szerokość lalki z rękami w dół to tułów, który zaczyna się przy lewej krawędzi."""
-    wn = J.sylwetka(key, rece=(0.0, 0.0), kolor=True).size[0]
+    wn = postac(key, rece=(0.0, 0.0), rozkrok=rozkrok).w
     return (wn / 2) / spr.w
 
 
-def stoi(st, key, x, y, h, p, rece, rzecz, flip=1.0, rot=0.0, gruby=9):
+def stoi(st, key, x, y, h, p, rece, rzecz, flip=1.0, rot=0.0, gruby=9, rozkrok=0.0):
     """Postać z białym obrysem, która stoi stopami w (x, y) ekranu niezależnie od wyciągniętej ręki."""
-    spr = postac(key, rece=rece, rzecz=rzecz)
-    ax = kotwica_tulowia(key, spr)
+    spr = postac(key, rece=rece, rzecz=rzecz, rozkrok=rozkrok)
+    ax = kotwica_tulowia(key, spr, rozkrok)
     M0.poloz_obrys(st, spr, x, y, p, h, (ax if flip > 0 else ax, 1.0), kolor=BIALY, gruby=gruby, k=max(1.0, papier.Q), sx=flip, rot=rot)
 
 
@@ -229,8 +256,9 @@ def scena_d():
     # Bonnie na opadającym dachu, Clyde na przedniej szybie z jedną nogą na masce (stopy z geometrii auta)
     bx, by = na_aucie(*STOPY_D[0])
     kx, ky = na_aucie(*STOPY_D[1])
-    stoi(st, "bonnie_slub_beret", bx, by + 4, 300, P.auta - 0.005, (90.0, 10.0), ("rewolwer", 40, (0.3, 0.75)), flip=-1, rot=ROT_AUTA * 0.35)
-    stoi(st, "clyde", kx, ky + 4, 330, P.auta - 0.004, (88.0, 10.0), ("karabin", 50, (0.3, 0.55)), rot=ROT_AUTA * 0.55)
+    stoi(st, "bonnie_slub_beret", bx, by + 4, 300, P.auta - 0.005, (90.0, 10.0), ("rewolwer", 40, (0.3, 0.75)), flip=-1, rot=ROT_AUTA * 0.35,
+         rozkrok=ROZKROK[0])
+    stoi(st, "clyde", kx, ky + 4, 330, P.auta - 0.004, (88.0, 10.0), ("karabin", 50, (0.3, 0.55)), rot=ROT_AUTA * 0.55, rozkrok=ROZKROK[1])
     for (sx_, sy_, kier, wk) in STRZALY_D:
         strzal(st, sx_, sy_, kier, P.auta, wk)
     # kule z krzaków w stronę auta (smugi od łowców ku karoserii)
@@ -247,10 +275,10 @@ def scena_d():
         M0.poloz(st, spr, x, 838, P.lalki + 0.02 + 0.001 * n, h=300, anchor=(ax, 1.0), sx=fl, rot=-14 * fl, tint=(0.82, 0.82, 0.8))
     for n, x in enumerate((20, 175, 330, 485, 640, 795, 950, 1105, 1260)):
         M0.poloz(st, J.krzak(n % 6), x, 728, P.lalki + 0.03 + 0.001 * n, h=118, anchor=(0.5, 1.0))
-    tab(st, "THE REAL ENDING", 975, 12, 66, rot=2)
-    tab(st, "BANG!", 190, 190, 54, rot=-8, xs=(0.5,))
-    tab(st, "BANG!", 1120, 170, 54, rot=7, xs=(0.5,))
-    szyld(st)
+    tab(st, "THE REAL ENDING", 1010, 14, 62, rot=2)
+    tab(st, "BANG!", 170, 250, 54, rot=-8, xs=(0.5,))
+    tab(st, "BANG!", 1150, 210, 54, rot=7, xs=(0.5,))
+    szyld(st, x=26, y=14, h=SZYLD_D, maxw=760)  # reżyser 24.11: „dużo większy napis Bonnie i Clyde”
     st.grade = (1.05, 0.98, 0.9)
     return st
 
@@ -260,9 +288,11 @@ def lerp_(a, b, f):
 
 
 ROT_AUTA = -16  # przód auta w górę (tył w rowie)
-AUTO_D = (640, 440, 300)  # środek auta na ekranie i jego wysokość
+AUTO_D = (640, 518, 300)  # środek auta na ekranie i jego wysokość; nisko: tylne koło chowa się w krzakach (reżyser 24.11)
 STOPY_D = ((385, 72), (598, 150))  # stopy na arkuszu Forda: Bonnie na dachu, Clyde na dole przedniej szyby, przy masce
-STRZALY_D = ((408, 162, -1, 1.0), (950, 124, 1, 1.1))  # (x, y, kierunek, wielkość) błysków z końców luf
+STRZALY_D = ((408, 240, -1, 1.0), (950, 202, 1, 1.1))  # (x, y, kierunek, wielkość) błysków z końców luf
+ROZKROK = (24.0, 13.0)  # kąt nóg na boki: Bonnie (spódnica), Clyde
+SZYLD_D = 120  # wysokość szyldu z tytułem (w C i A–B 78)
 LOWCY_MIN = (("hamer", ""), ("gault", ""), ("alcorn", ""), ("hinton", ""), ("jordan", ""), ("oakley", ""))
 
 
