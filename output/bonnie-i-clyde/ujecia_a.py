@@ -6,7 +6,7 @@ Rozpiska: docs/filmy/bonnie-i-clyde/ujecia/dane.py. Zapowiedź (zap_*) render sk
 import math
 from functools import lru_cache
 
-from scena import CY, _off, bark, dlon, do_punktu, rs, siegnij, stan_przy  # noqa: E402
+from scena import CY, USTA, _off, bark, dlon, do_punktu, gwiazdy, mruganie, rs, siegnij, stan_przy  # noqa: E402
 from scena import (CX, DROGA_Y, J, P, STOPY, Z0, auto, back, bk, blysk, cien, ciezarowka, clamp, ease, ease_out, eastham, iks, jazda,
                    kam, kulisy, lalka, lerp, miasto, noise, parawan, podpis, pr, preria, punkt, rampa, settle, swiatlo, teatr_gazet,
                    west_dallas, wnetrze, zawieszki, drukarnia)
@@ -352,7 +352,11 @@ def _mieszkanie_joplin(st, w, t, ruch=True):
             st.put(J.rek(key), x, y + (1 - back(k, 1.3)) * 140, P.lalki - 0.01, h=h, rot=rot)
 
 
-def s_joplin_rzeczy(st, w, t, T):
+# markery reżysera 24.11 (s na osi Studio): oczy policjanta jako „< <” na chwilę, kiedy patrzy na zdjęcia z kliszy
+OCZY_ZACHWYT = {"hak_joplin_rzeczy": 7.07, "joplin_rzeczy": 5.7}
+
+
+def s_joplin_rzeczy(st, w, t, T, klucz="joplin_rzeczy"):
     """Opuszczone mieszkanie w Joplin: policjant wchodzi drzwiami, rozgląda się, podnosi z podłogi aparat wysoko, do oczu,
     a z dołu aparatu wysuwa się w dół klisza (marker reżysera 19.11: „podnosi aparat wyżej, a film z kamery wylatuje od dołu
     w dół”). Markery 21.11 (ujęcie 14, hak): na klatkach kliszy mikro, czarne pozy Bonnie, każda inna („na tych klatkach z filmu
@@ -367,7 +371,9 @@ def s_joplin_rzeczy(st, w, t, T):
     t_o = min(7.8, T - 2.4)  # „OOO…” (w haku 7,8 s jak w markerze; w krótszym ujęciu 49 wcześniej, żeby tabliczka zdążyła)
     macha = ease(pr(t, t_o - 0.2, 0.3))
     fala = macha * math.sin((t - t_o + 0.2) * 7.0)
-    out = lalka(st, t, "detektyw_o" if t >= t_o else "detektyw", x, 330, flip=-1, lean=-18 * schyl,
+    t_z = rs(klucz, OCZY_ZACHWYT[klucz])
+    zachwyt = t_z <= t < t_z + 1.3
+    out = lalka(st, t, ("detektyw_oo" if zachwyt else "detektyw_o") if t >= t_o or zachwyt else "detektyw", x, 330, flip=-1, lean=-18 * schyl,
                 rece=(20 + 70 * schyl + 40 * ease(pr(t, 3.6, 0.6)) + 70 * wyzej + 6 * fala, 10), hop=6 * (t < 2.5))
     podnies = ease(pr(t, 3.6, 0.5))
     ax, ay = (720, 702) if podnies <= 0 or not out else (lerp(720, out[0], podnies), lerp(702, out[1], podnies))
@@ -382,7 +388,7 @@ def s_joplin_rzeczy(st, w, t, T):
 
 
 def s_hak_joplin_rzeczy(st, w, t, T):
-    s_joplin_rzeczy(st, w, t, T)
+    s_joplin_rzeczy(st, w, t, T, klucz="hak_joplin_rzeczy")
 
 
 @lru_cache(None)
@@ -638,36 +644,81 @@ def s_obietnica(st, w, t, T):
     koniec(st, w, t)
 
 
-WAGON_SLONCE = 7.9  # s na osi Studio: słońce zaczyna uciekać w górę
+WAGON_SLONCE = 7.9   # s na osi Studio: słońce drży i ucieka w górę za kadr (marker reżysera 23.11)
+WAGON_NOC = 8.5      # s na osi Studio: zapada noc (reżyser 24.11: „w połowie ujęcia 20 zmieniłbym słońce na księżyc, ściemnił na noc”)
+WAGON_KSIEZYC = 9.1  # s na osi Studio: zjeżdża księżyc
+WAGON_GWIAZDY = 9.5  # s na osi Studio: zjeżdżają gwiazdy („aha i jeszcze dodał gwiazdy”)
+WAGON_PIEKLO = 6.6   # s na osi Studio: „…called it the Devil's Back Porch” — tabliczka nad szałasami
+
+
+def wagon_noc(t):
+    """Noc w West Dallas w chwili t ujęcia „wagon” (0 — dzień, 1 — noc); ujęcie „indyki” zaczyna się w tej nocy."""
+    return ease(pr(t, rs("wagon", WAGON_NOC), rs("wagon", WAGON_NOC + 1.5) - rs("wagon", WAGON_NOC)))
 
 
 def s_wagon(st, w, t, T):
-    """West Dallas: dymiące kominy, wiadukt, szałasy w błocie; pod wozem śpi rodzina, mały Clyde wyczołguje się spod koła i przeciąga."""
-    kam(st, t, 10, 640, 380, lerp(0.96, 1.12, ease(t / T)), 0.72)
-    w.zawieszki = [("West Dallas, 1920s", 640, 150, pr(t, 1.4, 1.0))]  # miejsce i czas zamiast kurtyny aktu I (retrospekcja)
-    # marker reżysera 23.11 (7,93 s): „dźwignij powoli słońce za kadr, bo ono też się boi” — słońce drży, potem powoli
-    # wjeżdża na nitce za górną krawędź kadru (WAGON_SLONCE, dźwięk w efekty.ZDARZENIA)
+    """West Dallas: dymiące kominy, wiadukt, szałasy w błocie; pod wozem śpi rodzina, mały Clyde wyczołguje się spod koła
+    i przeciąga — a słońce, jakby się bało, ucieka za kadr i zapada noc: księżyc, gwiazdy na nitkach; Clyde otwiera puste
+    pudełko na obiad i wylatuje z niego ćma, która leci prosto do księżyca.
+    Reżyser 24.11: „na ujęciu 20 trzeba coś zrobić, bo jest zbyt nudne; w połowie ujęcia 20 zmieniłbym słońce na księżyc,
+    ściemnił na noc, aha i jeszcze dodał gwiazdy” (i w ujęciu 21 z ciemności i księżyca robi się dzień). Marker 23.11
+    (7,93 s): „dźwignij powoli słońce za kadr, bo ono też się boi”."""
+    w.zmierzch = True
+    w.noc = wagon_noc(t)
+    kam(st, t, 10, lerp(600, 680, ease(t / T)), lerp(390, 360, ease(t / T)), lerp(1.0, 1.1, ease(t / T)), 0.72)
+    w.zawieszki = [("West Dallas, 1920s", 640, 150, pr(t, 1.4, 1.0) * (1 - pr(t, rs("wagon", WAGON_PIEKLO) - 0.4, 0.6)))]
     ts = rs("wagon", WAGON_SLONCE)
     drzy = 4 * math.sin(t * 40) * (ts - 0.5 < t < ts + 0.1)
-    west_dallas(st, t + drzy * 0.002, w, slonce_k=None if t < ts else 1 - 0.999 * ease(pr(t, ts, rs("wagon", WAGON_SLONCE + 2.6) - ts)))
-    for n, (x, key) in enumerate(((470, "matka_clyde"), (600, "dziecko1"))):
-        lalka(st, t, key, x, 120, 1.0, y=708, flip=1, lean=88, p=P.drzewa + 0.002, rece=(0, 0))
-    wy = ease(pr(t, 4.0, 1.6))
+    west_dallas(st, t + drzy * 0.002, w, slonce_k=None if t < ts else 1 - 0.999 * ease(pr(t, ts, rs("wagon", WAGON_SLONCE + 1.4) - ts)),
+                chmury_k=1 - 0.75 * w.noc)  # nocą chmury wjeżdżają w górę i odsłaniają księżyc i gwiazdy
+    if w.noc > 0.01:
+        ksiezyc(st, t, ease(pr(t, rs("wagon", WAGON_KSIEZYC), 1.3)), x=1010, y=140)
+        gwiazdy(st, t, pr(t, rs("wagon", WAGON_GWIAZDY), 1.6), seed=20)
+    # pranie na sznurku między szałasami: kołysze się na wietrze (życie w tle, 1.25)
+    k_pr = bk(w, 0.7)
+    if k_pr > 0:
+        st.line([(860, 470), (990, 486), (1120, 470)], P.miasto + 0.025, width=1.3, color=(70, 60, 50), alpha=0.8 * k_pr)
+        for n, x in enumerate((905, 960, 1030, 1080)):
+            st.put(J.rek("pranie"), x, 478 + 6 * math.sin(n * 1.3) + (1 - k_pr) * 200, P.miasto + 0.026, h=54, anchor=(0.5, 0.0),
+                   rot=5 * math.sin(t * 2.2 + n), tint=((0.92, 0.88, 0.8), (0.8, 0.74, 0.7))[n % 2])
+    # rodzina Barrowów śpi pod wozem, między kołami — widać ją nad rampą (przegląd 24.11: leżała schowana za rampą)
+    for n, (x, key, hh) in enumerate(((455, "matka_clyde", 150), (585, "dziecko1", 118))):
+        lalka(st, t, key, x, hh, 1.0, y=652, flip=1, lean=88, p=P.drzewa + 0.003, rece=(0, 0), shadow=(2, 3, 4, 0.3))
+    if t > 1.6:  # „Z” unoszą się znad głów śpiących i gasną (słownik znaków, 1.20)
+        for n, (x, y) in enumerate(((560, 632), (665, 636))):
+            for m in range(2):
+                f_ = ((t - 1.6) * 0.45 + m * 0.5 + n * 0.25) % 1.0
+                st.put(J.tag("Z"), x + 30 * f_ + 6 * math.sin(t * 3 + m), y - 70 * f_, P.drzewa + 0.004, h=14 + 10 * f_, anchor=(0.5, 0.5),
+                       rot=-10, alpha=min(1.0, (t - 1.6) / 0.5) * math.sin(math.pi * f_), shadow=(2, 3, 3, 0.3))
+    wy = ease(pr(t, 3.4, 1.6))
     # gag 31 (GAGI.md, W1 „pusta kasa” — zasiew): na „almost nothing” mały Clyde otwiera blaszane pudełko na obiad, wylatuje ćma
+    # i leci prosto do księżyca (ćma do światła)
     pud = ease(pr(t, 10.2, 0.5))
-    out_c = lalka(st, t, "clyde_maly", lerp(640, 760, wy), 200, 1.0, lean=lerp(85, 0, wy), lift=-40 * (1 - wy),
-                  rece=(lerp(80, 160, ease(pr(t, 6.0, 0.8))) * (1 - ease(pr(t, 7.4, 0.6))) + 75 * pud,
-                        lerp(20, 150, ease(pr(t, 6.0, 0.8))) * (1 - ease(pr(t, 7.4, 0.6)))), p=P.lalki,
+    out_c = lalka(st, t, "clyde_maly", lerp(640, 780, wy), 200, 1.0, lean=lerp(85, 0, wy), lift=-40 * (1 - wy),
+                  rece=(lerp(80, 160, ease(pr(t, 5.4, 0.8))) * (1 - ease(pr(t, 6.8, 0.6))) + 75 * pud,
+                        lerp(20, 150, ease(pr(t, 5.4, 0.8))) * (1 - ease(pr(t, 6.8, 0.6)))), p=P.lalki,
                   trzyma=(J.rek("kasetka"), 34, (0.5, 0.3), 0, False) if pud > 0 else None)
-    fc = pr(t, 11.3, 2.4)
+    if t > 5.6:
+        tab(w, t, "YAWN", 800, 330, 5.6, 1.5)
+    # „Devil's Back Porch”: tabliczka zjeżdża nad szałasami; Clyde patrzy w górę na słońce, które drży i ucieka
+    tab(w, t, "DEVIL'S BACK PORCH", 520, 250, rs("wagon", WAGON_PIEKLO), 2.4)
+    if ts - 0.6 < t < ts + 1.2:
+        tab(w, t, "!", 905, 240, ts - 0.6, 1.4)
+    fc = pr(t, 10.9, 2.6)
     if out_c and 0 < fc < 1:
-        st.put(J.rek("cma"), out_c[0] + 140 * fc + 25 * math.sin(fc * 18), out_c[1] - 10 - 300 * fc, P.rekwizyty, h=50, anchor=(0.5, 0.5),
-               sx=0.3 + 0.7 * abs(math.sin(t * 22)), rot=10 * math.sin(t * 7))
-    if t > 11.5:
-        tab(w, t, "…", 820, 300, 11.6, 1.8)
-    if t > 6.2:
-        tab(w, t, "YAWN", 800, 330, 6.2, 1.6)
+        mx, my = 1010, 160  # ćma leci spiralą do księżyca i krąży wokół niego
+        dojscie = ease(min(1.0, fc / 0.7))
+        a = t * 5.0
+        r_ = lerp(0, 70, dojscie)
+        st.put(J.rek("cma"), lerp(out_c[0], mx, dojscie) + r_ * math.cos(a) * dojscie + 25 * math.sin(fc * 18) * (1 - dojscie),
+               lerp(out_c[1] - 10, my, dojscie) + 0.4 * r_ * math.sin(a) * dojscie, P.slonce + 0.02 if dojscie > 0.8 else P.rekwizyty,
+               h=lerp(50, 34, dojscie), anchor=(0.5, 0.5), sx=0.3 + 0.7 * abs(math.sin(t * 22)), rot=10 * math.sin(t * 7), shadow=(2, 3, 3, 0.3))
+    if t > 11.2:
+        tab(w, t, "…", 820, 300, 11.3, 1.8)
     koniec(st, w, t)
+
+
+INDYKI_SWIT = 0.25  # s akcji: noc z ujęcia 20 mija, wschodzi słońce
 
 
 def s_indyki(st, w, t, T):
@@ -675,7 +726,15 @@ def s_indyki(st, w, t, T):
     wychodzi policjant z gwizdkiem, „STOP!”; chłopcy zeskakują na ziemię i podnoszą ręce, indyki wyfruwają (markery reżysera
     19.11: „podstaw tych ludzi tu na aucie z tyłu razem z tymi indykami”, „tu mają zeskoczyć”)."""
     kam(st, t, 11, 640, 380, 1.0, 0.76)
-    west_dallas(st, t, w, woz=False)
+    # reżyser 24.11: „pamiętaj, w ujęciu 21 musisz z ciemności i księżyca zmienić na słońce” — ujęcie zaczyna się nocą
+    # z ujęcia „wagon” (ta sama scena, zwykłe cięcie); księżyc i gwiazdy wjeżdżają w górę, słońce zjeżdża, robi się dzień,
+    # a indyki budzą się gulgotem (INDYKI_SWIT, dźwięk w efekty.ZDARZENIA)
+    w.zmierzch = True
+    w.noc = 1 - ease(pr(t, INDYKI_SWIT, 1.1))
+    west_dallas(st, t, w, woz=False, slonce_k=ease(pr(t, INDYKI_SWIT + 0.35, 0.9)), chmury_k=1 - 0.75 * w.noc)
+    if w.noc > 0.01:
+        ksiezyc(st, t, 1 - ease(pr(t, INDYKI_SWIT - 0.1, 0.8)), x=1010, y=140)
+        gwiazdy(st, t, 1 - pr(t, INDYKI_SWIT - 0.2, 0.9), seed=20)
     x = 300
     ciezarowka(st, t, x, 210)
     px, _ = jazda(t, 1.6, 1.2, 1400, 1080)
@@ -1316,6 +1375,9 @@ def s_wd(st, w, t, T):
     koniec(st, w, t)
 
 
+BUCK_MIAU = 5.70  # s na osi Studio (marker reżysera 24.11)
+
+
 def s_buck(st, w, t, T):
     """Z bramy więzienia wychodzi Buck z ułaskawieniem w ręku; czeka Blanche w kapelusiku, z białym pieskiem na rękach."""
     kam(st, t, 33, 640, 430, 1.05, 0.8)
@@ -1327,8 +1389,12 @@ def s_buck(st, w, t, T):
     out = lalka(st, t, "blanche", 1020, 290, flip=-1, rece=(70, 70))
     # gag 35 (GAGI.md): po „family visit” piesek Blanche wyskakuje z jej rąk i obszczekuje Bucka, Buck odskakuje
     fp = pr(t, 11.0, 0.5)
+    # marker reżysera 24.11 (5,70 s): „miauu! (i dźwięk dodaj)” — piesek Blanche miauczy jak kot: podskakuje jej w rękach,
+    # nad nim tabliczka „MEOW!” (dźwięk kota w efekty.ZDARZENIA, BUCK_MIAU)
+    tm = rs("buck", BUCK_MIAU)
     if out and fp <= 0:
-        st.put(J.zwierze("piesek"), out[0] + 10, out[1] - 10, P.lalki + 0.03, h=46, anchor=(0.5, 0.6), sx=-1, rot=6 * math.sin(t * 4))
+        st.put(J.zwierze("piesek"), out[0] + 10, out[1] - 10 - 10 * _bump(t, tm + 0.1, 0.25), P.lalki + 0.03, h=46, anchor=(0.5, 0.6), sx=-1,
+               rot=6 * math.sin(t * 4) + 12 * _bump(t, tm + 0.1, 0.3))
     elif out:
         # ląduje nad rampą (przy STOPY rampa zakryłaby pieska)
         st.put(J.zwierze("piesek"), lerp(out[0] + 10, bx + 90, ease(fp)), lerp(out[1] - 10, 652, fp) - 90 * math.sin(math.pi * fp),
@@ -1336,6 +1402,7 @@ def s_buck(st, w, t, T):
         tab(w, t, "YAP!", bx + 110, 520, 11.5, 1.4)
     podpis(w, t, "Buck Barrow", bx, 230, 1.6, 3.0)
     podpis(w, t, "Blanche Barrow", 1020, 230, 4.6, 3.0)
+    tab_tu(st, w, t, "MEOW!", "buck", 905, 372, BUCK_MIAU, dur=1.6)
     koniec(st, w, t)
 
 
@@ -1381,9 +1448,33 @@ def s_joplin_karty(st, w, t, T):
                anchor=(0.5, 1.0), rot=lerp(40, -6, fa), shadow=(2, 3, 3, 0.3))
     tab(w, t, "!", 790, 230, 10.5, 1.4)
     lalka(st, t, "blanche", 790, 290, flip=-1, sink=0.15, rece=(70, 40), trzyma=(J.rek("karty"), 36, (0.5, 0.8), 0, True), lean=-8 * ease(pr(t, 10.4, 0.3)))
-    out = lalka(st, t, "clyde", 1000, 320, flip=-1, lean=-6 + 6 * math.sin(t * 4), rece=(110, 90))
-    if out:
-        st.put(J.rek("saksofon"), out[0] - 10, out[1] - 60, P.lalki + 0.03, h=110, anchor=(0.5, 0.2), rot=-20 + 8 * math.sin(t * 4))
+    # marker reżysera 24.11 (0,00 s): „bierze do buzi i gra, a nad nim nuty” — Clyde podnosi saksofon ustnikiem do ust (pół
+    # sekundy), dłoń trzyma korpus (ręka w skrócie, 1.28); kiedy gra, z czary wylatują nuty; po „SHHH!” sąsiadki milknie na
+    # chwilę, potem gra dalej
+    gra = not (3.1 < t < 4.1)
+    lean_c = -6 + (4 * math.sin(t * 4) if gra else 0)
+    ux, uy = punkt("clyde", 1000, 320, USTA[0], USTA[1] + 4, flip=-1, rot=lean_c)
+    pod = 1 - ease(pr(t, 0.05, 0.45))
+    mx, my = ux + 2, uy + 70 * pod  # ustnik przy ustach (na początku niżej, w dłoni)
+    rs_ = 18 + 5 * math.sin(t * 4) * gra  # czara do przodu, w lewo (lalka patrzy w lewo: wycinek odbity)
+    ks = 110 / 360.0
+    # punkty na arkuszu saksofonu (160 × 360, ustnik (60, 0)): chwyt na szyjce, środek czary; odbicie sx=-1 → u ujemne
+    ox, oy = _off(-(66 - 60) * ks, 170 * ks, rs_)
+    gx, gy = mx + ox, my + oy
+    ox, oy = _off(-(100 - 60) * ks, 300 * ks, rs_)
+    cx_, cy_ = mx + ox, my + oy
+    kat, sk = do_punktu("clyde", 1000, (gx, gy), h=320, flip=-1, lean=lean_c)
+    lalka(st, t, "clyde", 1000, 320, flip=-1, lean=lean_c, rece=(kat, 20), skrot=(sk, 1.0))
+    st.put(J.rek("saksofon"), mx, my, P.lalki + 0.01, h=110, anchor=(60 / 160, 0.0), rot=rs_, sx=-1, shadow=(3, 4, 5, 0.35), z=0.03)
+    if t > 0.5:
+        for n in range(8):
+            f_ = ((t - 0.5) / 1.8 + n / 8) % 1.0
+            t_ur = t - f_ * 1.8  # chwila, w której ta nuta wyleciała z czary
+            if f_ * 1.8 > t - 0.5 or (3.1 < t_ur < 4.1):
+                continue
+            st.put(J.nuta(n % 2), cx_ - 40 - 50 * f_ + 18 * math.sin(f_ * 7 + n), cy_ - 30 - 260 * f_, P.rekwizyty, h=28 + 6 * (n % 3),
+                   anchor=(0.5, 0.5), rot=12 * math.sin(t * 3 + n), alpha=min(1.0, f_ * 6) * (1 - max(0.0, f_ - 0.75) / 0.25),
+                   shadow=(2, 3, 3, 0.3))
     tab(w, t, "SHHH!", 200, 250, 3.0, 3.0)
     koniec(st, w, t)
 
@@ -1409,12 +1500,29 @@ def s_joplin_walka(st, w, t, T):
     koniec(st, w, t, dim=0.9)
 
 
+OFIARY_CZAPKI = (0.0, 0.45)  # s po zbudowaniu podwórka: pierwsza i druga czapka zaczyna spadać
+
+
 def s_joplin_ofiary(st, w, t, T):
     """Na pustym podwórku przed garażem leżą dwie czapki policyjne; z nitek zjeżdżają podpisy; światło przygasa."""
     kam(st, t, 37, 640, 520, 1.3, 0.8)
     miasto(st, t, w, fasady=(("garaz", 640),), tyl=())
-    for n, x in enumerate((520, 780)):
-        st.put(J.rek("czapka_policyjna"), x, 690, P.lalki + 0.02, h=54, anchor=(0.5, 1.0), rot=-10 + 22 * n)
+    # markery reżysera 24.11 (0,00 s): „spada czapka”, „spada druga czapka” — czapki spadają z góry po liniach z markerów
+    # (kreski ekranu: skąd → dokąd), koziołkują i lądują na podwórku; druga chwilę po pierwszej (dźwięk: efekty.ZDARZENIA)
+    t0 = 0.0 if w.get("build") is None else 0.9  # gdy dekoracja buduje się od nowa: czapki spadają, kiedy podwórko stoi
+    for n, (x, (s0, s1)) in enumerate(((520, ((283, 100), (464, 547))), (780, ((908, 50), (807, 541))))):
+        f = pr(t, t0 + OFIARY_CZAPKI[n], 0.6)
+        if f <= 0:
+            continue
+        rot_k = -10 + 22 * n
+        if f < 1:
+            ax, ay = ekran_do_swiata(st.cam, *s0, P.lalki + 0.02)
+            bx_, by_ = x, 690
+            cx_, cy_ = lerp(ax, bx_, f), lerp(ay, by_, f * f)
+            st.put(J.rek("czapka_policyjna"), cx_, cy_, P.lalki + 0.02, h=54, anchor=(0.5, 0.6), rot=rot_k + 540 * (1 - f) * (1 if n else -1))
+        else:
+            odb = 8 * _bump(t, t0 + OFIARY_CZAPKI[n] + 0.72, 0.12)
+            st.put(J.rek("czapka_policyjna"), x, 690 - odb, P.lalki + 0.02, h=54, anchor=(0.5, 1.0), rot=rot_k)
     podpis(w, t, "Harry McGinnis", 520, 560, 1.0, T)
     podpis(w, t, "Wes Harryman", 780, 590, 1.8, T)
     koniec(st, w, t, dim=1.0 - 0.25 * ease(pr(t, 3.0, 3.0)))
@@ -1424,9 +1532,17 @@ def s_ciemnia(st, w, t, T):
     """W czerwonym świetle ciemni odbitka pływa w kuwecie; na papierze wyłania się Bonnie z rewolwerem i cygarem."""
     kam(st, t, 38, 640, 430, 1.25, 0.8)
     wnetrze(st, t, w, sciana="cegla", zarowki=(640,))
-    st.line([(120, 150), (1160, 160)], P.wzgorza, width=1.6, color=(60, 40, 30))
-    for n, x in enumerate((260, 420, 900, 1060)):  # suszące się odbitki na sznurku
-        st.put(J.rek("klisza"), x, 154, P.wzgorza + 0.001, h=110, anchor=(0.5, 0.0), rot=3 * math.sin(t + n))
+    # marker reżysera 24.11 (8,97 s): „u góry różne odbitki Bonnie, czarne” — na sznurku pod sufitem przez całą szerokość kadru
+    # suszy się siedem odbitek, na każdej czarna Bonnie w innej pozie (kreska markera: ekran x 83–1253, y 37–143)
+    pp = P.wzgorza
+    (lx, ly), (rx, ry) = ekran_do_swiata(st.cam, 60, 34, pp), ekran_do_swiata(st.cam, 1270, 40, pp)
+    st.line([(lx, ly), ((lx + rx) / 2, ly + 10), (rx, ry)], pp, width=1.6, color=(60, 40, 30))
+    for n in range(7):
+        sx_ = 120 + n * 170
+        x, y = ekran_do_swiata(st.cam, sx_, 36 + 10 * math.sin(math.pi * (sx_ - 60) / 1210), pp)
+        _, y2 = ekran_do_swiata(st.cam, sx_, 140, pp)
+        st.put(J.odbitka_bonnie(n), x, y, pp + 0.001, h=y2 - y, anchor=(0.5, 0.0), rot=3 * math.sin(t * 0.9 + n * 1.7))
+        st.put(J.rek("pinezka"), x, y + 2, pp + 0.0015, h=(y2 - y) * 0.12, anchor=(0.5, 0.5), shadow=None)
     lalka(st, t, "fotograf", 1010, 330, flip=-1, lean=-14, rece=(70, 30))
     # gag 11 (GAGI.md): kiedy na odbitce wyłania się Bonnie z cygarem, wywołującemu wypada papieros z ust prosto do kuwety, „O!”
     ux, uy = punkt("fotograf", 1010, 330, 176, 160, flip=-1, rot=-14)
@@ -1515,6 +1631,9 @@ def s_darby_auto(st, w, t, T):
     koniec(st, w, t)
 
 
+DARBY_BLOTO = (0.3, 2.2)  # s akcji: koła buksują, spod tylnego koła leci błoto (marker 24.11: 0,60 s)
+
+
 def s_darby_tyl(st, w, t, T):
     """Darby i Stone siedzą ściśnięci na tylnym siedzeniu; Bonnie odwraca się do nich i pyta; podpisy."""
     kam(st, t, 42, 640, 470, 1.55, 0.79)
@@ -1529,6 +1648,19 @@ def s_darby_tyl(st, w, t, T):
         # dłoń z kasetką miarki nad głową Bonnie, taśma zwisa w dół wzdłuż jej twarzy („od czubka głowy”)
         ("darby", (410, 126), (140 * mi, 0), 1, (J.rek("miarka"), 15, (0.06, 0.5), 90, False) if mi > 0.4 else None),
         ("bonnie", (505, 126), (60 * ease(pr(t, 2.0, 0.4)), 0), obrot)])
+    # marker reżysera 24.11 (0,60 s): „błoto spod kół wylatuje z buksowania” — koła buksują na starcie, spod tylnego koła
+    # (kreska markera) leci w tył łukiem błoto, grudki rozbryzgują się i opadają (dźwięk: efekty.ZDARZENIA, DARBY_BLOTO)
+    kq = 300 / 360.0
+    for kx, ky in J.KOLO_FORDA[:1]:
+        wx, wy = x + (kx - 450) * kq, DROGA_Y + (ky - 356) * kq + J.KOLO_R * kq * 0.7
+        for n in range(16):
+            f_ = ((t * 2.2 + n / 16) % 1.0)
+            t_ur = t - f_ / 2.2
+            if not (DARBY_BLOTO[0] <= t_ur < DARBY_BLOTO[1]):
+                continue
+            st.put(J.rek("plama"), wx - 30 - 260 * f_ - 20 * (n % 3), wy - 260 * f_ * (1 - f_) * (1 + 0.4 * (n % 2)), P.auta + 0.006,
+                   h=10 + 8 * (n % 3), anchor=(0.5, 0.5), rot=n * 47 + 300 * f_, tint=(0.55, 0.42, 0.28), alpha=1 - max(0.0, f_ - 0.7) / 0.3,
+                   shadow=None)
     podpis(w, t, "Dillard Darby", 560, 250, 1.0, 3.6)
     podpis(w, t, "Sophia Stone", 440, 320, 2.0, 2.8)
     # puenta dopiero na „undertaker” (przegląd 19.11: podpis zdradzał ją 8 s wcześniej)
@@ -1674,6 +1806,9 @@ def auto_srodek(st, t, cx, cy, h, rot, **kw):
     auto(st, t, cx - ox, h, y=cy - oy, przechyl=rot, **kw)
 
 
+WNOC_SWIATLA = 5.17  # s na osi Studio (marker reżysera 24.11)
+
+
 def s_wellington_noc(st, w, t, T):
     """Nocna droga przez prerię, Ford pędzi z zapalonymi światłami; tablica „DETOUR” mija się w ciemności, nikt jej nie widzi."""
     w.noc, w.moon = 1.0, 1.0
@@ -1681,7 +1816,15 @@ def s_wellington_noc(st, w, t, T):
     preria(st, t, w, slupy=True, tablice=[("DETOUR", 900)], noc=1.0)
     x = lerp(-200, 1500, t / T)
     auto(st, t, x, 230, pasazerowie=[("bonnie", 0, (0, 0)), ("clyde", 1, (40, 0))], tint=(0.7, 0.72, 0.85))
-    _reflektory(st, x, DROGA_Y, P.auta)
+    # marker reżysera 24.11 (5,17 s): „mrugają światła i po chwili się psują” — reflektory mrugają i gasną na dobre; Ford jedzie
+    # dalej po ciemku, dlatego nikt nie widzi tablicy DETOUR (dźwięk: efekty.ZDARZENIA, WNOC_SWIATLA)
+    tm = rs("wellington_noc", WNOC_SWIATLA)
+    jas = 1.0 if t < tm else (mruganie(t, tm, 1.1) if t < tm + 1.1 else 0.0)
+    if jas > 0:
+        _reflektory(st, x, DROGA_Y, P.auta, k=jas)
+        swiatla(st, x, 230, przod=jas)
+    elif t < tm + 1.5:  # iskra z przepalonej żarówki
+        blysk(st, x + 230 * 0.95, DROGA_Y - 140, P.auta + 0.005, t, tm + 1.15, r=60, kolor=(1.0, 0.85, 0.5), dl=0.15)
     koniec(st, w, t)
 
 
@@ -1726,7 +1869,12 @@ def s_wellington_bonnie(st, w, t, T):
     wyciag = ease(pr(t, 0.6, 2.4))
     bx = lerp(640, 400, wyciag)
     lalka(st, t, "bonnie", bx, 290, flip=-1, lean=lerp(60, 10, wyciag), rece=(60, 40), kuleje=0.0)
-    lalka(st, t, "clyde", bx - 110, 320, flip=1, lean=-10, rece=(90, 60))
+    # marker reżysera 24.11 (0,00 s): „przybliż go do nich dwóch” — Clyde stoi tuż przy Bonnie i W.D., jego dłoń trzyma Bonnie
+    # pod ramię (stał metr dalej i ciągnął powietrze); dłoń sięga punktu na jej ramieniu (Wytyczne 1.28)
+    cel = punkt("bonnie", bx, 290, 150, 250, flip=-1, rot=lerp(60, 10, wyciag))
+    cx_ = bx - 62
+    kat, _ = siegnij("clyde", cx_, cel, h=320, flip=1, lean=-10)
+    lalka(st, t, "clyde", cx_, 320, flip=1, lean=-10, rece=(kat, 60))
     lalka(st, t, "wd", bx + 120, 280, flip=-1, lean=-10, rece=(90, 60))
     for n in range(3):
         g = ((t * 0.5 + n / 3) % 1.0)

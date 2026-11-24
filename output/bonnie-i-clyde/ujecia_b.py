@@ -7,7 +7,7 @@ import math
 import sys
 
 import scena as swiat  # noqa: E402
-from scena import _off, bark, dlon, do_punktu, mruganie, rs, siegnij, stan_przy  # noqa: E402
+from scena import USTA, _off, bark, dlon, do_punktu, mruganie, rs, siegnij, stan_przy  # noqa: E402
 from scena import (CX, DROGA_Y, J, OCZY, P, STOPY, Z0, auto, back, bk, blysk, cien, ciezarowka, cmentarz, drukarnia, ease, ease_out,
                    eastham, jazda, kam, kino, lalka, las, lerp, mapa_punkt, mapa_scena, miasto, motocykl, noise, parawan, podpis, pr,
                    preria, punkt, teatr_gazet, widownia, wnetrze)
@@ -447,10 +447,18 @@ def s_mapa(st, w, t, T):
             if f > 0:
                 a = pkt[n - 1][0]
                 if n == len(pkt) - 1 and peka < t < supel_t + 0.3:
-                    mx, my = (a[0] + px) / 2, (a[1] + py) / 2
-                    zw = 40 * ease(pr(t, peka, 0.3))
-                    st.line([a, (mx - 6, my + zw)], P_ - 0.001, width=3, color=(190, 40, 36))
-                    st.line([(px, py), (mx + 6, my + zw)], P_ - 0.001, width=3, color=(190, 40, 36))
+                    # marker reżysera 24.11 (6,87 s): „linia ma być prowadzona z jednej kropki, a nie z dwóch” — pęknięta nić
+                    # zsuwa się z dużej kropki i zwisa tylko z górnej; po supełku Hamera biegnie znowu od tej jednej kropki
+                    # do dużej
+                    dl = math.hypot(px - a[0], py - a[1])
+                    if t < supel_t:
+                        zw = ease(pr(t, peka, 0.35))
+                        kat = math.atan2(py - a[1], px - a[0]) * (1 - zw) + math.radians(90 + 12 * math.sin(t * 5)) * zw
+                        L = dl * lerp(1.0, 0.55, zw)
+                        st.line([a, (a[0] + math.cos(kat) * L, a[1] + math.sin(kat) * L)], P_ - 0.001, width=3, color=(190, 40, 36))
+                    else:
+                        g = ease(pr(t, supel_t, 0.3))
+                        st.line([a, (lerp(a[0], px, g), lerp(a[1], py, g))], P_ - 0.001, width=3, color=(190, 40, 36))
                 else:
                     st.line([a, (lerp(a[0], px, f), lerp(a[1], py, f))], P_ - 0.001, width=3, color=(190, 40, 36))
                     if n == len(pkt) - 1 and t >= supel_t + 0.3:
@@ -493,6 +501,7 @@ def s_petle(st, w, t, T):
 # ===================== AKT VI · KIEDY AMERYKA PRZESTAŁA KIBICOWAĆ =====================
 
 GRAPE_SWIATLA = 10.9  # s na osi Studio (markery 23.11)
+GRAPE_GWIZDKI = 7.17  # s na osi Studio (marker 24.11)
 
 
 def s_grapevine(st, w, t, T):
@@ -509,9 +518,21 @@ def s_grapevine(st, w, t, T):
     # markery reżysera 23.11 (10,90 s): „zaświeć lampami z tyłu” i „zamrugaj lampą” — Ford daje znak, że ktoś w nim siedzi
     gs = rs("grapevine", GRAPE_SWIATLA)
     swiatla(st, 920, tyl=1.0 if t >= gs else 0.0, przod=miga(t, gs, 3))
+    # marker reżysera 24.11 (7,17 s): „zrób, że mają gwizdki i dźwięk gwizdka” — obaj motocykliści mają gwizdki w ustach
+    # i dmuchają w nie (drugi chwilę po pierwszym); przy gwizdku podmuch (dźwięk: efekty.ZDARZENIA, GRAPE_GWIZDKI)
+    tg = rs("grapevine", GRAPE_GWIZDKI)
     for n, key in enumerate(("murphy", "wheeler")):
         mx = jazda(t, 2.0 + 0.4 * n, 4.0, -300 - 200 * n, 360 - 220 * n, ease_out)[0]
         motocykl(st, t, mx, 190, jezdziec=key, p=P.auta + 0.004 * n)
+        k_ = 190 / 300.0
+        ux, uy = punkt(key, mx - 30 * k_, 190 * 1.55, USTA[0], USTA[1] + 2, y=DROGA_Y + 0.25 * 190 - 40 * k_, flip=1)
+        st.put(J.rek("gwizdek"), ux - 2, uy, P.auta + 0.004 * n - 0.0035, h=13, anchor=(0.08, 0.5), rot=-8, shadow=None, z=0.07)
+        for b0 in (tg + 0.25 * n, tg + 0.8 + 0.25 * n):
+            d = pr(t, b0, 0.35)
+            if 0 < d < 1:
+                for m in range(3):
+                    st.line([(ux + 30 + 14 * d, uy - 8 + 8 * m), (ux + 42 + 30 * d, uy - 12 + 12 * m)], P.auta + 0.004 * n,
+                            width=2.2, color=(250, 246, 236), alpha=0.9 * (1 - d))
     koniec(st, w, t)
 
 
@@ -549,15 +570,22 @@ def s_tullis(st, w, t, T):
     tx = lerp(460, 590, ease(idzie))
     kl = rs("tullis", TULLIS_KWIAT)
     reka = lerp(30, 72, ease(pr(t, kl - 0.4, 0.4))) * (1 - ease(pr(t, kl + 0.5, 0.5)))
+    # marker reżysera 24.11 (8,47 s): „tu połóż tego kwiatka” — kwiatek ląduje na wieku trumny w punkcie z kreski markera,
+    # dłoń Maree sięga tam w chwili położenia
+    kw_x, kw_y = ekran_do_swiata(st.cam, 766, 548, P.lalki + 0.076)
+    if t > kl - 0.5 and t < kl + 0.5:
+        reka = siegnij("tullis", tx, (kw_x - 10, kw_y - 18), h=290, flip=1, lean=6)[0]
     out = lalka(st, t, "tullis", tx, 290, flip=1, lean=6, rece=(reka, 20), hop=3 * (0 < idzie < 1),
                 trzyma=(J.rek("kwiatek"), 50, (0.5, 0.75), -90, False) if t < kl else None)
-    # dzwon sukni od bioder do linii trawy przed grobami (kreska markera: 449 → 534 px ekranu), dół chowa się za trawą
-    g0 = ekran_do_swiata(st.cam, 480, 449, P.lalki + 0.012)[1]
-    g1 = ekran_do_swiata(st.cam, 480, 546, P.lalki + 0.012)[1]
-    st.put(J.rek("suknia_slub"), tx + 4, g0 - abs(math.sin(tx / 26.0)) * 3 * (0 < idzie < 1), P.lalki + 0.012, h=g1 - g0,
-           anchor=(0.5, 0.0), rot=2, shadow=(3, 4, 4, 0.3))
+    # suknia ślubna w jednym kawałku (marker 24.11, 1,80 s: „ma być w jednej całości, a nie w dwóch częściach”): stanik od
+    # linii ramion i dzwon do linii trawy (marker 23.11, 2,20 s: „tak jej rozciągnij tę suknię”) — przed tułowiem, za przednią
+    # ręką, z tym samym pochyleniem co lalka
+    sc_ = 290 / 614.0
+    gx_, gy_ = punkt("tullis", tx, 290, 150, 206, flip=1, rot=6)
+    gy_ -= abs(math.sin(tx / 26.0)) * 3 * (0 < idzie < 1)
+    st.put(J.rek("suknia_cala"), gx_, gy_, P.lalki + 0.01, h=470 * sc_, anchor=(0.5, 0.0), rot=6, shadow=(3, 4, 4, 0.3), z=0.02)
     if t >= kl and bk(w, 0.6) >= 1:
-        st.put(J.rek("kwiatek"), 664, 616, P.lalki + 0.076, h=50, anchor=(0.5, 1.0), rot=-70)
+        st.put(J.rek("kwiatek"), kw_x, kw_y, P.lalki + 0.076, h=50, anchor=(0.5, 0.5), rot=-75)
     tab_tu(st, w, t, "OH LORD!", "tullis", 618, 222, 10.63)
     for n in range(14):
         if t < 0.6 + 0.2 * n:
@@ -840,7 +868,16 @@ def s_shreveport(st, w, t, T):
     # widać go tylko w oknie (1.1)
     s0, s1 = rs("shreveport", SHREV_SYLWETKA[0]), rs("shreveport", SHREV_SYLWETKA[1])
     if s0 < t < s1:
-        (ax, ay), (bx_, by_) = ekran_do_swiata(st.cam, 793, 386, P.most + 0.001), ekran_do_swiata(st.cam, 871, 471, P.most + 0.001)
+        # marker reżysera 24.11 (8,13 s): „tu go postaw i za tymi białymi kreskami” — sylwetka stoi w lewej części okna (kreska
+        # x 782–820) i chowa się za białymi szczeblami okna; punkty ekranu z chwili markera przeliczone kamerą z tej chwili,
+        # więc sylwetka i szczeble stoją w oknie fasady, a nie w miejscu ekranu (kamera się oddala)
+        class _K:
+            pass
+        km = _K()
+        km.T = T
+        kam(km, rs("shreveport", 8.13), 96, 640, 440, lerp(1.1, 0.98, ease(rs("shreveport", 8.13) / T)), 0.79)
+        na_sw = lambda sx, sy: ekran_do_swiata(km.cam, sx, sy, P.most + 0.001)
+        (ax, ay), (bx_, by_) = na_sw(770, 386), na_sw(848, 471)
         kawa = ease(pr(t, rs("shreveport", 7.7), 0.3)) * (1 - ease(pr(t, rs("shreveport", 9.0), 0.3)))
         reka = int(round(lerp(30, 115, kawa) / 15) * 15)
         spr = J.sylwetka_w_oknie("henry", reka, ("kubek", 26, (0.5, 0.6)), (bx_ - ax) / (by_ - ay))
@@ -849,6 +886,8 @@ def s_shreveport(st, w, t, T):
         lewa = (ax + bx_) / 2 - J.sylwetka("henry", rece=(30, 15), rzecz=("kubek", 26, (0.5, 0.6))).size[0] / 2 * sk_
         st.put(spr, lewa, by_ - 2, P.most + 0.001, h=by_ - ay, anchor=(0.0, 1.0), alpha=0.85 * ease(pr(t, s0, 0.3)) * (1 - ease(pr(t, s1 - 0.3, 0.3))),
                shadow=None)
+        for (x1, y1), (x2, y2) in ((na_sw(831, 343), na_sw(831, 478)), (na_sw(764, 396.5), na_sw(899, 396.5))):  # szczeble przed sylwetką
+            st.line([(x1, y1), (x2, y2)], P.most + 0.0015, width=5.6, color=(236, 232, 220), alpha=1.0)
     # gag 45 (GAGI.md): Henry wychodzi z kawiarni z dwiema kanapkami, a Forda już nie ma; rozgląda się w lewo i w prawo
     # (marker reżysera 23.11, 12,70 s: „jeszcze 2× go zrób lewo prawo”)
     if t >= 11.1:
@@ -948,7 +987,8 @@ def s_kanapka(st, w, t, T):
     k = h / 360.0
     # kanapka przy ustach, w oknie przed szybą (przegląd 19.11: leżała za karoserią i nie było jej widać)
     # marker reżysera 23.11 (0 s): „przesuń kanapkę w tym miejscu” — trochę dalej od twarzy, przed nią
-    st.put(J.rek("kanapka"), x + (372 - 450) * k + 40 + 8 * gryz, DROGA_Y + (128 - 356) * k + 24 - 8 * gryz, P.auta + 0.0015, h=26,
+    # marker reżysera 24.11 (0 s): „przesuń kanapkę w tym miejscu minimalnie w lewo, do ust” — lewy koniec kanapki przy ustach
+    st.put(J.rek("kanapka"), x + (372 - 450) * k + 29 + 4 * gryz, DROGA_Y + (128 - 356) * k + 22 - 6 * gryz, P.auta + 0.0015, h=26,
            anchor=(0.5, 0.5), rot=-10)
     dh = h * 0.92
     sx_ = x + (505 - 450) * k
@@ -1036,11 +1076,15 @@ def s_dym(st, w, t, T):
         if kt > 0:
             J.hang(st, J.tag("WE GOT THEM!", 24), x, 170 + 62 * (n % 2), P.rekwizyty + 0.02, kt, t, 700 + n, drop=460, sway=1.4, h=32,
                    shadow=(4, 6, 6, 0.4))
-    for n in range(10):
-        f = clamp_(t / 6.0 + n * 0.03)
-        sx_, sy_ = ekran_do_swiata(st.cam, 1170 + 40 * math.sin(n * 2.1), 540 - 25 * (n % 8), P.lalki + 0.03)
-        st.put(J.glow(r=256, color=(190, 186, 180)), sx_ + 20 * t, sy_ - 22 * t, P.lalki + 0.03,
-               w=220 + 40 * n % 160, anchor=(0.5, 0.5), alpha=0.6 * (1 - f), shadow=None)
+    # marker reżysera 24.11 (3,77 s): „dłużej dym” — dym znad auta (marker 23.11: „dym stąd”) unosi się przez całe ujęcie: nowe
+    # kłęby wychodzą z auta do końca, gęstnieją w pierwszych sekundach i dopiero pod koniec rzedną
+    gest = 1.0 - 0.55 * ease(pr(t, 6.5, T - 6.5))
+    for n in range(14):
+        f = ((t * 0.22 + n / 14) % 1.0)
+        sx_, sy_ = ekran_do_swiata(st.cam, 1150 + 40 * math.sin(n * 2.1), 560 - 10 * (n % 5), P.lalki + 0.03)
+        st.put(J.rek("oblok"), sx_ + 70 * f + 15 * math.sin(t + n), sy_ - 330 * f, P.lalki + 0.03 + 0.0002 * n,
+               h=70 + 150 * f, anchor=(0.5, 0.5), rot=n * 37 + 20 * t, tint=(0.62, 0.6, 0.58),
+               alpha=0.8 * gest * math.sin(math.pi * min(1.0, f * 1.15)), shadow=None)
     koniec(st, w, t, extra=(1.02, 1.0, 0.96), dim=1.0 - 0.15 * ease(pr(t, 8.0, 3.0)))
 
 
@@ -1109,6 +1153,9 @@ def s_darby_zaklad(st, w, t, T):
     koniec(st, w, t, extra=(0.94, 0.97, 1.02))
 
 
+POGRZEB_DESZCZ = 6.43  # s na osi Studio (marker reżysera 24.11)
+
+
 def s_pogrzeby(st, w, t, T):
     """Dwa osobne pogrzeby na dwóch cmentarzach, między nimi droga; tłumy przy obu; matka Bonnie odwraca się plecami."""
     kam(st, t, 106, 640, 440, lerp(1.1, 0.95, ease(t / T)), 0.79)
@@ -1126,6 +1173,17 @@ def s_pogrzeby(st, w, t, T):
         if key == "matka_bonnie":
             fl = 1 - 2 * ease(pr(t, 6.0, 0.8))
         lalka(st, t, key, x, 280 + 10 * (n % 2), flip=fl, lean=5 * fl, rece=(10, 0))
+    # marker reżysera 24.11 (6,43 s): „zaczyna padać deszcz, ale jest słonecznie nadal” — deszcz przy słońcu: z góry całej sceny
+    # lecą skośne krople na nitkach światła, słońce i światło zostają (dźwięk deszczu: efekty.ZDARZENIA, POGRZEB_DESZCZ)
+    td = rs("pogrzeby", POGRZEB_DESZCZ)
+    if t > td:
+        g = ease(pr(t, td, 1.2))
+        for n in range(110):
+            f = ((t - td) * 1.5 + n * 0.0917) % 1.0
+            if (t - td) * 1.5 < (n * 0.0917) % 1.0 * 0.3 + (n % 4) * 0.15:
+                continue
+            x0, y0 = ekran_do_swiata(st.cam, (n * 97.3) % 1340 - 30, -30 + 780 * f, P.rekwizyty)
+            st.line([(x0, y0), (x0 - 8, y0 + 40)], P.rekwizyty, width=2.2, color=(214, 230, 244), alpha=0.75 * g)
     koniec(st, w, t, dim=0.95)
 
 
@@ -1218,6 +1276,9 @@ def _ekran(sx0, sy0, s):
     return sx0, sy0, 1060 * s, 520 * s
 
 
+FILM_SCENA3 = 10.0  # s na osi Studio: trzecia scena na płótnie (uwaga reżysera 24.11)
+
+
 def s_film_hamer(st, w, t, T):
     """Ekran kina: piękna para z filmu z 1967 roku, potem aktor-Hamer związany, a filmowa Bonnie robi sobie z nim zdjęcie; widownia
     się śmieje; obok ekranu prawdziwy Hamer z tabliczką „THAT'S NOT ME!”."""
@@ -1228,7 +1289,15 @@ def s_film_hamer(st, w, t, T):
     # uwaga reżysera 23.11: „poruszaj tymi postaciami, obiektami na tym płótnie kina tak, jakby film po prostu leciał” — auto
     # wjeżdża, para idzie do siebie, tańczy i się obraca; w drugiej scenie związany Hamer szarpie się, a filmowa Bonnie krąży
     # wokół niego z aparatem i pozuje do kilku zdjęć; obraz lekko migocze jak z projektora
-    if t < 5.6:
+    # uwaga reżysera 24.11: „od 10 s daj jeszcze jedno jakieś ujęcie na płótno” — trzecia scena filmu na kwestię „so his family
+    # sued the studio”: kronika filmowa, wirująca gazeta „HAMERS SUE STUDIO” zatrzymuje się przodem do widowni
+    t3 = rs("film_hamer", FILM_SCENA3)
+    if t >= t3:
+        k3 = pr(t, t3, 0.9)
+        st.put(J.gazeta("HAMERS SUE STUDIO", 61, 360, 480, tytul="THE DAILY NEWSREEL"), ex + ew / 2, ey + eh * 0.52, pe,
+               h=eh * 0.86 * lerp(0.12, 1.0, ease(k3)), anchor=(0.5, 0.5), rot=720 * (1 - ease(k3)) + 2 * math.sin(t * 1.3),
+               tint=(0.84, 0.84, 0.86), shadow=None)
+    elif t < 5.6:
         cx_ = jazda(t, 0.3, 1.8, 1.15, 0.78, ease_out)[0]
         auto(st, t, ex + cx_ * ew, 150, y=ey + eh - 8, p=pe - 0.0005, tint=(0.8, 0.8, 0.84), shadow=None, droga=cx_ * 900)
         do = ease(pr(t, 1.2, 1.6))
@@ -1252,7 +1321,7 @@ def s_film_hamer(st, w, t, T):
             blysk(st, bxc - 0.04 * ew, ey + eh - 200, pe + 0.001, t, c, r=220, kolor=(1.0, 1.0, 1.0))
     st.put(J.glow(r=256, color=(255, 250, 235)), ex + ew / 2, ey + eh / 2, pe + 0.002, w=ew * 1.1, anchor=(0.5, 0.5), mode="add",
            alpha=0.05 + 0.04 * abs(math.sin(t * 23) * math.sin(t * 7.1)), shadow=None)
-    if 5.4 < t < 5.8:
+    if 5.4 < t < 5.8 or t3 - 0.2 < t < t3 + 0.15:  # cięcie w filmie: błysk taśmy
         st.dim = 0.3
     widownia(st, t)
     tab(w, t, "HA HA HA!", 780, 150, 8.6, 2.6)  # nad śmiejącą się aktorką; przy y 560 chował się pod napisami (przegląd 19.11)
@@ -1261,7 +1330,9 @@ def s_film_hamer(st, w, t, T):
     koniec(st, w, t)
 
 
-GRA_WYSKOK = 7.0  # s na osi Studio: pikselowi Bonnie i Clyde wyskakują z auta (marker 23.11: 7,20 s)
+GRA_WYSKOK = 5.4  # s na osi Studio: pikselowi Bonnie i Clyde wyskakują z auta (marker 23.11: 7,20 s; 24.11 jazda krótsza — wcześniej)
+GRA_ROW = 4.4      # s akcji: pikselowe auto wpada do rowu (było 6,3 — uwaga 24.11: „troszkę skróć tę jazdę auta”)
+GRA_STRZALY = 6.2  # s na osi Studio: oboje strzelają pikselowymi kulami („na końcu wyskakują i strzelają oboje”)
 
 
 def s_gra(st, w, t, T):
@@ -1276,8 +1347,10 @@ def s_gra(st, w, t, T):
                    anchor=(0.5, 0.5), alpha=0.6, shadow=None)
     else:
         # gag 29 (GAGI.md, W2 „rów” — puenta): pikselowe auto podskakuje i ląduje w pikselowym rowie; „AGAIN?!” jak przy radiowozach
-        x = ex + ew * lerp(0.25, 0.6, ease(pr(t, 1.6, 4.6)))
-        sk = pr(t, 6.3, 0.5)
+        # uwaga reżysera 24.11: „na końcu wyskakują i strzelają oboje kulami pikselowymi, i troszkę skróć tę jazdę auta” —
+        # jazda krótsza (2,8 s zamiast 4,6 s), rów i wyskok wcześniej, a na końcu oboje strzelają pikselowymi kulami w prawo
+        x = ex + ew * lerp(0.25, 0.6, ease(pr(t, 1.6, GRA_ROW - 1.7)))
+        sk = pr(t, GRA_ROW, 0.5)
         x += ew * 0.12 * sk
         y = ey + eh * 0.62 + 6 * abs(math.sin(t * 6)) * (sk <= 0) - eh * 0.18 * math.sin(math.pi * min(1, sk * 1.3)) + eh * 0.12 * max(0, sk - 0.6) / 0.4
         st.put(J.listwa(60, 20, (60, 44, 30)), ex + ew * 0.78, ey + eh * 0.78, pe - 0.0005, w=0.24 * ew, anchor=(0.5, 0.5), shadow=None)
@@ -1285,14 +1358,28 @@ def s_gra(st, w, t, T):
         wy = rs("gra", GRA_WYSKOK)
         st.put(J.gra_piksele(pusty=t >= wy), x, y, pe, w=0.4 * ew, anchor=(0.5, 0.5), rot=-24 * min(1.0, max(0.0, sk - 0.5) / 0.3), shadow=None)
         if t >= wy:
-            for n, (kto, a_, b_) in enumerate((("bonnie", (822, 316), (428, 403)), ("clyde", (879, 292), (504, 403)))):
+            for n, (kto, a_, b_) in enumerate((("bonnie", (822, 316), (400, 403)), ("clyde", (879, 292), (520, 403)))):
                 fj = min(1.0, (t - wy - 0.12 * n) / 0.7)
                 if fj > 0:
                     A = ekran_do_swiata(st.cam, *a_, pe + 0.0005)
                     B = ekran_do_swiata(st.cam, *b_, pe + 0.0005)
-                    st.put(J.gra_postac(kto), lerp(A[0], B[0], fj), lerp(A[1], B[1], fj) - 0.22 * eh * math.sin(math.pi * fj), pe + 0.0005,
-                           h=0.2 * eh, anchor=(0.5, 1.0), shadow=None)
-        tab(w, t, "AGAIN?!", ex + ew * 0.5, ey + eh * 0.2, 7.0, 1.6)
+                    px_, py_ = lerp(A[0], B[0], fj), lerp(A[1], B[1], fj) - 0.22 * eh * math.sin(math.pi * fj)
+                    zw = -1 if kto == "bonnie" and fj >= 1 else 1  # plecami do siebie: Bonnie strzela w lewo, Clyde w prawo
+                    st.put(J.gra_postac(kto), px_, py_, pe + 0.0005, h=0.2 * eh, anchor=(0.5, 1.0), sx=zw, shadow=None)
+                    if fj >= 1:  # pikselowy pistolet w dłoni i strzały: kula leci przez ekran, przy lufie błysk
+                        hx, hy = px_ + 0.045 * eh * zw, py_ - 0.1 * eh
+                        st.put(J.listwa(40, 16, (60, 60, 70)), hx, hy, pe + 0.0006, w=0.05 * eh, anchor=(0.0, 0.5), sx=zw, shadow=None)
+                        kraw = ex + 10 if zw < 0 else ex + ew - 10
+                        for m in range(8):
+                            ts_ = rs("gra", GRA_STRZALY) + 0.32 * m + 0.16 * n
+                            fk = (t - ts_) / 0.55
+                            if 0 <= fk < 1:
+                                st.put(J.listwa(20, 20, (255, 240, 90)), lerp(hx + 0.05 * eh * zw, kraw, fk), hy, pe + 0.0007,
+                                       w=0.028 * eh, anchor=(0.5, 0.5), shadow=None)
+                            if 0 <= fk < 0.12:
+                                st.put(J.listwa(30, 30, (255, 150, 60)), hx + 0.06 * eh * zw, hy, pe + 0.0007, w=0.05 * eh, anchor=(0.5, 0.5),
+                                       shadow=None)
+        tab(w, t, "AGAIN?!", ex + ew * 0.5, ey + eh * 0.2, GRA_ROW + 0.6, 1.6)
     widownia(st, t)
     for n, x in enumerate((300, 560, 820, 1020)):
         st.put(J.rek("pad"), x, 600, P.rampa - 0.005, h=46, anchor=(0.5, 0.5), rot=8 * math.sin(t * 8 + n), shadow=None)
@@ -1300,34 +1387,74 @@ def s_gra(st, w, t, T):
 
 
 KON_TECZKA, KON_KARTA, KON_SWIATLA, KON_DO_TECZKI = 5.0, 7.27, 8.33, 9.5  # s na osi Studio (markery 23.11)
+KON_CZAPKI = 5.6    # s akcji: „…nine dead lawmen…” — dziewięć czapek policyjnych zjeżdża na nitkach
+KON_KIESZEN = 2.3   # s akcji: „two broke kids” — z pustej kieszeni Clyde'a wylatuje ćma (ta sama co w West Dallas)
+KON_STEMPEL = 11.5  # s akcji: „…brought them down” — na teczce pieczątka CASE CLOSED
+KON_KURTYNA = 11.7  # s akcji: kurtyna zaczyna się zasuwać (zasunięta, kiedy kończy się kwestia)
 
 
 def s_koniec(st, w, t, T):
-    """Papierowa Bonnie z cygarem i Clyde kładą się płasko w stronę gazety; obok zamyka się teczka Hamera; kurtyna zasuwa się."""
-    kam(st, t, 112, 640, lerp(380, 400, ease(t / T)), lerp(1.0, 0.92, ease(t / T)), 0.8, drift=0.4)
+    """Papierowa Bonnie z cygarem i Clyde stoją przy aucie, potem kładą się płasko w stronę gazety; zjeżdża duża teczka Hamera,
+    nad nią powoli karta z ich aktami, która zsuwa się na linkach do teczki; na teczce pieczątka; kurtyna się zasuwa.
+    Markery reżysera 23.11: „w tym momencie wjeżdża ta duża teczka z dużym napisem Bonnie & Clyde” (5,37 s), „większa teczka”
+    (6,47 s; obrys ekranu x 459–759, y 290–441), „powoli zjeżdża karta z ich aktami” (7,27 s; x 583–733, y 189–294), „zamrugaj
+    światłami” (8,33 s), „i te akta zjeżdżają w dół za nią do karty” (9,50 s). Uwaga 24.11: „napraw to ściąganie w dół na linkach,
+    to co napisałem w markerach” — karta schodzi na linkach za teczkę i zostaje w niej (linki dalej ją trzymają), teczka ma
+    rozmiar z obrysu; czat 24.11: „118/119 jest statyczne, jakby coś się zepsuło, bo nikt się nie rusza” — w każdej części kwestii
+    coś się dzieje (ćma z pustej kieszeni, dziewięć czapek, mruganie, pieczątka)."""
+    def _kam(obj, tt):
+        kam(obj, tt, 112, 640, lerp(380, 400, ease(tt / T)), lerp(1.0, 0.92, ease(tt / T)), 0.8, drift=0.4)
+
+    class _K:
+        pass
+
+    def ekran_w(tt, sx, sy, p):  # punkt ekranu z chwili markera → stałe miejsce w kadrze wzorcowym
+        km = _K()
+        km.T = T
+        _kam(km, tt)
+        return ekran_do_swiata(km.cam, sx, sy, p)
+
+    _kam(st, t)
     teatr_gazet(st, t, w)
     auto(st, t, 700, 290)
+    swiatla(st, 700, 290, przod=miga(t, rs("koniec", KON_SWIATLA), 3))
     kl = ease(pr(t, 3.0, 2.5))
     lalka(st, t, "bonnie_cygaro", 470, 320, flip=1, lean=-85 * kl, sink=0.4 * kl, rece=(70 * (1 - kl), 10), trzyma=REV() if kl < 0.5 else None)
     lalka(st, t, "clyde", 980, 350, flip=-1, lean=85 * kl, sink=0.4 * kl, rece=(35 * (1 - kl), 20), trzyma=KARABIN() if kl < 0.5 else None)
-    # teczka zjeżdża na nitce nad maską auta, nad napisem (przegląd 19.11; lektor mówi o niej — „a patient man reading their
-    # file”). Markery reżysera 23.11: „w tym momencie wjeżdża ta duża teczka z dużym napisem Bonnie & Clyde” (5,37 s), „większa
-    # teczka” (6,47 s), „powoli zjeżdża karta z ich aktami” (7,27 s), „zamrugaj światłami” (8,33 s), „i te akta zjeżdżają
-    # w dół za nią do karty” (9,50 s) — karta chowa się za teczką, do środka
+    fc = pr(t, KON_KIESZEN, 2.2)  # ćma z pustej kieszeni Clyde'a (W1 „pusta kasa” — klamra z West Dallas)
+    if 0 < fc < 1:
+        kx_, ky_ = punkt("clyde", 980, 350, 170, 430, flip=-1)
+        st.put(J.rek("cma"), kx_ - 160 * fc + 22 * math.sin(fc * 17), ky_ - 330 * fc, P.rekwizyty, h=40, anchor=(0.5, 0.5),
+               sx=0.3 + 0.7 * abs(math.sin(t * 22)), rot=10 * math.sin(t * 7), shadow=(2, 3, 3, 0.3))
+    for n in range(9):  # „nine dead lawmen”: dziewięć czapek policyjnych w rzędzie, po kolei na nitkach
+        cx_ = 170 + 117.5 * n
+        k_ = pr(t, KON_CZAPKI + 0.13 * n, 0.8)
+        if k_ > 0:
+            J.hang(st, J.rek("czapka_policyjna"), cx_, 112 + 16 * (n % 2), P.rekwizyty + 0.01, k_, t, 790 + n, h=58, drop=340, sway=0.8,
+                   shadow=(3, 4, 5, 0.35))
     r = lambda s_: rs("koniec", s_)
-    tx, ty = ekran_do_swiata(st.cam, 609, 290, P.rekwizyty)
-    J.hang(st, J.teczka_akt(), tx, ty, P.rekwizyty, pr(t, r(KON_TECZKA), 1.0), t, 777, h=152, drop=460, sway=0.4, shadow=(5, 7, 8, 0.4))
-    kk = pr(t, r(KON_KARTA), 1.6)
+    pt = P.rekwizyty
+    (x1, y1), (x2, y2) = ekran_w(r(6.47), 459, 290, pt), ekran_w(r(6.47), 759, 441, pt)
+    J.hang(st, J.teczka_akt(), (x1 + x2) / 2, y1, pt, pr(t, r(KON_TECZKA), 1.0), t, 777, h=y2 - y1, drop=460, sway=0.4, shadow=(5, 7, 8, 0.4))
+    kk = pr(t, r(KON_KARTA), 1.8)  # powoli
     if kk > 0:
-        kx, ky = ekran_do_swiata(st.cam, 658, 189, P.rekwizyty - 0.002)
-        wpada = ease(pr(t, r(KON_DO_TECZKI), 0.7))
-        J.hang(st, J.karta_akt(), kx, ky + 140 * wpada, P.rekwizyty - 0.002, kk, t, 778, h=104, drop=380, sway=0.3,
-               shadow=(4, 6, 6, 0.35), alpha=1.0 if wpada < 0.98 else 0.0)
-    swiatla(st, 700, 290, przod=miga(t, r(KON_SWIATLA), 3))
+        (k1, l1), (k2, l2) = ekran_w(r(7.27), 583, 189, pt - 0.002), ekran_w(r(7.27), 733, 294, pt - 0.002)
+        # na koniec karta schodzi na linkach za teczkę: jej górna krawędź chowa się tuż pod górną krawędzią teczki
+        wpada = ease(pr(t, r(KON_DO_TECZKI), 1.0))
+        dol = (y1 + (y2 - y1) * 0.16) - l1
+        J.hang(st, J.karta_akt(), (k1 + k2) / 2, l1 + dol * wpada, pt - 0.002, kk, t, 778, h=l2 - l1, drop=380, sway=0.3 * (1 - wpada),
+               shadow=(4, 6, 6, 0.35), strings=(0.2, 0.8))
+    ks = pr(t, KON_STEMPEL, 0.25)
+    if ks > 0:
+        st.put(J.tag("CASE CLOSED", 34), (x1 + x2) / 2 + 40, y1 + (y2 - y1) * 0.62, pt + 0.003, h=(y2 - y1) * 0.26 * back(ks, 2.0),
+               anchor=(0.5, 0.5), rot=-11, tint=(1.0, 0.55, 0.5), shadow=(3, 4, 4, 0.4))
     R = sys.modules.get("render") or sys.modules.get("__main__")
     if R is not None and hasattr(R, "kurtyna"):
-        R.kurtyna(st, ease(pr(t, 10.0, 3.0)))
+        R.kurtyna(st, ease(pr(t, KON_KURTYNA, T - KON_KURTYNA - 0.4)))
     koniec(st, w, t)
+
+
+DZ_WEJSCIE, DZ_UKLON, DZ_KWIATY, DZ_SERCA = 0.4, 1.6, 2.6, 3.7  # s akcji (24.11)
 
 
 def s_dzieki(st, w, t, T):
@@ -1338,27 +1465,42 @@ def s_dzieki(st, w, t, T):
         swiat.dekoracja(st, Z0.kurtyna(strona), CX, -60, P.drzewa, h=1000, anchor=(1.0 if strona < 0 else 0.0, 0.0), shadow=None,
                         tint=(0.55, 0.42, 0.42))
     swiat.dekoracja(st, J.glow(), CX, 700, P.drzewa + 0.01, w=1800, anchor=(0.5, 0.5), mode="add", alpha=0.25, shadow=None, tint=(1.0, 0.85, 0.6))
+    # czat reżysera 24.11: „118/119 jest statyczne, jakby coś się zepsuło, bo nikt się nie rusza”, uwaga w ujęciu: „napraw to ujęcie,
+    # bo nic się nie dzieje” — lalki wchodzą z obu stron na swoje miejsca, kłaniają się falą (zdejmują nakrycie głowy ręką
+    # i trzymają je przy boku — uwaga 23.11), z widowni lecą kwiaty i lądują im pod nogami, na „support me” nad każdym
+    # unosi się serce, Bonnie macha beretem; potem gag z kurtyną
     for n, key in enumerate(("buck", "blanche", "wd", "bonnie", "clyde", "hamer", "darby", "boyd")):
-        x = 120 + 148 * n
-        t0 = 1.2 + 0.45 * n
-        uklon = ease(pr(t, t0, 0.35)) * (1 - ease(pr(t, t0 + 0.6, 0.4)))
-        fl = 1 if x < CX else -1
+        xc = 120 + 148 * n
+        lewa = n < 4
+        te = DZ_WEJSCIE + 0.14 * (3 - n if lewa else n - 4)  # najpierw środek, potem brzegi
+        wj = ease(pr(t, te, 1.0))
+        x = lerp(-140 if lewa else 1420, xc, wj)
+        t0 = DZ_UKLON + 0.25 * n
+        uklon = ease(pr(t, t0, 0.35)) * (1 - ease(pr(t, t0 + 0.7, 0.45)))
+        fl = (1 if lewa else -1) if wj < 1 else (1 if xc < CX else -1)
         h = 330 if key in ("clyde", "hamer", "buck") else 300
-        # uwaga reżysera 23.11: „ściąga ręką kapelusz z głowy i z nim w ręku przenosi go w dół, i tak dla wszystkich, co mają coś
-        # na głowie” — każdy zdejmuje nakrycie głowy przed ukłonem (kapelusz_reka); marker 1,27 s: „jej narysuj czapkę z daszkiem”
-        # (Darby w czapce z daszkiem)
-        key = "darby_czapka" if key == "darby" else key
-        lean = 16 * fl * uklon
-        u = kapelusz_reka(key, x, h, t, t0 - 0.55, flip=fl, lean=lean, wroc=False) if J.figura(key).kapelusz else None
-        rk, sk, kap, krot = u if u else (20, 1.0, False, 0.0)
-        mach = key == "bonnie" and t > t0 + 1.0 and t < 6.9
+        key = "darby_czapka" if key == "darby" else key  # marker 23.11 (1,27 s): „jej narysuj czapkę z daszkiem” (Darby)
+        lean = 22 * fl * uklon
+        u = kapelusz_reka(key, x, h, t, t0 - 0.55, flip=fl, lean=lean, wroc=False) if J.figura(key).kapelusz and wj >= 1 else None
+        rk, sk, kap, krot = u if u else (20 + 25 * (0 < wj < 1) * abs(math.sin(t * 8)), 1.0, False, 0.0)
+        mach = key == "bonnie" and t0 + 1.2 < t < 6.9
         szarp = key in ("bonnie", "clyde") and 7.0 < t < 8.0
         if szarp:
             rk, sk = 160, 1.0
         elif mach:
             rk, sk = 130 + 30 * math.sin(t * 8), 1.0
-        lalka(st, t, key, x, h, flip=fl, lean=lean + (8 * math.sin(t * 14) * szarp), rece=(rk, 10), skrot=(sk, 1.0),
-              kapelusz_reka=kap, kapelusz_rot=krot, seed=sum(map(ord, "darby")) if key == "darby_czapka" else None)  # mniejszy ukłon
+        lalka(st, t, key, x, h, flip=fl, lean=lean + (8 * math.sin(t * 14) * szarp), rece=(rk, 10), skrot=(sk, 1.0), hop=6 * (0 < wj < 1),
+              kapelusz_reka=kap, kapelusz_rot=krot, seed=sum(map(ord, "darby")) if key == "darby_czapka" else None)
+        # kwiat z widowni: leci łukiem spod rampy i ląduje przed lalką
+        fk = pr(t, DZ_KWIATY + 0.17 * ((n * 5) % 8), 0.7)
+        if fk > 0:
+            kx0, ky0 = xc + (60 if lewa else -60), 860
+            st.put(J.rek("kwiatek"), lerp(kx0, xc + 22, fk), lerp(ky0, 652, fk) - 220 * math.sin(math.pi * fk), P.lalki + 0.04,
+                   h=60, anchor=(0.5, 0.5), rot=lerp(0, 600 + 30 * n, fk) if fk < 1 else -80 + 10 * n % 30, shadow=(2, 3, 3, 0.3))
+        fs = pr(t, DZ_SERCA + 0.12 * n, 1.6)  # „support me”: serce unosi się nad każdym i gaśnie
+        if 0 < fs < 1:
+            st.put(J.serce(), xc + 10 * math.sin(t * 3 + n), 260 - 150 * fs, P.rekwizyty, h=34 * back(min(1.0, fs * 3), 1.6),
+                   anchor=(0.5, 0.5), alpha=1 - max(0.0, fs - 0.7) / 0.3, shadow=(2, 3, 3, 0.3))
     # gag 30 (GAGI.md, W3 „nitka teatru” — puenta): kurtyna zasuwa się i zacina w połowie; Bonnie i Clyde szarpią ją razem,
     # kurtyna zjeżdża z łoskotem i przykrywa wszystkich; zza kulis macha ręka maszynisty
     R = sys.modules.get("render") or sys.modules.get("__main__")

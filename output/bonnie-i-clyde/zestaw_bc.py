@@ -152,6 +152,8 @@ LALKI = {
     # ta sama lalka z otwartymi ustami (marker reżysera 21.11, ujęcie 14: „otwiera buzię i tabliczkę ooo..”) — podmiana w jednej klatce
     "detektyw_o": dict(kapelusz="fedora", kapelusz_kolor=(90, 70, 54), stroj="plaszcz", gora=(120, 96, 70), dol=(90, 80, 70),
                        odznaka=True, wasy=True, usta="o"),
+    "detektyw_oo": dict(kapelusz="fedora", kapelusz_kolor=(90, 70, 54), stroj="plaszcz", gora=(120, 96, 70), dol=(90, 80, 70),
+                        odznaka=True, wasy=True, usta="o", oczy="mniejszosc"),
     "szeryf": dict(kapelusz="stetson", kapelusz_kolor=(160, 140, 110), stroj="kamizelka", gora=(110, 90, 64), dol=(96, 88, 80),
                    odznaka=True, wasy=True, szer=1.08),
     "straznik": dict(kapelusz="stetson", kapelusz_kolor=(140, 120, 90), stroj="koszula", gora=(170, 150, 112), dol=(110, 96, 80),
@@ -395,6 +397,11 @@ def _korpus_img(s, seed_spec=None):
             d.line([(x0 - 2, yy - 9), (x1 + 2, yy - 11 if x0 > 150 else yy - 10)], fill=_shade(hair, 0.8) + (240,), width=4)
             d.line([(x0, yy), (x1, yy)], fill=ink, width=3)
             d.ellipse([(x0 + x1) / 2 - 3.5 + 2, yy - 1, (x0 + x1) / 2 + 3.5 + 2, yy + 7], fill=ink)
+    elif s["oczy"] == "mniejszosc":
+        # oczy jak dwa znaki „<” (markery reżysera 24.11, ujęcia 14 i 49: „zrób mu z kulek oczu na chwilę takie znaki
+        # mniejszości, jakby patrzał na te zdjęcia, że woo < <”); na arkuszu „>”, bo policjant patrzy w lewo (lustro)
+        for x0, x1, yy in ((130, 144, 124), (164, 178, 122)):
+            d.line([(x0 - 1, yy - 8), (x1 + 1, yy), (x0 - 1, yy + 8)], fill=ink, width=4, joint="curve")
     else:
         for x0, x1, yy in ((130, 144, 126), (164, 178, 124)):
             d.arc([x0, yy - 6, x1, yy + 6], 20, 160, fill=ink, width=3)
@@ -1101,7 +1108,13 @@ def ford(kolor="szary", napis=None, dziury=0, kurz=False, lustro=False):
                 d.ellipse([x - 7, y - 7, x + 7, y + 7], outline=(220, 214, 200, 160), width=1)
                 n += 1
     if kurz:
-        d.rectangle([60, 240, 870, 290], fill=(190, 170, 130, 70))
+        # kurz na dole karoserii kładzie się NA wierzch (alpha_composite) i tylko tam, gdzie jest blacha. ImageDraw.rectangle
+        # z półprzezroczystym kolorem podmieniał piksele razem z kanałem alfa: dół auta robił się przezroczysty i spod
+        # karoserii wystawały nogi pasażerów (reżyser 24.11: „napraw spód auta bo zniknął”, „w kilku nadal nie ma spodów aut”).
+        lay = Image.new("RGBA", im.size, (0, 0, 0, 0))
+        ImageDraw.Draw(lay).rectangle([60, 240, 870, 290], fill=(190, 170, 130, 70))
+        lay.putalpha(Image.fromarray(np.minimum(np.asarray(lay.getchannel("A")), np.asarray(im.getchannel("A")))))
+        im.alpha_composite(lay)
     return Sprite(im, f"ford-{c}-{napis}-{dziury}-{kurz}-{lustro}", rim=2, clean=False, crop=False)
 
 
@@ -1283,6 +1296,13 @@ REKWIZYTY = {
     "suknia_slub": (220, 140, lambda: [(poly([(84, 0), (136, 0), (214, 134), (6, 134)]), (246, 244, 238), dict(edge=2)),
                                        (poly([(40, 96), (180, 96), (196, 110), (24, 110)]), (232, 228, 220)),
                                        (poly([(60, 60), (160, 60), (170, 68), (50, 68)]), (236, 232, 226))]),
+    # suknia ślubna Maree w jednym kawałku: stanik od linii ramion, wcięcie w talii i dzwon do ziemi (marker reżysera 24.11,
+    # ujęcie 90: „napraw suknię, ona ma być w jednej całości, a nie w dwóch częściach”); arkusz w skali lalki (614 px wzrostu)
+    "suknia_cala": (260, 470, lambda: [(poly([(104, 0), (156, 0), (172, 40), (166, 190), (256, 466), (4, 466), (94, 190), (88, 40)]),
+                                        (246, 244, 238), dict(edge=2)),
+                                       (poly([(96, 182), (164, 182), (168, 196), (92, 196)]), (232, 228, 220)),
+                                       (poly([(30, 420), (230, 420), (240, 440), (20, 440)]), (234, 230, 222)),
+                                       (poly([(60, 330), (200, 330), (208, 342), (52, 342)]), (238, 234, 228))]),
     "kwiatek": (40, 120, lambda: [(rect(18, 40, 22, 118), (80, 120, 60)), (ell(20, 22, 16, 16), (250, 250, 244)), (ell(20, 22, 6, 6), (230, 190, 70))]),
     # źdźbło słomy w ustach Gaulta (marker reżysera 23.11, ujęcie „noc”: „ma słomę w ustach i na następnych ujęciach też”)
     "slomka": (70, 10, lambda: [(rect(2, 3, 68, 7), (226, 200, 110)), (rect(50, 2, 68, 8), (206, 176, 90))]),
@@ -1428,6 +1448,23 @@ def klisza_pozy():
         sil = sil.resize((max(1, int(sil.size[0] * sc)), max(1, int(sil.size[1] * sc))), Image.LANCZOS)
         base.alpha_composite(sil, (20 + kk * 84 + (64 - sil.size[0]) // 2, 22 + (46 - sil.size[1]) // 2))
     return Sprite(base, "rek-klisza-pozy", rim=2, clean=False)
+
+
+@lru_cache(None)
+def odbitka_bonnie(v=0):
+    """Odbitka z ciemni (marker reżysera 24.11, ujęcie 50: „u góry różne odbitki Bonnie, czarne”): papier fotograficzny
+    z białym marginesem, na nim czarna sylwetka Bonnie — każda odbitka w innej pozie (jak mikro-pozy na kliszy z Joplin)."""
+    w, h = 150, 190
+    base = stack(w, h, [(rect(2, 2, w - 2, h - 2), (238, 232, 218), dict(kind="gladki", edge=2)),
+                        (rect(14, 14, w - 14, h - 30), (214, 204, 184), dict(kind="gladki"))], seed=1940 + v)
+    pozy = [dict(rece=(90, 10), rzecz=("rewolwer", 70, (0.3, 0.75))), dict(rece=(150, 30), lean=-6), dict(rece=(35, 35)),
+            dict(rece=(120, 160), lean=6), dict(rece=(70, 20), rzecz=("cygaro", 30, (0.1, 0.5))), dict(rece=(160, 160)),
+            dict(rece=(100, 60), rzecz=("karabin", 40, (0.3, 0.55)), lean=-4)]
+    sil = sylwetka("bonnie", **pozy[v % len(pozy)])
+    sc = min((w - 40) / sil.size[0], (h - 58) / sil.size[1])
+    sil = sil.resize((max(1, int(sil.size[0] * sc)), max(1, int(sil.size[1] * sc))), Image.LANCZOS)
+    base.alpha_composite(sil, ((w - sil.size[0]) // 2, 16 + (h - 46 - sil.size[1]) // 2))
+    return Sprite(base, f"odbitka-bonnie-{v}", rim=2, clean=False)
 
 
 @lru_cache(None)
@@ -1773,6 +1810,20 @@ def slonce_bc():
     w = h = 220
     parts = [(ell(110, 110, 104, 104), (236, 176, 70), dict(edge=4)), (ell(110, 110, 78, 78), (246, 204, 104), dict(kind="gladki"))]
     return Sprite(stack(w, h, parts, seed=700), "slonce-bc", rim=2, clean=False)
+
+
+@lru_cache(None)
+def nuta(v=0):
+    """Nuta z czarnego papieru (gra saksofonu, marker reżysera 24.11): v=0 — ósemka z chorągiewką, v=1 — dwie ósemki z belką."""
+    w, h = (90, 130) if v == 0 else (150, 130)
+    ink = (34, 28, 26)
+    if v == 0:
+        parts = [(ell(30, 106, 22, 16), ink, dict(kind="gladki", edge=1)), (rect(46, 10, 56, 106), ink),
+                 (poly([(56, 10), (84, 44), (78, 60), (56, 36)]), ink)]
+    else:
+        parts = [(ell(30, 106, 22, 16), ink, dict(kind="gladki", edge=1)), (ell(110, 96, 22, 16), ink, dict(kind="gladki", edge=1)),
+                 (rect(46, 14, 56, 106), ink), (rect(126, 4, 136, 96), ink), (poly([(46, 14), (136, 4), (136, 22), (46, 32)]), ink)]
+    return Sprite(stack(w, h, parts, seed=720 + v), f"nuta-{v}", rim=2, clean=False)
 
 
 @lru_cache(None)

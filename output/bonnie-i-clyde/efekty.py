@@ -719,11 +719,112 @@ def s_chip(P, sec, r, o):
         bar += 1
 
 
+@lru_cache(maxsize=4096)
+def _pozytywka(m, vel):
+    """Pozytywka: krótki metaliczny ton z dzwoniącymi alikwotami (kołysanka nocą w West Dallas)."""
+    f = mtof(m)
+    L = N(1.6)
+    t = tt(L)
+    out = sum(a * np.sin(2 * math.pi * f * k * t) * np.exp(-t / tau) for k, a, tau in ((1, 1.0, 0.9), (2.76, 0.32, 0.35), (5.4, 0.12, 0.15)))
+    return out * np.minimum(1, t / 0.002) * vel * 0.16
+
+
+def pozytywka(m, vel=0.5):
+    return _pozytywka(int(m), _q(vel))
+
+
+@lru_cache(maxsize=4096)
+def _organy(m, dur, vel):
+    """Fisharmonia / organy kościelne: dźwięk ciągły z alikwotów (8', 4', 2 2/3'), wolne wejście, lekkie tremolo."""
+    f = mtof(m)
+    L = N(dur + 0.15)
+    t = tt(L)
+    out = sum(a * np.sin(2 * math.pi * k * f * t) for k, a in ((0.5, 0.35), (1, 1.0), (2, 0.5), (3, 0.22), (4, 0.12)) if k * f < 9000)
+    out *= 1 + 0.04 * np.sin(2 * math.pi * 5.2 * t)
+    return out * np.minimum(1, t / 0.05) * np.clip(1 - (t - dur) / 0.12, 0, 1) * vel * 0.09
+
+
+def organy(m, dur=0.5, vel=0.5):
+    return _organy(int(m), _q(dur), _q(vel))
+
+
+def s_kolysanka(P, sec, r, o):
+    """Kołysanka z pozytywki w trzech czwartych (reżyser 24.11: „muzykę zmienić raz jeszcze” w ujęciach 20–23): rodzina śpi
+    pod wozem, a w połowie ujęcia zapada noc. Bas cicho na raz, rozłożony akord, melodia długimi nutami wysoko."""
+    b = 60.0 / o.get("bpm", 76)
+    key = o.get("key", 65)
+    prog = [(0, "M"), (5, "M"), (0, "M"), (7, "7"), (0, "M"), (5, "M"), (7, "7"), (0, "M")]
+    last, bar = 81, 0
+    while bar * 3 * b < sec:
+        tb = bar * 3 * b
+        root, q = prog[bar % 8]
+        kr = (key + root) % 12
+        P(tb, piano(41 + kr, 3 * b * 0.9, 0.22))
+        arp = akord(kr, q, 72, 86)[:3]
+        for j in range(6):
+            P(tb + j * b / 2, pozytywka(arp[j % 3] if j % 3 != 2 else arp[1], 0.28 + 0.06 * (j == 0)))
+        for pos, L in (((0, 2), (2, 1)) if bar % 2 == 0 else ((0, 3),)):
+            last = _melodia(r, (kr, q), 79, 93, last)
+            P(tb + pos * b, pozytywka(last, 0.55))
+            P(tb + pos * b + 0.01, piano(last - 12, L * b * 0.9, 0.18))
+        bar += 1
+
+
+def s_walc(P, sec, r, o):
+    """Walczyk salonowy na pianinie (Bonnie recytuje wiersze i marzy o scenie): um-pa-pa, melodia z ozdobnikiem."""
+    b = 60.0 / o.get("bpm", 132)
+    key = o.get("key", 62)
+    prog = [(0, "M"), (0, "M"), (7, "7"), (7, "7"), (7, "7"), (7, "7"), (0, "M"), (5, "M")]
+    last, bar = 76, 0
+    while bar * 3 * b < sec:
+        tb = bar * 3 * b
+        root, q = prog[bar % 8]
+        kr = (key + root) % 12
+        P(tb, piano(40 + kr, b * 0.9, 0.42))
+        for beat in (1, 2):
+            for m in akord(kr, q, 55, 67)[:3]:
+                P(tb + beat * b, piano(m, b * 0.45, 0.24))
+        wz = ((0, 1), (1, 1), (2, 1)) if bar % 4 == 1 else ((0, 2), (2, 1)) if bar % 2 else ((0, 1.5), (1.5, 0.5), (2, 1))
+        for pos, L in wz:
+            last = _melodia(r, (kr, q), 69, 86, last)
+            P(tb + pos * b, piano(last, L * b * 0.95, float(r.uniform(0.5, 0.62)), 3))
+        bar += 1
+
+
+# Chór weselny z „Lohengrina” Wagnera (1850, domena publiczna) — „Here comes the bride”: (nuta MIDI, długość w ćwierćnutach)
+SLUB_MELODIA = [(65, 1), (70, 0.75), (70, 0.25), (70, 2), (65, 1), (72, 0.75), (69, 0.25), (70, 2),
+                (65, 1), (70, 0.75), (75, 0.25), (75, 2), (74, 1), (72, 0.75), (70, 0.25), (69, 1), (70, 0.75), (72, 0.25), (70, 2)]
+SLUB_AKORDY = [(70, "M"), (70, "M"), (65, "7"), (70, "M"), (70, "M"), (75, "M"), (65, "7"), (70, "M")]  # co dwie ćwierćnuty
+
+
+def s_slub(P, sec, r, o):
+    """Marsz weselny na organach (reżyser 24.11, ujęcie 23: „muzyka weddingowa”): melodia chóru weselnego, pod nią akordy
+    fisharmonii i bas pedałowy; dzwoneczki na początku frazy."""
+    b = 60.0 / o.get("bpm", 76)
+    dl = sum(L for _, L in SLUB_MELODIA)
+    t0 = 0.0
+    while t0 < sec:
+        at = t0
+        for m, L in SLUB_MELODIA:
+            P(at, organy(m + 12, L * b * 0.95, 0.75))
+            at += L * b
+        for j, (root, q) in enumerate(SLUB_AKORDY * 2):
+            ta = t0 + j * 2 * b
+            if ta >= t0 + dl * b:
+                break
+            for m in akord(root % 12, q, 58, 70)[:3]:
+                P(ta, organy(m, 2 * b * 0.97, 0.38))
+            P(ta, organy(34 + root % 12, 2 * b * 0.97, 0.45))
+        P(t0, dzwoneczki(1.2, 5, 61) * 0.5)
+        t0 += dl * b + 2 * b
+
+
 # Styl → (funkcja, zamierzona różnica głośności w dB). Każdy temat jest najpierw wyrównany do tej samej głośności
 # (MUZYKA_DB), dopiero potem dostaje swoją różnicę: tematy różnią się najwyżej o ok. 3 dB i tylko celowo
 # (przegląd 19.11: „czemu muzyka raz gra ciszej, raz głośniej?” — rag grał o 6–7 dB głośniej od folku i mroku).
 STYLE = {"rag": (s_rag, 0.0), "folk": (s_folk, 0.0), "blues": (s_blues, 0.0), "lowca": (s_lowca, 0.0), "napiecie": (s_napiecie, 0.5),
-         "mrok": (s_mrok, -1.5), "praca": (s_praca, 0.0), "jarmark": (s_jarmark, 0.0), "chip": (s_chip, -0.5)}
+         "mrok": (s_mrok, -1.5), "praca": (s_praca, 0.0), "jarmark": (s_jarmark, 0.0), "chip": (s_chip, -0.5),
+         "kolysanka": (s_kolysanka, -1.0), "walc": (s_walc, 0.0), "slub": (s_slub, 0.5)}
 MUZYKA_DB = -19.5     # RMS tematu poza kwestią lektora
 CICHO_DB = -2.5       # opcja „cicho” (zasiew motywu łowcy)
 POD_KWESTIA_MUZYKA, POD_KWESTIA_EFEKTY = -8.0, -5.0
@@ -731,7 +832,11 @@ POD_KWESTIA_MUZYKA, POD_KWESTIA_EFEKTY = -8.0, -5.0
 # Od którego ujęcia gra który temat (do następnego wpisu). Opcje: bpm, key, fanfara, szybko, cicho, bez_harmonijki.
 CUES = [
     ("zap_wellington_most", "cisza", {}), ("tytul", "rag", {"fanfara": True}), ("obietnica", "lowca", {"cicho": True}),
-    ("wagon", "blues", {}), ("ohio", "rag", {"bpm": 132, "key": 62}), ("eastham", "praca", {}), ("eastham_rura", "napiecie", {}),
+    # reżyser 24.11 („od ujęcia 20 do 23 … muzykę zmienić raz jeszcze”, 23: „muzyka weddingowa”): kołysanka nad śpiącą rodziną
+    # i nocą w West Dallas, ragtime przy indykach i policjancie, walczyk przy wierszach Bonnie, marsz weselny na ślubie;
+    # od kawiarni wraca blues
+    ("wagon", "kolysanka", {}), ("indyki", "rag", {"bpm": 150, "key": 60}), ("poezja", "walc", {}), ("slub", "slub", {}),
+    ("kawiarnia", "blues", {}), ("ohio", "rag", {"bpm": 132, "key": 62}), ("eastham", "praca", {}), ("eastham_rura", "napiecie", {}),
     ("palce", "praca", {}), ("parol", "blues", {"bez_harmonijki": True}),
     ("akt2", "rag", {"bpm": 156, "key": 55}), ("hillsboro", "mrok", {}), ("matka_obietnica", "folk", {}), ("atoka", "rag", {"bpm": 160, "key": 57}),
     ("wd", "rag", {"bpm": 150, "key": 55}),
@@ -799,7 +904,7 @@ GAG_PUENTA = {"wprowadzenie2": 5.37, "zdjecie": 6.35, "hak_cygaro": 2.6, "indyki
               "kuchnia": 9.5, "akt2": 7.3, "stacja": 6.6, "wd": 6.4, "joplin_dom": 9.2, "ciemnia": 5.0, "kiosk": 9.9, "darby_auto": 2.0,
               "darby_tyl": 9.6, "darby_puszczeni": 5.3, "oboz": 4.4, "list_ford": 6.4, "wd_odchodzi": 6.4, "rodziny": 9.0, "dzien1": 4.6,
               "hamer_motel": 8.85, "dzien20": 11.45, "mapa": 6.1, "listy_gon": 9.4, "prasa_cygaro": 5.6, "noc": 10.6, "kanapka": 5.3,
-              "auto_jarmark": 8.0, "gra": 6.85, "dzieki": 8.25, "wagon": 11.3, "prasa": 6.9, "matka_obietnica": 9.8, "buck": 11.5,
+              "auto_jarmark": 8.0, "gra": 4.95, "dzieki": 8.25, "wagon": 11.3, "prasa": 6.9, "matka_obietnica": 9.8, "buck": 11.5,
               "joplin_karty": 10.0, "plakaty": 5.0, "farma": 5.15, "drzewo": 8.9, "simmons": 3.25, "hamer": 7.4, "podkreslenie": 6.2,
               "methvin": 11.9, "pozegnanie": 3.8, "shreveport": 11.1, "posse": 11.75}
 
@@ -1785,6 +1890,48 @@ NOWE = {"kaszel_silnika", "werbel_fx", "zapalka"}
 NOWE_ZATWIERDZONE = set()
 
 
+def swierszcze(sec):
+    """Świerszcze nocą — od chwili, w której zapada noc (tło miejsca liczy noc dla całego ujęcia, ujęcia 20–21 mają dzień i noc)."""
+    n = N(sec)
+    r = _r(int(sec * 100) + 7)
+    x = np.zeros(n)
+    for _ in range(int(sec * 2.2)):
+        L = N(0.35)
+        i = int(r.uniform(0, max(1, n - L)))
+        x[i:i + L] += np.sin(2 * math.pi * r.uniform(4200, 4800) * tt(L)) * (np.sin(2 * math.pi * 28 * tt(L)) > 0) * 0.016
+    t = tt(n)
+    return x * np.minimum(1, t / 0.8) * np.clip((sec - t) / 0.4, 0, 1)
+
+
+def pew():
+    """Strzał w grze 8-bit: krótki zjazd prostokątnej fali z wysoka w dół (pikselowe kule, ujęcie 117)."""
+    n = N(0.16)
+    t = tt(n)
+    f = 1800 * (300 / 1800) ** (t / 0.16)
+    ph = 2 * math.pi * np.cumsum(f) / SR
+    return np.sign(np.sin(ph)) * np.exp(-t / 0.08) * 0.1
+
+
+def deszcz(sec):
+    """Deszcz przy słońcu (ujęcie 112): szum kropli z pojedynczymi pacnięciami, wchodzi i wychodzi łagodnie."""
+    n = N(sec)
+    t = tt(n)
+    r = _r(int(sec * 10) + 3)
+    x = band(r.normal(0, 1, n), 900, 7000) * 0.05
+    for _ in range(int(sec * 14)):
+        L = N(0.03)
+        i = int(r.uniform(0, max(1, n - L)))
+        x[i:i + L] += band(r.normal(0, 1, L), 2000, 8000) * env(L, 0.001, 0.01) * r.uniform(0.05, 0.15)
+    return x * np.minimum(1, t / 1.2) * np.clip((sec - t) / 0.6, 0, 1)
+
+
+def tada():
+    """Mała fanfara „ta-da!” (ukłon Bonnie na podium): dwa akordy blachy."""
+    a = sum(blacha(m, 0.14, 0.5) for m in (67, 72, 76))
+    b = sum(blacha(m, 0.7, 0.6) for m in (72, 76, 79))
+    return np.concatenate([a, np.zeros(N(0.04)), b]) * 0.8
+
+
 KROTKIE = {
     "tab": tab_snd, "podpis": podpis_snd, "zawieszka": zawieszka_snd, "stempel": stempel, "nitka": nitka, "wahwah": wahwah,
     "wahwah_k": lambda: wahwah(True), "smiech_p": smiech_p, "klakson": klakson, "beep": beep, "beep2": lambda: beep(2), "pisk": pisk,
@@ -1801,7 +1948,7 @@ KROTKIE = {
     "whoosh": whoosh, "thud": thud, "knock": knock, "coin": coin, "splash": splash, "plusk": lambda: splash(0.8) * 0.8,
     "kurtyna_z": kurtyna_zasuwa, "kurtyna_r": kurtyna_rozsuwa, "klaps": klaps, "skok": lambda: thud(0.3) * 0.5,
     "papier": lambda: whoosh(0.5, 1200, 7000) * 0.6, "strona": lambda: whoosh(1.4, 500, 6000) * 0.9,
-    "kaszel_silnika": kaszel_silnika, "werbel_fx": lambda: werbel(0.9) * 1.3, "zapalka": zapalka, "kot": kot,
+    "kaszel_silnika": kaszel_silnika, "werbel_fx": lambda: werbel(0.9) * 1.3, "zapalka": zapalka, "kot": kot, "tada": tada, "pew": pew,
 }
 DLUGIE = {
     "ogien": fire, "woda": woda, "brodzenie": brodzenie, "bloto": bloto, "pisanie": pisanie, "oklaski": oklaski, "brama": brama,
@@ -1809,7 +1956,7 @@ DLUGIE = {
     "zgrzyt": zgrzyt, "tlum": tlum, "karuzela": karuzela, "podlewanie": podlewanie, "szum_ekranu": szum_ekranu,
     "gwizdanie": gwizdanie, "skrzyp": skrzyp, "nalewanie": nalewanie, "mieszanie": mieszanie, "zegar": zegar, "prasa": prasa,
     "projektor": projektor, "kola": kola, "bujak": bujak, "kopanie": kopanie, "silnik_jalowy": silnik_jalowy, "kopyta": hooves,
-    "olowek": lambda s: pisanie(s, 0.07), "gwar": gwar, "gwar_cichy": lambda s: gwar(s, 1.4, 0.09), "wiwat": wiwat_tlum, "gwiazdki": lambda s: dzwoneczki(s, int(s * 4), 51),
+    "olowek": lambda s: pisanie(s, 0.07), "swierszcze": swierszcze, "deszcz": deszcz, "gwar": gwar, "gwar_cichy": lambda s: gwar(s, 1.4, 0.09), "wiwat": wiwat_tlum, "gwiazdki": lambda s: dzwoneczki(s, int(s * 4), 51),
 }
 
 # Dźwięk tabliczki według napisu (słownik znaków 1.20): porażka → wah-wah, śmiech → chichot fortepianu, klakson…
@@ -1926,7 +2073,7 @@ ZDARZENIA = {
     "auto_jarmark": [(1.5, "coin", 0.5), (2.6, "coin", 0.5), (4.0, "coin", 0.4), (0.0, "tlum", 10.5), (0.0, "karuzela", 10.5), (0.0, "gwar", 10.5)],
     "blanche_po": [(0.6, "podlewanie", 9.0)],
     "hamer_ganek": [(2.0, "papier", 0.6), (3.4, "whoosh", 0.3)],
-    "gra": [(0.0, "szum_ekranu", 1.6), (1.6, "chip_start", 0.9)] + [(2.0 + 0.25 * n, "klik", 0.25) for n in range(22)],
+    "gra": [(0.0, "szum_ekranu", 1.6), (1.6, "chip_start", 0.9)] + [(2.0 + 0.25 * n, "klik", 0.25) for n in range(10)],
     "koniec": [(3.0, "papier", 0.8), (4.6, "plask", 0.6), (4.9, "plask", 0.6), (7.0, "teczka", 0.9), (10.0, "kurtyna_z", 1.0)],
     "dzieki": [(0.6, "oklaski", 5.6), (1.0, "wiwat", 5.2)] + [(1.2 + 0.45 * n, "stuk", 0.25) for n in range(8)],
 }
@@ -1957,7 +2104,7 @@ GAGI_DZWIEK = {
     "kanapka": [(5.3, "plask", 0.3)],
     "auto_jarmark": [(c + 0.5, "coin", 0.45) for c in (3.9, 4.5, 5.1, 5.6, 6.0, 6.4, 6.7, 7.0)] + [(8.0, "kasa", 0.6)]
                     + [(8.0 + 0.04 * n, "coin", 0.35) for n in range(14)],
-    "gra": [(6.3, "chip_start", 0.6), (6.85, "thud", 0.4)],
+    "gra": [(4.4, "chip_start", 0.6), (4.95, "thud", 0.4)],
     "dzieki": [(6.4, "kurtyna_z", 0.9), (7.0, "zgrzyt", 1.0), (8.0, "kurtyna_z", 0.8), (8.25, "lomot", 0.8), (8.4, "whoosh", 0.3)],
     # druga seria gagów 31–46 (reżyser 19.11: „więcej gagów”) — same zatwierdzone rodzaje dźwięku
     "wagon": [(11.2, "klik", 0.5), (11.3, "trzepot", 0.6)],
@@ -2006,6 +2153,21 @@ ZDARZENIA["po_bramie"] = [(0.3, "skrzyp", 2.5), (3.4, "thud", 0.4), (3.9, "drzwi
 # ---- markery i uwagi reżysera 23.11 (sekundy na osi Studio: rr(); stałe wspólne z rysunkiem w ujecia_a/b) ----
 import ujecia_a as UA  # noqa: E402
 ZDARZENIA["wagon"] += [(rr(UA.WAGON_SLONCE - 0.4), "pytanie", 0.5), (rr(UA.WAGON_SLONCE + 0.1), "slide_up", 0.7)]  # słońce drży i ucieka
+
+# ---- reżyser 24.11: „od ujęcia 20 do 23 musisz dodać jakieś efekty” — noc w West Dallas, świt z indykami, wiersz, ślub ----
+ZMIERZCH = {"wagon", "indyki"}  # noc tylko w części ujęcia: tło bez świerszczy, świerszcze jako zdarzenie od zmroku
+ZDARZENIA["wagon"] = [e for e in ZDARZENIA["wagon"] if e[1] not in ("klik", "trzepot", "whoosh")] + [
+    (3.4, "whoosh", 0.25), (3.6, "skok", 0.3),                                   # Clyde wyczołguje się spod wozu
+    (rr(UA.WAGON_NOC), "slide_down", 0.35),                                     # zmrok
+    (rr(UA.WAGON_KSIEZYC), "nitka", 0.9), (rr(UA.WAGON_KSIEZYC + 0.1), "slide_down", 0.5),  # księżyc zjeżdża na nitce
+    (rr(UA.WAGON_GWIAZDY), "gwiazdki", 1.8),                                     # gwiazdy zjeżdżają i dzwonią
+    (rr(UA.WAGON_NOC + 0.8), "swierszcze", 5.0),
+    (10.25, "klik", 0.5), (10.9, "trzepot", 0.7), (11.6, "trzepot", 0.5), (12.3, "trzepot", 0.4)]  # pudełko, ćma do księżyca
+ZDARZENIA["indyki"] += [(0.0, "swierszcze", 0.9), (UA.INDYKI_SWIT - 0.05, "slide_up", 0.5), (UA.INDYKI_SWIT + 0.4, "slide_down", 0.5),
+                        (UA.INDYKI_SWIT + 0.55, "indyk", 1.0), (UA.INDYKI_SWIT + 0.75, "indyk", 0.8)]  # księżyc w górę, słońce, budzik-indyki
+ZDARZENIA["poezja"] += [(0.9, "strona", 0.5), (rr(4.0), "papier", 0.3), (6.1, "tada", 0.8)]
+ZDARZENIA["slub"] += [(0.6, "dzwony", 3.0), (4.0, "boing_m", 0.35), (4.45, "gwiazdka", 0.5)]
+
 ZDARZENIA["drzewo"] = ([(rr(UA.DRZ_WIAZE[0] + 0.05), "pff", 0.6)]
                        + [(rr(UA.DRZ_WIAZE[0] + 0.1 + 0.27 * n), "whoosh", 0.22) for n in range(8)]
                        + [(rr(UA.DRZ_WIAZE[0] + 0.3 + 0.55 * n), "drut", 0.6) for n in range(4)]
@@ -2063,6 +2225,27 @@ ZDARZENIA["sowers"] = [(1.2, "krzaki", 0.5), (2.6, "krzaki", 0.9), (3.4, "szklo"
 # PRZEGLĄD FILMU: podsłuch funkcji ujęć (auta, lalki, błyski, tabliczki, zawieszki, nitki, dekoracje)
 # =====================================================================================================================
 
+# ---- markery i uwagi reżysera 24.11 (sekundy osi Studio: rr(); stałe wspólne z rysunkiem) ----
+import ujecia_b as UB  # noqa: E402
+ZDARZENIA["buck"] = ZDARZENIA.get("buck", []) + [(rr(UA.BUCK_MIAU), "kot", 0.9)]                       # „miauu! (i dźwięk dodaj)”
+ZDARZENIA["darby_auto"] = ZDARZENIA.get("darby_auto", []) + [(rr(3.83), "klakson", 0.9)]                 # „dźwięk trąbienia”
+ZDARZENIA["darby_tyl"] = ZDARZENIA.get("darby_tyl", []) + [(UA.DARBY_BLOTO[0], "bloto", UA.DARBY_BLOTO[1] - UA.DARBY_BLOTO[0])]  # buksowanie
+ZDARZENIA["wellington_noc"] = ZDARZENIA.get("wellington_noc", []) + [(rr(UA.WNOC_SWIATLA + 0.3 * n), "klik", 0.35) for n in range(4)] + [
+    (rr(UA.WNOC_SWIATLA + 1.15), "pff", 0.7)]                                                             # światła mrugają i się psują
+ZDARZENIA["grapevine"] = ZDARZENIA.get("grapevine", []) + [(rr(UB.GRAPE_GWIZDKI + d), "gwizdek", g) for d, g in
+                                                           ((0.0, 1.0), (0.25, 0.85), (0.8, 0.9), (1.05, 0.8))]  # gwizdki
+ZDARZENIA["zwolnienie"] = ZDARZENIA.get("zwolnienie", []) + [(rr(0.67), "pisk", 0.7)]                   # „dźwięk hamowania”
+ZDARZENIA["pogrzeby"] = ZDARZENIA.get("pogrzeby", []) + [(rr(UB.POGRZEB_DESZCZ), "deszcz", 7.0)]        # deszcz przy słońcu
+ZDARZENIA["joplin_ofiary"] = ZDARZENIA.get("joplin_ofiary", []) + [(UA.OFIARY_CZAPKI[n], "whoosh", 0.3) for n in range(2)] + [
+    (UA.OFIARY_CZAPKI[n] + 0.6, "thud", 0.45) for n in range(2)]                                          # dwie czapki spadają
+ZDARZENIA["joplin_karty"] = ZDARZENIA.get("joplin_karty", []) + [(c, "saks", 0.8) for c in (1.6, 5.6, 7.6, 9.4)]  # Clyde gra
+ZDARZENIA["gra"] = ZDARZENIA.get("gra", []) + [(rr(UB.GRA_STRZALY + 0.32 * m + 0.16 * n), "pew", 0.55) for m in range(8) for n in range(2)]
+ZDARZENIA["film_hamer"] = ZDARZENIA.get("film_hamer", []) + [(rr(UB.FILM_SCENA3), "whoosh", 0.5), (rr(UB.FILM_SCENA3 + 0.85), "stempel", 0.6)]
+ZDARZENIA["koniec"] = ([(UB.KON_KIESZEN, "trzepot", 0.6)] + [(UB.KON_CZAPKI + 0.13 * n + 0.6, "nitka", 0.35) for n in range(9)]
+                       + [e for e in ZDARZENIA["koniec"] if e[1] != "kurtyna_z"]
+                       + [(UB.KON_STEMPEL, "stempel", 1.0), (UB.KON_KURTYNA, "kurtyna_z", 1.0)])
+ZDARZENIA["dzieki"] = ZDARZENIA.get("dzieki", []) + [(UB.DZ_KWIATY + 0.17 * k, "papier", 0.3) for k in range(8)] + [
+    (UB.DZ_SERCA + 0.12 * n, "gwiazdka", 0.25) for n in range(0, 8, 2)]
 SKAN_DT = 0.08
 
 
@@ -2340,7 +2523,7 @@ def main():
         src, od = (R.WYCINEK[klucz][0], R.WYCINEK[klucz][1]) if klucz in R.WYCINEK else (klucz, 0.0)
         d = dekor.get(idx, {})
         if klucz != "prasa_cygaro":
-            amb = tlo(rodzaj_tla(d), sec + 0.3, idx, noc.get(idx, 0) > 0.5 or d.get("noc"), d.get("swit"))
+            amb = tlo(rodzaj_tla(d), sec + 0.3, idx, (noc.get(idx, 0) > 0.5 or d.get("noc")) and klucz not in ZMIERZCH, d.get("swit"))
             i = N(a)
             fx[i:i + len(amb)] += amb[:n - i]
         if src == klucz:  # sekundy zdarzeń są w rytmie akcji ujęcia — przełożone na prawdziwe nagranie (render.czas_akcji)

@@ -372,7 +372,29 @@ def blysk(st, x, y, p, t, t0, r=260, kolor=(1.0, 0.9, 0.6), dl=0.12):
 
 def niebo(st, w, noc=None):
     n = w.noc if noc is None else noc
+    if w.get("zmierzch") and 0.01 < n < 0.99:
+        # noc zapada albo mija w trakcie ujęcia (reżyser 24.11, ujęcia 20–21: „w połowie zmieniłbym słońce na księżyc, ściemnił
+        # na noc”, „z ciemności i księżyca zmienić na słońce”): papier nocy kładzie się na papier dnia coraz mocniej
+        st.put(J.niebo_sp(False), CX, CY, P.niebo, w=1760, anchor=(0.5, 0.5), shadow=None)
+        st.put(J.niebo_sp(True), CX, CY, P.niebo + 0.0005, w=1760, anchor=(0.5, 0.5), shadow=None, alpha=n)
+        return
     st.put(J.niebo_sp(n > 0.5), CX, CY, P.niebo, w=1760, anchor=(0.5, 0.5), shadow=None)
+
+
+def gwiazdy(st, t, k, seed=0, n=16, obszar=(70, 1210, 40, 250)):
+    """Gwiazdy z papieru na nitkach (noc, reżyser 24.11: „dodał gwiazdy”): k 0..1 — zjeżdżają po kolei z góry (k maleje —
+    wjeżdżają z powrotem w górę); migoczą, każda w swoim rytmie."""
+    if k <= 0:
+        return
+    r = random.Random(seed)
+    for i in range(n):
+        x, y, sz, v = r.uniform(*obszar[:2]), r.uniform(*obszar[2:]), r.uniform(16, 30), r.uniform(2.5, 6.0)
+        ki = clamp(k * 1.7 - 0.7 * i / n)
+        if ki <= 0:
+            continue
+        mig = 0.78 + 0.22 * math.sin(t * v + i * 2.1)
+        J.hang(st, Z0.prop("gwiazdka"), x, y, P.slonce + 0.0004 * i, ki, t, 600 + seed + i, h=sz * mig, drop=360 + y, sway=0.9,
+               tint=(1.0, 0.96, 0.72), shadow=(2, 3, 4, 0.3))
 
 
 def slonce(st, t, w, k=None, xy=None, alpha=1.0):
@@ -395,7 +417,8 @@ def chmury(st, t, w, k=(1.0, 1.0, 1.0), haze=1.0):
     for i, (name, x, y, wd) in enumerate((("cloud_left", 230, 70, 520), ("cloud_center", 690, 34, 560), ("cloud_right", 1090, 120, 460))):
         J.hang(st, J.S(name, 0.5), x + 6 * noise(t, 30 + i, 0.08), y, P.chmury + i * 0.008, min(k[i], bk(w, 0.1 + 0.15 * i, 0.9)), t, 4 + i,
                w=wd, sway=0.5, strings=(0.3, 0.7), shadow=(7, 10, 11, 0.26), haze=0.08 * haze,
-               tint=(0.55, 0.58, 0.7) if w.noc > 0.5 else None)
+               tint=((lerp(1.0, 0.55, w.noc), lerp(1.0, 0.58, w.noc), lerp(1.0, 0.7, w.noc)) if w.get("zmierzch") and w.noc > 0.01
+                     else (0.55, 0.58, 0.7) if w.noc > 0.5 else None))
 
 
 def rampa(st, k=1.0):
@@ -671,11 +694,12 @@ def widownia(st, t, k=1.0):
     Z0.rise(st, J.widownia(0), CX, 800, P.rampa - 0.01, k, t, 231, w=2200, wob=0.0, blur=2.0, lift=200, anchor=(0.5, 1.0))
 
 
-def west_dallas(st, t, w, woz=True, kul=True, slonce_k=None):
-    """West Dallas lat 20. („Devil's Back Porch”): dymiące kominy cementowni, wiadukt, szałasy i namioty w błocie, wóz Barrowów."""
+def west_dallas(st, t, w, woz=True, kul=True, slonce_k=None, chmury_k=1.0):
+    """West Dallas lat 20. („Devil's Back Porch”): dymiące kominy cementowni, wiadukt, szałasy i namioty w błocie, wóz Barrowów.
+    chmury_k < 1 — chmury unoszą się na nitkach (w nocy odsłaniają księżyc i gwiazdy)."""
     niebo(st, w)
     slonce(st, t, w, k=slonce_k, alpha=0.7)
-    chmury(st, t, w, haze=1.6)
+    chmury(st, t, w, k=(chmury_k,) * 3, haze=1.6)
     for n, x in enumerate((180, 300, 1100)):
         k = bk(w, 0.1 + 0.05 * n)
         Z0.rise(st, J.komin(), x, 600, P.gory_dal, k, t, 240 + n, h=380, wob=0.0, haze=0.35)

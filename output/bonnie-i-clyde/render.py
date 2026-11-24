@@ -235,7 +235,7 @@ def ziarno(i):
 # i list unosiły się w powietrzu w pierwszej sekundzie budowy.
 SCENOGRAFIA = {"niebo", "slonce", "ksiezyc", "chmury", "rampa", "kulisy", "pas", "teatr_gazet", "preria", "miasto", "wnetrze",
                "eastham", "las", "wawoz", "ciemnosc", "parawan", "drukarnia", "spod", "mapa_scena", "cmentarz", "kino",
-               "widownia", "west_dallas", "dekoracja"}
+               "widownia", "west_dallas", "dekoracja", "gwiazdy"}
 SAME_WCHODZA = SCENOGRAFIA | {"lalka", "auto", "motocykl", "ciezarowka", "cien", "rise"}  # mają własne wejście / wyrastanie
 
 
