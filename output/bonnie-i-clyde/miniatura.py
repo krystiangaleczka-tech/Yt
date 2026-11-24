@@ -149,7 +149,86 @@ def scena_c():
     return st
 
 
-SCENY = {"A": scena_a, "B": scena_b, "C": scena_c}
+# Bonnie w białej sukni ślubnej i czerwonym berecie — wariant tylko do miniaturki D (w filmie takiej lalki nie ma)
+J.LALKI["bonnie_slub_beret"] = dict(J.LALKI["bonnie_slub"], kapelusz="beret", kapelusz_kolor=(150, 40, 46))
+
+
+def kule_w_tle(st, n=26, seed=11):
+    """Pociski przelatujące przez całe tło: kula z jasną smugą za sobą, pod różnymi kątami (jak kule w ujęciach 13 i 78)."""
+    r = random.Random(seed)
+    for k in range(n):
+        x, y = r.uniform(40, 1240), r.uniform(150, 470)
+        kat = r.choice((r.uniform(-25, 25), 180 + r.uniform(-25, 25)))
+        dl = r.uniform(70, 150)
+        dx, dy = math.cos(math.radians(kat)), math.sin(math.radians(kat))
+        p = P.miasto + 0.02 + 0.0004 * k
+        st.line([(x - dx * dl, y - dy * dl), (x, y)], p, width=3.2, color=(255, 236, 190), alpha=0.75)
+        st.put(J.glow(r=256, color=(255, 220, 150)), x, y, p, w=26, anchor=(0.5, 0.5), mode="add", alpha=0.9, shadow=None)
+        st.put(J.rek("kula"), x, y, p + 0.0002, h=9, anchor=(0.5, 0.5), rot=kat, shadow=None)
+
+
+def strzal(st, x, y, kierunek, p, wielkosc=1.0):
+    """Błysk z lufy (strzał z końca lufy, 1.20) i krótka smuga kuli w kierunku strzału."""
+    st.put(J.glow(r=256, color=(255, 200, 110)), x, y, p, w=150 * wielkosc, anchor=(0.5, 0.5), mode="add", alpha=0.95, shadow=None)
+    st.put(J.glow(r=256, color=(255, 250, 230)), x, y, p + 0.0005, w=46 * wielkosc, anchor=(0.5, 0.5), mode="add", alpha=1.0, shadow=None)
+    st.line([(x + kierunek * 30, y), (x + kierunek * 160 * wielkosc, y - 6)], p, width=4, color=(255, 236, 190), alpha=0.8)
+
+
+def kotwica_tulowia(key, spr):
+    """Kotwica x środka tułowia w wycinku postaci z wyciągniętą ręką (wycinek jest przycięty do całej sylwetki, więc jego
+    środek leży w stronę ręki): szerokość lalki z rękami w dół to tułów, który zaczyna się przy lewej krawędzi."""
+    wn = J.sylwetka(key, rece=(0.0, 0.0), kolor=True).size[0]
+    return (wn / 2) / spr.w
+
+
+def stoi(st, key, x, y, h, p, rece, rzecz, flip=1.0, rot=0.0, gruby=9):
+    """Postać z białym obrysem, która stoi stopami w (x, y) ekranu niezależnie od wyciągniętej ręki."""
+    spr = postac(key, rece=rece, rzecz=rzecz)
+    ax = kotwica_tulowia(key, spr)
+    M0.poloz_obrys(st, spr, x, y, p, h, (ax if flip > 0 else ax, 1.0), kolor=BIALY, gruby=gruby, k=max(1.0, papier.Q), sx=flip, rot=rot)
+
+
+def scena_d():
+    """Ostatnia scena jako plakat (reżyser 24.11.2026): na pierwszym planie sześciu łowców w krzakach (jak w ujęciu 104), za
+    nimi podziurawiony Ford zapadnięty tyłem w rowie, przodem do góry; na nim stoją Bonnie (biała suknia ślubna, czerwony
+    beret) strzelająca w lewo i Clyde strzelający w prawo; w tle Teksas i pełno przelatujących pocisków. W filmie nie
+    zdążyli strzelić (kwestia „dym”) — na miniaturce to plakatowa przesada, za zgodą reżysera."""
+    from ujecia_a import auto_srodek
+    st, w = scena_poczatek("drzewo")
+    S.preria(st, 0.0, w, slupy=True, kul=False, tablice=[("TEXAS", 1170)])
+    kule_w_tle(st)
+    cx, cy, ah = AUTO_D
+    auto_srodek(st, 0.0, cx, cy, ah, ROT_AUTA, dziury=110, p=P.auta - 0.02)
+    # Bonnie i Clyde stoją na dachu przechylonego auta, plecami do siebie: Bonnie strzela w lewo, Clyde w prawo
+    (bx, by), (kx, ky) = STOPY_D
+    stoi(st, "bonnie_slub_beret", bx, by, 290, P.auta - 0.005, (90.0, 10.0), ("rewolwer", 40, (0.3, 0.75)), flip=-1, rot=ROT_AUTA * 0.4)
+    stoi(st, "clyde", kx, ky, 320, P.auta - 0.004, (90.0, 10.0), ("karabin", 50, (0.3, 0.55)), rot=ROT_AUTA * 0.4)
+    for (sx_, sy_, kier, wk) in STRZALY_D:
+        strzal(st, sx_, sy_, kier, P.auta, wk)
+    # pierwszy plan: sześciu łowców w krzakach, widać kapelusze, twarze i lufy wycelowane w auto; ciemniejsi (bliżej kamery)
+    for n, ((key, _), x) in enumerate(zip(LOWCY_MIN, (90, 300, 495, 785, 980, 1190))):
+        fl = 1 if x < 640 else -1
+        spr = postac(key, rece=(75.0, 10.0), rzecz=("karabin", 46, (0.3, 0.55)))
+        ax = kotwica_tulowia(key, spr)
+        M0.poloz(st, spr, x, 840, P.lalki + 0.02 + 0.001 * n, h=360, anchor=(ax, 1.0), sx=fl, rot=-14 * fl, tint=(0.8, 0.8, 0.78))
+    for n, x in enumerate((-40, 140, 320, 500, 680, 860, 1040, 1220, 1360)):
+        M0.poloz(st, J.krzak(n % 6, (56, 84, 48)), x, 760, P.lalki + 0.03 + 0.001 * n, h=190, anchor=(0.5, 1.0))
+    tab(st, "THE REAL ENDING", 965, 48, 74, rot=2)
+    tab(st, "BANG!", 200, 200, 54, rot=-8, xs=(0.5,))
+    tab(st, "BANG!", 1110, 180, 54, rot=7, xs=(0.5,))
+    szyld(st)
+    st.grade = (1.04, 0.98, 0.9)
+    return st
+
+
+ROT_AUTA = -16  # przód auta w górę (tył w rowie)
+AUTO_D = (640, 470, 260)  # środek auta na ekranie i jego wysokość
+STOPY_D = ((582, 420), (676, 396))  # stopy Bonnie i Clyde'a na dachu (linia dachu przechylonego auta)
+STRZALY_D = ((438, 214, -1, 1.0), (812, 150, 1, 1.1))  # (x, y, kierunek, wielkość) błysków z końców luf
+LOWCY_MIN = (("hamer", ""), ("gault", ""), ("alcorn", ""), ("hinton", ""), ("jordan", ""), ("oakley", ""))
+
+
+SCENY = {"A": scena_a, "B": scena_b, "C": scena_c, "D": scena_d}
 
 
 def main():
