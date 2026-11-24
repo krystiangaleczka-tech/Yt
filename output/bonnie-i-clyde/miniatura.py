@@ -227,6 +227,48 @@ def na_aucie(u, v):
     return x0 + dx, y0 + dy
 
 
+def tabliczka_gruba(txt, size=64, k=1.0):
+    """Tabliczka jak M0.tabliczka, ale litery Baskerville Bold (reżyser 24.11: „napis po prawej minimalnie grubsze litery”)."""
+    from PIL import ImageFont
+    Z = M0.Z
+    f = ImageFont.truetype(Z.FONT_PL, size * 2, index=1)
+    tw = int(f.getlength(txt) / 2)
+    w, h = tw + 64, size + 44
+    parts = [(Z.poly([(4, 4), (w - 4, 4), (w - 4, h - 4), (4, h - 4)]), (240, 226, 194), dict(kind="gladki", edge=4, contrast=1.3)),
+             (Z.glyphs(txt, size, Z.FONT_PL, 1, (w / 2, h / 2 + 2), "mm"), (44, 26, 20), dict(kind="gladki", rough=0.5))]
+    return Sprite(M0.stack_k(w, h, parts, seed=len(txt), k=k), f"zawieszka-gruba-{txt}-{k:.2f}", rim=round(2 * k), clean=False)
+
+
+@lru_cache(None)
+def kaktus(v=0):
+    """Saguaro z zielonego papieru: pień i dwa ramiona (tło miniaturki D, za słupami — reżyser 24.11: „z 3 kaktusy w tle,
+    rozmyte”)."""
+    r = random.Random(40 + v)
+    w, h = 220, 420
+    zl, ciemny = (92, 126, 74), (70, 100, 58)
+    lo, po = r.uniform(150, 230), r.uniform(120, 200)
+    parts = [(J.rect(86, 30, 134, 420), zl, dict(edge=2)), (J.ell(110, 34, 24, 24), zl),
+             (J.rect(30, lo, 86, lo + 34), zl), (J.rect(30, lo - 90, 62, lo + 30), zl, dict(edge=2)), (J.ell(46, lo - 92, 16, 16), zl),
+             (J.rect(134, po, 186, po + 34), zl), (J.rect(156, po - 100, 188, po + 30), zl, dict(edge=2)), (J.ell(172, po - 102, 16, 16), zl)]
+    parts += [(J.rect(108, 50, 112, 410), ciemny)]
+    return Sprite(J.stack(w, h, parts, seed=800 + v), f"kaktus-{v}", rim=2, clean=False)
+
+
+def kapelusz_w_dloni(key):
+    """Nakrycie głowy lalki jako rekwizyt do sylwetki (ten sam kształt i kolor co na głowie, w skali arkusza lalki) i lalka
+    bez niego — łowcy na miniaturce D trzymają zdjęte kapelusze w uniesionej dłoni (reżyser 24.11)."""
+    nazwa = f"kap_{key}"
+    if nazwa not in J.REKWIZYTY:
+        sp = J.spec(key)
+        def czesci(sp=sp):
+            p = []
+            J._kapelusz(sp, p)  # dopisuje części kapelusza do listy (zwraca None)
+            return p
+        J.REKWIZYTY[nazwa] = (300, 120, czesci)
+        J.LALKI[key + "_bez"] = dict(J.LALKI[key], kapelusz=None)
+    return key + "_bez", (nazwa, 120, (0.51, 0.82))
+
+
 def scena_d():
     """Ostatnia scena jako plakat (reżyser 24.11.2026): na pierwszym planie sześciu łowców w małych krzakach z ujęcia 104 —
     widać tylko kapelusze i oczy; za nimi cały podziurawiony Ford zapadnięty tyłem w rowie, przodem do góry; Bonnie (biała
@@ -237,6 +279,8 @@ def scena_d():
     from ujecia_a import auto_srodek
     st, w = scena_poczatek("drzewo")
     S.preria(st, 0.0, w, slupy=True, kul=False, tablice=[("TEXAS", 1170)])
+    for n, (x, hh) in enumerate(((235, 170), (95, 135), (1000, 185))):  # kaktusy w tle, za słupami, rozmyte
+        M0.poloz(st, kaktus(n), x, 575, P.gory + 0.006, h=hh, anchor=(0.5, 1.0), blur=2.6, haze=0.22, shadow=None)
     kule_w_tle(st)
     cx, cy, ah = AUTO_D
     # poświata świtu za parą: postacie odcinają się od nieba (jak słońce za Iwarebiko w „Synu słońca”, miniaturka C)
@@ -268,17 +312,19 @@ def scena_d():
         st.line([(lerp_(x0, ix, f0), lerp_(600, iy, f0)), (lerp_(x0, ix, f0 + 0.3), lerp_(600, iy, f0 + 0.3))], P.lalki + 0.01, width=3,
                 color=(255, 236, 190), alpha=0.75)
     # pierwszy plan: sześciu łowców nisko w małych krzakach z ujęcia 104 (J.krzak(n), barwa z filmu) — kapelusze, oczy, lufy
+    # łowcy wynurzeni o ok. 10 % wyżej; każdy trzyma zdjęty kapelusz w dłoni uniesionej z boku pod kątem 45° (reżyser 24.11)
     for n, ((key, _), x) in enumerate(zip(LOWCY_MIN, (90, 300, 495, 785, 980, 1190))):
         fl = 1 if x < 640 else -1
-        spr = postac(key, rece=(75.0, 10.0), rzecz=("karabin", 46, (0.3, 0.55)))
-        ax = kotwica_tulowia(key, spr)
-        M0.poloz(st, spr, x, 838, P.lalki + 0.02 + 0.001 * n, h=300, anchor=(ax, 1.0), sx=fl, rot=-14 * fl, tint=(0.82, 0.82, 0.8))
+        bez, kap = kapelusz_w_dloni(key)
+        spr = postac(bez, rece=(135.0, 10.0), rzecz=kap)
+        ax = kotwica_tulowia(bez, spr)
+        M0.poloz(st, spr, x, 822, P.lalki + 0.02 + 0.001 * n, h=300, anchor=(ax, 1.0), sx=fl, rot=-6 * fl, tint=(0.84, 0.84, 0.82))
     for n, x in enumerate((20, 175, 330, 485, 640, 795, 950, 1105, 1260)):
         M0.poloz(st, J.krzak(n % 6), x, 728, P.lalki + 0.03 + 0.001 * n, h=118, anchor=(0.5, 1.0))
-    tab(st, "THE REAL ENDING", 1010, 14, 62, rot=2)
+    M0.nitki(st, tabliczka_gruba("THE REAL ENDING", 64, K_TAB), 1030, 14, P.rekwizyty + 0.03, h=64, xs=(0.2, 0.8), rot=2)
     tab(st, "BANG!", 170, 250, 54, rot=-8, xs=(0.5,))
     tab(st, "BANG!", 1150, 210, 54, rot=7, xs=(0.5,))
-    szyld(st, x=26, y=14, h=SZYLD_D, maxw=760)  # reżyser 24.11: „dużo większy napis Bonnie i Clyde”
+    szyld(st, x=22, y=12, h=SZYLD_D, maxw=820)  # reżyser 24.11: „dużo większy napis Bonnie i Clyde”
     st.grade = (1.05, 0.98, 0.9)
     return st
 
@@ -292,7 +338,7 @@ AUTO_D = (640, 518, 300)  # środek auta na ekranie i jego wysokość; nisko: ty
 STOPY_D = ((385, 72), (598, 150))  # stopy na arkuszu Forda: Bonnie na dachu, Clyde na dole przedniej szyby, przy masce
 STRZALY_D = ((408, 240, -1, 1.0), (950, 202, 1, 1.1))  # (x, y, kierunek, wielkość) błysków z końców luf
 ROZKROK = (24.0, 13.0)  # kąt nóg na boki: Bonnie (spódnica), Clyde
-SZYLD_D = 120  # wysokość szyldu z tytułem (w C i A–B 78)
+SZYLD_D = 142  # wysokość szyldu z tytułem (w C i A–B 78; reżyser 24.11: „dużo większy”, potem „jeszcze troszkę większy”)
 LOWCY_MIN = (("hamer", ""), ("gault", ""), ("alcorn", ""), ("hinton", ""), ("jordan", ""), ("oakley", ""))
 
 
