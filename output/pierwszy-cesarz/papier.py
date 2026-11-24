@@ -147,6 +147,39 @@ class Cam:
 
 _SWIATLO = {}
 
+# ---- pamięć wycinków i cieni ----
+# Wycinek, który w kolejnych klatkach stoi na ekranie dokładnie w tym samym miejscu (statyczna kamera, dekoracja,
+# lalka w bezruchu), dawał co klatkę od nowa to samo: przekształcenie, rozmycie głębi i rozmyty cień. Pamięć trzyma
+# gotowy obraz i cień pod kluczem z dokładnych liczb (mipmapa, ramka, współczynniki przekształcenia, rozmycie), więc
+# trafienie daje ten sam obraz piksel w piksel; wycinek, który drgnie choćby o ułamek piksela, liczy się od nowa.
+# Rozmiar: PAMIEC_MB (domyślnie 300 MB na proces; 0 = wyłączona). Najdawniej użyte wypadają pierwsze.
+from collections import OrderedDict  # noqa: E402
+import os as _os  # noqa: E402
+
+_PAMIEC = OrderedDict()  # klucz → [mipmapa, obraz po przekształceniu i rozmyciu, {miękkość: cień uint8}]
+_PAMIEC_BAJTY = [0]
+_PAMIEC_MAX = int(float(_os.environ.get("PAMIEC_MB", "300")) * 2 ** 20)
+
+
+def _zapamietaj(klucz, mip, out, hit):
+    if hit is not None:
+        return hit
+    hit = [mip, out, {}]
+    if _PAMIEC_MAX <= 0:
+        return hit
+    old = _PAMIEC.pop(klucz, None)
+    if old is not None:
+        _PAMIEC_BAJTY[0] -= _bajty(old)
+    _PAMIEC[klucz] = hit
+    _PAMIEC_BAJTY[0] += out.size[0] * out.size[1] * 4
+    while _PAMIEC_BAJTY[0] > _PAMIEC_MAX and len(_PAMIEC) > 1:
+        _PAMIEC_BAJTY[0] -= _bajty(_PAMIEC.popitem(last=False)[1])
+    return hit
+
+
+def _bajty(hit):
+    return hit[1].size[0] * hit[1].size[1] * 4 + sum(c.nbytes for c in hit[2].values())
+
 
 class Stage:
     def __init__(self, t=0.0, seed=0):
@@ -246,19 +279,33 @@ class Stage:
         # odwzorowanie piksel ekranu → piksel wycinka (PIL liczy od środka piksela)
         coef = (c / kx, s / kx, au + (c * (x0 - S[0]) + s * (y0 - S[1])) / kx,
                 -s / ky, c / ky, av + (-s * (x0 - S[0]) + c * (y0 - S[1])) / ky)
-        out = mip.transform((x1 - x0, y1 - y0), Image.AFFINE, coef, resample=Image.BILINEAR)  # mipmapa jest już bliska skali: dwuliniowe wystarcza, 2× szybciej
-        if blur:
-            out = out.filter(ImageFilter.GaussianBlur(blur))
+        klucz = (id(mip), x1 - x0, y1 - y0, coef, blur)  # te same liczby = ten sam obraz, piksel w piksel
+        hit = _PAMIEC.get(klucz)
+        if hit is not None and hit[0] is mip:
+            _PAMIEC.move_to_end(klucz)
+            out = hit[1]
+        else:
+            hit = None
+            out = mip.transform((x1 - x0, y1 - y0), Image.AFFINE, coef, resample=Image.BILINEAR)  # mipmapa jest już bliska skali: dwuliniowe wystarcza, 2× szybciej
+            if blur:
+                out = out.filter(ImageFilter.GaussianBlur(blur))
         # widoczna część obszaru
         cx0, cy0, cx1, cy1 = max(0, x0), max(0, y0), min(W, x1), min(H, y1)
         if cx1 <= cx0 or cy1 <= cy0:
             return
         if shadow and mode == "over":
-            a_img = out.getchannel("A")
-            q = 4 if min(a_img.size) > 48 else 1
-            small = a_img.reduce(q) if q > 1 else a_img
-            small = small.filter(ImageFilter.GaussianBlur(soft / q))
-            sh = np.asarray(small.resize(a_img.size, Image.BILINEAR), np.float32) * (strength * alpha / 255.0)
+            cien = hit[2].get(soft) if hit is not None else None
+            if cien is None:
+                a_img = out.getchannel("A")
+                q = 4 if min(a_img.size) > 48 else 1
+                small = a_img.reduce(q) if q > 1 else a_img
+                small = small.filter(ImageFilter.GaussianBlur(soft / q))
+                cien = np.asarray(small.resize(a_img.size, Image.BILINEAR))
+                hit = _zapamietaj(klucz, mip, out, hit)
+                hit[2][soft] = cien
+                if _PAMIEC.get(klucz) is hit:
+                    _PAMIEC_BAJTY[0] += cien.nbytes
+            sh = cien.astype(np.float32) * (strength * alpha / 255.0)
             ox, oy = int(round(sdx)), int(round(sdy))
             # cień przesunięty o (ox, oy): piksel ekranu (X, Y) bierze cień z (X - ox, Y - oy)
             tx0, ty0, tx1, ty1 = max(0, x0 + ox), max(0, y0 + oy), min(W, x1 + ox), min(H, y1 + oy)
@@ -269,6 +316,8 @@ class Stage:
                     reg[..., 3:] += (1 - reg[..., 3:]) * part
                     reg = reg[..., :3]
                 reg += (SHADOW - reg) * part
+        if hit is None:
+            _zapamietaj(klucz, mip, out, None)
         src = np.asarray(out.crop((cx0 - x0, cy0 - y0, cx1 - x0, cy1 - y0)), np.float32) * (1 / 255.0)
         rgb, a = src[..., :3], src[..., 3:]
         if tint is not None:

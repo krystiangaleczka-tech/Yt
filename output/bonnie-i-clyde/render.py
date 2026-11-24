@@ -9,7 +9,8 @@ Ujęcia: ujecia_a.py (akty 1–4) i ujecia_b.py (akty 5–9), funkcja `s_<klucz>
   python3 render.py kontrola [1,2,3]        — test „końca świata” (płótno w barwie pustki), równolegle
   python3 render.py klipy [1,2,3] <katalog> — klip mp4 na ujęcie
   SZKIC=1 …                                 — szkic 640 × 360, 12 kl./s (przegląd w Studio); bez tego pełna jakość
-  NAPISY=0 …                                — bez napisów (czyste ujęcia pod lektora i napisy ze Studio)
+  ROZDZIELCZOSC=1080 albo 1440 …            — klatka 1920 × 1080 albo 2560 × 1440 (ta sama geometria); bez tego 1280 × 720
+  NAPISY=1 …                                — z napisami wypalonymi w obraz (domyślnie bez: reżyser 24.11)
 Moduł ma SCENES, DUR, FPS i frame(t) — tak jak pozostałe filmy (scripts/kontrola_ujec.py, wgrywanie do Studio).
 """
 import math
@@ -34,10 +35,12 @@ import dane  # noqa: E402
 from dane import AKTY, HAK, kwestia, okno_kwestii, ujecia  # noqa: E402
 from papier import FPS, H, W, Stage, back, ease, noise  # noqa: E402
 
-NAPISY = os.environ.get("NAPISY", "1") != "0"
+NAPISY = os.environ.get("NAPISY", "0") == "1"  # reżyser 24.11: bez wypalonych napisów (NAPISY=1 włącza je z powrotem)
 SZKIC = os.environ.get("SZKIC", "0") == "1"  # szkic do przeglądu w Studio: 640 × 360, 12 kl./s
 if SZKIC:
     papier.Q, FPS = 0.5, 12
+elif os.environ.get("ROZDZIELCZOSC"):  # wysokość klatki, np. ROZDZIELCZOSC=1440 → 2560 × 1440 (ta sama geometria, Q = 2)
+    papier.Q = int(os.environ["ROZDZIELCZOSC"]) / H
 
 UJ = ujecia()
 KOL = swiat.KOL
@@ -52,6 +55,19 @@ for _akt, _k, _klucz, _kadr, _ruch, _sec, _opis, _snd in UJ:
     SCENES.append((_t, _t + _sec, _ruch, kwestia(_snd), *okno_kwestii(_snd, _klucz in HAK)))
     _t += _sec
 DUR = _t
+# Render końcowy (FILM=1 → zloz.py): ujęcie kończy się na klatce najbliższej swojemu końcowi na osi, więc klipy złożone jeden
+# po drugim trwają dokładnie tyle co oś w Studio i muzyka z efektami nie rozjeżdżają się z obrazem (wzór: „Syn słońca”
+# i „Pierwszy cesarz” render.py). Klipy do Studio: zaokrąglone w górę, jak dotąd. CRF — jakość pliku (domyślnie 23; render
+# końcowy 21).
+FILM = os.environ.get("FILM", "0") == "1"
+CRF = os.environ.get("CRF", "21" if FILM else "23")  # 1440p, CRF 21: ok. 16 Mbit/s przy ziarnie papieru (CRF 18: 40 Mbit/s)
+
+
+def klatki_ujecia(i):
+    a, b = SCENES[i][:2]
+    if FILM:
+        return math.floor(b * FPS + 0.5) - math.floor(a * FPS + 0.5)
+    return math.ceil((b - a) * FPS - 1e-9)
 
 # Rytm, w którym ułożono akcję ujęć (sekundy w ujecia_a/b.py, efekty.ZDARZENIA, GAG_PUENTA): długość ujęcia i kwestii z tempa
 # lektora, sprzed nagrania. Prawdziwe nagranie bywa krótsze albo dłuższe (23.11.2026: „matka_obietnica” 11,5 → 9,1 s, gag
@@ -353,11 +369,14 @@ def _klip(arg):
     import subprocess
     i, out = arg
     a, b = SCENES[i][:2]
-    n = math.ceil((b - a) * FPS - 1e-9)
+    n = klatki_ujecia(i)
+    if FILM:  # klatki na wspólnej siatce czasu filmu (klatka k filmu = k / FPS)
+        a = math.floor(a * FPS + 0.5) / FPS
     ow, oh = int(round(W * papier.Q)), int(round(H * papier.Q))
     part = out.with_name(out.stem + ".part.mp4")  # plik niedokończony nie wygląda na gotowy po przerwaniu
     proc = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{ow}x{oh}",
-                             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", "23", "-pix_fmt", "yuv420p", str(part)],
+                             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", CRF, "-preset", "medium", "-pix_fmt", "yuv420p",
+                             str(part)],
                             stdin=subprocess.PIPE)
     for f in range(n):
         proc.stdin.write(frame(min(a + f / FPS, b - 1e-3)).tobytes())
@@ -401,7 +420,8 @@ def klipy(out, only=None, procs=None):
     """Klipy ujęć (numery od 1) do katalogu out; zwraca {indeks: (plik, klatki)}."""
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    idx = [i for i in range(len(SCENES)) if FNS[i] is not None and (not only or i + 1 in only)]
+    # skróty ujęć (WYCINEK: zapowiedź, tytuł) nie mają własnej funkcji, ale rysują się z oryginału — też idą do klipów
+    idx = [i for i in range(len(SCENES)) if (FNS[i] is not None or KOL[i] in WYCINEK) and (not only or i + 1 in only)]
     if (procs or PROCESY) > 1 and sys.platform != "win32":
         rozgrzej(set(idx))
     idx = [i for i in idx if not (out / f"{ODN[i]}.mp4").exists() or os.environ.get("NADPISZ") == "1"]  # wznowienie: gotowe zostają
