@@ -21,6 +21,7 @@ import sys
 import threading
 import time
 import traceback
+import zlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -41,7 +42,13 @@ PLIKI = {m: (DOCS if m == "dane" else SILNIK if m in ("papier", "zestaw") else H
 import render  # noqa: E402
 
 # kod — wersja kodu (rośnie po każdym udanym przeładowaniu); gotowe — policzone ujęcia: odn → (kod, JSON)
-STAN = {"kod": 1, "stan": "gotowe", "czas": 0.0, "blad": "", "moduly": [], "numer": 6}
+STAN = {"kod": 1, "stan": "gotowe", "czas": 0.0, "blad": "", "moduly": [], "numer": 6, "podpis": ""}
+# Policzone ujęcia zostają na dysku (reżyser 24.11: „118/119 statyczne, jakby się coś zepsuło”, „to ujęcie było dobrze zrobione,
+# po prostu jest zacięte”): po każdym uruchomieniu Studio serwer liczył 119 ujęć od zera, po kolei od pierwszego, a ujęcie
+# jeszcze niepoliczone Studio rysowało ze starej klatki zapasowej (v1 z 19.11) — stara poza, nikt się nie rusza. Teraz ujęcie
+# policzone dla tej samej treści kodu, nagrań lektora i ustawień wczytuje się z pliku w ułamku sekundy.
+PAMIEC = DANE / "ujecia"
+LEKTOR = HERE / "lektor_en"
 GOTOWE = {}
 LOCK = threading.RLock()
 _HASH = {}  # id(Sprite), poziom mipmapy → (plik PNG, rozmiar)
@@ -123,16 +130,63 @@ def eksport(i):
             "w": papier.W, "h": papier.H, "wycinki": tex, "klatki": klatki}
 
 
+def podpis():
+    """Skrót wszystkiego, od czego zależy ruch ujęć: kod modułów (silnik, wycinki, rozpiska, scena, ujęcia, render), ten plik
+    (format JSON), nagrania lektora (długości kwestii w dane.py) i ustawienia z otoczenia."""
+    h = hashlib.sha1()
+    for m in MODULY:
+        p = PLIKI[m]
+        h.update(m.encode() + (p.read_bytes() if p.exists() else b"-"))
+    h.update(Path(__file__).read_bytes())
+    for p in sorted(LEKTOR.glob("*.json")) if LEKTOR.exists() else ():
+        h.update(p.name.encode() + p.read_bytes())
+    for k in ("JEZYK", "NAPISY", "SZKIC", "ROZDZIELCZOSC"):
+        h.update(f"{k}={os.environ.get(k, '')};".encode())
+    return h.hexdigest()[:16]
+
+
+def _z_dysku(odn):
+    """JSON ujęcia z pamięci na dysku (bez pola „kod”) albo None: brak pliku, inny podpis, brak wycinka albo zepsuty plik."""
+    plik = PAMIEC / f"{odn}-{STAN['podpis']}.json.z"
+    if not STAN["podpis"] or not plik.exists():
+        return None
+    try:
+        surowe = zlib.decompress(plik.read_bytes())
+        if all((WYCINKI / w["plik"]).exists() for w in json.loads(surowe)["wycinki"]):
+            return surowe
+    except Exception:
+        traceback.print_exc()
+    return None
+
+
+def _na_dysk(odn, surowe):
+    PAMIEC.mkdir(parents=True, exist_ok=True)
+    for stary in PAMIEC.glob(f"{odn}-*.json.z"):  # poprzednie wersje tego ujęcia
+        stary.unlink(missing_ok=True)
+    plik = PAMIEC / f"{odn}-{STAN['podpis']}.json.z"
+    tmp = plik.with_suffix(f".{os.getpid()}.tmp")
+    tmp.write_bytes(zlib.compress(surowe, 1))
+    tmp.replace(plik)
+
+
 def ujecie(odn):
-    """JSON ujęcia dla obecnej wersji kodu — z pamięci albo policzony teraz. Po błędzie w kodzie: ostatnia dobra wersja."""
+    """JSON ujęcia dla obecnej wersji kodu — z pamięci, z dysku albo policzony teraz. Po błędzie w kodzie: ostatnia dobra wersja."""
     with LOCK:
         hit = GOTOWE.get(odn)
         if hit and (hit[0] == STAN["kod"] or STAN["stan"] == "błąd"):
             return hit[1]
         if odn not in render.ODN:
             raise KeyError(odn)
-        dane = eksport(render.ODN.index(odn))
-        body = json.dumps(dane, ensure_ascii=False, separators=(",", ":")).encode()
+        surowe = _z_dysku(odn)
+        if surowe is None:
+            dane = eksport(render.ODN.index(odn))
+            dane.pop("kod")
+            surowe = json.dumps(dane, ensure_ascii=False, separators=(",", ":")).encode()
+            try:
+                _na_dysk(odn, surowe)
+            except OSError:
+                traceback.print_exc()
+        body = b'{"kod":%d,' % STAN["kod"] + surowe[1:]  # wersja kodu tej sesji serwera (Studio porównuje ją ze stanem)
         GOTOWE[odn] = (STAN["kod"], body)
         return body
 
@@ -150,7 +204,7 @@ def przeladuj(zmienione):
             render = sys.modules["render"]
             if {"zestaw", "zestaw_bc", "papier"} & set(zmienione):
                 _HASH.clear()
-            STAN.update(kod=STAN["kod"] + 1, stan="gotowe", blad="", moduly=sorted(zmienione))
+            STAN.update(kod=STAN["kod"] + 1, stan="gotowe", blad="", moduly=sorted(zmienione), podpis=podpis())
             biezace = render.ODN[STAN["numer"] - 1]
             ujecie(biezace)  # ujęcie z osobnej strony liczy się od razu, reszta na żądanie i w tle
         except Exception:
@@ -260,6 +314,7 @@ if __name__ == "__main__":
     args = ap.parse_args()
     WYCINKI.mkdir(parents=True, exist_ok=True)
     STAN["numer"] = args.numer
+    STAN["podpis"] = podpis()
     if args.rodzic and sys.platform != "win32":  # na Windows os.kill(pid, 0) zabiłby proces Studio
         threading.Thread(target=rodzic, args=(args.rodzic,), daemon=True).start()
     threading.Thread(target=obserwuj, daemon=True).start()
