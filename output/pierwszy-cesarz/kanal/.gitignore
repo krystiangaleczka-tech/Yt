@@ -1,0 +1,8 @@
+# W repo zostają tylko pliki do wgrania na kanał i porównanie wersji; resztę rysuje kanal.py + fujifilm.py
+*
+!.gitignore
+!profil_fuji.png
+!baner_told_in_paper_theatre_fuji.jpg
+!baner_paper_theatre_fuji.jpg
+!porownanie.jpg
+!znak_wodny.png
