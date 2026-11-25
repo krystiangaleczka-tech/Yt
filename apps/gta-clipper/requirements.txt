@@ -1,4 +1,5 @@
-yt-dlp>=2025.1.1
+# [default] pulls yt-dlp-ejs, which YouTube downloads need (together with `brew install deno`)
+yt-dlp[default]>=2025.11.12
 faster-whisper>=1.0
 # OpenCV 5 dropped the Haar face detector used for face tracking
 opencv-python-headless>=4.8,<5

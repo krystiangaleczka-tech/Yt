@@ -10,6 +10,7 @@ Modes
 from __future__ import annotations
 
 import re
+import sys
 
 from . import ai
 from .config import APP_DIR, Workspace, read_json, write_json
@@ -139,7 +140,7 @@ def pick(ws: Workspace, mode: str | None = None, count: int | None = None, ids: 
         prompt = build_prompt(ws, cands, count)
         ws.path("AGENT_TASK.md").write_text(
             prompt + f"\n\nWrite the JSON list to {ws.path('picks_raw.json')} and run:\n"
-            f'python "{APP_DIR / "clipper.py"}" --workspace "{ws.root}" pick --from-raw\n', encoding="utf-8")
+            f'"{sys.executable}" "{APP_DIR / "clipper.py"}" --workspace "{ws.root}" pick --from-raw\n', encoding="utf-8")
         log(f"Zadanie dla AI → {ws.path('AGENT_TASK.md')}")
         return []
     raw = None

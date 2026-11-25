@@ -173,12 +173,15 @@ def add_voice(ws: Workspace, short_id: str, voice_file: str, at: str | float = "
 
 
 def newest_recording() -> str | None:
-    """Newest file in Documents/Sound recordings (Windows Sound Recorder) or similar."""
+    """Newest voice recording: macOS Voice Memos (Dyktafon), AirDrop from iPhone (Downloads), QuickTime, Desktop."""
     home = Path.home()
-    dirs = [home / "Documents" / "Sound recordings", home / "Documents" / "Nagrania dźwiękowe",
-            home / "Music" / "Recordings", home / "Documents"]
+    dirs = [home / "Library/Group Containers/group.com.apple.VoiceMemos.shared/Recordings",  # macOS 14+
+            home / "Library/Application Support/com.apple.voicememos/Recordings",            # older macOS
+            home / "Downloads", home / "Desktop", home / "Movies", home / "Music", home / "Documents"]
     files = []
     for d in dirs:
-        if d.exists():
-            files += [p for p in d.glob("*") if p.suffix.lower() in (".m4a", ".wav", ".mp3", ".ogg", ".webm")]
+        try:  # Voice Memos may need Full Disk Access for Terminal
+            files += [p for p in d.glob("*") if p.suffix.lower() in (".m4a", ".wav", ".mp3", ".aiff", ".caf", ".ogg", ".webm")]
+        except OSError:
+            continue
     return str(max(files, key=lambda p: p.stat().st_mtime)) if files else None

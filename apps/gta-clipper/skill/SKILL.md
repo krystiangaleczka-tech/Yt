@@ -8,7 +8,7 @@ description: Robi pionowe Shorty (9:16) z długich filmów i streamów GTA 6 —
 Silnik i aplikacja leżą w `{{APP_DIR}}`. Wszystkie polecenia uruchamiaj tak:
 
 ```
-python "{{APP_DIR}}/clipper.py" <polecenie>
+"{{PYTHON}}" "{{APP_DIR}}/clipper.py" <polecenie>
 ```
 
 Folder roboczy (Shorty, transkrypcje, ustawienia): domyślnie `~/gta-shorts`.
@@ -16,9 +16,10 @@ Do autora pisz po polsku. Nigdy niczego nie publikuj sam — tylko na wyraźną 
 
 ## Pierwsze uruchomienie
 
-Jeśli `python "{{APP_DIR}}/clipper.py" doctor` pokazuje braki: uruchom `setup` (instaluje yt-dlp, faster-whisper,
-OpenCV, streamlink, czcionki, model mowy — kilka minut, tylko raz). Brak ffmpeg: Windows `winget install Gyan.FFmpeg`,
-macOS `brew install ffmpeg`, Linux `sudo apt install ffmpeg`, potem nowy terminal.
+Program działa na macOS. Jeśli `"{{PYTHON}}" "{{APP_DIR}}/clipper.py" doctor` pokazuje braki: uruchom `setup`
+(instaluje yt-dlp, faster-whisper, OpenCV, streamlink, czcionki, model mowy — kilka minut, tylko raz).
+Brak ffmpeg albo deno: `brew install ffmpeg deno`. `ffmpeg_napisy: false` = ffmpeg bez libass — `setup` podaje,
+jak doinstalować pełną wersję.
 
 ## Przepis: „Zrób N Shortsów GTA 6 z najnowszych filmów”
 
@@ -49,11 +50,11 @@ Zamiast kroków 1–4 bez pytania o wybór: `make --count N [--mode free|smart|d
 | „otwórz aplikację Clipper” | `app` (strona http://localhost:8765, działa tylko na tym PC) |
 | „skończ Shorta 3 dwie sekundy wcześniej” | `change <id> "zakończ 2 s wcześniej"` — oryginał zostaje, powstaje v1 |
 | „styl beast, kamerka pod grą, znak wodny @kanał” | `look <id> --style beast --flip --watermark "@kanał"` |
-| „wstaw mój głos po puencie w Shorcie 1” | `voice <id> [plik] --at payoff` (bez pliku: najnowsze nagranie z Dokumenty/Nagrania dźwiękowe) |
+| „wstaw mój głos po puencie w Shorcie 1” | `voice <id> [plik] --at payoff` (bez pliku: najnowsze nagranie z Dyktafonu, Pobranych — np. AirDrop z iPhone’a — albo Biurka) |
 | „poluj na żywo na xqc” | `live xqc` (Twitch; tnie, gdy czat wybucha; `--ratio 2 --min 40` dla głośnego czatu) |
 | „zapisz ostatnie 10 minut streamu” | `live buffer <kanał>` |
 | „rozplanuj zatwierdzone” | `schedule --every 90 --first 10:00` (`--preview` = tylko podgląd) |
-| „rób to codziennie o 9” | `autopilot preview`, a po zgodzie autora `autopilot on` (godzina w Ustawieniach/`settings.json`) |
+| „rób to codziennie o 9” | `autopilot preview`, a po zgodzie autora `autopilot on` (launchd; godzina w Ustawieniach/`settings.json`) |
 | „daj opisy do wklejenia” | `posttext` |
 
 `<id>` to nazwa folderu w `~/gta-shorts/shorts/` (np. `20261125-0930_01_xqc`); „Short 1” = folder z `_01_`

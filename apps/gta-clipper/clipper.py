@@ -183,7 +183,9 @@ def main(argv=None):
             dst = Path.home() / ".claude" / "skills" / "gta-clipper" / "SKILL.md"
             dst.parent.mkdir(parents=True, exist_ok=True)
             text = (app_dir / "skill" / "SKILL.md").read_text(encoding="utf-8")
-            dst.write_text(text.replace("{{APP_DIR}}", app_dir.as_posix()), encoding="utf-8")
+            # the skill calls this exact Python (the .venv one on a Mac), not a bare "python"
+            text = text.replace("{{APP_DIR}}", app_dir.as_posix()).replace("{{PYTHON}}", Path(sys.executable).as_posix())
+            dst.write_text(text, encoding="utf-8")
             print(f"Skill zainstalowany: {dst}\nUruchom Claude Code ponownie i napisz np. „Zrób 10 Shortsów GTA 6 z najnowszych filmów”.")
         elif a.cmd == "clean":
             from gtaclip.sources import clean_old

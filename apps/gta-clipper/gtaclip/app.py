@@ -250,7 +250,7 @@ class App:
             if body.get("window"):
                 args += ["--window", body["window"]]
             if path.endswith("preview"):
-                return {"cmd": "python clipper.py " + " ".join(f'"{a}"' if " " in a else a for a in args)}
+                return {"cmd": f'"{sys.executable}" clipper.py ' + " ".join(f'"{a}"' if " " in a else a for a in args)}
             label = f"Zrób Shorty ({body.get('count') or 'domyślnie'})" + (f" · linki: {len(urls)}" if urls else "")
             return self.jobs.start("make", label, args)
         if path == "/api/live/start":

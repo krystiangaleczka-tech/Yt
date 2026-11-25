@@ -1,6 +1,8 @@
 """Posting plan (spread approved Shorts over the day) and Autopilot (daily automatic run)."""
 from __future__ import annotations
 
+import os
+import plistlib
 import subprocess
 import sys
 import time
@@ -11,6 +13,7 @@ from .config import APP_DIR, Workspace
 from .util import log, run
 
 TASK = "GTAClipperAutopilot"
+LABEL = "com.gtaclipper.autopilot"
 
 
 def auto_schedule(ws: Workspace, ids: list[str], every_min: int | None = None, first_at: str | None = None,
@@ -74,15 +77,23 @@ def autopilot_commands(ws: Workspace) -> dict:
         remove = ["schtasks", "/Delete", "/F", "/TN", TASK]
         return {"kind": "Harmonogram zadań Windows", "install": install, "remove": remove, "run": run_cmd}
     if sys.platform == "darwin":
-        plist = Path.home() / "Library/LaunchAgents/com.gtaclipper.autopilot.plist"
-        ints = "".join(f"<dict><key>Weekday</key><integer>{(d + 1) % 7}</integer><key>Hour</key><integer>{int(hh)}</integer>"
-                       f"<key>Minute</key><integer>{int(mm)}</integer></dict>" for d in days)
-        args = "".join(f"<string>{a}</string>" for a in [_python(), str(script), "--workspace", str(ws.root), "autopilot", "run"])
-        body = (f'<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict><key>Label</key>'
-                f"<string>com.gtaclipper.autopilot</string><key>ProgramArguments</key><array>{args}</array>"
-                f"<key>StartCalendarInterval</key><array>{ints}</array></dict></plist>")
-        return {"kind": "launchd (macOS)", "plist": str(plist), "plist_body": body,
-                "install": ["launchctl", "load", str(plist)], "remove": ["launchctl", "unload", str(plist)], "run": run_cmd}
+        plist = Path.home() / "Library/LaunchAgents" / f"{LABEL}.plist"
+        # launchd starts jobs with a bare PATH: add Homebrew so ffmpeg / deno / claude are found
+        path = ":".join(dict.fromkeys(["/opt/homebrew/bin", "/usr/local/bin", str(Path(_python()).parent),
+                                       *os.environ.get("PATH", "").split(":"), "/usr/bin", "/bin", "/usr/sbin", "/sbin"]))
+        body = plistlib.dumps({
+            "Label": LABEL,
+            "ProgramArguments": [_python(), str(script), "--workspace", str(ws.root), "autopilot", "run"],
+            "StartCalendarInterval": [{"Weekday": (d + 1) % 7, "Hour": int(hh), "Minute": int(mm)} for d in days],
+            "EnvironmentVariables": {"PATH": path, "PYTHONIOENCODING": "utf-8", "LANG": "en_US.UTF-8"},
+            "StandardOutPath": str(ws.logs / "autopilot.log"),
+            "StandardErrorPath": str(ws.logs / "autopilot.log"),
+            "ProcessType": "Background",
+        }).decode()
+        domain = f"gui/{os.getuid()}"
+        return {"kind": "launchd (macOS) — zadanie użytkownika", "plist": str(plist), "plist_body": body,
+                "install": ["launchctl", "bootstrap", domain, str(plist)],
+                "remove": ["launchctl", "bootout", f"{domain}/{LABEL}"], "run": run_cmd}
     cron_days = ",".join(str((d + 1) % 7) for d in days)
     line = f"{int(mm)} {int(hh)} * * {cron_days} {run_cmd} >> \"{ws.logs / 'autopilot.log'}\" 2>&1 # {TASK}"
     return {"kind": "crontab", "line": line, "run": run_cmd}
@@ -99,15 +110,17 @@ def autopilot_enable(ws: Workspace, on: bool) -> dict:
         return {"ok": r.returncode == 0 or not on, "out": (r.stdout + r.stderr)[-400:], **cmds}
     if sys.platform == "darwin":
         p = Path(cmds["plist"])
+        run(cmds["remove"], check=False)  # not loaded yet -> harmless error
         if on:
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(cmds["plist_body"], encoding="utf-8")
-            run(cmds["remove"], check=False)
             r = run(cmds["install"], check=False)
-        else:
-            r = run(cmds["remove"], check=False)
-            p.unlink(missing_ok=True)
-        return {"ok": True, "out": (r.stdout + r.stderr)[-400:], **cmds}
+            ok = r.returncode == 0
+            if not ok:
+                ws.save_settings({"autopilot": {"enabled": False}})
+            return {"ok": ok, "out": (r.stdout + r.stderr)[-400:], **cmds}
+        p.unlink(missing_ok=True)
+        return {"ok": True, **cmds}
     cur = subprocess.run(["crontab", "-l"], capture_output=True, text=True).stdout if _has("crontab") else ""
     lines = [ln for ln in cur.splitlines() if TASK not in ln]
     if on:

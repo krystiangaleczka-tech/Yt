@@ -19,7 +19,7 @@ FONTS = {
     "BebasNeue-Regular.ttf": "ofl/bebasneue/BebasNeue-Regular.ttf",
 }
 PACKAGES = {"faster_whisper": "faster-whisper", "cv2": "opencv-python-headless<5", "numpy": "numpy",
-            "PIL": "Pillow", "yt_dlp": "yt-dlp", "streamlink": "streamlink"}
+            "PIL": "Pillow", "yt_dlp": "yt-dlp[default]", "yt_dlp_ejs": "yt-dlp-ejs", "streamlink": "streamlink"}
 
 
 def doctor(ws: Workspace) -> dict:
@@ -30,8 +30,9 @@ def doctor(ws: Workspace) -> dict:
             res[mod] = True
         except Exception:
             res[mod] = False
+    res["ffmpeg_napisy"] = ffmpeg_has_ass()
     res["fonts"] = all((ws.fonts / f).exists() for f in FONTS)
-    res["deno"] = have("deno") or have("node")
+    res["deno"] = have("deno")  # yt-dlp needs a JS runtime for YouTube; deno is the one enabled by default
     s = ws.settings()
     from . import ai
     res["ai"] = f"{s['ai']}: {'jest' if ai.available(s) else 'brak na tym PC'}"
@@ -48,17 +49,39 @@ def install_packages() -> None:
             missing.append(pkg)
     if missing:
         log(f"Instaluję: {', '.join(missing)}")
-        subprocess.run([sys.executable, "-m", "pip", "install", "-U", *missing], check=False)
+        p = subprocess.run([sys.executable, "-m", "pip", "install", "-U", *missing], capture_output=True, text=True)
+        out = p.stdout + p.stderr
+        if p.returncode != 0:
+            if "externally-managed" in out:  # Homebrew Python (PEP 668): needs a venv
+                log("Python z Homebrew nie pozwala instalować pakietów globalnie.\n"
+                    "Uruchom aplikację przez ./start_clipper.command — sam zrobi środowisko .venv i wszystko zainstaluje.")
+            else:
+                log(out[-1500:])
     else:
         log("Pakiety Pythona: komplet")
 
 
+def ffmpeg_has_ass() -> bool:
+    """Captions are burned with ffmpeg's libass filter — some ffmpeg builds ship without it."""
+    if not have("ffmpeg"):
+        return False
+    p = subprocess.run(["ffmpeg", "-hide_banner", "-filters"], capture_output=True, text=True)
+    return any(ln.split()[1:2] == ["ass"] for ln in p.stdout.splitlines() if ln.strip())
+
+
 def ffmpeg_hint() -> str:
-    if sys.platform == "win32":
-        return "winget install Gyan.FFmpeg   (potem zamknij i otwórz terminal)"
     if sys.platform == "darwin":
         return "brew install ffmpeg"
+    if sys.platform == "win32":
+        return "winget install Gyan.FFmpeg   (potem zamknij i otwórz terminal)"
     return "sudo apt install ffmpeg"
+
+
+def ffmpeg_ass_hint() -> str:
+    if sys.platform == "darwin":
+        return ("ffmpeg nie ma filtra napisów (libass). Zainstaluj pełną wersję:\n"
+                "  brew uninstall ffmpeg && brew tap homebrew-ffmpeg/ffmpeg && brew install homebrew-ffmpeg/ffmpeg/ffmpeg")
+    return "ffmpeg nie ma filtra napisów (libass) — zainstaluj pełną wersję ffmpeg."
 
 
 def fonts(ws: Workspace) -> None:
@@ -97,6 +120,11 @@ def setup(ws: Workspace, packages: bool = True) -> dict:
     ws.ensure()
     if not have("ffmpeg"):
         log(f"Brak ffmpeg. Zainstaluj: {ffmpeg_hint()}")
+    elif not ffmpeg_has_ass():
+        log(ffmpeg_ass_hint())
+    if not have("deno"):
+        log("Brak deno — bez niego yt-dlp nie pobierze z YouTube. Zainstaluj: "
+            + ("brew install deno" if sys.platform == "darwin" else "https://deno.com"))
     if packages:
         install_packages()
     fonts(ws)

@@ -238,7 +238,7 @@ function drawDetail() {
         <button class="btn" style="margin-top:8px" data-act="d-look" ${x.busy ? "disabled" : ""}>Zrób wersję z tym wyglądem</button></div>
       <div class="card"><h3>Twój głos</h3>
         <p class="mute small">Jedno zdanie od Ciebie zmienia kopię w komentarz. Dźwięk gry ścisza się pod głosem i wraca po nim.</p>
-        <div class="row"><input type="file" id="d-voice" accept="audio/*,video/webm">
+        <div class="row"><input type="file" id="d-voice" accept="audio/*,.m4a,.caf,video/webm">
           <button class="btn" data-act="rec">${S.rec ? "■ Zatrzymaj nagrywanie" : "● Nagraj teraz"}</button>
           <select id="d-at"><option value="payoff">zaraz po puencie</option><option value="start">na początku</option></select>
           <button class="btn" data-act="d-voice" ${x.busy ? "disabled" : ""}>Dodaj głos</button></div></div>
@@ -311,7 +311,7 @@ function make() {
   <div class="card"><h3>Skąd mają być Shorty?</h3>
     <div class="row"><label class="chk"><input type="radio" name="src" value="newest" checked> Najnowsze filmy i streamy GTA 6 (Twoi streamerzy + wyszukiwanie)</label></div>
     <div class="row" style="margin-top:6px"><label class="chk"><input type="radio" name="src" value="links"> Konkretne linki albo pliki z dysku:</label></div>
-    <textarea id="mk-urls" rows="3" placeholder="https://www.youtube.com/watch?v=…   https://www.twitch.tv/videos/…   C:\\nagrania\\gameplay.mp4"></textarea>
+    <textarea id="mk-urls" rows="3" placeholder="https://www.youtube.com/watch?v=…   https://www.twitch.tv/videos/…   ~/Movies/gameplay.mp4"></textarea>
     <div class="row" style="margin-top:8px">
       <label>Ile Shortsów <input type="number" id="mk-count" min="1" max="30" value="${s.shorts_per_run}" style="width:70px"></label>
       <label>Wyszukiwanie <input type="text" id="mk-query" value="${esc(s.query)}" style="width:160px"></label>
@@ -321,7 +321,7 @@ function make() {
     <div id="mk-cmd" class="mute small" style="margin-top:8px"></div>
     <p class="mute small">Trwa to chwilę: pobieranie samego dźwięku, transkrypcja na tym PC, wybór, a potem pobranie tylko wybranych sekund. Shorty pojawią się w „Shorty → Do przeglądu”.</p></div>`
   : `<div class="card"><h3>Codziennie o stałej porze</h3>
-    <p class="mute small">Komputer sam zrobi nowe Shorty, jeśli jest włączony i jesteś zalogowany. Niczego nie publikuje — rano tylko przeglądasz.</p>
+    <p class="mute small">Mac sam zrobi nowe Shorty, jeśli jesteś zalogowany. Jeśli o tej porze śpi, przebieg ruszy po obudzeniu; wyłączony — przebieg przepada. Niczego nie publikuje — rano tylko przeglądasz.</p>
     <div class="row"><label>Godzina <input type="time" id="ap-time" value="${esc(ap.time)}"></label>
       <label>Ile Shortsów <input type="number" id="ap-count" min="1" max="30" value="${ap.count}" style="width:70px"></label></div>
     <div class="chips" style="margin:10px 0">${days.map((d, i) => `<label class="chip ${ap.days.includes(i) ? "on" : ""}"><input type="checkbox" class="ap-day" value="${i}" ${ap.days.includes(i) ? "checked" : ""} hidden>${d}</label>`).join("")}</div>
@@ -479,7 +479,7 @@ function settings() {
   <div class="card"><h2>Komputer</h2><div class="row">
     <label>Model mowy <select data-set="whisper_model">${["tiny", "base", "small", "medium", "large-v3"].map((m) => `<option ${s.whisper_model === m ? "selected" : ""}>${m}</option>`).join("")}</select></label>
     <label>Montaż naraz <input type="number" data-set="workers" min="1" max="8" value="${s.workers}" style="width:60px"></label></div>
-    <p class="mute small">Słabszy PC: model „base” i 1 montaż naraz. Karta NVIDIA przyspiesza transkrypcję sama.</p></div>
+    <p class="mute small">Na Macu transkrypcja idzie na procesorze. Starszy Mac albo MacBook Air: model „base” i 1 montaż naraz.</p></div>
   <div class="card"><h2>Polowanie na żywo</h2><div class="row">
     <label>Skok czatu × <input type="number" step="0.5" data-set-live="ratio" value="${s.live.ratio}" style="width:60px"></label>
     <label>Min. wiadomości / min <input type="number" data-set-live="min_per_min" value="${s.live.min_per_min}" style="width:70px"></label>
@@ -585,7 +585,8 @@ const ACT = {
   },
   rec: () => toggleRec(),
   "d-voice": async () => {
-    const f = $("#d-voice").files[0] || (S.recBlob && new File([S.recBlob], "nagranie.webm"));
+    // Safari records audio/mp4, Chrome audio/webm
+    const f = $("#d-voice").files[0] || (S.recBlob && new File([S.recBlob], /mp4/.test(S.recBlob.type) ? "nagranie.m4a" : "nagranie.webm"));
     if (!f) return toast("Wybierz plik albo nagraj głos");
     const data = await blobToDataUrl(f);
     await api(`/api/shorts/${S.detail}/voice`, { name: f.name, data, at: $("#d-at").value });
