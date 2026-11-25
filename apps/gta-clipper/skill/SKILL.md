@@ -18,8 +18,8 @@ Do autora pisz po polsku. Nigdy niczego nie publikuj sam — tylko na wyraźną 
 
 Program działa na macOS. Jeśli `"{{PYTHON}}" "{{APP_DIR}}/clipper.py" doctor` pokazuje braki: uruchom `setup`
 (instaluje yt-dlp, faster-whisper, OpenCV, streamlink, czcionki, model mowy — kilka minut, tylko raz).
-Brak ffmpeg albo deno: `brew install ffmpeg deno`. `ffmpeg_napisy: false` = ffmpeg bez libass — `setup` podaje,
-jak doinstalować pełną wersję.
+Brak ffmpeg albo deno: `brew install ffmpeg deno`. ffmpeg bez libass nie przeszkadza — napisy rysuje wtedy kod
+(`napisy: kod (Pillow)` w `doctor`).
 
 ## Przepis: „Zrób N Shortsów GTA 6 z najnowszych filmów”
 

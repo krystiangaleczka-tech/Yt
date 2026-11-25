@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib
+from functools import lru_cache
 import shutil
 import subprocess
 import sys
@@ -30,7 +31,7 @@ def doctor(ws: Workspace) -> dict:
             res[mod] = True
         except Exception:
             res[mod] = False
-    res["ffmpeg_napisy"] = ffmpeg_has_ass()
+    res["napisy"] = "ffmpeg (libass)" if ffmpeg_has_ass() else "kod (Pillow) — ffmpeg bez libass"
     res["fonts"] = all((ws.fonts / f).exists() for f in FONTS)
     res["deno"] = have("deno")  # yt-dlp needs a JS runtime for YouTube; deno is the one enabled by default
     s = ws.settings()
@@ -61,6 +62,7 @@ def install_packages() -> None:
         log("Pakiety Pythona: komplet")
 
 
+@lru_cache(maxsize=1)
 def ffmpeg_has_ass() -> bool:
     """Captions are burned with ffmpeg's libass filter — some ffmpeg builds ship without it."""
     if not have("ffmpeg"):
@@ -78,10 +80,7 @@ def ffmpeg_hint() -> str:
 
 
 def ffmpeg_ass_hint() -> str:
-    if sys.platform == "darwin":
-        return ("ffmpeg nie ma filtra napisów (libass). Zainstaluj pełną wersję:\n"
-                "  brew uninstall ffmpeg && brew tap homebrew-ffmpeg/ffmpeg && brew install homebrew-ffmpeg/ffmpeg/ffmpeg")
-    return "ffmpeg nie ma filtra napisów (libass) — zainstaluj pełną wersję ffmpeg."
+    return "ffmpeg nie ma filtra napisów (libass) — nic nie szkodzi, napisy narysuje kod (Pillow)."
 
 
 def fonts(ws: Workspace) -> None:

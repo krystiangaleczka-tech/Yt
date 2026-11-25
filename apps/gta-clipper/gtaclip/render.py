@@ -18,9 +18,11 @@ from pathlib import Path
 import numpy as np
 
 from . import qc as qcmod
-from .captions import build_ass
+from .capdraw import build_layer
+from .captions import build_ass, caption_events
 from .config import Workspace, read_json, write_json
 from .reframe import analyze, game_crop, track_expr
+from .setup import ffmpeg_has_ass
 from .sources import fetch_section
 from .transcribe import words_between
 from .util import ToolError, log, media_info, run, slug
@@ -213,11 +215,10 @@ def produce(ws: Workspace, folder: Path, spec: dict, out_name: str) -> dict:
         lay["track"] = [[fmap(t) if fmap(t) is not None else t, x] for t, x in lay["track"]]
     graph, hook_y, cap_y = layout_graph(lay, look)
 
-    ass = build_ass(words, out_len, look["style"], spec.get("hook", ""), spec.get("keywords", []),
-                    cap_y=cap_y, hook_y=hook_y, watermark=look.get("watermark", ""), accent=look["accent"],
+    cap_args = dict(cap_y=cap_y, hook_y=hook_y, watermark=look.get("watermark", ""),
                     keyword_color=look["keyword_color"], censor_on=look["censor_on_screen"])
-    (folder / "subs.ass").write_text(ass, encoding="utf-8")
-    fonts_rel = os.path.relpath(ws.fonts, folder).replace("\\", "/")
+    engine = look.get("caption_engine") or s.get("caption_engine", "auto")
+    use_ass = engine == "ass" or (engine == "auto" and ffmpeg_has_ass())
 
     sel_v = sel_a = ""
     if len(keep) > 1:
@@ -230,9 +231,31 @@ def produce(ws: Workspace, folder: Path, spec: dict, out_name: str) -> dict:
         z = "+".join(f"between(in,{int(t * FPS) - 2},{int((t + 0.7) * FPS)})" for t in zooms)
         parts.append(f"{last}zoompan=z='1+0.14*({z})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1080x1920:fps={FPS}[zm]")
         last = "[zm]"
-    parts.append(f"{last}ass=subs.ass:fontsdir='{fonts_rel}',format=yuv420p[vout]")
 
     inputs = ["-ss", f"{a:.3f}", "-to", f"{b:.3f}", "-i", "src.mp4"]
+    n_in = 1
+
+    def add_input(*args) -> int:
+        nonlocal n_in
+        inputs.extend(args)
+        n_in += 1
+        return n_in - 1
+
+    if use_ass:  # ffmpeg draws the text (libass)
+        ass = build_ass(words, out_len, look["style"], spec.get("hook", ""), spec.get("keywords", []),
+                        accent=look["accent"], **cap_args)
+        (folder / "subs.ass").write_text(ass, encoding="utf-8")
+        fonts_rel = os.path.relpath(ws.fonts, folder).replace("\\", "/")
+        parts.append(f"{last}ass=subs.ass:fontsdir='{fonts_rel}',format=yuv420p[vout]")
+    else:  # no libass: our code draws the captions, ffmpeg only overlays the images
+        events = caption_events(words, out_len, look["style"], spec.get("hook", ""), spec.get("keywords", []), **cap_args)
+        lst = build_layer(events, out_len, look["style"], look["accent"], ws.fonts, folder / "caps")
+        if lst:
+            ci = add_input("-f", "concat", "-safe", "0", "-i", os.path.relpath(lst, folder))
+            parts.append(f"[{ci}:v]format=rgba,setpts=PTS-STARTPTS[caps]")
+            parts.append(f"{last}[caps]overlay=0:0:eof_action=repeat:format=auto,format=yuv420p[vout]")
+        else:
+            parts.append(f"{last}format=yuv420p[vout]")
     if info["has_audio"]:
         ln = loudnorm_measure(src, a, b)
         norm = "loudnorm=I=-14:TP=-1.5:LRA=11"
@@ -241,13 +264,12 @@ def produce(ws: Workspace, folder: Path, spec: dict, out_name: str) -> dict:
                      f":measured_thresh={ln['input_thresh']}:offset={ln['target_offset']}:linear=true")
         parts.append(f"[0:a]{sel_a}asetpts=PTS-STARTPTS,{norm},aresample=48000[an]")
     else:
-        inputs += ["-f", "lavfi", "-t", f"{out_len:.2f}", "-i", "anullsrc=r=48000:cl=stereo"]
-        parts.append("[1:a]anull[an]")
+        si = add_input("-f", "lavfi", "-t", f"{out_len:.2f}", "-i", "anullsrc=r=48000:cl=stereo")
+        parts.append(f"[{si}:a]anull[an]")
     alast = "[an]"
     whoosh = ws.sounds / "whoosh.wav"
     if look["sfx"] and zooms and whoosh.exists():
-        idx = 1 if info["has_audio"] else 2
-        inputs += ["-i", os.path.relpath(whoosh, folder)]
+        idx = add_input("-i", os.path.relpath(whoosh, folder))
         n = len(zooms)
         if n > 1:
             parts.append(f"[{idx}:a]asplit={n}" + "".join(f"[w{k}]" for k in range(n)))

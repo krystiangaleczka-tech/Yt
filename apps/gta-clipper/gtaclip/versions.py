@@ -178,10 +178,15 @@ def newest_recording() -> str | None:
     dirs = [home / "Library/Group Containers/group.com.apple.VoiceMemos.shared/Recordings",  # macOS 14+
             home / "Library/Application Support/com.apple.voicememos/Recordings",            # older macOS
             home / "Downloads", home / "Desktop", home / "Movies", home / "Music", home / "Documents"]
+    exts = (".m4a", ".qta", ".wav", ".mp3", ".aiff", ".caf", ".ogg", ".webm")  # .qta = newer Voice Memos
     files = []
     for d in dirs:
-        try:  # Voice Memos may need Full Disk Access for Terminal
-            files += [p for p in d.glob("*") if p.suffix.lower() in (".m4a", ".wav", ".mp3", ".aiff", ".caf", ".ogg", ".webm")]
+        try:
+            files += [p for p in d.glob("*") if p.suffix.lower() in exts]
+        except PermissionError:
+            if "VoiceMemos" in str(d) or "voicememos" in str(d):
+                log("macOS nie dał dostępu do Dyktafonu. Kliknij „Pozwól”, gdy zapyta, albo: Ustawienia systemowe → "
+                    "Prywatność i ochrona → Pełny dostęp do dysku → włącz Terminal.")
         except OSError:
             continue
     return str(max(files, key=lambda p: p.stat().st_mtime)) if files else None

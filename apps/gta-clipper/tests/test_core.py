@@ -107,5 +107,23 @@ class Picks(unittest.TestCase):
             self.assertEqual(picks[0]["hook"], "XQC FINDS A VERY SECRET PLACE")
 
 
+class CaptionsInCode(unittest.TestCase):
+    """The Pillow fallback (ffmpeg without libass) covers the whole Short with exact durations."""
+
+    def test_layer_timeline(self):
+        from gtaclip.capdraw import build_layer
+        from gtaclip.captions import caption_events
+
+        w = [{"w": t, "s": s, "e": e} for t, s, e in [("yo", 0.5, 0.9), ("the", 1.0, 1.2), ("cops", 1.2, 1.8)]]
+        with tempfile.TemporaryDirectory() as d:
+            ev = caption_events(w, 4.0, "classic", "SPEED FOUND KFC", ["cops"], watermark="@me")
+            lst = build_layer(ev, 4.0, "classic", "#FFD400", Path(d) / "fonts", Path(d) / "caps")
+            lines = lst.read_text().splitlines()
+            total = sum(float(x.split()[1]) for x in lines if x.startswith("duration"))
+            self.assertAlmostEqual(total, 4.0, places=2)
+            self.assertTrue(lines[-1].startswith("file "))  # last image repeated for the concat demuxer
+            self.assertGreater(len(list((Path(d) / "caps").glob("*.png"))), 5)
+
+
 if __name__ == "__main__":
     unittest.main()

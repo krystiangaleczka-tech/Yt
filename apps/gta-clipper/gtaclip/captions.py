@@ -59,7 +59,6 @@ def build_ass(words: list[dict], duration: float, theme_name: str, hook: str = "
               cap_y: int = 1340, hook_y: int = 260, hook_secs: float = 3.5, watermark: str = "",
               accent: str = "#FFD400", keyword_color: str = "#2BE36B", censor_on: bool = True) -> str:
     th = THEMES.get(theme_name, THEMES["classic"])
-    kw = {k.lower().strip(".,!?") for k in keywords if k}
     box = th.get("box")
     border_style = 3 if box else 1
     outline_col = hex_to_ass(box) if box else hex_to_ass(th["outline"])
@@ -80,27 +79,46 @@ Style: Mark,Poppins Black,40,&H66FFFFFF,&H000000FF,&H99000000,&H00000000,0,0,0,0
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
     ev = []
+    for e in caption_events(words, duration, theme_name, hook, keywords, cap_y=cap_y, hook_y=hook_y,
+                            hook_secs=hook_secs, watermark=watermark, keyword_color=keyword_color, censor_on=censor_on):
+        if e["kind"] == "hook":
+            ev.append(f"Dialogue: 2,{_ts(e['start'])},{_ts(e['end'])},Hook,,0,0,0,,"
+                      f"{{\\pos(540,{e['y']})\\fscx60\\fscy60\\t(0,140,\\fscx104\\fscy104)\\t(140,220,\\fscx100\\fscy100)}}"
+                      + "\\N".join(_esc(ln) for ln in e["lines"]))
+        elif e["kind"] == "mark":
+            ev.append(f"Dialogue: 1,{_ts(e['start'])},{_ts(e['end'])},Mark,,0,0,0,,{_esc(e['text'])}")
+        else:
+            pop = "\\fscx112\\fscy112\\t(0,90,\\fscx100\\fscy100)" if e["pop"] else ""
+            ev.append(f"Dialogue: 0,{_ts(e['start'])},{_ts(e['end'])},Cap,,0,0,0,,{{\\pos(540,{e['y']}){pop}}}"
+                      + " ".join(f"{{\\c{hex_to_ass(col)}}}{_esc(t)}" for t, col in e["parts"]))
+    return head + "\n".join(ev) + "\n"
+
+
+def caption_events(words: list[dict], duration: float, theme_name: str, hook: str = "", keywords=(), *,
+                   cap_y: int = 1340, hook_y: int = 260, hook_secs: float = 3.5, watermark: str = "",
+                   keyword_color: str = "#2BE36B", censor_on: bool = True) -> list[dict]:
+    """What is on screen and when — shared by the libass writer and the Pillow renderer.
+
+    hook: {lines, y, start, end}   mark: {text, start, end}
+    cap:  {parts: [(text, "#RRGGBB")], y, start, end, pop}"""
+    th = THEMES.get(theme_name, THEMES["classic"])
+    kw = {k.lower().strip(".,!?") for k in keywords if k}
+    ev: list[dict] = []
     if hook:
-        h = _esc(hook.upper())
-        # wrap long hooks onto two lines
+        h = hook.upper()
         parts = h.split()
-        if len(h) > 18 and len(parts) > 2:
+        lines = [h]
+        if len(h) > 18 and len(parts) > 2:  # wrap long hooks onto two lines
             mid = len(parts) // 2
-            h = " ".join(parts[:mid]) + "\\N" + " ".join(parts[mid:])
-        ev.append(f"Dialogue: 2,{_ts(0)},{_ts(min(hook_secs, duration))},Hook,,0,0,0,,"
-                  f"{{\\pos(540,{hook_y})\\fscx60\\fscy60\\t(0,140,\\fscx104\\fscy104)\\t(140,220,\\fscx100\\fscy100)}}{h}")
+            lines = [" ".join(parts[:mid]), " ".join(parts[mid:])]
+        ev.append({"kind": "hook", "lines": lines, "y": hook_y, "start": 0.0, "end": min(hook_secs, duration)})
     if watermark:
-        ev.append(f"Dialogue: 1,{_ts(0)},{_ts(duration)},Mark,,0,0,0,,{_esc(watermark)}")
+        ev.append({"kind": "mark", "text": watermark, "start": 0.0, "end": duration})
 
     def fmt(w):
-        t = w["w"]
-        if censor_on:
-            t = censor(t)
-        return _esc(t.upper() if th["upper"] else t)
+        t = censor(w["w"]) if censor_on else w["w"]
+        return t.upper() if th["upper"] else t
 
-    act = hex_to_ass(th["active"])
-    base = hex_to_ass(th["text"])
-    kwc = hex_to_ass(keyword_color)
     chunks = chunk_words(words, th["words"])
     for ci, ch in enumerate(chunks):
         c_start = ch[0]["s"]
@@ -114,16 +132,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 continue
             parts = []
             for j, x in enumerate(ch):
-                is_kw = x["w"].lower().strip(".,!?'\"") in kw
                 if th.get("fill") and j > i:
-                    col = base
+                    col = th["text"]
                 elif j == i or (th.get("fill") and j < i):
-                    col = act
+                    col = th["active"]
                 else:
-                    col = base
-                if is_kw:
-                    col = kwc
-                parts.append(f"{{\\c{col}}}{fmt(x)}")
-            pop = "\\fscx112\\fscy112\\t(0,90,\\fscx100\\fscy100)" if th["pop"] and i == 0 else ""
-            ev.append(f"Dialogue: 0,{_ts(a)},{_ts(min(b, duration))},Cap,,0,0,0,,{{\\pos(540,{cap_y}){pop}}}" + " ".join(parts))
-    return head + "\n".join(ev) + "\n"
+                    col = th["text"]
+                if x["w"].lower().strip(".,!?'\"") in kw:
+                    col = keyword_color
+                parts.append((fmt(x), col))
+            ev.append({"kind": "cap", "parts": parts, "y": cap_y, "start": a, "end": min(b, duration),
+                       "pop": bool(th["pop"] and i == 0)})
+    return ev

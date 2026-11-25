@@ -61,6 +61,7 @@ DEFAULT_SETTINGS: dict = {
     "cut_dead_air": True,
     "sfx": False,
     "censor_on_screen": True,
+    "caption_engine": "auto",    # auto | ass (ffmpeg/libass) | pil (drawn in code)
     "workers": 3,
     "whisper_model": "small",
     "whisper_device": "auto",
