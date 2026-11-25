@@ -85,4 +85,18 @@ So who made the legend: the outlaws, the newspapers, or the man who finally caug
 Po 18 h: 291 wyświetleń miniatury, CTR 2,1 % (Syn słońca 3,2 %), 9 wyświetleń. C i D to plan ogólny w beżach — w 320 px nie
 widać twarzy. Nowe zbliżenia: `miniatura/miniatura_E_en_4k_fuji.png` (zasadzka) i `miniatura_G_en_4k_fuji.png` (ciemnia,
 czerwone tło). Test & Compare przyjmuje najwyżej 3 warianty, więc obecny test (tytuły 1–3 z miniaturkami D, D, C) trzeba
-zatrzymać i założyć nowy: same miniaturki D, E i G przy jednym tytule („The ENTIRE Bonnie and Clyde Story in 18 Minutes”).
+zatrzymać i założyć nowy.
+
+Reżyser 25.11: „jeden tytuł chciałbym z GTA 6” → test par tytuł + miniaturka (każdy tytuł z miniaturką, która go pokazuje):
+
+| | Tytuł | Miniaturka |
+|---|---|---|
+| 1 | `GTA 6's Ending vs What Really Happened to Bonnie and Clyde` | D (strzelanina na aucie, „THE REAL ENDING”) |
+| 2 | `The ENTIRE Bonnie and Clyde Story in 18 Minutes` | E (zasadzka z bliska) |
+| 3 | `One Joke Photo Made Bonnie & Clyde America's Most Hunted Couple` | G (ciemnia, zdjęcie z cygarem) |
+
+„Before GTA 6” odpada: gra wyszła 19–20.11, więc ten tytuł brzmi, jakby film powstał przed premierą. Wyszukiwarka 25.11
+(ostatni miesiąc): most „gra → prawdziwa historia” działa — „This GTA 6 Ending Happened In Real Life” (GamGam) 10 tys.
+w 3 dni, „BONNIE AND CLYDE ENDING IN GTA 6” 4 tys. w 1 dzień; tytuły „Real Story Behind GTA 6's Couple” i „GTA 6 Bonnie and
+Clyde Real-Life” mają po 3–6 wyświetleń. Dlatego „GTA 6's Ending” na początku (tego szukają gracze po premierze), a nie
+„the real story behind”.
