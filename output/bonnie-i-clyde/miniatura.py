@@ -12,6 +12,11 @@ tytuł musi być coś z GTA 6”. Każda miniaturka idzie w parze z jednym tytu�
   C — „The ENTIRE Bonnie and Clyde Story in 18 Minutes”: Bonnie i Clyde w zbliżeniu przed Fordem na drodze przez prerię,
       zza krawędzi wygląda Hamer, tabliczki „THE WHOLE STORY” i „18 MIN”.
 Bez grafik z GTA 6 (znak towarowy) — gra jest tylko w tytule.
+Reżyser 25.11.2026 (po 18 h: CTR 2,1 %, „musimy coś zrobić z miniaturkami, stworzyć jeszcze dwie różne do testów A/B”) —
+zbliżenia twarzy z miną na ciemnym tle, jak miniaturki z najlepszą klikalnością kanału:
+  E — zasadzka z bliska: Clyde i Bonnie do pasa, przerażeni, ręce w górze; w sosnach łowcy w krzakach, błyski z luf, „AMBUSH!”;
+  F — Bonnie mruga z cygarem i rewolwerem na przyciemnionych gazetach, flesz aparatu, „IT WAS A JOKE!” (zapas);
+  G — to samo w ciemni w czerwonym świetle („jedną miniaturkę zrób z tą ciemnią, tam gdzie jest to czerwone tło”).
 
   WARIANT=A python3 miniatura.py                → miniatura/miniatura_A_en.jpg i .png (1280 × 720, szybki podgląd: JAKOSC=1)
   ROZMIAR=3840 WARIANT=A python3 miniatura.py   → 4K dla YouTube: miniatura_A_en_4k.png i _4k.jpg (+ 1280 × 720 z tego rysunku)
@@ -345,7 +350,305 @@ SZYLD_D = 142  # wysokość szyldu z tytułem (w C i A–B 78; reżyser 24.11: �
 LOWCY_MIN = (("hamer", ""), ("gault", ""), ("alcorn", ""), ("hinton", ""), ("jordan", ""), ("oakley", ""))
 
 
-SCENY = {"A": scena_a, "B": scena_b, "C": scena_c, "D": scena_d}
+# ---------- E i F: zbliżenia twarzy z miną (przepis „Syna słońca” i „Pierwszego cesarza”) ----------
+# 25.11.2026, po pierwszych 18 h: CTR 2,1 % przy 3,2 % „Syna słońca”. Miniaturki C i D to plan ogólny w beżach — w 320 px
+# nie widać twarzy. Miniaturki z najlepszą klikalnością kanału mają dużą twarz z miną do pasa w kadrze i ciemne, mocne tło.
+# Lalki są rysowane od nowa w skali ekranu: _korpus_img i _ramie_img z zestaw_bc liczone przez zamienniki stack / Image /
+# ImageDraw / ImageFilter w skali k (zestaw_bc.py zostaje nietknięty — 5.3).
+
+import types  # noqa: E402
+from contextlib import contextmanager  # noqa: E402
+
+from PIL import ImageDraw, ImageFilter, ImageOps  # noqa: E402
+
+
+class _DrawK:
+    """ImageDraw.Draw, który mnoży współrzędne i grubości linii przez k."""
+
+    def __init__(self, im, k):
+        self.d, self.k = ImageDraw.Draw(im), k
+
+    def _xy(self, xy):
+        xy = list(xy)
+        if xy and isinstance(xy[0], (tuple, list)):
+            return [(x * self.k, y * self.k) for x, y in xy]
+        return [v * self.k for v in xy]
+
+    def _kw(self, kw):
+        if "width" in kw:
+            kw["width"] = max(1, round(kw["width"] * self.k))
+        return kw
+
+    def line(self, xy, **kw):
+        self.d.line(self._xy(xy), **self._kw(kw))
+
+    def ellipse(self, xy, **kw):
+        self.d.ellipse(self._xy(xy), **self._kw(kw))
+
+    def polygon(self, xy, **kw):
+        self.d.polygon(self._xy(xy), **self._kw(kw))
+
+    def arc(self, xy, a0, a1, **kw):
+        self.d.arc(self._xy(xy), a0, a1, **self._kw(kw))
+
+
+class _ImageK:
+    def __init__(self, k):
+        self.k = k
+
+    def __getattr__(self, n):
+        return getattr(Image, n)
+
+    def new(self, mode, size, color=0):
+        return Image.new(mode, (round(size[0] * self.k), round(size[1] * self.k)), color)
+
+
+@contextmanager
+def _skala(k):
+    stare = J.stack, J.Image, J.ImageDraw, J.ImageFilter
+    J.stack = lambda w, h, parts, seed=0: M0.stack_k(w, h, parts, seed=seed, k=k)
+    J.Image = _ImageK(k)
+    J.ImageDraw = types.SimpleNamespace(Draw=lambda im: _DrawK(im, k))
+    J.ImageFilter = types.SimpleNamespace(GaussianBlur=lambda r: ImageFilter.GaussianBlur(r * k))
+    try:
+        yield
+    finally:
+        J.stack, J.Image, J.ImageDraw, J.ImageFilter = stare
+
+
+def twarz(im, s, k, ox, oy, mina):
+    """Mina na arkuszu korpusu (ox, oy — gdzie leży arkusz na obrazie, w jednostkach arkusza). Najpierw skóra zakrywa oczy
+    i usta z filmu, potem:
+      krzyk — brwi wysoko, oczy szeroko z małymi źrenicami, usta „O” (zasadzka: „to już?!”);
+      chytra — jedno oko mruga (łuk), drugie szeroko, brew uniesiona, krzywy uśmiech (Bonnie do zdjęcia z cygarem);
+      twardy — oczy przymrużone, brwi w „V”, usta prosto (Hamer)."""
+    q = lambda pts: [((ox + x) * k, (oy + y) * k) for x, y in pts]
+    W = lambda n: max(1, round(n * k))
+    d = ImageDraw.Draw(im)
+    ink = J.INK + (255,)
+    sk, hair = s["skora"], s["wlosy"]
+    brew = J._shade(hair, 0.8) + (255,)
+    d.ellipse(q([(126, 108), (184, 136)]), fill=sk + (255,))  # oczy i brwi z filmu
+    if not (s["wasy"] or s["broda"]):
+        d.ellipse(q([(156, 154), (184, 168)]), fill=sk + (255,))  # usta z filmu
+    oczy = ((137, 124, 8.5, 7.0), (171, 122, 8.0, 7.0))
+    bialko = (250, 246, 236, 255)
+    if mina == "krzyk":
+        for cx, cy, rx, ry in oczy:
+            d.ellipse(q([(cx - rx, cy - ry - 2), (cx + rx, cy + ry + 1)]), fill=bialko, outline=ink, width=W(2))
+            d.ellipse(q([(cx + 1 - 2.4, cy - 2.4), (cx + 1 + 2.4, cy + 2.4)]), fill=ink)
+            d.arc(q([(cx - rx - 2, cy - ry - 16), (cx + rx + 2, cy - ry + 0)]), 200, 340, fill=brew, width=W(3.5))
+        usta = q([(162, 158), (180, 184)])
+        d.ellipse(usta, fill=(96, 22, 20, 255), outline=ink, width=W(2))
+        if s["kobieta"]:
+            d.ellipse(usta, outline=(180, 40, 50, 255), width=W(3))
+    elif mina == "chytra":
+        (cx, cy, rx, ry), (cx2, cy2, rx2, ry2) = oczy
+        d.arc(q([(cx - rx, cy - 6), (cx + rx, cy + 8)]), 195, 345, fill=ink, width=W(3))  # mrugnięcie
+        d.line(q([(cx - rx - 2, cy - 10), (cx + rx + 2, cy - 8)]), fill=brew, width=W(3.5))
+        d.ellipse(q([(cx2 - rx2, cy2 - ry2 - 1), (cx2 + rx2, cy2 + ry2)]), fill=bialko, outline=ink, width=W(2))
+        d.ellipse(q([(cx2 + 1.5 - 3, cy2 - 2), (cx2 + 1.5 + 3, cy2 + 4)]), fill=ink)
+        d.arc(q([(cx2 - rx2 - 2, cy2 - ry2 - 16), (cx2 + rx2 + 2, cy2 - ry2 + 0)]), 200, 340, fill=brew, width=W(3.5))
+        if s["kobieta"]:
+            for o in (0, 1):  # krzywy uśmiech: kącik przy cygarze wyżej
+                d.line(q([(158, 164 - o), (168, 167 - o), (180, 158 - o)]), fill=(180, 40, 50, 255), width=W(5), joint="curve")
+            if s["kobieta"] and s.get("_cygaro"):
+                pass
+        else:
+            d.line(q([(158, 164), (168, 167), (180, 158)]), fill=ink, width=W(3), joint="curve")
+    else:  # twardy
+        for n, (cx, cy, rx, ry) in enumerate(oczy):
+            d.ellipse(q([(cx - rx, cy - ry + 3), (cx + rx, cy + ry - 1)]), fill=bialko, outline=ink, width=W(2))
+            d.ellipse(q([(cx + 1.5 - 2.6, cy - 1), (cx + 1.5 + 2.6, cy + 4.2)]), fill=ink)
+            d.line(q([(cx - rx - 1, cy - 2), (cx + rx + 1, cy - 2)]), fill=ink, width=W(3))
+        d.polygon(q([(124, 108), (128, 103), (151, 114), (148, 120)]), fill=brew)
+        d.polygon(q([(160, 119), (157, 113), (182, 101), (186, 106)]), fill=brew)
+        d.line(q([(151, 106), (153, 114)]), fill=J._shade(sk, 0.7) + (220,), width=W(2))
+        if not (s["wasy"] or s["broda"]):
+            d.line(q([(160, 164), (180, 163)]), fill=ink, width=W(3))
+    if s.get("_cygaro"):  # cygaro w kąciku ust, żarzący się koniec
+        d.line(q([(176, 160), (220, 148)]), fill=(96, 62, 40, 255), width=W(8))
+        d.line(q([(216, 149), (223, 147)]), fill=(232, 110, 60, 255), width=W(8))
+        d.line(q([(219, 140), (226, 120), (220, 104)]), fill=(214, 210, 204, 150), width=W(3), joint="curve")
+    return im
+
+
+def postac_k(key, k, rece=(0.0, 0.0), rzecz=None, mina="krzyk", lustro=False, cygaro=False):
+    """Cała lalka w jednym arkuszu w skali k (ręce na zawiasach w barkach, przednia przed korpusem), twarzą w prawo;
+    rzecz = (rekwizyt, wysokość w jednostkach arkusza, kotwica chwytu) w przedniej dłoni (jak zestaw_bc.sylwetka).
+    Zwraca (wycinek, kotwica stóp jako ułamek wycinka, wysokość wycinka / wysokość postaci)."""
+    s = dict(J.spec(key), szer=1.0, oczy="brak", cygaro=False)
+    M, TOP = 330, 330
+    CW, CH = J.FIG_W + 2 * M, J.FIG_H + s["nogi"] + TOP + 40
+    im = Image.new("RGBA", (round(CW * k), round(CH * k)), (0, 0, 0, 0))
+    with _skala(k):
+        body, arm = J._korpus_img(s), J._ramie_img(s)
+    zx, zy = J.RAMIE_ZAWIAS
+    dl = J.DLON[1] - zy
+
+    def reka(name, ang):
+        bx, by = J.BARK[name]
+        bx, by = (M + bx) * k, (TOP + by) * k
+        L = Image.new("RGBA", im.size, (0, 0, 0, 0))
+        L.alpha_composite(arm, (round(bx - zx * k), round(by - zy * k)))
+        L = L.rotate(ang, resample=Image.BICUBIC, center=(bx, by))
+        if name == "przod" and rzecz:
+            a = math.radians(ang)
+            hx, hy = bx + math.sin(a) * dl * k, by + math.cos(a) * dl * k
+            nm, rh, anc = rzecz
+            rw, rh_, fn = J.REKWIZYTY[nm]
+            rk = M0.stack_k(rw, rh_, fn(), seed=300 + len(nm), k=k * rh / rh_)
+            L.alpha_composite(rk, (round(hx - anc[0] * rk.size[0]), round(hy - anc[1] * rk.size[1])))
+        return L
+
+    def z_cieniem(top, sila=0.38):
+        cien = Image.new("RGBA", top.size, (28, 16, 10, 0))
+        cien.putalpha(top.getchannel("A").filter(ImageFilter.GaussianBlur(3 * k)).point(lambda v: int(v * sila)))
+        im.alpha_composite(cien, (round(3 * k), round(5 * k)))
+        im.alpha_composite(top)
+
+    im.alpha_composite(reka("tyl", rece[1]))
+    L = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    L.alpha_composite(body, (round(M * k), round(TOP * k)))
+    z_cieniem(L)
+    twarz(im, dict(s, _cygaro=cygaro), k, M, TOP, mina)
+    z_cieniem(reka("przod", rece[0]))
+    box = im.getbbox()
+    im = im.crop(box)
+    stopa = ((M + J.FIG_W / 2) * k - box[0], (TOP + J.STOPA + s["nogi"]) * k - box[1])
+    if lustro:
+        im, stopa = ImageOps.mirror(im), (im.size[0] - stopa[0], stopa[1])
+    spr = Sprite(im, f"mini-k-{key}-{k:.2f}-{rece}-{rzecz}-{mina}-{lustro}-{cygaro}", rim=2, clean=False, crop=False)
+    return spr, (stopa[0] / im.size[0], stopa[1] / im.size[1]), im.size[1] / (k * (J.STOPA + s["nogi"] - J.CZUBEK))
+
+
+def duza(st, key, x, y, h, p, rece, mina, rzecz=None, lustro=False, cygaro=False, gruby=10, rot=0.0):
+    """Duża lalka stopami w (x, y) ekranu (zwykle pod kadrem — w kadrze do pasa), h — od stóp do czubka głowy, px ekranu."""
+    k = max(1.0, round(h / (J.STOPA - J.CZUBEK) * papier.Q * 4) / 4)
+    spr, kot, ark = postac_k(key, k, rece, rzecz, mina, lustro, cygaro)
+    M0.poloz_obrys(st, spr, x, y, p, h * ark, kot, kolor=BIALY, gruby=gruby, k=k, rot=rot)
+
+
+@lru_cache(None)
+def zaslona(kolor, srodek, brzeg):
+    """Ciemna półprzezroczysta zasłona 16:9: krycie srodek w środku, brzeg w rogach (winieta) — tło ciemnieje, a postacie
+    z białym obrysem przed nią świecą (J.glow w zwykłym trybie prawie nie kryje)."""
+    import numpy as np
+    w, h = 320, 180
+    yy, xx = np.mgrid[:h, :w]
+    r = np.clip(np.hypot((xx - w / 2) / (w / 2), (yy - h / 2) / (h / 2)) / 1.41, 0, 1)
+    a = (255 * (srodek + (brzeg - srodek) * r ** 1.5)).astype(np.uint8)
+    rgb = np.zeros((h, w, 3), np.uint8)
+    rgb[:] = kolor
+    return Sprite(Image.fromarray(np.dstack([rgb, a]), "RGBA"), f"zaslona-{kolor}-{srodek}-{brzeg}", rim=0, clean=False)
+
+
+def scena_e():
+    """Zasadzka z bliska: Clyde i Bonnie do pasa w kadrze, przerażeni („krzyk”), za nimi o świcie w sosnach Luizjany
+    z krzaków błyskają lufy łowców i lecą kule. Ciemne, chłodne niebo — postacie z białym obrysem świecą na nim."""
+    st, w = scena_poczatek("zasadzka")
+    S.las(st, 0.0, w, rodzaj="sosny", droga=1.0, krzaki=False, swit=0.6, noc=E_NOC, kul=False)
+    # zaciemnienie świtu za łowcami: para z białym obrysem świeci na ciemnym tle
+    M0.poloz(st, zaslona((10, 12, 22), *E_CIEMNO), 640, 360, P.droga + 0.07, w=1400, anchor=(0.5, 0.5), shadow=None)
+    kule_w_tle(st, n=18, seed=23)
+    # łowcy w krzakach po prawej: lufy w lewo, w stronę pary, z końców luf błyski
+    for n, (key, x) in enumerate(zip(("hamer", "gault", "alcorn", "hinton"), E_LOWCY_X)):
+        stoi(st, key, x, 742, 330, P.drzewa + 0.01 + 0.001 * n, (90.0, 10.0), ("karabin", 50, (0.3, 0.55)), flip=-1, gruby=5)
+    for n, x in enumerate((690, 820, 950, 1080, 1210, 1340)):
+        M0.poloz(st, J.krzak(n % 6), x, 742, P.drzewa + 0.02 + 0.001 * n, h=E_KRZAK_H, anchor=(0.5, 1.0))
+    for x in E_LOWCY_X:  # błysk z końca lufy (1.20)
+        strzal(st, x + E_LUFA[0], E_LUFA[1], -1, P.drzewa + 0.03, 1.1)
+    bx, by, bh = E_BONNIE
+    duza(st, "bonnie", bx, by, bh, P.lalki + 0.010, (150.0, 168.0), "krzyk", gruby=9)
+    cx, cy, ch = E_CLYDE
+    duza(st, "clyde", cx, cy, ch, P.lalki + 0.014, E_RECE_CLYDE, "krzyk", gruby=10)
+    tab(st, "AMBUSH!", 1010, 190, 84, rot=4)
+    tab(st, "1934", 1160, 330, 56, rot=-6, xs=(0.5,))
+    szyld(st, x=22, y=12, h=110, maxw=620)
+    st.grade = (1.02, 0.98, 0.96)
+    return st
+
+
+def scena_f():
+    """Zdjęcie dla żartu z bliska: Bonnie do pasa, mruga, cygaro w kąciku ust, rewolwer w górę; z prawej wielki flesz
+    aparatu na ciemnym tle i gazeta, która zrobiła z tego legendę."""
+    st, w = scena_poczatek("zdjecie")
+    S.teatr_gazet(st, 0.0, w)
+    # zaciemnienie tła: flesz i postać świecą na ciemnym (jak burza za Susanoo)
+    M0.poloz(st, zaslona((14, 10, 10), *F_CIEMNO), 640, 360, P.lalki - 0.02, w=1400, anchor=(0.5, 0.5), shadow=None)
+    gz = J.gazeta("CIGAR GIRL!", 9, 360, 480)
+    M0.poloz_obrys(st, Sprite(gz.mips[0], "gazeta-miniatura-f", rim=2, clean=False), *F_GAZETA, P.lalki - 0.01, 360, (0.5, 0.5),
+                   kolor=BIALY, gruby=7, k=1.0, rot=9)
+    st.put(J.glow(), 1180, 190, P.rekwizyty, w=1100, anchor=(0.5, 0.5), mode="add", alpha=0.95, shadow=None, tint=(1.0, 0.97, 0.88))
+    st.put(J.rek("aparat_lampa"), 1185, 205, P.rekwizyty + 0.005, h=210, anchor=(0.5, 0.5), rot=-10, sx=-1)
+    x, y, h = F_BONNIE
+    duza(st, "bonnie", x, y, h, P.lalki + 0.014, (122.0, 25.0), "chytra", rzecz=("rewolwer", 40, (0.3, 0.75)), cygaro=True, gruby=10)
+    tab(st, "IT WAS A JOKE!", 930, 40, 84, rot=3)
+    tab(st, "SNAP!", 1200, 330, 58, rot=-6, xs=(0.5,))
+    szyld(st, x=22, y=12, h=110, maxw=620)
+    st.grade = (1.04, 0.99, 0.93)
+    return st
+
+
+def scena_g():
+    """Zdjęcie dla żartu w ciemni (reżyser 25.11: „jedną miniaturkę zrób z tą ciemnią, tam gdzie jest to czerwone tło”,
+    ujęcie „ciemnia”): ceglana ściana w czerwonym świetle, pod sufitem suszą się czarne odbitki Bonnie, w kuwecie wyłania się
+    zdjęcie z cygarem, wywołującemu wypada papieros („O!”). Z przodu duża Bonnie w swoich kolorach — czerwień jest tylko
+    na dekoracji (zasłona przed tłem), więc postać z białym obrysem świeci na niej."""
+    st, w = scena_poczatek("ciemnia")
+    S.wnetrze(st, 0.0, w, sciana="cegla", zarowki=(G_ZAROWKA,), kul=False)
+    # sznurek z odbitkami pod sufitem (marker reżysera 24.11 w ujęciu „ciemnia”)
+    pp = P.wzgorza
+    st.line([M0.ekran_na_swiat(st, 0, 150, pp), M0.ekran_na_swiat(st, 640, 166, pp), M0.ekran_na_swiat(st, 1280, 150, pp)], pp, width=1.6,
+            color=(60, 40, 30))
+    for n, sx_ in enumerate(G_ODBITKI):
+        sy_ = 150 + 16 * math.sin(math.pi * sx_ / 1280)
+        M0.poloz(st, J.odbitka_bonnie(n), sx_, sy_, pp + 0.001, h=150, anchor=(0.5, 0.0), rot=(-4, 3, -2, 5, -3)[n % 5])
+        M0.poloz(st, J.rek("pinezka"), sx_, sy_ + 3, pp + 0.0015, h=18, anchor=(0.5, 0.5), shadow=None)
+    # wywołujący nad kuwetą: papieros wypada mu z ust
+    fx, fy, fh = G_FOTOGRAF
+    J.LALKI.setdefault("fotograf_o", dict(J.LALKI["fotograf"], usta="o"))  # „O!” — usta otwarte
+    stoi(st, "fotograf_o", fx, fy, fh, P.wzgorza + 0.02, (95.0, 30.0), None, flip=-1, rot=-6, gruby=5)
+    M0.poloz(st, J.rek("papieros"), *G_PAPIEROS, P.wzgorza + 0.025, h=16, anchor=(0.5, 0.5), rot=-70)
+    M0.poloz(st, J.rek("kuweta"), G_KUWETA[0], G_KUWETA[1], P.wzgorza + 0.03, w=560, anchor=(0.5, 1.0))
+    M0.poloz(st, J.zdjecie_bonnie(), *G_ODBITKA, P.wzgorza + 0.031, h=190, anchor=(0.5, 0.5), rot=-8, shadow=None)
+    # czerwone światło ciemni na całej dekoracji (jak koniec(extra=(1.35, 0.62, 0.58)) w filmie), postać przed nim
+    M0.poloz(st, zaslona(G_CZERWIEN, *G_KRYCIE), 640, 360, P.lalki - 0.02, w=1400, anchor=(0.5, 0.5), shadow=None)
+    st.put(J.glow(r=256, color=(255, 90, 70)), *M0.ekran_na_swiat(st, G_ZAROWKA, 120, P.lalki - 0.015), P.lalki - 0.015, w=700,
+           anchor=(0.5, 0.5), mode="add", alpha=0.6, shadow=None)
+    x, y, h = F_BONNIE
+    duza(st, "bonnie", x, y, h, P.lalki + 0.014, (122.0, 25.0), "chytra", rzecz=("rewolwer", 40, (0.3, 0.75)), cygaro=True, gruby=10)
+    tab(st, "IT WAS A JOKE!", 930, 34, 84, rot=3)
+    tab(st, "O!", *G_O, 58, rot=-6, xs=(0.5,))
+    szyld(st, x=22, y=12, h=110, maxw=620)
+    st.grade = (1.04, 0.98, 0.95)
+    return st
+
+
+G_ZAROWKA = 1000
+G_ODBITKI = (120, 330, 540, 750, 960, 1170)
+G_FOTOGRAF = (1140, 850, 560)  # stopy pod kadrem (nad krawędzią widać go do pasa), wysokość postaci
+G_ODBITKA = (960, 520)  # odbitka z kuwety w wyciągniętej ręce wywołującego
+G_PAPIEROS = (1030, 560)  # papieros w locie do kuwety
+G_O = (1180, 250)
+G_KUWETA = (900, 745)
+G_CZERWIEN = (150, 14, 10)
+G_KRYCIE = (0.5, 0.75)
+
+E_NOC = 0.55
+E_CIEMNO = (0.62, 0.85)
+E_LOWCY_X = (800, 940, 1080, 1220)
+E_LUFA = (-158, 490)  # koniec lufy względem stóp łowcy (x) i jego wysokość na ekranie (y)
+E_KRZAK_H = 230
+E_RECE_CLYDE = (-150.0, -165.0)  # dłonie w górę: „whoa!” (karabin nad głową wchodził w szyld)
+E_BONNIE = (620, 1260, 1010)  # stopy x, y; wysokość postaci (pod kadrem: w kadrze do pasa)
+E_CLYDE = (300, 1330, 1120)
+F_CIEMNO = (0.66, 0.9)
+F_BONNIE = (380, 1330, 1150)
+F_GAZETA = (930, 480)
+
+
+SCENY = {"A": scena_a, "B": scena_b, "C": scena_c, "D": scena_d, "E": scena_e, "F": scena_f, "G": scena_g}
 
 
 def main():

@@ -79,3 +79,10 @@ So who made the legend: the outlaws, the newspapers, or the man who finally caug
 5. **Widoczność:** najpierw Niepubliczny — obejrzyj na YouTube, czy jest 1440p (YouTube liczy wyższe jakości po kilkunastu
    minutach od wgrania), czy działają rozdziały i napisy. Potem Zaplanuj (np. czwartek albo piątek o 20:00 czasu polskiego,
    14:00 w Nowym Jorku) — póki GTA 6 jest świeże, lepiej szybciej niż później.
+
+## Test A/B miniaturek (25.11.2026)
+
+Po 18 h: 291 wyświetleń miniatury, CTR 2,1 % (Syn słońca 3,2 %), 9 wyświetleń. C i D to plan ogólny w beżach — w 320 px nie
+widać twarzy. Nowe zbliżenia: `miniatura/miniatura_E_en_4k_fuji.png` (zasadzka) i `miniatura_G_en_4k_fuji.png` (ciemnia,
+czerwone tło). Test & Compare przyjmuje najwyżej 3 warianty, więc obecny test (tytuły 1–3 z miniaturkami D, D, C) trzeba
+zatrzymać i założyć nowy: same miniaturki D, E i G przy jednym tytule („The ENTIRE Bonnie and Clyde Story in 18 Minutes”).

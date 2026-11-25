@@ -1,7 +1,11 @@
-# W repo zostaje tylko miniaturka do wgrania (C, 4K z wyglądem Fujifilm) i zapas z telefonu; resztę rysuje miniatura.py
+# W repo zostaje tylko miniaturka do wgrania (C, D, E, G — 4K z wyglądem Fujifilm) i zapas z telefonu; resztę rysuje miniatura.py
 *
 !.gitignore
 !miniatura_C_en_4k_fuji.png
 !miniatura_C_en_fuji.jpg
 !miniatura_D_en_4k_fuji.png
 !miniatura_D_en_fuji.jpg
+!miniatura_E_en_4k_fuji.png
+!miniatura_E_en_fuji.jpg
+!miniatura_G_en_4k_fuji.png
+!miniatura_G_en_fuji.jpg
