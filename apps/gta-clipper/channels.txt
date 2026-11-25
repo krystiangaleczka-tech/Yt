@@ -1,0 +1,5 @@
+# Extra sources checked by "find" (besides your streamers from the app).
+# One per line: a channel/playlist URL, or "search: <words>" for a YouTube search.
+# Lines starting with # are ignored.
+search: GTA 6 funny moments stream
+# https://www.youtube.com/@SomeChannel/streams

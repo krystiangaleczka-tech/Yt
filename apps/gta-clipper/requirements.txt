@@ -1,0 +1,7 @@
+yt-dlp>=2025.1.1
+faster-whisper>=1.0
+# OpenCV 5 dropped the Haar face detector used for face tracking
+opencv-python-headless>=4.8,<5
+numpy>=1.24
+Pillow>=10
+streamlink>=6.0
