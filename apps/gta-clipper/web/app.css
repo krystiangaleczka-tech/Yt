@@ -140,3 +140,11 @@ table.t td, table.t th { border-bottom: 1px solid var(--line); padding: 6px 8px;
   main { padding: 16px; } #side { width: 70px; } .review { grid-template-columns: 1fr; } .review .navbtn { display: none; }
   .detail { grid-template-columns: 1fr; } .week { grid-template-columns: repeat(2, 1fr); } .langs { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Gotowe: clip + upload text */
+.ready { display: grid; grid-template-columns: repeat(auto-fill, minmax(560px, 1fr)); gap: 14px; }
+.rd { display: grid; grid-template-columns: 220px 1fr; gap: 14px; margin: 0; }
+.rd video { width: 220px; aspect-ratio: 9/16; border-radius: 10px; background: #000; object-fit: cover; }
+.rd-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rd-info textarea, .rd-info input { width: 100%; }
+@media (max-width: 700px) { .ready { grid-template-columns: 1fr; } .rd { grid-template-columns: 1fr; } .rd video { width: 100%; } }

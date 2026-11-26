@@ -43,7 +43,7 @@ function go(page) {
 function render() {
   if (!S.state) return;
   if (!S.state.settings.setup_done && !S.wiz) return openWizard();
-  const pages = { home, shorts, streamers, make, plan, look, publish, propose, settings };
+  const pages = { home, shorts, streamers, make, ready, plan, look, publish, propose, settings };
   $("#main").innerHTML = (pages[S.page] || home)();
   after[S.page]?.();
 }
@@ -351,6 +351,51 @@ function makeBody() {
     urls: links ? $("#mk-urls").value : "", query: $("#mk-query").value, window: $("#mk-window").value.trim() };
 }
 
+/* ------------------------------------------------------------------ ready */
+/* Approved, not yet published: only the clip and what goes into the upload form. */
+function postDescription(x) {
+  return [(x.hashtags || []).join(" "), x.credit || ""].filter(Boolean).join("\n\n");
+}
+function ready() {
+  const xs = S.shorts.filter((x) => x.status === "approved" && !x.published)
+    .sort((a, b) => (a.scheduled_at || 9e12) - (b.scheduled_at || 9e12) || b.created - a.created);
+  return `<div class="row between"><h1>Gotowe do publikacji</h1>
+    <button class="btn" data-act="copy-posts" ${xs.length ? "" : "disabled"}>Kopiuj wszystkie opisy</button></div>
+  <p class="sub">${xs.length} ${plural(xs.length, "zatwierdzony Short", "zatwierdzone Shorty", "zatwierdzonych Shortsów")} · pobierz klip, wklej tytuł i opis, zaznacz „opublikowany”</p>
+  ${xs.length ? `<div class="ready">${xs.map(readyCard).join("")}</div>`
+    : `<div class="card mute">Nic tu nie ma. Zatwierdź Shorty w przeglądzie (Shorty → Do przeglądu).</div>`}`;
+}
+function readyCard(x) {
+  const desc = postDescription(x);
+  return `<div class="rd card" data-id="${esc(x.id)}">
+    <video src="${esc(x.file)}" controls loop playsinline preload="metadata" poster="${esc(x.cover)}"></video>
+    <div class="rd-info">
+      <div class="row between"><span class="mute small">${esc(x.name || "")} · ${fmtDur(x.duration)}${x.scheduled_at ? ` · plan: ${fmtTime(x.scheduled_at)}` : ""}</span>
+        <span class="badge ${x.qc.status}">${x.qc.status}</span></div>
+      <label class="small mute">Tytuł <span class="cnt">${(x.title || "").length}/100</span></label>
+      <div class="row"><input type="text" class="rd-title" value="${esc(x.title)}" maxlength="100" style="flex:1">
+        <button class="btn small" data-act="rd-copy" data-what="title" data-id="${esc(x.id)}">Kopiuj</button></div>
+      <label class="small mute">Opis</label>
+      <div class="row" style="align-items:flex-start"><textarea class="rd-desc" rows="4" style="flex:1">${esc(desc)}</textarea>
+        <button class="btn small" data-act="rd-copy" data-what="desc" data-id="${esc(x.id)}">Kopiuj</button></div>
+      <div class="row" style="margin-top:8px">
+        <a class="btn blue" href="${esc(x.file)}" download="${esc(x.id)}.mp4">Pobierz klip</a>
+        <a class="btn" href="${esc(x.cover)}" download="${esc(x.id)}.jpg">Pobierz okładkę</a>
+        <button class="btn" data-act="rd-save" data-id="${esc(x.id)}">Zapisz tytuł i opis</button>
+        <button class="btn green" data-act="rd-pub" data-id="${esc(x.id)}">Opublikowany ✔</button>
+        <button class="btn" data-act="detail" data-id="${esc(x.id)}">Edytuj klip</button></div>
+    </div></div>`;
+}
+after.ready = () => {
+  document.querySelectorAll(".rd-title").forEach((el) => el.addEventListener("input", () => {
+    el.closest(".rd").querySelector(".cnt").textContent = `${el.value.length}/100`;
+  }));
+};
+function readyFields(id) {
+  const el = document.querySelector(`.rd[data-id="${CSS.escape(id)}"]`);
+  return { title: el.querySelector(".rd-title").value.trim(), desc: el.querySelector(".rd-desc").value.trim() };
+}
+
 /* ------------------------------------------------------------------ plan */
 function plan() {
   const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + i); return d; });
@@ -602,6 +647,15 @@ const ACT = {
     await api(`/api/shorts/${S.detail}/schedule`, { at: Math.floor(new Date(v) / 1000) }); await refresh(); toast("Ustawione");
   },
   "d-unwhen": async () => { await api(`/api/shorts/${S.detail}/schedule`, { at: null }); await refresh(); drawDetail(); },
+  "rd-copy": (d) => { const f = readyFields(d.id); copy(d.what === "title" ? f.title : f.desc); },
+  "rd-save": async (d) => {
+    const f = readyFields(d.id);
+    const tags = (f.desc.match(/#[^\s#]+/g) || []);
+    const credit = f.desc.split("\n").filter((l) => l.trim() && !/^\s*#/.test(l)).join("\n");
+    await api(`/api/shorts/${d.id}/post`, { title: f.title, hashtags: tags, credit });
+    await refresh(); toast("Zapisane");
+  },
+  "rd-pub": async (d) => { await api(`/api/shorts/${d.id}/published`, { published: true }); await refresh(); toast("Przeniesione do opublikowanych"); },
   "copy-posts": async () => { const r = await api("/api/posttext?status=approved"); if (!r.text) return toast("Brak zatwierdzonych"); copy(r.text); },
   "live-start": async () => {
     const r = await api("/api/live/start", {});
