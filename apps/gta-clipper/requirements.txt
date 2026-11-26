@@ -6,3 +6,5 @@ opencv-python-headless>=4.8,<5
 numpy>=1.24
 Pillow>=10
 streamlink>=6.0
+# music detection in QC (YAMNet model on LiteRT)
+ai-edge-litert>=1.0

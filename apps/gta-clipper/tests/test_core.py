@@ -127,5 +127,19 @@ class CaptionsInCode(unittest.TestCase):
                 self.assertLess(tr["h"], 400)  # a strip, not the whole 1920 px frame
 
 
+class Music(unittest.TestCase):
+    """Warning rule for music under the stream (scores come from YAMNet, one per ~0.49 s)."""
+
+    def test_rule(self):
+        import numpy as np
+        from gtaclip.music import summarize
+
+        self.assertFalse(summarize(np.zeros(60))["warn"])                       # talking only
+        self.assertFalse(summarize(np.r_[np.zeros(56), [0.15] * 4])["warn"])    # ~2 s of a faint hint
+        self.assertTrue(summarize(np.r_[np.zeros(55), [0.5] * 5])["warn"])      # ~2.4 s of clear music
+        self.assertTrue(summarize(np.r_[np.zeros(50), [0.12] * 10])["warn"])    # ~4.9 s of quieter music
+        self.assertEqual(summarize(np.zeros(0))["seconds"], 0.0)
+
+
 if __name__ == "__main__":
     unittest.main()

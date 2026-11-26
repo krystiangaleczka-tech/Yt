@@ -372,7 +372,7 @@ def render_pick(ws: Workspace, p: dict, idx: int, batch: str, extra: dict | None
     log(f"  [{idx:02d}] montuję")
     res = produce(ws, folder, spec, "v0.mp4")
     (folder / "post.txt").write_text(post_text(p), encoding="utf-8")
-    q = qcmod.check(folder / "v0.mp4", {**res, "hook": p["hook"], "score": p.get("score", 0)})
+    q = qcmod.check(folder / "v0.mp4", {**res, "hook": p["hook"], "score": p.get("score", 0)}, ws)
     res["qc"] = q
     sm = {"id": short_id, "batch": batch, "created": int(time.time()), "status": "new", "source": extra.get("source", "vod") if extra else "vod",
           "pick": p, "spec": spec, "versions": [{"v": 0, "note": "oryginał", "created": int(time.time()), **res}],

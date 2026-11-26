@@ -21,7 +21,7 @@ def mean_volume(video: Path) -> float | None:
     return float(m.group(1)) if m else None
 
 
-def check(video: Path, info: dict) -> dict:
+def check(video: Path, info: dict, ws=None) -> dict:
     fails, warns = [], []
     video = Path(video)
     if not video.exists() or video.stat().st_size < 50_000:
@@ -51,6 +51,13 @@ def check(video: Path, info: dict) -> dict:
         fails.append(f"zamrożony obraz {frozen:.0f} s")
     elif frozen > 3:
         warns.append(f"stoi obraz {frozen:.0f} s")
+    music = None
+    if ws is not None and mi["has_audio"]:
+        from .music import music_report
+        music = music_report(ws, video)
+        if music and music["warn"]:
+            warns.append(f"w tle gra muzyka (ok. {music['seconds']:.0f} s) — ryzyko blokady Content ID od wytwórni; "
+                         "odpuść ten klip albo wytnij/wycisz ten fragment")
     if info.get("words", 1) == 0:
         warns.append("brak napisów (nikt nie mówi?)")
     if info.get("layout") == "full":
@@ -60,7 +67,7 @@ def check(video: Path, info: dict) -> dict:
     if 0 < info.get("score", 100) < 50:
         warns.append(f"słaba ocena AI ({info['score']})")
     status = "FAIL" if fails else "WARN" if warns else "PASS"
-    return {"status": status, "notes": fails + warns, "duration": round(d, 1), "volume": vol}
+    return {"status": status, "notes": fails + warns, "duration": round(d, 1), "volume": vol, "music": music}
 
 
 def check_folder(ws, short_id: str | None = None) -> list[dict]:
@@ -72,7 +79,7 @@ def check_folder(ws, short_id: str | None = None) -> list[dict]:
         if short_id and sm.get("id") != short_id:
             continue
         v = sm["versions"][sm.get("current", 0)]
-        v["qc"] = check(mp.parent / v["file"], {**v, "hook": sm["pick"].get("hook"), "score": sm["pick"].get("score", 0)})
+        v["qc"] = check(mp.parent / v["file"], {**v, "hook": sm["pick"].get("hook"), "score": sm["pick"].get("score", 0)}, ws)
         write_json(mp, sm)
         out.append({"id": sm["id"], **v["qc"]})
     return out

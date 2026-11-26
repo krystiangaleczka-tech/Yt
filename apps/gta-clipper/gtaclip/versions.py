@@ -62,7 +62,7 @@ def new_version(ws: Workspace, short_id: str, patch: dict, note: str) -> dict:
     spec["start"], spec["end"] = max(lo, float(spec["start"])), min(hi, float(spec["end"]))
     v = max(x["v"] for x in sm["versions"]) + 1
     res = produce(ws, folder, spec, f"v{v}.mp4")
-    res["qc"] = qcmod.check(folder / res["file"], {**res, "hook": spec.get("hook"), "score": sm["pick"].get("score", 0)})
+    res["qc"] = qcmod.check(folder / res["file"], {**res, "hook": spec.get("hook"), "score": sm["pick"].get("score", 0)}, ws)
     sm = load(ws, short_id)  # re-read (other jobs may have changed status)
     sm["versions"].append({"v": v, "note": note, "created": int(time.time()), **res})
     sm.setdefault("spec_versions", {})[str(v)] = {k: spec[k] for k in ("start", "end", "hook", "keywords", "look")}
@@ -163,7 +163,7 @@ def add_voice(ws: Workspace, short_id: str, voice_file: str, at: str | float = "
     cover = out.replace(".mp4", "_cover.jpg")
     shutil.copy(folder / cur["cover"], folder / cover)
     res = {**cur, "file": out, "cover": cover}
-    res["qc"] = qcmod.check(folder / out, {**res, "hook": sm["pick"].get("hook")})
+    res["qc"] = qcmod.check(folder / out, {**res, "hook": sm["pick"].get("hook")}, ws)
     sm["versions"].append({**res, "v": v, "note": f"głos lektora od {hms(t)}", "created": int(time.time())})
     sm["spec_versions"] = {**sm.get("spec_versions", {}), str(v): sm.get("spec_versions", {}).get(str(cur["v"]), {})}
     sm["current"] = len(sm["versions"]) - 1

@@ -20,7 +20,8 @@ FONTS = {
     "BebasNeue-Regular.ttf": "ofl/bebasneue/BebasNeue-Regular.ttf",
 }
 PACKAGES = {"faster_whisper": "faster-whisper", "cv2": "opencv-python-headless<5", "numpy": "numpy",
-            "PIL": "Pillow", "yt_dlp": "yt-dlp[default]", "yt_dlp_ejs": "yt-dlp-ejs", "streamlink": "streamlink"}
+            "PIL": "Pillow", "yt_dlp": "yt-dlp[default]", "yt_dlp_ejs": "yt-dlp-ejs", "streamlink": "streamlink",
+            "ai_edge_litert": "ai-edge-litert"}
 
 
 def doctor(ws: Workspace) -> dict:
@@ -35,6 +36,8 @@ def doctor(ws: Workspace) -> dict:
     res["napisy"] = ("ffmpeg (libass)" if eng == "ass" or (eng == "auto" and ffmpeg_has_ass())
                      else "kod (Pillow)")
     res["fonts"] = all((ws.fonts / f).exists() for f in FONTS)
+    from .music import available as music_ok
+    res["muzyka"] = "wykrywanie działa (YAMNet)" if music_ok(ws) else "brak — uruchom setup"
     res["deno"] = have("deno")  # yt-dlp needs a JS runtime for YouTube; deno is the one enabled by default
     s = ws.settings()
     from . import ai
@@ -129,6 +132,9 @@ def setup(ws: Workspace, packages: bool = True) -> dict:
     if packages:
         install_packages()
     fonts(ws)
+    from .music import download_model
+    if not download_model(ws):
+        log("  nie pobrałem modelu do wykrywania muzyki (YAMNet) — kontrola muzyki będzie pominięta")
     if have("ffmpeg"):
         sounds(ws)
     for name in ("channels.txt",):
