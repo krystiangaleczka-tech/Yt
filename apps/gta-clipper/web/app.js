@@ -356,21 +356,26 @@ function makeBody() {
 function postDescription(x) {
   return [(x.hashtags || []).join(" "), x.credit || ""].filter(Boolean).join("\n\n");
 }
-function ready() {
-  const xs = S.shorts.filter((x) => x.status === "approved" && !x.published)
+function readyList() {
+  return S.shorts.filter((x) => x.status === "approved" && !x.published)
     .sort((a, b) => (a.scheduled_at || 9e12) - (b.scheduled_at || 9e12) || b.created - a.created);
+}
+const readyName = (x, i) => `${String(i + 1).padStart(2, "0")}_${x.id.split("_").slice(1).join("_")}`;
+function ready() {
+  const xs = readyList();
   return `<div class="row between"><h1>Gotowe do publikacji</h1>
-    <button class="btn" data-act="copy-posts" ${xs.length ? "" : "disabled"}>Kopiuj wszystkie opisy</button></div>
+    <div class="row"><button class="btn blue" data-act="rd-txt" ${xs.length ? "" : "disabled"}>Pobierz opisy (.txt)</button>
+      <button class="btn" data-act="copy-posts" ${xs.length ? "" : "disabled"}>Kopiuj wszystkie opisy</button></div></div>
   <p class="sub">${xs.length} ${plural(xs.length, "zatwierdzony Short", "zatwierdzone Shorty", "zatwierdzonych Shortsów")} · pobierz klip, wklej tytuł i opis, zaznacz „opublikowany”</p>
-  ${xs.length ? `<div class="ready">${xs.map(readyCard).join("")}</div>`
+  ${xs.length ? `<div class="ready">${xs.map((x, i) => readyCard(x, i)).join("")}</div>`
     : `<div class="card mute">Nic tu nie ma. Zatwierdź Shorty w przeglądzie (Shorty → Do przeglądu).</div>`}`;
 }
-function readyCard(x) {
-  const desc = postDescription(x);
+function readyCard(x, i) {
+  const desc = postDescription(x), name = readyName(x, i);
   return `<div class="rd card" data-id="${esc(x.id)}">
     <video src="${esc(x.file)}" controls loop playsinline preload="metadata" poster="${esc(x.cover)}"></video>
     <div class="rd-info">
-      <div class="row between"><span class="mute small">${esc(x.name || "")} · ${fmtDur(x.duration)}${x.scheduled_at ? ` · plan: ${fmtTime(x.scheduled_at)}` : ""}</span>
+      <div class="row between"><span class="mute small"><b>${String(i + 1).padStart(2, "0")}</b> · ${esc(x.name || "")} · ${fmtDur(x.duration)}${x.scheduled_at ? ` · plan: ${fmtTime(x.scheduled_at)}` : ""}</span>
         <span class="badge ${x.qc.status}">${x.qc.status}</span></div>
       <label class="small mute">Tytuł <span class="cnt">${(x.title || "").length}/100</span></label>
       <div class="row"><input type="text" class="rd-title" value="${esc(x.title)}" maxlength="100" style="flex:1">
@@ -379,8 +384,8 @@ function readyCard(x) {
       <div class="row" style="align-items:flex-start"><textarea class="rd-desc" rows="4" style="flex:1">${esc(desc)}</textarea>
         <button class="btn small" data-act="rd-copy" data-what="desc" data-id="${esc(x.id)}">Kopiuj</button></div>
       <div class="row" style="margin-top:8px">
-        <a class="btn blue" href="${esc(x.file)}" download="${esc(x.id)}.mp4">Pobierz klip</a>
-        <a class="btn" href="${esc(x.cover)}" download="${esc(x.id)}.jpg">Pobierz okładkę</a>
+        <a class="btn blue" href="${esc(x.file)}" download="${esc(name)}.mp4">Pobierz klip</a>
+        <a class="btn" href="${esc(x.cover)}" download="${esc(name)}.jpg">Pobierz okładkę</a>
         <button class="btn" data-act="rd-save" data-id="${esc(x.id)}">Zapisz tytuł i opis</button>
         <button class="btn green" data-act="rd-pub" data-id="${esc(x.id)}">Opublikowany ✔</button>
         <button class="btn" data-act="detail" data-id="${esc(x.id)}">Edytuj klip</button></div>
@@ -647,6 +652,15 @@ const ACT = {
     await api(`/api/shorts/${S.detail}/schedule`, { at: Math.floor(new Date(v) / 1000) }); await refresh(); toast("Ustawione");
   },
   "d-unwhen": async () => { await api(`/api/shorts/${S.detail}/schedule`, { at: null }); await refresh(); drawDetail(); },
+  "rd-txt": () => {
+    const xs = readyList();
+    const body = [`GTA Shorts gotowe do publikacji — ${xs.length} szt. Numer = numer pliku wideo („Pobierz klip”).`, ""]
+      .concat(xs.map((x, i) => `===== ${String(i + 1).padStart(2, "0")} — plik ${readyName(x, i)}.mp4 =====\nTYTUŁ:\n${x.title || x.hook}\n\nOPIS:\n${postDescription(x)}\n`));
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([body.join("\n")], { type: "text/plain;charset=utf-8" }));
+    a.download = `opisy-gotowe-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  },
   "rd-copy": (d) => { const f = readyFields(d.id); copy(d.what === "title" ? f.title : f.desc); },
   "rd-save": async (d) => {
     const f = readyFields(d.id);
