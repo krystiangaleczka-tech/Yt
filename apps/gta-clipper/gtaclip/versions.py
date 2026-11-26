@@ -152,6 +152,7 @@ Extra footage exists outside the Short: {before:.1f} s before its start and {aft
 What is said (seconds of the Short):
 {transcript}
 
+Background music found by the detector (Content ID risk), in seconds of the Short: {music}
 Edits already on it: {edits}
 Settings: hook="{hook}" look={look}
 Caption styles: {styles}. Layouts: auto, stack (streamer cam on top, game below), bubble, full (whole frame on blur), facecrop.
@@ -175,8 +176,10 @@ Answer with ONE JSON object only, with just the fields you need:
   "hook": "NEW HOOK", "keywords": ["..."],
   "look": {{"style": "...", "layout": "...", "flip": bool, "accent": "#RRGGBB", "cap_pos": "top|middle|bottom",
            "hook_secs": s, "cut_dead_air": bool, "sfx": bool}},
-  "cut_music": true,                     // cut out the seconds where background music plays (found automatically;
-                                         // use it for "wytnij tam, gdzie muzyka" / "usuń muzykę" — speech there goes too)
+  "cut_music": true,                     // cut out the music seconds listed above ("wytnij tam, gdzie muzyka"; speech there goes too)
+  "mute_music": true,                    // silence the music seconds listed above ("wycisz muzykę"; speech there goes silent too)
+  "answer": "short Polish reply",        // for questions ("czy gra jeszcze muzyka?") — answer from the facts above;
+                                         // a question alone needs no other field
   "clear": ["zooms" | "mute" | "texts" | "segments"],   // drop edits made earlier
   "unsupported": "short Polish note on any part you cannot do"
 }}
@@ -186,6 +189,8 @@ Examples: "od 12s do 15s przyspiesz" -> {{"segments": [[0,12,1],[12,15,2],[15,{l
 "w 1s duży niebieski napis X" -> {{"texts": [{{"text": "X", "at": 1, "dur": 2.5, "color": "#1E90FF", "size": 140, "pos": "top"}}]}};
 "wycisz muzykę od 3 do 9 s" -> {{"mute": [[3, 9]]}}.
 A voice-over is recorded with the "Twój głos" button, not here: say so in "unsupported".
+The detector cannot separate music from speech: muting or cutting music also removes the speech in those seconds — say so
+in "answer" when it matters.
 """
 
 
@@ -255,15 +260,17 @@ def to_spec_patch(edit: dict, spec: dict, tl: list[list[float]], src_dur: float)
     return patch, str(edit.get("unsupported") or "").strip()
 
 
-def without_music(ws: Workspace, sm: dict, tl: list[list[float]], segments=None) -> list[list[float]]:
-    """Segments of the current version (or the AI's own) with the music seconds left out."""
+def music_in_version(ws: Workspace, sm: dict) -> list[tuple[float, float]] | None:
+    """Seconds of the current version where background music plays (None = detector not installed)."""
     from . import music
     if not music.available(ws):
-        raise ToolError("wykrywanie muzyki nie działa (brak modelu YAMNet) — podaj sekundy do wycięcia")
+        return None
     cur = sm["versions"][sm.get("current", 0)]
-    found = music.ranges(music.scores(music.model_path(ws), ws.shorts / sm["id"] / cur["file"]))
-    log(f"muzyka w: {', '.join(f'{a:.1f}-{b:.1f} s' for a, b in found) or 'nigdzie'}")
-    length = tl[-1][1] if tl else cur["duration"]
+    return music.ranges(music.scores(music.model_path(ws), ws.shorts / sm["id"] / cur["file"]))
+
+
+def without_music(found: list[tuple[float, float]], length: float, segments=None) -> list[list[float]]:
+    """Segments of the current version (or the AI's own) with the music seconds left out."""
     segs = [[float(x[0]), float(x[1]), float(x[2]) if len(x) > 2 and x[2] else 1.0] for x in segments or [[0, length, 1]]]
     for a, b in found:
         nxt = []
@@ -329,7 +336,7 @@ def change_by_words(ws: Workspace, short_id: str, request: str) -> dict:
     s = ws.settings()
     sm = load(ws, short_id)
     spec = current_spec(sm)
-    patch, unsupported = None, ""
+    patch, unsupported, answer = None, "", ""
     if ai.available(s):  # AI first: the simple parser below only knows "end/start N s earlier", hook and style
         from .captions import THEMES
         tl = current_timeline(ws, sm)
@@ -337,14 +344,26 @@ def change_by_words(ws: Workspace, short_id: str, request: str) -> dict:
         segs = spec_segments(spec, src_dur)
         lo, hi = spec["src_t0"], spec["src_t0"] + src_dur
         tr = read_json(ws.src / f"{spec['sid']}.json", {"segments": []})
-        prompt = CHANGE_PROMPT.format(length=tl[-1][1] if tl else 0, before=max(0.0, segs[0][0] - lo) if segs else 0,
+        found = music_in_version(ws, sm)
+        music_txt = ("detector not installed" if found is None else
+                     ", ".join(f"{a:.1f}-{b:.1f}s" for a, b in found) or "none")
+        prompt = CHANGE_PROMPT.format(music=music_txt, length=tl[-1][1] if tl else 0, before=max(0.0, segs[0][0] - lo) if segs else 0,
                                       after=max(0.0, hi - segs[-1][1]) if segs else 0, transcript=short_transcript(tr, tl),
                                       edits=describe_edits(spec, tl), hook=spec.get("hook"), look=spec.get("look"),
                                       styles=", ".join(THEMES), request=request)
         try:
             edit = ai.extract_json(ai.ask(s, prompt, timeout=600))
-            if isinstance(edit, dict) and edit.get("cut_music"):
-                edit = {**edit, "segments": without_music(ws, sm, tl, edit.get("segments"))}
+            if isinstance(edit, dict) and (edit.get("cut_music") or edit.get("mute_music")):
+                if not found:
+                    raise ToolError("nie znalazłem muzyki" if found is not None else "wykrywanie muzyki nie działa (brak modelu)")
+                log(f"muzyka w: {', '.join(f'{a:.1f}-{b:.1f} s' for a, b in found)}")
+                if edit.get("cut_music"):
+                    edit = {**edit, "segments": without_music(found, tl[-1][1], edit.get("segments"))}
+                else:
+                    edit = {**edit, "mute": list(edit.get("mute") or []) + [list(r) for r in found]}
+            if isinstance(edit, dict) and edit.get("answer"):
+                answer = str(edit["answer"]).strip()
+                log(f"Odpowiedź: {answer}")
             patch, unsupported = to_spec_patch(edit, spec, tl, src_dur)
         except (ToolError, ValueError, TypeError, KeyError, IndexError) as e:
             log(f"AI nie dało rady tej zmiany ({e}) — próbuję prostych reguł")
@@ -353,6 +372,8 @@ def change_by_words(ws: Workspace, short_id: str, request: str) -> dict:
         patch = simple_parse(request, spec)
     if unsupported:
         log(f"Tego nie umiem zrobić: {unsupported}")
+    if not patch and answer:  # a question, not a change: the answer is the result
+        return sm
     if not patch:
         raise ToolError(f"Tego nie umiem zrobić: {unsupported}" if unsupported else
                         "Nie rozumiem tej zmiany. Napisz np. „od 12 s do 15 s przyspiesz”, „w 10 s zbliżenie”, "
