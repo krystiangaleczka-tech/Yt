@@ -92,6 +92,21 @@ def scores(path: Path, media: Path, start: float = 0, dur: float | None = None) 
     return np.array(res)
 
 
+def ranges(s: np.ndarray, threshold: float = STRONG, pad: float = 0.15) -> list[tuple[float, float]]:
+    """Where music plays: merged [(from, to)] seconds of the media, from per-window scores."""
+    step, win = HOP / SR, WIN / SR
+    out: list[list[float]] = []
+    for i, v in enumerate(s):
+        if v < threshold:
+            continue
+        a, b = max(0.0, i * step - pad), i * step + win + pad
+        if out and a <= out[-1][1]:
+            out[-1][1] = max(out[-1][1], b)
+        else:
+            out.append([a, b])
+    return [(round(a, 2), round(b, 2)) for a, b in out]
+
+
 def summarize(s: np.ndarray) -> dict:
     """Turn per-window scores into {'seconds', 'strong_seconds', 'peak', 'warn'}."""
     step = HOP / SR

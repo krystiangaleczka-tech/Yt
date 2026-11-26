@@ -175,6 +175,8 @@ Answer with ONE JSON object only, with just the fields you need:
   "hook": "NEW HOOK", "keywords": ["..."],
   "look": {{"style": "...", "layout": "...", "flip": bool, "accent": "#RRGGBB", "cap_pos": "top|middle|bottom",
            "hook_secs": s, "cut_dead_air": bool, "sfx": bool}},
+  "cut_music": true,                     // cut out the seconds where background music plays (found automatically;
+                                         // use it for "wytnij tam, gdzie muzyka" / "usuń muzykę" — speech there goes too)
   "clear": ["zooms" | "mute" | "texts" | "segments"],   // drop edits made earlier
   "unsupported": "short Polish note on any part you cannot do"
 }}
@@ -253,6 +255,30 @@ def to_spec_patch(edit: dict, spec: dict, tl: list[list[float]], src_dur: float)
     return patch, str(edit.get("unsupported") or "").strip()
 
 
+def without_music(ws: Workspace, sm: dict, tl: list[list[float]], segments=None) -> list[list[float]]:
+    """Segments of the current version (or the AI's own) with the music seconds left out."""
+    from . import music
+    if not music.available(ws):
+        raise ToolError("wykrywanie muzyki nie działa (brak modelu YAMNet) — podaj sekundy do wycięcia")
+    cur = sm["versions"][sm.get("current", 0)]
+    found = music.ranges(music.scores(music.model_path(ws), ws.shorts / sm["id"] / cur["file"]))
+    log(f"muzyka w: {', '.join(f'{a:.1f}-{b:.1f} s' for a, b in found) or 'nigdzie'}")
+    length = tl[-1][1] if tl else cur["duration"]
+    segs = [[float(x[0]), float(x[1]), float(x[2]) if len(x) > 2 and x[2] else 1.0] for x in segments or [[0, length, 1]]]
+    for a, b in found:
+        nxt = []
+        for f, t, sp in segs:
+            if b <= f or a >= t:
+                nxt.append([f, t, sp])
+                continue
+            if a - f > 0.3:
+                nxt.append([f, a, sp])
+            if t - b > 0.3:
+                nxt.append([b, t, sp])
+        segs = nxt
+    return segs
+
+
 def describe_edits(spec: dict, tl: list[list[float]]) -> str:
     parts = []
     for z in spec.get("zoom_at") or []:
@@ -317,6 +343,8 @@ def change_by_words(ws: Workspace, short_id: str, request: str) -> dict:
                                       styles=", ".join(THEMES), request=request)
         try:
             edit = ai.extract_json(ai.ask(s, prompt, timeout=600))
+            if isinstance(edit, dict) and edit.get("cut_music"):
+                edit = {**edit, "segments": without_music(ws, sm, tl, edit.get("segments"))}
             patch, unsupported = to_spec_patch(edit, spec, tl, src_dur)
         except (ToolError, ValueError, TypeError, KeyError, IndexError) as e:
             log(f"AI nie dało rady tej zmiany ({e}) — próbuję prostych reguł")

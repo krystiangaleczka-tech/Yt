@@ -282,6 +282,13 @@ class EditTimelineTest(unittest.TestCase):
         with self.assertRaises(ToolError):
             to_spec_patch(["fighting", "back seat"], self.spec, self.tl, 60)
 
+    def test_music_ranges_merge(self):
+        import numpy as np
+        from gtaclip.music import ranges
+        r = ranges(np.array([0, 0, 0.5, 0.3, 0, 0, 0, 0.25, 0]))
+        self.assertEqual(len(r), 2)
+        self.assertAlmostEqual(r[0][0], 0.825, delta=0.01)
+
     def test_extract_json_prefers_outer_object(self):
         self.assertEqual(extract_json('{"segments": [[0, 4, 1]]}'), {"segments": [[0, 4, 1]]})
         self.assertEqual(extract_json('[{"a": {"b": 1}}]'), [{"a": {"b": 1}}])
