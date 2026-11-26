@@ -217,7 +217,7 @@ def produce(ws: Workspace, folder: Path, spec: dict, out_name: str) -> dict:
 
     cap_args = dict(cap_y=cap_y, hook_y=hook_y, watermark=look.get("watermark", ""),
                     keyword_color=look["keyword_color"], censor_on=look["censor_on_screen"])
-    engine = look.get("caption_engine") or s.get("caption_engine", "auto")
+    engine = look.get("caption_engine") or s.get("caption_engine", "pil")
     use_ass = engine == "ass" or (engine == "auto" and ffmpeg_has_ass())
 
     sel_v = sel_a = ""

@@ -31,7 +31,9 @@ def doctor(ws: Workspace) -> dict:
             res[mod] = True
         except Exception:
             res[mod] = False
-    res["napisy"] = "ffmpeg (libass)" if ffmpeg_has_ass() else "kod (Pillow) — ffmpeg bez libass"
+    eng = ws.settings().get("caption_engine", "pil")
+    res["napisy"] = ("ffmpeg (libass)" if eng == "ass" or (eng == "auto" and ffmpeg_has_ass())
+                     else "kod (Pillow)")
     res["fonts"] = all((ws.fonts / f).exists() for f in FONTS)
     res["deno"] = have("deno")  # yt-dlp needs a JS runtime for YouTube; deno is the one enabled by default
     s = ws.settings()
@@ -80,7 +82,7 @@ def ffmpeg_hint() -> str:
 
 
 def ffmpeg_ass_hint() -> str:
-    return "ffmpeg nie ma filtra napisów (libass) — nic nie szkodzi, napisy narysuje kod (Pillow)."
+    return "ffmpeg nie ma filtra napisów (libass) — nic nie szkodzi, napisy rysuje kod (Pillow)."
 
 
 def fonts(ws: Workspace) -> None:
