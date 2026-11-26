@@ -55,7 +55,7 @@ Folder roboczy: `~/gta-shorts` (zmiana: `--workspace` albo zmienna `CLIPPER_WORK
 - Transkrypcja idzie na procesorze (faster-whisper nie używa GPU Maca) i przy długich streamach to najdłuższy krok.
   Na słabszym Macu ustaw model „base”.
 - AI do wyboru momentów: domyślnie Claude Code z modelem **Opus** i effort **medium**
-  (`claude -p --model opus --effort medium`). W porównaniu na tych samych filmach (26.11.2026) Opus wybierał
+  (`claude -p --model claude-opus-5-5 --effort medium`, czyli Opus 5.5). W porównaniu na tych samych filmach (26.11.2026) Opus wybierał
   momenty z wyraźną zapowiedzią i puentą i pisał konkretniejsze hooki niż Sonnet. Zmiana w Ustawieniach → AI → Polecenie.
 - Polecenia AI innych niż Claude Code (Codex, Gemini, Kimi, OpenCode) są szablonami — sprawdź je w Ustawieniach.
 - Klipuj tylko streamerów, którzy na to pozwalają.

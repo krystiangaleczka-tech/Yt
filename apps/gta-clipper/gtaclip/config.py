@@ -40,7 +40,7 @@ DEFAULT_SETTINGS: dict = {
     # AI that picks moments: claude | codex | gemini | kimi | opencode | ollama | custom | none
     "ai": "claude",
     "ai_commands": {
-        "claude": "claude -p --model opus --effort medium",   # Opus picks moments and writes hooks clearly better than Sonnet
+        "claude": "claude -p --model claude-opus-5-5 --effort medium",   # Opus picks moments and writes hooks clearly better than Sonnet
         "codex": "codex exec -",
         "gemini": "gemini -p {prompt_text}",
         "kimi": "kimi --print -c {prompt_text}",
