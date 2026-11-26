@@ -312,8 +312,8 @@ def _font(ws: Workspace, size: int):
 def make_cover(ws: Workspace, video: Path, out: Path, at: float, hook: str, accent: str) -> None:
     from PIL import Image, ImageDraw
 
-    tmp = out.with_suffix(".raw.jpg")
-    run(["ffmpeg", "-y", "-v", "error", "-ss", f"{max(0, at):.2f}", "-i", video, "-frames:v", "1", "-q:v", "3", tmp])
+    tmp = out.with_suffix(".raw.png")
+    run(["ffmpeg", "-y", "-v", "error", "-ss", f"{max(0, at):.2f}", "-i", video, "-frames:v", "1", tmp])
     im = Image.open(tmp).convert("RGB")
     if hook:
         d = ImageDraw.Draw(im)
