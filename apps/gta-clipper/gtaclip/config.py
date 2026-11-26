@@ -53,6 +53,7 @@ DEFAULT_SETTINGS: dict = {
     "shorts_per_run": 10,
     "max_per_source": 2,
     "candidates": 30,
+    "skip_music": True,          # drop moments with background music before the AI sees them (Content ID)
     "min_len": 15,
     "max_len": 59,
     # Look

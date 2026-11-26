@@ -149,9 +149,12 @@ def _snap(tr: dict, start: float, end: float, peak: float, min_len: float, max_l
 def candidates(ws: Workspace, sources: list[tuple[dict, dict]], n: int = 30) -> list[dict]:
     s = ws.settings()
     min_len, max_len = s["min_len"], s["max_len"]
-    out = []
+    from . import music
+    check_music = s.get("skip_music", True) and music.available(ws)
+    out, skipped = [], 0
     for meta, tr in sources:
         sig = compute(ws, meta, tr)
+        audio = next((p for p in ws.src.glob(f"{meta['sid']}.*") if p.suffix in (".m4a", ".opus", ".webm", ".mp3", ".wav")), None)
         heat = np.array(sig["heat"])
         if not len(heat):
             continue
@@ -164,9 +167,15 @@ def candidates(ws: Workspace, sources: list[tuple[dict, dict]], n: int = 30) -> 
                 break
             if any(abs(i - j) < 40 for j in taken):
                 continue
-            taken.append(int(i))
             peak = t0 + i
             st, en = _snap(tr, peak - 22, peak + 12, peak, min_len, max_len)
+            if check_music and audio:  # background music = Content ID claims: let the moment go
+                rep = music.summarize(music.scores(music.model_path(ws), audio, start=max(0.0, st - t0), dur=en - st))
+                if rep["warn"]:
+                    skipped += 1
+                    taken.append(int(i))  # keep the spacing so its neighbours are not re-tested
+                    continue
+            taken.append(int(i))
             a, b = int(st - t0), int(en - t0)
             win = slice(max(0, a), max(a + 1, b))
             tags = []
@@ -198,7 +207,7 @@ def candidates(ws: Workspace, sources: list[tuple[dict, dict]], n: int = 30) -> 
         c["cid"] = k
     write_json(ws.path("candidates.json"), out)
     write_candidates_md(ws, out)
-    log(f"{len(out)} kandydatów → {ws.path('candidates.md')}")
+    log(f"{len(out)} kandydatów → {ws.path('candidates.md')}" + (f" (pominąłem {skipped} z muzyką w tle)" if skipped else ""))
     return out
 
 
