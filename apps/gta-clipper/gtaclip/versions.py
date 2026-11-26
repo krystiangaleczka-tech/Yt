@@ -93,7 +93,7 @@ def new_version(ws: Workspace, short_id: str, patch: dict, note: str) -> dict:
         spec["start"], spec["end"] = max(lo, float(spec["start"])), min(hi, float(spec["end"]))
         v = max(x["v"] for x in sm["versions"]) + 1
         res = produce(ws, folder, spec, f"v{v}.mp4")
-        res["qc"] = qcmod.check(folder / res["file"], {**res, "hook": spec.get("hook"), "score": sm["pick"].get("score", 0)}, ws)
+        res["qc"] = qcmod.check(folder / res["file"], {**res, "hook": spec.get("hook"), "score": sm["pick"].get("score", 0), "muted": bool(spec.get("mute_all"))}, ws)
         sm = load(ws, short_id)  # re-read (status may have changed meanwhile)
         sm["versions"].append({"v": v, "note": note, "created": int(time.time()), **res})
         sm.setdefault("spec_versions", {})[str(v)] = {k: spec[k] for k in EDIT_KEYS if k in spec}

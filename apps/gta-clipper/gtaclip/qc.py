@@ -38,7 +38,10 @@ def check(video: Path, info: dict, ws=None) -> dict:
         fails.append(f"za długi na Shorts ({d:.0f} s)")
     vol = mean_volume(video) if mi["has_audio"] else None
     if vol is None or vol < -45:
-        fails.append("brak dźwięku")
+        if info.get("muted"):  # silenced on purpose in a change: waits for the creator's voice line
+            warns.append("dźwięk wyciszony celowo — dograj głos przyciskiem „Twój głos”")
+        else:
+            fails.append("brak dźwięku")
     elif vol < -30:
         warns.append(f"cichy dźwięk ({vol:.0f} dB)")
     black = _detect(video, "blackdetect=d=0.5:pix_th=0.08", "black")
