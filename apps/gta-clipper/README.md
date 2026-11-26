@@ -54,8 +54,9 @@ Folder roboczy: `~/gta-shorts` (zmiana: `--workspace` albo zmienna `CLIPPER_WORK
   a w szczegółach Shorta zmienisz układ.
 - Transkrypcja idzie na procesorze (faster-whisper nie używa GPU Maca) i przy długich streamach to najdłuższy krok.
   Na słabszym Macu ustaw model „base”.
-- AI do wyboru momentów: domyślnie Claude Code z modelem **Sonnet** (`claude -p --model sonnet`) — wystarcza do
-  czytania transkrypcji i pisania hooków; Opus nie jest potrzebny. Zmiana w Ustawieniach → AI → Polecenie.
+- AI do wyboru momentów: domyślnie Claude Code z modelem **Sonnet** i effort **medium**
+  (`claude -p --model sonnet --effort medium`) — wystarcza do czytania transkrypcji i pisania hooków; Opus i wyższy
+  effort nie są potrzebne. Zmiana w Ustawieniach → AI → Polecenie.
 - Polecenia AI innych niż Claude Code (Codex, Gemini, Kimi, OpenCode) są szablonami — sprawdź je w Ustawieniach.
 - Klipuj tylko streamerów, którzy na to pozwalają.
 
