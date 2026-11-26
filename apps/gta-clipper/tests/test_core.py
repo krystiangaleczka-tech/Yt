@@ -117,12 +117,14 @@ class CaptionsInCode(unittest.TestCase):
         w = [{"w": t, "s": s, "e": e} for t, s, e in [("yo", 0.5, 0.9), ("the", 1.0, 1.2), ("cops", 1.2, 1.8)]]
         with tempfile.TemporaryDirectory() as d:
             ev = caption_events(w, 4.0, "classic", "SPEED FOUND KFC", ["cops"], watermark="@me")
-            lst = build_layer(ev, 4.0, "classic", "#FFD400", Path(d) / "fonts", Path(d) / "caps")
-            lines = lst.read_text().splitlines()
-            total = sum(float(x.split()[1]) for x in lines if x.startswith("duration"))
-            self.assertAlmostEqual(total, 4.0, places=2)
-            self.assertTrue(lines[-1].startswith("file "))  # last image repeated for the concat demuxer
-            self.assertGreater(len(list((Path(d) / "caps").glob("*.png"))), 5)
+            tracks = build_layer(ev, 4.0, "classic", "#FFD400", Path(d) / "fonts", Path(d) / "caps")
+            self.assertEqual(len(tracks), 3)  # captions, hook, watermark
+            for tr in tracks:
+                lines = tr["list"].read_text().splitlines()
+                total = sum(float(x.split()[1]) for x in lines if x.startswith("duration"))
+                self.assertAlmostEqual(total, 4.0, places=2)
+                self.assertTrue(lines[-1].startswith("file "))  # last image repeated for the concat demuxer
+                self.assertLess(tr["h"], 400)  # a strip, not the whole 1920 px frame
 
 
 if __name__ == "__main__":

@@ -249,13 +249,14 @@ def produce(ws: Workspace, folder: Path, spec: dict, out_name: str) -> dict:
         parts.append(f"{last}ass=subs.ass:fontsdir='{fonts_rel}',format=yuv420p[vout]")
     else:  # no libass: our code draws the captions, ffmpeg only overlays the images
         events = caption_events(words, out_len, look["style"], spec.get("hook", ""), spec.get("keywords", []), **cap_args)
-        lst = build_layer(events, out_len, look["style"], look["accent"], ws.fonts, folder / "caps")
-        if lst:
-            ci = add_input("-f", "concat", "-safe", "0", "-i", os.path.relpath(lst, folder))
-            parts.append(f"[{ci}:v]format=rgba,setpts=PTS-STARTPTS[caps]")
-            parts.append(f"{last}[caps]overlay=0:0:eof_action=repeat:format=auto,format=yuv420p[vout]")
-        else:
-            parts.append(f"{last}format=yuv420p[vout]")
+        tracks = build_layer(events, out_len, look["style"], look["accent"], ws.fonts, folder / "caps")
+        for k, tr in enumerate(tracks):  # small strips (captions, hook, watermark), each overlaid in place
+            ci = add_input("-f", "concat", "-safe", "0", "-i", os.path.relpath(tr["list"], folder))
+            # convert each strip once to yuva420p and blend in yuv420: avoids a per-frame RGB round trip
+            parts.append(f"[{ci}:v]format=yuva420p,setpts=PTS-STARTPTS[t{k}]")
+            parts.append(f"{last}[t{k}]overlay={tr['x']}:{tr['y']}:eof_action=repeat:format=yuv420[o{k}]")
+            last = f"[o{k}]"
+        parts.append(f"{last}format=yuv420p[vout]")
     if info["has_audio"]:
         ln = loudnorm_measure(src, a, b)
         norm = "loudnorm=I=-14:TP=-1.5:LRA=11"

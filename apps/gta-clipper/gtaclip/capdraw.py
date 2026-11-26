@@ -138,43 +138,52 @@ def _scale(kind: str, t: float) -> float:
     return 1.0
 
 
-def draw_state(state: tuple, events: list[dict], theme: dict, accent: str, fonts_dir: str):
+def draw_state(state: tuple, events: list[dict], theme: dict, accent: str, fonts_dir: str,
+               size: tuple[int, int] = (W, H), oy: float = 0):
+    """Draw one on-screen state. `size`/`oy`: draw only a horizontal band starting at y=oy of the frame."""
     from PIL import Image
 
-    img = Image.new("RGBA", (W, H))
+    img = Image.new("RGBA", size)
     for idx, sc in state:
         e = events[idx]
         if e["kind"] == "hook":
             fm = _font(fonts_dir, "Poppins Black", 78 * sc)
             lh = fm[1]
             for k, ln in enumerate(e["lines"]):  # one box per line, lines stacked like \N
-                cy = e["y"] - lh * (len(e["lines"]) - 1) / 2 + k * lh
+                cy = e["y"] - oy - lh * (len(e["lines"]) - 1) / 2 + k * lh
                 _draw_block(img, [(ln, _rgba("#111111"))], fm, cy, box_col=_rgba(accent), box_pad=22 * sc,
                             max_w=10_000)
         elif e["kind"] == "mark":
             fm = _font(fonts_dir, "Poppins Black", 40)
             _draw_block(img, [(e["text"], _rgba("#FFFFFF", 0.6))], fm, 0, stroke=2, stroke_col=_rgba("#000000", 0.4),
-                        bottom=H - 70, spacing=1)
+                        bottom=H - 70 - oy, spacing=1)
         else:
             fm = _font(fonts_dir, theme["font"], theme["size"] * sc)
             words = [(t, _rgba(c)) for t, c in e["parts"]]
             box = theme.get("box")
-            _draw_block(img, words, fm, e["y"], stroke=theme["ow"], stroke_col=_rgba(theme["outline"]),
+            _draw_block(img, words, fm, e["y"] - oy, stroke=theme["ow"], stroke_col=_rgba(theme["outline"]),
                         shadow=theme["shadow"], shadow_col=_rgba("#000000", 0.41),
                         box_col=_rgba(box) if box else None, box_pad=theme["ow"], spacing=sc)
     return img
 
 
-def build_layer(events: list[dict], duration: float, theme_name: str, accent: str, fonts_dir: Path,
-                out_dir: Path) -> Path | None:
-    """Render all states to PNGs + an ffconcat list. Returns the list path (None if nothing to show)."""
-    if not events:
-        return None
-    theme = THEMES.get(theme_name, THEMES["classic"])
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for old in out_dir.glob("*.png"):
-        old.unlink()
-    # breakpoints: every start/end plus animation sub-steps
+def _band(kind: str, events: list[dict], theme: dict) -> tuple[int, int]:
+    """Generous horizontal band (y0, height) where this kind of element can appear; cropped later."""
+    if kind == "cap":
+        size = theme["size"] * 1.12
+        pad = theme["ow"] + theme["shadow"] + 8
+        h, cy = int(size * 3 + 2 * pad), events[0]["y"]
+    elif kind == "hook":
+        lines = max(len(e["lines"]) for e in events)
+        h, cy = int(78 * 1.04 * lines + 2 * 22 * 1.04 + 16), events[0]["y"]
+    else:
+        h, cy = 80, H - 70 - 30
+    y0 = max(0, int(cy - h / 2))
+    return y0, min(h, H - y0)
+
+
+def _timeline(events: list[dict], duration: float):
+    """[(start, end, state)] where state = ((event index, scale), ...) — constant inside each span."""
     pts = {0.0, round(duration, 3)}
     for e in events:
         pts.update((round(e["start"], 3), round(min(e["end"], duration), 3)))
@@ -186,8 +195,7 @@ def build_layer(events: list[dict], duration: float, theme_name: str, accent: st
         if anim:
             pts.add(round(e["start"] + anim, 3))
     pts = sorted(p for p in pts if 0 <= p <= duration)
-    files: dict[tuple, str] = {}
-    entries: list[tuple[str, float]] = []
+    out = []
     for a, b in zip(pts, pts[1:]):
         if b - a < 1e-3:
             continue
@@ -197,19 +205,65 @@ def build_layer(events: list[dict], duration: float, theme_name: str, accent: st
             if e["start"] <= mid < e["end"]:
                 kind = "hook" if e["kind"] == "hook" else "pop" if e.get("pop") else "none"
                 state.append((i, round(_scale(kind, a - e["start"]), 3)))
-        key = tuple(state)
-        if key not in files:
-            name = f"s{len(files):04d}.png"
-            draw_state(key, events, theme, accent, str(fonts_dir)).save(out_dir / name, compress_level=1)
-            files[key] = name
-        if entries and entries[-1][0] == files[key]:
-            entries[-1] = (files[key], entries[-1][1] + (b - a))
-        else:
-            entries.append((files[key], b - a))
-    lst = out_dir / "caps.txt"
-    body = ["ffconcat version 1.0"]
-    for name, d in entries:
-        body += [f"file '{name}'", f"duration {d:.4f}"]
-    body.append(f"file '{entries[-1][0]}'")  # the concat demuxer needs the last image repeated
-    lst.write_text("\n".join(body) + "\n", encoding="utf-8")
-    return lst
+        out.append((a, b, tuple(state)))
+    return out
+
+
+def build_layer(events: list[dict], duration: float, theme_name: str, accent: str, fonts_dir: Path,
+                out_dir: Path) -> list[dict]:
+    """Render captions, hook and watermark as separate small overlay tracks.
+
+    Each track is a strip cropped to where its text actually appears (not the whole 1080x1920
+    frame), so there are far fewer pixels to draw, store and blend, and the hook animation does not
+    multiply the caption states. Returns [{"list": ffconcat path, "x": int, "y": int}] (may be empty)."""
+    from PIL import Image
+
+    theme = THEMES.get(theme_name, THEMES["classic"])
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for old in list(out_dir.glob("*.png")) + list(out_dir.glob("*.txt")):
+        old.unlink()
+    tracks = []
+    for kind in ("cap", "hook", "mark"):
+        evs = [e for e in events if e["kind"] == kind]
+        if not evs:
+            continue
+        y0, bh = _band(kind, evs, theme)
+        spans = _timeline(evs, duration)
+        sprites: dict[tuple, tuple] = {}   # state -> (cropped image, (x, y) inside the band)
+        for _, _, state in spans:
+            if state and state not in sprites:
+                im = draw_state(state, evs, theme, accent, str(fonts_dir), (W, bh), y0)
+                bb = im.getbbox()
+                sprites[state] = (im.crop(bb), bb[:2]) if bb else (None, (0, 0))
+        boxes = [(x, y, x + im.width, y + im.height) for im, (x, y) in sprites.values() if im is not None]
+        if not boxes:
+            continue
+        ux0, uy0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
+        ux1, uy1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
+        uw, uh = ux1 - ux0, uy1 - uy0
+        names: dict[tuple, str] = {}
+        blank = f"{kind}_blank.png"
+        Image.new("RGBA", (uw, uh)).save(out_dir / blank, compress_level=1)
+        for n, (state, (im, (x, y))) in enumerate(sprites.items()):
+            if im is None:
+                names[state] = blank
+                continue
+            canvas = Image.new("RGBA", (uw, uh))
+            canvas.paste(im, (x - ux0, y - uy0))
+            names[state] = f"{kind}_{n:04d}.png"
+            canvas.save(out_dir / names[state], compress_level=1)
+        entries: list[tuple[str, float]] = []
+        for a, b, state in spans:
+            name = names.get(state, blank)
+            if entries and entries[-1][0] == name:
+                entries[-1] = (name, entries[-1][1] + (b - a))
+            else:
+                entries.append((name, b - a))
+        lst = out_dir / f"{kind}.txt"
+        body = ["ffconcat version 1.0"]
+        for name, d in entries:
+            body += [f"file '{name}'", f"duration {d:.4f}"]
+        body.append(f"file '{entries[-1][0]}'")  # the concat demuxer needs the last image repeated
+        lst.write_text("\n".join(body) + "\n", encoding="utf-8")
+        tracks.append({"list": lst, "x": ux0, "y": y0 + uy0, "w": uw, "h": uh})
+    return tracks
