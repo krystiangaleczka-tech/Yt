@@ -77,6 +77,83 @@ def mapper(keep: list[tuple[float, float]]):
     return f
 
 
+def spec_segments(spec: dict, src_dur: float) -> list[tuple[float, float, float]]:
+    """Segments to play, in order: [(a, b, speed)] in absolute source seconds, clamped to the downloaded file."""
+    lo, hi = spec["src_t0"], spec["src_t0"] + src_dur
+    segs = spec.get("segments") or [{"a": spec["start"], "b": spec["end"], "speed": 1.0}]
+    out = []
+    for s in segs:
+        a, b = max(lo, float(s["a"])), min(hi, float(s["b"]))
+        sp = min(4.0, max(0.25, float(s.get("speed") or 1.0)))
+        if b - a >= 0.2:
+            out.append((round(a, 3), round(b, 3), sp))
+    return out
+
+
+def plan_pieces(src: Path, spec: dict, src_dur: float, cut_dead_air: bool, has_audio: bool,
+                silence_fn=None) -> list[tuple[float, float, float]]:
+    """What the Short plays, in order: [(a, b, speed)] in absolute source seconds, dead air cut inside each segment."""
+    silence_fn = silence_fn or silences
+    t0 = spec["src_t0"]
+    pieces = []
+    for a, b, sp in spec_segments(spec, src_dur):
+        keep = [(0.0, b - a)]
+        if cut_dead_air and has_audio and b - a > 3:
+            keep = keep_segments(b - a, silence_fn(src, a - t0, b - t0))
+        pieces += [(round(a + x, 3), round(a + y, 3), sp) for x, y in keep]
+    return pieces
+
+
+def timeline(pieces: list[tuple[float, float, float]]) -> list[list[float]]:
+    """[[out_start, out_end, src_a, src_b, speed]] — where each piece lands in the finished Short."""
+    tl, acc = [], 0.0
+    for a, b, sp in pieces:
+        d = (b - a) / sp
+        tl.append([round(acc, 3), round(acc + d, 3), a, b, sp])
+        acc += d
+    return tl
+
+
+def src_to_out(tl: list[list[float]], t: float) -> float | None:
+    """Absolute source second -> second of the Short (first place it is shown), None if cut out."""
+    for o0, _o1, a, b, sp in tl:
+        if a <= t <= b:
+            return round(o0 + (t - a) / sp, 3)
+    return None
+
+
+def out_to_src(tl: list[list[float]], t: float) -> float:
+    """Second of the Short -> absolute source second (clamped to the ends)."""
+    if not tl:
+        return t
+    if t <= tl[0][0]:
+        return tl[0][2]
+    for o0, o1, a, _b, sp in tl:
+        if o0 <= t <= o1:
+            return round(a + (t - o0) * sp, 3)
+    return tl[-1][3]
+
+
+def _atempo(speed: float) -> str:
+    parts, s = [], speed
+    while s > 2.0:
+        parts.append("atempo=2.0")
+        s /= 2.0
+    while s < 0.5:
+        parts.append("atempo=0.5")
+        s /= 0.5
+    parts.append(f"atempo={s:.4f}")
+    return ",".join(parts)
+
+
+def _between(ranges, var: str = "t") -> str:
+    return "+".join(f"between({var},{x:.3f},{y:.3f})" for x, y in ranges)
+
+
+TEXT_Y = {"top": 420, "middle": 960, "bottom": 1500}
+CAP_Y = {"top": 330, "middle": 960, "bottom": 1600}
+
+
 def loudness_curve(src: Path, a: float, b: float, step: float = 0.1) -> np.ndarray:
     sr = 8000
     raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{a:.3f}", "-to", f"{b:.3f}", "-i", str(src), "-vn",
@@ -176,63 +253,104 @@ def layout_graph(lay: dict, look: dict) -> tuple[str, int, int]:
 
 # ------------------------------------------------------------------ produce
 def produce(ws: Workspace, folder: Path, spec: dict, out_name: str) -> dict:
-    """Render one version. spec: start, end (absolute source seconds), hook, keywords, look, src_t0, peak."""
+    """Render one version.
+
+    spec: start, end (absolute source seconds), hook, keywords, look, src_t0, peak, and optional edits —
+    all times in absolute source seconds:
+      segments  [{a, b, speed}]   what plays, in order (cut, reorder, repeat, speed up / slow down)
+      zoom_at   [{t, dur, z, x, y}] zooms on a point (x, y = 0..1 of the frame)
+      mute      [[a, b]], mute_all, noise (0..1: pink noise over the muted parts)
+      texts     [{text, t, dur, color, size, pos}]  extra on-screen text (pos: top | middle | bottom)
+    """
     s = ws.settings()
     look = {**{k: s[k] for k in ("layout", "flip", "style", "watermark", "accent", "keyword_color",
                                  "punch_zooms", "cut_dead_air", "sfx", "censor_on_screen")}, **(spec.get("look") or {})}
     src = folder / "src.mp4"
     info = media_info(src)
     t0 = spec["src_t0"]
-    a = max(0.0, spec["start"] - t0)
-    b = min(info["duration"], spec["end"] - t0)
-    length = b - a
-    if length < 3:
+    pieces = plan_pieces(src, spec, info["duration"], look["cut_dead_air"], info["has_audio"])
+    tl = timeline(pieces)
+    out_len = tl[-1][1] if tl else 0.0
+    if out_len < 3:
         raise ToolError("fragment za krótki")
+    lo, hi = min(p[0] for p in pieces), max(p[1] for p in pieces)
 
-    keep = [(0.0, length)]
-    if look["cut_dead_air"] and info["has_audio"]:
-        keep = keep_segments(length, silences(src, a, b))
-    fmap = mapper(keep)
-    out_len = sum(y - x for x, y in keep)
+    def fmap(t_abs: float) -> float | None:
+        return src_to_out(tl, t_abs)
 
     tr = read_json(ws.src / f"{spec['sid']}.json", {"segments": []}) if spec.get("sid") else {"segments": []}
     words = []
-    for w in words_between(tr, spec["start"], spec["end"]):
-        ms, me = fmap(w["s"] - spec["start"]), fmap(min(w["e"], spec["end"]) - spec["start"])
-        if ms is None:
-            continue
-        words.append({"w": w["w"], "s": ms, "e": me if me is not None else ms + 0.3})
+    for o0, _o1, a, b, sp in tl:  # per piece, so repeated pieces get their captions again
+        for w in words_between(tr, a, b):
+            if w["s"] < a:
+                continue
+            ws_, we = o0 + (w["s"] - a) / sp, o0 + (min(w["e"], b) - a) / sp
+            words.append({"w": w["w"], "s": round(ws_, 3), "e": round(max(we, ws_ + 0.1), 3)})
+    words.sort(key=lambda w: w["s"])
 
-    zooms = []
+    zooms = []  # {"t": out seconds, "dur", "z", "x", "y"}
     if look["punch_zooms"] and info["has_audio"]:
-        for t in punch_times(loudness_curve(src, a, b)):
-            m = fmap(t)
+        for t in punch_times(loudness_curve(src, lo - t0, hi - t0)):
+            m = fmap(lo + t)
             if m is not None and m < out_len - 1:
-                zooms.append(round(m, 2))
+                zooms.append({"t": round(m, 2), "dur": 0.7, "z": 1.14, "x": 0.5, "y": 0.5})
+    for zq in spec.get("zoom_at") or []:
+        m = fmap(float(zq["t"]))
+        if m is not None and m < out_len - 0.2:
+            zooms.append({"t": round(m, 2), "dur": float(zq.get("dur") or 1.5), "z": min(2.5, max(1.05, float(zq.get("z") or 1.35))),
+                          "x": min(1.0, max(0.0, float(zq.get("x", 0.5)))), "y": min(1.0, max(0.0, float(zq.get("y", 0.5))))})
+    zooms.sort(key=lambda z: z["t"])
 
-    lay = analyze(src, look["layout"], start=a, dur=length)
+    lay = analyze(src, look["layout"], start=lo - t0, dur=hi - lo)
     if lay.get("track"):
-        lay["track"] = [[fmap(t) if fmap(t) is not None else t, x] for t, x in lay["track"]]
+        tr_pts = [[fmap(lo + t), x] for t, x in lay["track"]]
+        lay["track"] = sorted([p for p in tr_pts if p[0] is not None]) or lay["track"]
     graph, hook_y, cap_y = layout_graph(lay, look)
+    if look.get("cap_pos") in CAP_Y:
+        cap_y = CAP_Y[look["cap_pos"]]
+        if abs(hook_y - cap_y) < 300:  # keep the hook clear of the captions
+            hook_y = 960 if cap_y < 700 else 300
+
+    texts = []
+    for tx in spec.get("texts") or []:
+        m = fmap(float(tx["t"]))
+        if m is None or not str(tx.get("text", "")).strip():
+            continue
+        texts.append({"text": str(tx["text"]), "start": m, "end": min(out_len, m + float(tx.get("dur") or 2.5)),
+                      "y": TEXT_Y.get(tx.get("pos"), TEXT_Y["top"]), "color": tx.get("color") or "#FFFFFF",
+                      "size": int(min(200, max(50, float(tx.get("size") or 110))))})
+
+    hook_secs = float(look.get("hook_secs") or 3.5)
+    for t in texts:  # never stack an extra text on the hook or the captions
+        if spec.get("hook") and t["start"] < hook_secs and abs(t["y"] - hook_y) < 300:
+            t["y"] = hook_y - 300 if hook_y - 300 >= 180 else hook_y + 300
+        if abs(t["y"] - cap_y) < 220:
+            t["y"] = cap_y - 260 if cap_y - 260 >= 180 else cap_y + 260
 
     cap_args = dict(cap_y=cap_y, hook_y=hook_y, watermark=look.get("watermark", ""),
-                    keyword_color=look["keyword_color"], censor_on=look["censor_on_screen"])
+                    keyword_color=look["keyword_color"], censor_on=look["censor_on_screen"],
+                    hook_secs=hook_secs, texts=texts)
     engine = look.get("caption_engine") or s.get("caption_engine", "pil")
     use_ass = engine == "ass" or (engine == "auto" and ffmpeg_has_ass())
 
-    sel_v = sel_a = ""
-    if len(keep) > 1:
-        expr = "+".join(f"between(t,{x:.3f},{y:.3f})" for x, y in keep)
-        sel_v = f"select='{expr}',setpts=N/FRAME_RATE/TB,"
-        sel_a = f"aselect='{expr}',asetpts=N/SR/TB,"
-    parts = [f"[0:v]fps={FPS},{sel_v}setpts=PTS-STARTPTS[v0]", graph]
+    n = len(pieces)
+    parts = [f"[0:v]fps={FPS},split={n}" + "".join(f"[s{i}]" for i in range(n)) if n > 1 else f"[0:v]fps={FPS}[s0]"]
+    for i, (a, b, sp) in enumerate(pieces):
+        parts.append(f"[s{i}]trim=start={a - t0:.3f}:end={b - t0:.3f},setpts=(PTS-STARTPTS)/{sp:.4f}[p{i}]")
+    parts.append("".join(f"[p{i}]" for i in range(n)) + f"concat=n={n}:v=1:a=0[v0]")
+    parts.append(graph)
     last = "[lay]"
     if zooms:
-        z = "+".join(f"between(in,{int(t * FPS) - 2},{int((t + 0.7) * FPS)})" for t in zooms)
-        parts.append(f"{last}zoompan=z='1+0.14*({z})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1080x1920:fps={FPS}[zm]")
+        def win(z):
+            return f"between(in,{max(0, int(z['t'] * FPS) - 2)},{int((z['t'] + z['dur']) * FPS)})"
+        zexpr = "+".join(f"{z['z'] - 1:.3f}*{win(z)}" for z in zooms)
+        fx = "+".join(f"{z['x'] - 0.5:.3f}*{win(z)}" for z in zooms if z["x"] != 0.5) or "0"
+        fy = "+".join(f"{z['y'] - 0.5:.3f}*{win(z)}" for z in zooms if z["y"] != 0.5) or "0"
+        parts.append(f"{last}zoompan=z='min(2.5,1+{zexpr})':x='clip(iw*(0.5+{fx})-iw/zoom/2,0,iw-iw/zoom)':"
+                     f"y='clip(ih*(0.5+{fy})-ih/zoom/2,0,ih-ih/zoom)':d=1:s=1080x1920:fps={FPS}[zm]")
         last = "[zm]"
 
-    inputs = ["-ss", f"{a:.3f}", "-to", f"{b:.3f}", "-i", "src.mp4"]
+    inputs = ["-i", "src.mp4"]
     n_in = 1
 
     def add_input(*args) -> int:
@@ -250,50 +368,75 @@ def produce(ws: Workspace, folder: Path, spec: dict, out_name: str) -> dict:
     else:  # no libass: our code draws the captions, ffmpeg only overlays the images
         events = caption_events(words, out_len, look["style"], spec.get("hook", ""), spec.get("keywords", []), **cap_args)
         tracks = build_layer(events, out_len, look["style"], look["accent"], ws.fonts, folder / "caps")
-        for k, tr in enumerate(tracks):  # small strips (captions, hook, watermark), each overlaid in place
-            ci = add_input("-f", "concat", "-safe", "0", "-i", os.path.relpath(tr["list"], folder))
+        for k, trk in enumerate(tracks):  # small strips (captions, hook, watermark), each overlaid in place
+            ci = add_input("-f", "concat", "-safe", "0", "-i", os.path.relpath(trk["list"], folder))
             # convert each strip once to yuva420p and blend in yuv420: avoids a per-frame RGB round trip
             parts.append(f"[{ci}:v]format=yuva420p,setpts=PTS-STARTPTS[t{k}]")
-            parts.append(f"{last}[t{k}]overlay={tr['x']}:{tr['y']}:eof_action=repeat:format=yuv420[o{k}]")
+            parts.append(f"{last}[t{k}]overlay={trk['x']}:{trk['y']}:eof_action=repeat:format=yuv420[o{k}]")
             last = f"[o{k}]"
         parts.append(f"{last}format=yuv420p[vout]")
+
+    mute = [(fmap(float(a)), fmap(float(b))) for a, b in spec.get("mute") or []]
+    mute = [(x, y) for x, y in mute if x is not None and y is not None and y > x]
+    if spec.get("mute_all"):
+        mute = [(0.0, out_len)]
     if info["has_audio"]:
-        ln = loudnorm_measure(src, a, b)
-        norm = "loudnorm=I=-14:TP=-1.5:LRA=11"
-        if ln:
-            norm += (f":measured_I={ln['input_i']}:measured_TP={ln['input_tp']}:measured_LRA={ln['input_lra']}"
-                     f":measured_thresh={ln['input_thresh']}:offset={ln['target_offset']}:linear=true")
-        parts.append(f"[0:a]{sel_a}asetpts=PTS-STARTPTS,{norm},aresample=48000[an]")
+        parts.append(f"[0:a]asplit={n}" + "".join(f"[as{i}]" for i in range(n)) if n > 1 else "[0:a]anull[as0]")
+        for i, (a, b, sp) in enumerate(pieces):
+            tempo = f",{_atempo(sp)}" if abs(sp - 1) > 1e-3 else ""
+            parts.append(f"[as{i}]atrim=start={a - t0:.3f}:end={b - t0:.3f},asetpts=PTS-STARTPTS{tempo}[ap{i}]")
+        parts.append("".join(f"[ap{i}]" for i in range(n)) + f"concat=n={n}:v=0:a=1[acat]")
+        chain = "[acat]"
+        if mute:
+            parts.append(f"{chain}volume=0:enable='{_between(mute)}'[amut]")
+            chain = "[amut]"
+        if spec.get("mute_all"):
+            parts.append(f"{chain}aresample=48000[an]")
+        else:
+            ln = loudnorm_measure(src, lo - t0, hi - t0)
+            norm = "loudnorm=I=-14:TP=-1.5:LRA=11"
+            if ln:
+                norm += (f":measured_I={ln['input_i']}:measured_TP={ln['input_tp']}:measured_LRA={ln['input_lra']}"
+                         f":measured_thresh={ln['input_thresh']}:offset={ln['target_offset']}:linear=true")
+            parts.append(f"{chain}{norm},aresample=48000[an]")
     else:
         si = add_input("-f", "lavfi", "-t", f"{out_len:.2f}", "-i", "anullsrc=r=48000:cl=stereo")
         parts.append(f"[{si}:a]anull[an]")
     alast = "[an]"
+    noise = float(spec.get("noise") or 0)
+    if noise > 0 and mute:
+        parts.append(f"anoisesrc=d={out_len:.3f}:c=pink:r=48000:a={min(1.0, noise) * 0.25:.3f},aformat=channel_layouts=stereo,"
+                     f"volume=0:enable='not({_between(mute)})'[nz]")
+        parts.append(f"{alast}[nz]amix=inputs=2:normalize=0:duration=first[anz]")
+        alast = "[anz]"
     whoosh = ws.sounds / "whoosh.wav"
     if look["sfx"] and zooms and whoosh.exists():
         idx = add_input("-i", os.path.relpath(whoosh, folder))
-        n = len(zooms)
-        if n > 1:
-            parts.append(f"[{idx}:a]asplit={n}" + "".join(f"[w{k}]" for k in range(n)))
-        for k, t in enumerate(zooms):
-            src_lbl = f"[w{k}]" if n > 1 else f"[{idx}:a]"
-            parts.append(f"{src_lbl}volume=0.5,adelay={int(max(0, t - 0.15) * 1000)}:all=1[s{k}]")
-        parts.append(f"{alast}" + "".join(f"[s{k}]" for k in range(len(zooms))) +
-                     f"amix=inputs={len(zooms) + 1}:normalize=0:duration=first[amx]")
+        k_n = len(zooms)
+        if k_n > 1:
+            parts.append(f"[{idx}:a]asplit={k_n}" + "".join(f"[w{k}]" for k in range(k_n)))
+        for k, z in enumerate(zooms):
+            src_lbl = f"[w{k}]" if k_n > 1 else f"[{idx}:a]"
+            parts.append(f"{src_lbl}volume=0.5,adelay={int(max(0, z['t'] - 0.15) * 1000)}:all=1[s{k}]")
+        parts.append(f"{alast}" + "".join(f"[s{k}]" for k in range(k_n)) +
+                     f"amix=inputs={k_n + 1}:normalize=0:duration=first[amx]")
         alast = "[amx]"
     graph_all = ";".join(p for p in parts if p)
     (folder / "graph.txt").write_text(graph_all, encoding="utf-8")
+    tmp_name = out_name.replace(".mp4", ".part.mp4")
     cmd = ["ffmpeg", "-y", "-v", "error", *inputs, "-filter_complex", graph_all, "-map", "[vout]", "-map", alast,
            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-r", str(FPS), "-c:a", "aac", "-b:a", "160k",
-           "-t", f"{out_len:.3f}", "-movflags", "+faststart", out_name]
+           "-t", f"{out_len:.3f}", "-movflags", "+faststart", tmp_name]
     run(cmd, cwd=folder, timeout=3600)
+    (folder / tmp_name).replace(folder / out_name)  # never leave a half-written version under its real name
 
     peak = spec.get("peak")
-    pk = fmap(peak - spec["start"]) if peak else None
+    pk = fmap(peak) if peak else None
     cover_name = out_name.replace(".mp4", "_cover.jpg")
     make_cover(ws, folder / out_name, folder / cover_name, pk if pk is not None else out_len * 0.7, spec.get("hook", ""), look["accent"])
     return {"file": out_name, "cover": cover_name, "duration": round(out_len, 2), "layout": lay["layout"],
-            "cuts": len(keep) - 1, "zooms": zooms, "words": len(words), "face": lay.get("face"),
-            "presence": lay.get("presence")}
+            "cuts": len(pieces) - 1, "zooms": [z["t"] for z in zooms], "words": len(words), "face": lay.get("face"),
+            "presence": lay.get("presence"), "timeline": tl}
 
 
 def _font(ws: Workspace, size: int):

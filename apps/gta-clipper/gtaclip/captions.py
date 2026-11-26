@@ -57,7 +57,8 @@ def chunk_words(words: list[dict], max_words: int, max_chars: int = 18, gap: flo
 
 def build_ass(words: list[dict], duration: float, theme_name: str, hook: str = "", keywords=(), *,
               cap_y: int = 1340, hook_y: int = 260, hook_secs: float = 3.5, watermark: str = "",
-              accent: str = "#FFD400", keyword_color: str = "#2BE36B", censor_on: bool = True) -> str:
+              accent: str = "#FFD400", keyword_color: str = "#2BE36B", censor_on: bool = True,
+              texts: list[dict] | None = None) -> str:
     th = THEMES.get(theme_name, THEMES["classic"])
     box = th.get("box")
     border_style = 3 if box else 1
@@ -73,6 +74,7 @@ ScaledBorderAndShadow: yes
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Cap,{th['font']},{th['size']},{hex_to_ass(th['text'])},&H000000FF,{outline_col},&H96000000,0,0,0,0,100,100,1,0,{border_style},{th['ow']},{th['shadow']},5,60,60,0,1
 Style: Hook,Poppins Black,78,&H00111111,&H000000FF,{hex_to_ass(accent)},&H64000000,0,0,0,0,100,100,0,0,3,22,0,5,70,70,0,1
+Style: Txt,Poppins Black,110,&H00FFFFFF,&H000000FF,&H00000000,&H64000000,0,0,0,0,100,100,0,0,1,8,3,5,60,60,0,1
 Style: Mark,Poppins Black,40,&H66FFFFFF,&H000000FF,&H99000000,&H00000000,0,0,0,0,100,100,1,0,1,2,0,2,40,40,70,1
 
 [Events]
@@ -80,10 +82,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
     ev = []
     for e in caption_events(words, duration, theme_name, hook, keywords, cap_y=cap_y, hook_y=hook_y,
-                            hook_secs=hook_secs, watermark=watermark, keyword_color=keyword_color, censor_on=censor_on):
+                            hook_secs=hook_secs, watermark=watermark, keyword_color=keyword_color, censor_on=censor_on,
+                            texts=texts):
         if e["kind"] == "hook":
             ev.append(f"Dialogue: 2,{_ts(e['start'])},{_ts(e['end'])},Hook,,0,0,0,,"
                       f"{{\\pos(540,{e['y']})\\fscx60\\fscy60\\t(0,140,\\fscx104\\fscy104)\\t(140,220,\\fscx100\\fscy100)}}"
+                      + "\\N".join(_esc(ln) for ln in e["lines"]))
+        elif e["kind"] == "text":
+            ev.append(f"Dialogue: 3,{_ts(e['start'])},{_ts(e['end'])},Txt,,0,0,0,,"
+                      f"{{\\pos(540,{e['y']})\\fnPoppins Black\\fs{e['size']}\\c{hex_to_ass(e['color'])}\\fscx60\\fscy60\\t(0,140,\\fscx104\\fscy104)\\t(140,220,\\fscx100\\fscy100)}}"
                       + "\\N".join(_esc(ln) for ln in e["lines"]))
         elif e["kind"] == "mark":
             ev.append(f"Dialogue: 1,{_ts(e['start'])},{_ts(e['end'])},Mark,,0,0,0,,{_esc(e['text'])}")
@@ -96,11 +103,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 def caption_events(words: list[dict], duration: float, theme_name: str, hook: str = "", keywords=(), *,
                    cap_y: int = 1340, hook_y: int = 260, hook_secs: float = 3.5, watermark: str = "",
-                   keyword_color: str = "#2BE36B", censor_on: bool = True) -> list[dict]:
+                   keyword_color: str = "#2BE36B", censor_on: bool = True,
+                   texts: list[dict] | None = None) -> list[dict]:
     """What is on screen and when — shared by the libass writer and the Pillow renderer.
 
     hook: {lines, y, start, end}   mark: {text, start, end}
-    cap:  {parts: [(text, "#RRGGBB")], y, start, end, pop}"""
+    cap:  {parts: [(text, "#RRGGBB")], y, start, end, pop}
+    text: {lines, y, start, end, color, size}   extra text asked for in a change ("at 1 s a big blue ...")"""
     th = THEMES.get(theme_name, THEMES["classic"])
     kw = {k.lower().strip(".,!?") for k in keywords if k}
     ev: list[dict] = []
@@ -112,6 +121,20 @@ def caption_events(words: list[dict], duration: float, theme_name: str, hook: st
             mid = len(parts) // 2
             lines = [" ".join(parts[:mid]), " ".join(parts[mid:])]
         ev.append({"kind": "hook", "lines": lines, "y": hook_y, "start": 0.0, "end": min(hook_secs, duration)})
+    for t in texts or []:
+        words_ = t["text"].upper().split()
+        lines, cur = [], ""
+        per_line = max(8, int(1500 / t["size"]))  # characters that fit on one line at this size
+        for w in words_:
+            if cur and len(cur) + 1 + len(w) > per_line:
+                lines.append(cur)
+                cur = w
+            else:
+                cur = f"{cur} {w}".strip()
+        if cur:
+            lines.append(cur)
+        ev.append({"kind": "text", "lines": lines, "y": t["y"], "start": t["start"], "end": min(t["end"], duration),
+                   "color": t["color"], "size": t["size"]})
     if watermark:
         ev.append({"kind": "mark", "text": watermark, "start": 0.0, "end": duration})
 

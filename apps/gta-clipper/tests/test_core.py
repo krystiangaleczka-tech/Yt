@@ -228,5 +228,77 @@ class TwitchChat(unittest.TestCase):
                                                    post=lambda b: [{"data": {"video": None}}], sleep=0), 0)
 
 
+class EditTimelineTest(unittest.TestCase):
+    """Change by words: seconds of the Short <-> source seconds, cuts, speed, zooms, texts."""
+
+    def setUp(self):
+        from gtaclip.render import timeline
+        # Short = source 100-110 at normal speed, then 120-130 twice as fast -> 15 s long
+        self.tl = timeline([(100.0, 110.0, 1.0), (120.0, 130.0, 2.0)])
+        self.spec = {"src_t0": 90.0, "start": 100.0, "end": 130.0, "hook": "H", "look": {}}
+
+    def test_timeline_maps_both_ways(self):
+        from gtaclip.render import out_to_src, src_to_out
+        self.assertEqual(self.tl[-1][1], 15.0)
+        self.assertEqual(out_to_src(self.tl, 4.0), 104.0)
+        self.assertEqual(out_to_src(self.tl, 12.0), 124.0)
+        self.assertEqual(src_to_out(self.tl, 126.0), 13.0)
+        self.assertIsNone(src_to_out(self.tl, 115.0))  # cut out
+
+    def test_plan_pieces_cuts_dead_air_inside_each_segment(self):
+        from gtaclip.render import plan_pieces
+        spec = {**self.spec, "segments": [{"a": 100, "b": 120, "speed": 1}, {"a": 95, "b": 99, "speed": 2}]}
+        pieces = plan_pieces(Path("x"), spec, 60, True, True, silence_fn=lambda src, a, b: [(5.0, 8.0)])
+        self.assertEqual(pieces[0], (100.0, 105.25, 1.0))
+        self.assertEqual(pieces[1], (107.75, 120.0, 1.0))
+        self.assertEqual(pieces[-1][2], 2.0)
+
+    def test_speed_up_and_cut_from_short_seconds(self):
+        from gtaclip.versions import to_spec_patch
+        patch, note = to_spec_patch({"segments": [[0, 4, 1], [4, 8, 2], [12, 15, 1]]}, self.spec, self.tl, 60)
+        segs = [(x["a"], x["b"], x["speed"]) for x in patch["segments"]]
+        self.assertEqual(segs, [(100.0, 104.0, 1.0), (104.0, 108.0, 2.0), (124.0, 130.0, 2.0)])
+        self.assertEqual((patch["start"], patch["end"]), (100.0, 130.0))
+        self.assertEqual(note, "")
+
+    def test_zoom_mute_text_and_unsupported(self):
+        from gtaclip.versions import to_spec_patch
+        edit = {"zooms": [{"at": 10.5, "scale": 1.5}], "mute": [[2, 12]], "noise": 0.4,
+                "texts": [{"text": "a bottle of water", "at": 1, "color": "#1E90FF", "size": 150}],
+                "look": {"cap_pos": "top", "bogus": 1}, "unsupported": "głos lektora — przycisk Twój głos"}
+        patch, note = to_spec_patch(edit, self.spec, self.tl, 60)
+        self.assertEqual(patch["zoom_at"][0]["t"], 121.0)
+        self.assertEqual(patch["mute"], [[102.0, 110.0], [120.0, 124.0]])
+        self.assertEqual(patch["texts"][0]["t"], 101.0)
+        self.assertEqual(patch["look"], {"cap_pos": "top"})
+        self.assertEqual(patch["noise"], 0.4)
+        self.assertIn("Twój głos", note)
+
+    def test_extend_and_bad_answers(self):
+        from gtaclip.util import ToolError
+        from gtaclip.versions import to_spec_patch
+        patch, _ = to_spec_patch({"extend": {"before": 3, "after": 50}}, self.spec, self.tl, 60)
+        self.assertEqual((patch["start"], patch["end"]), (97.0, 150.0))  # end clamped to the downloaded file
+        with self.assertRaises(ToolError):
+            to_spec_patch(["fighting", "back seat"], self.spec, self.tl, 60)
+
+    def test_extract_json_prefers_outer_object(self):
+        self.assertEqual(extract_json('{"segments": [[0, 4, 1]]}'), {"segments": [[0, 4, 1]]})
+        self.assertEqual(extract_json('[{"a": {"b": 1}}]'), [{"a": {"b": 1}}])
+
+    def test_extra_text_is_drawn(self):
+        from gtaclip.capdraw import build_layer
+        from gtaclip.captions import caption_events
+        with tempfile.TemporaryDirectory() as d:
+            ev = caption_events([], 4.0, "classic", "HOOK", [],
+                                texts=[{"text": "A BOTTLE OF WATER", "start": 1.0, "end": 3.0, "y": 420,
+                                        "color": "#1E90FF", "size": 150}])
+            self.assertEqual([e["kind"] for e in ev], ["hook", "text"])
+            tracks = build_layer(ev, 4.0, "classic", "#FFD400", Path(d) / "fonts", Path(d) / "caps")
+            self.assertEqual(len(tracks), 2)
+            self.assertIn("Txt", build_ass([], 4.0, "classic", "", [], texts=[{"text": "X", "start": 1, "end": 2,
+                                                                                  "y": 420, "color": "#1E90FF", "size": 120}]))
+
+
 if __name__ == "__main__":
     unittest.main()

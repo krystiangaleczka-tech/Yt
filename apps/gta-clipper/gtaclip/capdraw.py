@@ -153,6 +153,13 @@ def draw_state(state: tuple, events: list[dict], theme: dict, accent: str, fonts
                 cy = e["y"] - oy - lh * (len(e["lines"]) - 1) / 2 + k * lh
                 _draw_block(img, [(ln, _rgba("#111111"))], fm, cy, box_col=_rgba(accent), box_pad=22 * sc,
                             max_w=10_000)
+        elif e["kind"] == "text":
+            fm = _font(fonts_dir, "Poppins Black", e["size"] * sc)
+            lh = fm[1]
+            for k, ln in enumerate(e["lines"]):
+                cy = e["y"] - oy - lh * (len(e["lines"]) - 1) / 2 + k * lh
+                _draw_block(img, [(ln, _rgba(e["color"]))], fm, cy, stroke=8, stroke_col=_rgba("#000000"),
+                            shadow=3, shadow_col=_rgba("#000000", 0.41), spacing=sc, max_w=10_000)
         elif e["kind"] == "mark":
             fm = _font(fonts_dir, "Poppins Black", 40)
             _draw_block(img, [(e["text"], _rgba("#FFFFFF", 0.6))], fm, 0, stroke=2, stroke_col=_rgba("#000000", 0.4),
@@ -176,6 +183,9 @@ def _band(kind: str, events: list[dict], theme: dict) -> tuple[int, int]:
     elif kind == "hook":
         lines = max(len(e["lines"]) for e in events)
         h, cy = int(78 * 1.04 * lines + 2 * 22 * 1.04 + 16), events[0]["y"]
+    elif kind.startswith("text"):
+        e = events[0]
+        h, cy = int(e["size"] * 1.3 * len(e["lines"]) + 60), e["y"]
     else:
         h, cy = 80, H - 70 - 30
     y0 = max(0, int(cy - h / 2))
@@ -187,7 +197,7 @@ def _timeline(events: list[dict], duration: float):
     pts = {0.0, round(duration, 3)}
     for e in events:
         pts.update((round(e["start"], 3), round(min(e["end"], duration), 3)))
-        anim = 0.22 if e["kind"] == "hook" else 0.09 if e.get("pop") else 0
+        anim = 0.22 if e["kind"] in ("hook", "text") else 0.09 if e.get("pop") else 0
         k = 1
         while anim and k * STEP < anim:
             pts.add(round(e["start"] + k * STEP, 3))
@@ -203,7 +213,7 @@ def _timeline(events: list[dict], duration: float):
         state = []
         for i, e in enumerate(events):
             if e["start"] <= mid < e["end"]:
-                kind = "hook" if e["kind"] == "hook" else "pop" if e.get("pop") else "none"
+                kind = "hook" if e["kind"] in ("hook", "text") else "pop" if e.get("pop") else "none"
                 state.append((i, round(_scale(kind, a - e["start"]), 3)))
         out.append((a, b, tuple(state)))
     return out
@@ -223,8 +233,9 @@ def build_layer(events: list[dict], duration: float, theme_name: str, accent: st
     for old in list(out_dir.glob("*.png")) + list(out_dir.glob("*.txt")):
         old.unlink()
     tracks = []
-    for kind in ("cap", "hook", "mark"):
-        evs = [e for e in events if e["kind"] == kind]
+    groups = [(k, [e for e in events if e["kind"] == k]) for k in ("cap", "hook", "mark")]
+    groups += [(f"text{i}", [e]) for i, e in enumerate(x for x in events if x["kind"] == "text")]
+    for kind, evs in groups:
         if not evs:
             continue
         y0, bh = _band(kind, evs, theme)

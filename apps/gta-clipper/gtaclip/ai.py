@@ -65,7 +65,10 @@ def extract_json(text: str):
     m = re.search(r"```(?:json)?\s*(.+?)```", text, re.S)
     if m:
         text = m.group(1)
-    for open_, close in (("[", "]"), ("{", "}")):
+    pairs = [("[", "]"), ("{", "}")]
+    # the outermost value comes first: '{"segments": [[1, 2]]}' must give the object, not the inner list
+    pairs.sort(key=lambda p: text.find(p[0]) if text.find(p[0]) != -1 else len(text))
+    for open_, close in pairs:
         a, b = text.find(open_), text.rfind(close)
         if a != -1 and b > a:
             try:
