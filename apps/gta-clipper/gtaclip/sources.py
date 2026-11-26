@@ -72,7 +72,7 @@ def list_candidates(ws: Workspace, query: str | None, limit: int = 20) -> list[d
     found = []
     q = query or s["query"]
     if q:
-        for e in _flat(f"ytsearchdate{limit}:{q}", limit):
+        for e in _flat(f"ytsearch{limit}:{q}", limit):
             e["_from"] = "search"
             found.append(e)
     for line in (ws.root / "channels.txt").read_text(encoding="utf-8").splitlines() if (ws.root / "channels.txt").exists() else []:
@@ -80,7 +80,7 @@ def list_candidates(ws: Workspace, query: str | None, limit: int = 20) -> list[d
         if not line or line.startswith("#"):
             continue
         if line.startswith("search:"):
-            for e in _flat(f"ytsearchdate{limit}:{line[7:].strip()}", limit):
+            for e in _flat(f"ytsearch{limit}:{line[7:].strip()}", limit):
                 e["_from"] = "search"
                 found.append(e)
         else:
@@ -158,7 +158,7 @@ def fetch_audio(url: str, out_dir: Path, sid: str, window: tuple[float, float] |
     cmd = ytdlp_cmd() + _live_args(url, live) + ["-f", "bestaudio/best", "-x", "--audio-format", "m4a",
                                                  "--no-playlist", "--no-warnings", "-o", tmpl, url]
     if window:
-        cmd[1:1] = ["--download-sections", f"*{window[0]:.0f}-{window[1]:.0f}"]
+        cmd[-1:-1] = ["--download-sections", f"*{window[0]:.0f}-{window[1]:.0f}"]
     run(cmd, timeout=6 * 3600)
     p = out_dir / f"{sid}.m4a"
     if not p.exists():
