@@ -30,12 +30,17 @@ DEFAULT_SETTINGS: dict = {
     "language": "en",
     "query": "GTA 6",
     "title_regex": r"GTA ?(6|VI)",
+    # game name as Twitch / Kick report it (chapters, category) — decides which parts of a stream are GTA
+    "game_regex": r"grand theft auto|\bgta\b",
+    # words that give GTA away in speech, for YouTube streams whose title / description say nothing
+    "topic_words": ["gta", "grand theft auto", "vice city", "leonida", "los santos", "rockstar"],
+    "topic_min_hits": 1,
     "max_source_hours": 6,
     "within_hours": 72,
     # AI that picks moments: claude | codex | gemini | kimi | opencode | ollama | custom | none
     "ai": "claude",
     "ai_commands": {
-        "claude": "claude -p",
+        "claude": "claude -p --model sonnet",   # Sonnet is plenty for picking moments and hooks
         "codex": "codex exec -",
         "gemini": "gemini -p {prompt_text}",
         "kimi": "kimi --print -c {prompt_text}",

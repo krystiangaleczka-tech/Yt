@@ -31,7 +31,7 @@ Folder roboczy: `~/gta-shorts` (zmiana: `--workspace` albo zmienna `CLIPPER_WORK
 
 | Krok | Co robi |
 |---|---|
-| Znajdź | Wyszukiwanie YouTube + Twoi streamerzy (YouTube, Twitch, Kick) + `channels.txt`. Pobiera **tylko dźwięk**, czat (gdy jest) i dane „najczęściej odtwarzane”. Transkrypcja z czasem każdego słowa. |
+| Znajdź | Wyszukiwanie YouTube („GTA 6” w tytule) + Twoi streamerzy (YouTube, Twitch, Kick) + `channels.txt`. U Twoich streamerów tytuł nie musi mówić „GTA”: gra jest brana z rozdziałów nagrania na Twitchu (bierze **tylko fragmenty z GTA** długiego streamu), z kategorii na Kicku albo z tytułu/opisu/tagów na YouTube, a gdy nic nie mówią — z krótkiej próbki mowy („GTA”, „Vice City”, „Leonida”…). **Stream, który jeszcze trwa**: bierze to, co już było, a przy kolejnym przebiegu dobiera nową część. Pobiera **tylko dźwięk**, czat i dane „najczęściej odtwarzane”. Transkrypcja z czasem każdego słowa. |
 | Sygnały | Dla każdej sekundy: głos podskoczył (`LOUD`), czat przyspieszył (`CHAT`), widzowie przewijali tu (`REPLAYED`), słowa o pościgu/wypadku/bójce/akrobacji/reakcji (`MOMENT`) → `HEAT` 0–100. Z tego ~30 kandydatów. |
 | Wybór | **Free**: bez AI. **Smart**: AI czyta tylko kandydatów. **Deep**: AI czyta całe transkrypcje. AI = Claude Code, Codex, Gemini, Kimi, OpenCode, Ollama albo własne polecenie. |
 | Montaż | Pobiera tylko wybrane sekundy (+8 s zapasu do poprawek). Szuka twarzy: kamerka streamera → na górze, gra na dole (albo bańka); twarz na cały ekran → kadr idzie za twarzą; brak kamerki → cały kadr na rozmyciu. Wycina ciszę, do 3 zbliżeń na największych reakcjach, napisy (13 stylów), hook przez pierwsze 3,5 s, normalizacja głośności, okładka, `post.txt`. Napisy rysuje kod (Pillow), a ffmpeg tylko je nakłada — nie trzeba ffmpeg z libass. Wypalanie przez libass: `"caption_engine": "ass"` w `settings.json`. |
@@ -44,13 +44,18 @@ Folder roboczy: `~/gta-shorts` (zmiana: `--workspace` albo zmienna `CLIPPER_WORK
 ## Ograniczenia (uczciwie)
 
 - Na żywo tylko Twitch. Kick i YouTube Live: Shorty z nagrania po streamie.
-- Czat z powtórek: YouTube tak. Nagrania z Twitcha — nie (yt-dlp nie pobiera ich czatu), więc tam wybór opiera się
-  na głośności, słowach i AI. Czat Twitcha na żywo działa.
+- Czat z nagrań: YouTube — z powtórki czatu. Twitch — Twitch nie ma na to oficjalnego API, więc czat jest pobierany
+  tak jak w odtwarzaczu Twitcha i w narzędziach typu TwitchDownloader (nieoficjalnie). Jeśli Twitch to zablokuje,
+  wybór idzie dalej bez czatu (głośność, słowa, AI). Czat Twitcha na żywo działa niezależnie od tego.
+- Trwający stream na YouTube (`--live-from-start`) nie był testowany — YouTube blokował serwer testowy. Na Twitchu
+  sprawdzone.
 - Wykrywanie muzyki może przepuścić cichy podkład bez wokalu pod głośnym gadaniem.
 - Wykrywanie kamerki to przybliżenie z położenia twarzy. Nietypowe nakładki mogą dać zły kadr → QC daje WARN,
   a w szczegółach Shorta zmienisz układ.
 - Transkrypcja idzie na procesorze (faster-whisper nie używa GPU Maca) i przy długich streamach to najdłuższy krok.
   Na słabszym Macu ustaw model „base”.
+- AI do wyboru momentów: domyślnie Claude Code z modelem **Sonnet** (`claude -p --model sonnet`) — wystarcza do
+  czytania transkrypcji i pisania hooków; Opus nie jest potrzebny. Zmiana w Ustawieniach → AI → Polecenie.
 - Polecenia AI innych niż Claude Code (Codex, Gemini, Kimi, OpenCode) są szablonami — sprawdź je w Ustawieniach.
 - Klipuj tylko streamerów, którzy na to pozwalają.
 

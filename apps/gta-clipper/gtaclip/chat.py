@@ -88,6 +88,95 @@ def top_tokens(msgs: list[tuple[float, str, str]], n: int = 1) -> list[str]:
     return [t for t, k in c.most_common(n) if k >= 3]
 
 
+# ----------------------------------------------------------- Twitch VOD chat
+# Twitch has no official API for the chat of past broadcasts. Its own web player loads it from
+# Twitch's GraphQL endpoint with the public web client id (the same one yt-dlp uses for VODs);
+# tools like TwitchDownloader do the same. Unofficial: it can stop working any day — then the
+# clipper simply carries on without the chat signal.
+TWITCH_GQL = "https://gql.twitch.tv/gql"
+TWITCH_WEB_CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
+VOD_COMMENTS_HASH = "b70a3591ff0f4e0313d126c6a1502d79a1c02baebb288227c582044aa76adf6a"
+
+
+def _gql_post(body: list) -> list:
+    import urllib.request
+
+    req = urllib.request.Request(TWITCH_GQL, data=json.dumps(body).encode(),
+                                 headers={"Client-ID": TWITCH_WEB_CLIENT_ID, "Content-Type": "text/plain;charset=UTF-8"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read())
+
+
+def _comments_page(vod_id: str, offset: float | None = None, cursor: str | None = None, post=None):
+    variables = {"videoID": vod_id}
+    if cursor:
+        variables["cursor"] = cursor
+    else:
+        variables["contentOffsetSeconds"] = int(offset or 0)
+    res = (post or _gql_post)([{"operationName": "VideoCommentsByOffsetOrCursor", "variables": variables,
+                                "extensions": {"persistedQuery": {"version": 1, "sha256Hash": VOD_COMMENTS_HASH}}}])
+    item = res[0] if isinstance(res, list) and res else res
+    if item.get("errors"):
+        raise RuntimeError("; ".join(str(e.get("message")) for e in item["errors"])[:200])
+    comments = ((item.get("data") or {}).get("video") or {}).get("comments")
+    if comments is None:
+        raise RuntimeError("brak czatu dla tego nagrania")
+    return comments.get("edges") or [], (comments.get("pageInfo") or {}).get("hasNextPage", False)
+
+
+def fetch_twitch_vod_chat(vod_id: str, start: float, end: float, out: Path, post=None,
+                          sleep: float = 0.05) -> int:
+    """Save the chat of [start, end] of a Twitch VOD as [[offset_s, author, text], ...]. Returns message count.
+
+    Pages by cursor (fast); if Twitch refuses cursors, falls back to paging by time offset."""
+    vod_id = str(vod_id).lstrip("v")
+    msgs: list[list] = []
+    seen: set[str] = set()
+
+    def take(edges) -> float:
+        last = -1.0
+        for e in edges:
+            n = e.get("node") or {}
+            cid = n.get("id") or f"{n.get('contentOffsetSeconds')}-{len(seen)}"
+            if cid in seen:
+                continue
+            seen.add(cid)
+            off = float(n.get("contentOffsetSeconds") or 0)
+            last = max(last, off)
+            if start <= off <= end:
+                text = "".join(f.get("text", "") for f in (n.get("message") or {}).get("fragments") or [])
+                msgs.append([off, (n.get("commenter") or {}).get("displayName", ""), text])
+        return last
+
+    try:
+        edges, more = _comments_page(vod_id, offset=start, post=post)
+        last = take(edges)
+        mode = "cursor"
+        while more and edges and last <= end:
+            try:
+                edges, more = _comments_page(vod_id, cursor=edges[-1].get("cursor"), post=post)
+            except RuntimeError:
+                mode = "offset"
+                break
+            last = max(last, take(edges))
+            time.sleep(sleep)
+        if mode == "offset":  # cursor paging refused: walk forward by time offset
+            t = max(start, last)
+            while t <= end:
+                edges, _ = _comments_page(vod_id, offset=t, post=post)
+                newest = take(edges)
+                t = newest + 1 if newest >= t + 1 else t + 1  # always move forward
+                time.sleep(sleep)
+    except Exception as e:  # unofficial API: never break the pipeline
+        from .util import log
+        log(f"  czat z Twitcha niedostępny ({str(e)[:120]}) — wybór bez sygnału czatu")
+        if not msgs:
+            return 0
+    msgs.sort(key=lambda m: m[0])
+    Path(out).write_text(json.dumps(msgs, ensure_ascii=False), encoding="utf-8")
+    return len(msgs)
+
+
 # --------------------------------------------------------------- live Twitch
 class TwitchChat(threading.Thread):
     """Anonymous read-only Twitch IRC client (no login needed)."""

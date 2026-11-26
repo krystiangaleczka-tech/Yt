@@ -141,5 +141,92 @@ class Music(unittest.TestCase):
         self.assertEqual(summarize(np.zeros(0))["seconds"], 0.0)
 
 
+class Sources(unittest.TestCase):
+    """Which parts of a stream are GTA, ongoing streams, already processed parts."""
+
+    S = {"game_regex": r"grand theft auto|\\bgta\\b", "title_regex": r"GTA ?(6|VI)"}
+
+    def test_twitch_chapters_without_gta_are_skipped(self):
+        from gtaclip.sources import topic_plan
+        # real chapters of an xQc VOD (title "🐝LIVE🐝DRAMA🐝...")
+        info = {"webpage_url": "https://www.twitch.tv/videos/2939685398", "duration": 38796, "title": "🐝LIVE🐝DRAMA🐝",
+                "chapters": [{"title": "Just Chatting", "start_time": 0, "end_time": 11222},
+                             {"title": "ROB RUN", "start_time": 11222, "end_time": 24482},
+                             {"title": "Mario Kart World", "start_time": 29901, "end_time": 31187}]}
+        self.assertEqual(topic_plan(info, self.S)["verdict"], "no")
+
+    def test_twitch_gta_chapters_become_windows(self):
+        from gtaclip.sources import topic_plan
+        info = {"webpage_url": "https://www.twitch.tv/videos/1", "duration": 30000, "title": "🐝LIVE🐝",
+                "chapters": [{"title": "Just Chatting", "start_time": 0, "end_time": 3000},
+                             {"title": "Grand Theft Auto VI", "start_time": 3000, "end_time": 9000},
+                             {"title": "Just Chatting", "start_time": 9000, "end_time": 9300},   # 5 min break
+                             {"title": "Grand Theft Auto VI", "start_time": 9300, "end_time": 12000},
+                             {"title": "Fortnite", "start_time": 12000, "end_time": 20000},
+                             {"title": "Grand Theft Auto VI", "start_time": 20000, "end_time": 20000}]}  # still running
+        p = topic_plan(info, self.S)
+        self.assertEqual(p["verdict"], "yes")
+        self.assertEqual(p["windows"], [(3000.0, 12000.0), (20000.0, 30000.0)])
+
+    def test_youtube_title_and_unknown(self):
+        from gtaclip.sources import topic_plan
+        yt = {"webpage_url": "https://www.youtube.com/watch?v=x", "duration": 7200, "categories": ["Gaming"]}
+        self.assertEqual(topic_plan({**yt, "title": "GTA 6 day 3 LIVE"}, self.S)["verdict"], "yes")
+        self.assertEqual(topic_plan({**yt, "title": "stream", "tags": ["gta vi"]}, self.S)["verdict"], "yes")
+        self.assertEqual(topic_plan({**yt, "title": "chill stream"}, self.S)["verdict"], "unknown")
+
+    def test_plan_windows(self):
+        from gtaclip.sources import plan_windows
+        h = 3600
+        self.assertEqual(plan_windows(None, 10 * h, 6 * h), [(0, 6 * h), (6 * h, 10 * h)])
+        self.assertEqual(plan_windows([(h, 3 * h)], 10 * h, 6 * h, done_until=2 * h), [(2 * h, 3 * h)])
+        # live: stop a minute before 'now'; a tail shorter than 5 min waits for the next run
+        self.assertEqual(plan_windows(None, 2 * h, 6 * h, live=True), [(0, 2 * h - 60)])
+        self.assertEqual(plan_windows(None, 2 * h, 6 * h, done_until=2 * h - 200, live=True), [])
+
+
+class TwitchChat(unittest.TestCase):
+    """VOD chat paging (Twitch answers are faked — no network)."""
+
+    @staticmethod
+    def page(offsets, more, start_id=0):
+        return [{"data": {"video": {"comments": {
+            "edges": [{"cursor": f"c{start_id + i}", "node": {"id": f"m{start_id + i}", "contentOffsetSeconds": o,
+                                                              "commenter": {"displayName": "u"},
+                                                              "message": {"fragments": [{"text": "KEKW"}]}}}
+                      for i, o in enumerate(offsets)],
+            "pageInfo": {"hasNextPage": more}}}}}]
+
+    def test_cursor_paging(self):
+        from gtaclip.chat import fetch_twitch_vod_chat
+        pages = iter([self.page([100, 101], True, 0), self.page([102, 150], True, 2), self.page([201, 260], False, 4)])
+        with tempfile.TemporaryDirectory() as d:
+            n = fetch_twitch_vod_chat("v123", 100, 200, Path(d) / "c.json", post=lambda b: next(pages), sleep=0)
+            self.assertEqual(n, 4)  # 201 and 260 are outside the window
+
+    def test_offset_fallback_when_cursor_refused(self):
+        from gtaclip.chat import fetch_twitch_vod_chat
+        calls = []
+
+        def post(body):
+            v = body[0]["variables"]
+            calls.append(v)
+            if "cursor" in v:
+                return [{"errors": [{"message": "failed integrity check"}]}]
+            t = v["contentOffsetSeconds"]
+            return self.page([t, t + 2], True, t * 10) if t < 110 else self.page([], False)
+
+        with tempfile.TemporaryDirectory() as d:
+            n = fetch_twitch_vod_chat("123", 100, 112, Path(d) / "c.json", post=post, sleep=0)
+            self.assertGreater(n, 5)
+            self.assertTrue(any("cursor" in c for c in calls))
+
+    def test_unavailable_chat_does_not_crash(self):
+        from gtaclip.chat import fetch_twitch_vod_chat
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(fetch_twitch_vod_chat("1", 0, 10, Path(d) / "c.json",
+                                                   post=lambda b: [{"data": {"video": None}}], sleep=0), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

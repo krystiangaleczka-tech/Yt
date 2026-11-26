@@ -23,6 +23,8 @@ Brak ffmpeg albo deno: `brew install ffmpeg deno`. ffmpeg bez libass nie przeszk
 ## Przepis: „Zrób N Shortsów GTA 6 z najnowszych filmów”
 
 1. **Znajdź**: `find --count 5` (albo `find --url <link> [<link>…]`, albo plik z dysku jako link).
+   U streamerów z listy gra jest sprawdzana z rozdziałów Twitcha / kategorii Kicka / opisu YouTube, więc tytuł nie musi
+   mówić „GTA”; z długiego streamu brane są tylko fragmenty z GTA. Trwający stream: brane jest to, co już było.
    Pobiera tylko dźwięk, robi transkrypcję na tym PC. Stream dłuższy niż ~6 h: `--window 1:00:00-2:00:00`.
 2. **Wybierz** — Ty jesteś AI, więc nie wołaj drugiego AI:
    `pick --mode agent --count N` → przeczytaj `~/gta-shorts/AGENT_TASK.md` (zasady + ~30 kandydatów z tagami
