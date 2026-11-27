@@ -28,6 +28,7 @@ import {
   Video,
   Backpack,
   AudioLines,
+  BookCopy,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { StudioProvider, useStudio } from "./context";
@@ -46,6 +47,7 @@ import Production from "./Production";
 import PaperTheatre from "./PaperTheatre";
 import { NewFilmModal } from "./Workspace";
 import { flowFrom, isApproved } from "./flowTypes";
+import { approvalState, sketchesFrom } from "./sketchTypes";
 import type { FlowPage } from "./FilmFlow";
 import { workspacePages, workspaceTitles } from "./workspaceTypes";
 import { modeLabels } from "./animationTypes";
@@ -54,6 +56,7 @@ import type { ProductionMode } from "./animationTypes";
 const MotionEditor = lazy(() => import("./MotionEditor"));
 const FilmFlow = lazy(() => import("./FilmFlow"));
 const Director = lazy(() => import("./Director"));
+const Sketches = lazy(() => import("./Sketches"));
 const WorkspaceView = lazy(() => import("./WorkspacePage"));
 const CastBankView = lazy(() => import("./CastBank"));
 const Scenes = lazy(() => import("./Scenes"));
@@ -65,6 +68,7 @@ const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "bible", label: "Story Bible", icon: BookOpen },
   { id: "project-setup", label: "Projekt", icon: FolderOpen },
   { id: "idea-flow", label: "Pomysł i tytuł", icon: Compass },
+  { id: "sketches", label: "Szkice ujęć", icon: BookCopy },
   { id: "master-story", label: "Master Story", icon: GitBranch },
   { id: "acts", label: "Akty", icon: Layers3 },
   { id: "sequences", label: "Sekwencje", icon: FileText },
@@ -150,6 +154,10 @@ function Shell() {
           </Button>
         }
       />
+    ) : s.page === "sketches" ? (
+      <Suspense fallback={<div className="page-content">Ładowanie szkiców ujęć…</div>}>
+        <Sketches key={s.project.id} />
+      </Suspense>
     ) : (["bible", "project-setup", "idea-flow", "master-story", "acts", "sequences", "script-flow", "scene-plan", "continuity"] as string[]).includes(s.page) ? (
       <Suspense fallback={<div className="page-content">Otwieram etap produkcji…</div>}>
         <FilmFlow page={s.page as FlowPage} />
@@ -274,7 +282,7 @@ function Shell() {
               <item.icon size={18} />
               <span>{item.label}</span>
               {!collapsed && (
-                <small>{item.id === "bible" ? "00" : String(index).padStart(2, "0")}{filmFlow && (item.id === "master-story" ? isApproved(filmFlow, "master") : item.id === "acts" ? isApproved(filmFlow, "acts") : item.id === "sequences" ? isApproved(filmFlow, "sequences") : item.id === "scene-plan" ? isApproved(filmFlow, "outlines") : item.id === "director" ? isApproved(filmFlow, "direction") : false) ? " ✓" : ""}</small>
+                <small>{item.id === "bible" ? "00" : String(index).padStart(2, "0")}{filmFlow && (item.id === "sketches" ? approvalState(sketchesFrom(s.project!)) === "current" : item.id === "master-story" ? isApproved(filmFlow, "master") : item.id === "acts" ? isApproved(filmFlow, "acts") : item.id === "sequences" ? isApproved(filmFlow, "sequences") : item.id === "scene-plan" ? isApproved(filmFlow, "outlines") : item.id === "director" ? isApproved(filmFlow, "direction") : false) ? " ✓" : ""}</small>
               )}
             </button>
           ))}

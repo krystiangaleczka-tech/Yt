@@ -632,15 +632,36 @@ LALKI = {"zheng": ("emperor", None), "uczony": ("scholar_left", None), "uczony2"
          "huhai": ("emperor", (70, 120, 160))}
 
 
+def bez_deszczulki(im):
+    """Uczony bez deszczułek w dłoniach (Fusu, reżyser 16.11: „zabierz mu ten papier”): w dłoniach trzyma tylko list,
+    który spada mu z nieba. Wielokąt deszczułek w arkuszu scholar_left minus obie dłonie — dłonie zostają złożone."""
+    a = np.asarray(im).copy()
+    m = Image.new("L", im.size, 0)
+    d = ImageDraw.Draw(m)
+    d.polygon([(770, 362), (908, 378), (903, 418), (832, 540), (790, 559), (700, 559), (688, 490)], fill=255)
+    d.polygon([(758, 503), (785, 494), (798, 482), (822, 484), (834, 505), (834, 520), (820, 548), (792, 560), (762, 556), (756, 525)],
+              fill=0)  # prawa dłoń
+    d.polygon([(650, 510), (732, 508), (744, 518), (744, 540), (738, 560), (650, 566)], fill=0)  # lewa dłoń
+    a[np.asarray(m) > 0, 3] = 0
+    return Image.fromarray(a, "RGBA")
+
+
 @lru_cache(None)
 def lalka(key):
-    if key in ("zheng_dziecko", "zheng_krol"):
-        return Sprite(dziecko(korona=key == "zheng_krol"), f"lalka-{key}", rim=2)
+    if key == "zheng_dziecko":  # przed koronacją: prosta granatowa szata bez smoków
+        return Sprite(stroj(dziecko(korona=False), "dziecko", **STROJE["zheng_dziecko"][1]), f"lalka-{key}", rim=2)
+    if key == "zheng_krol":
+        return Sprite(dziecko(korona=True), f"lalka-{key}", rim=2)
+    if key in STROJE:  # cała szata w innym materiale i barwie (nie tylko obszycie): postać nie wygląda jak urzędnik dworu
+        name, kw = STROJE[key]
+        im = stroj(raw(name), name, **kw)
+        im = im.resize((round(im.size[0] * 0.7), round(im.size[1] * 0.7)), Image.LANCZOS)
+        return Sprite(im, f"lalka-{key}", rim=2)
     name, color = LALKI[key]
     scale = 1.0 if name == "emperor" else 0.7
     if color is None:
         return S(name, scale)
-    arr = np.asarray(raw(name), np.float32) / 255.0
+    arr = np.asarray(bez_deszczulki(raw(name)) if key == "fusu" else raw(name), np.float32) / 255.0
     rgb, a = arr[..., :3], arr[..., 3]
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     cloth = np.clip((r - np.maximum(g, b) * 1.45) * 6, 0, 1)
@@ -819,11 +840,133 @@ def prop(key):
                                 (poly([(52, 48), (90, 48), (98, 120), (46, 120)]), (96, 110, 120)), (rect(54, 118, 68, 176), (70, 50, 36)),
                                 (rect(78, 118, 92, 176), (70, 50, 36)), (poly([(84, 56), (150, 30), (154, 38), (90, 70)]), (96, 72, 50)),
                                 (poly([(140, 22), (166, 40), (156, 62), (146, 40)]), (70, 70, 74))]
+    elif key == "chlop_cialo":  # chłop bez narzędzia: motyka jest osobnym wycinkiem i obraca się w dłoniach
+        w, h, parts = 170, 180, [(ell(70, 30, 15, 17), (70, 50, 36)), (poly([(40, 14), (100, 14), (70, 2)]), (176, 150, 96)),
+                                (poly([(52, 48), (90, 48), (98, 120), (46, 120)]), (96, 110, 120)), (rect(54, 118, 68, 176), (70, 50, 36)),
+                                (rect(78, 118, 92, 176), (70, 50, 36)), (poly([(80, 54), (104, 62), (100, 74), (78, 66)]), (96, 110, 120))]
+    elif key == "motyka":  # trzonek z żelaznym ostrzem; uchwyt (dłonie) na lewym końcu
+        w, h, parts = 200, 60, [(rect(6, 26, 170, 34), (110, 80, 52)), (poly([(160, 8), (192, 14), (190, 54), (170, 50), (172, 26)]), (70, 70, 76),
+                                                                       dict(contrast=1.3))]
+    elif key == "lopata":  # łopata: trzonek i szerokie ostrze; uchwyt na lewym końcu
+        w, h, parts = 220, 70, [(rect(6, 31, 160, 39), (110, 80, 52)), (poly([(156, 14), (214, 18), (214, 52), (156, 56)]), (82, 80, 84),
+                                                                       dict(contrast=1.3))]
+    elif key == "szmatka":  # zmięta szmatka chłopa: otrzepuje nią glinianego żołnierza z ziemi (reżyser 16.11)
+        w, h, parts = 60, 50, [(poly([(6, 14), (30, 4), (54, 12), (50, 40), (26, 46), (8, 36)]), (196, 182, 150), dict(edge=1)),
+                               (poly([(18, 18), (40, 14), (36, 30)]), (160, 146, 116))]
+    elif key == "grudka":  # grudka ziemi spod motyki
+        w, h, parts = 40, 34, [(poly([(4, 18), (14, 4), (32, 6), (38, 22), (24, 32), (8, 30)]), (112, 86, 58), dict(edge=1))]
+    elif key == "x":  # czerwony krzyż malowany pędzlem: wyrok (migocze nad postacią)
+        w, h, parts = 300, 300, [(poly([(22, 46), (58, 18), (284, 250), (250, 284)]), (198, 26, 24), dict(kind="gladki", contrast=1.2)),
+                                (poly([(244, 16), (282, 50), (52, 282), (16, 248)]), (214, 34, 28), dict(kind="gladki", contrast=1.2))]
+    elif key == "flaga_biala":  # biała flaga kapitulacji (płótno; drzewce rysuje kod osobno)
+        w, h, parts = 220, 150, [(poly([(4, 8), (120, 16), (214, 4), (206, 72), (214, 140), (110, 128), (4, 142)]), (238, 234, 222),
+                                 dict(kind="gladki", edge=3, contrast=1.3))]
+    elif key == "miarka":  # drewniana miarka Qin (chi) z podziałką
+        w, h, parts = 420, 54, [(rect(4, 10, 416, 44), (176, 128, 72), dict(edge=2, contrast=1.2))]
+        parts += [(rect(14 + 40 * i, 10, 18 + 40 * i, 26 if i % 5 else 34), (70, 44, 30), dict(kind="gladki", rough=0.4)) for i in range(11)]
+        parts += [(rect(34 + 40 * i, 10, 36 + 40 * i, 20), (90, 60, 40), dict(kind="gladki", rough=0.4)) for i in range(10)]
+    elif key == "sheng":  # brązowa miarka objętości (sheng Shang Yanga): prostokątne naczynie z rączką
+        w, h, parts = 260, 150, [(rect(120, 56, 256, 74), (92, 112, 88)), (poly([(10, 30), (130, 30), (122, 144), (18, 144)]), (96, 116, 92),
+                                                                         dict(contrast=1.3)),
+                                (rect(4, 22, 136, 36), (140, 152, 112)),
+                                (glyphs("升", 56, FONT_ZH, ZH_IDX, (70, 92), "mm"), (170, 176, 128), dict(kind="gladki", rough=0.6))]
+    elif key == "x_oko":  # mały X z tuszu na zamkniętym oku (śmierć)
+        w, h, parts = 100, 100, [(poly([(8, 20), (20, 8), (92, 80), (80, 92)]), (34, 26, 24), dict(kind="gladki", rough=0.6)),
+                                (poly([(80, 8), (92, 20), (20, 92), (8, 80)]), (34, 26, 24), dict(kind="gladki", rough=0.6))]
+    elif key == "ryba":  # jedna solona ryba (wyskakuje z wozu)
+        w, h, parts = 120, 50, [(poly([(6, 25), (30, 10), (74, 14), (96, 6), (114, 4), (104, 25), (114, 46), (96, 42), (74, 36), (30, 40)]),
+                                 (164, 176, 182), dict(kind="gladki", edge=2)), (ell(26, 22, 4, 4), (40, 40, 44))]
+    elif key == "gwiazdka":  # gwiazdka z papieru (zamroczenie po uderzeniu)
+        pts = [(30 + (26 if k % 2 == 0 else 11) * math.cos(math.pi / 2 + k * math.pi / 5),
+                30 - (26 if k % 2 == 0 else 11) * math.sin(math.pi / 2 + k * math.pi / 5)) for k in range(10)]
+        w, h, parts = 60, 60, [(poly(pts), (244, 210, 96), dict(kind="gladki", edge=1))]
+    elif key == "list":  # zwinięty list z pieczęcią (niesie go ptak)
+        w, h, parts = 96, 44, [(rect(10, 8, 86, 36), (226, 212, 180)), (rect(2, 4, 14, 40), (120, 82, 50)), (rect(82, 4, 94, 40), (120, 82, 50)),
+                               (ell(48, 22, 10, 10), (40, 34, 36))]
     else:
         raise KeyError(key)
     return Sprite(stack(w, h, parts, seed=sum(map(ord, key))), f"rekwizyt-{key}", rim=2, clean=False)
 
 
+
+
+# ---------- stroje: cała szata w innym materiale, a nie tylko obszycie ----------
+# Wszystkie wycinanki postaci mają czarną dworską szatę ze złotym haftem; przebarwione samo obszycie dawało „dwóch
+# cesarzy” (ojciec i kupiec, 15.11.2026). stroj() zmienia barwę całej szaty, obszycia i siłę haftu; głowa (kapelusz,
+# włosy, broda) i zwój w ręku zostają (współrzędne wielokątów w pikselach oryginalnych PNG).
+STROJ_CHRON = {
+    "scholar_back": [[(350, 0), (650, 0), (650, 220), (625, 340), (575, 340), (470, 250), (350, 235)],
+                     [(770, 330), (1024, 330), (1024, 640), (770, 640)]],
+    "scholar_left": [[(430, 0), (670, 0), (670, 200), (612, 365), (535, 365), (470, 262), (430, 245)],
+                     [(700, 300), (1024, 300), (1024, 620), (700, 620)]],
+    "scholar_center": [[(420, 140), (690, 140), (690, 300), (650, 390), (625, 492), (558, 492), (520, 420), (440, 332), (420, 280)],
+                       [(780, 300), (1024, 300), (1024, 620), (780, 620)]],
+    "rider": [[(750, 75), (880, 75), (880, 215), (790, 225), (752, 170)]],
+    "dziecko": [[(338, 78), (512, 78), (512, 298), (440, 304), (338, 272)]],
+}
+STROJ_CIALO = {"rider": [(700, 15), (870, 15), (905, 300), (885, 460), (945, 700), (905, 790), (770, 790), (560, 570),
+                         (395, 455), (400, 345), (560, 250), (690, 150)]}  # sam jeździec, bez konia
+STROJE = {
+    # zakładnik w obcym mieście, zubożały książę: klęczy (inna postawa i twarz niż kupiec), spłowiała szata z niebarwionego
+    # płótna, haft prawie znika
+    "ojciec": ("scholar_center", dict(szata=(122, 106, 84), obszycie=(118, 84, 60), zloto=0.25)),
+    # bogaty kupiec, potem kanclerz Lü Buwei: cała szata z fioletowego jedwabiu, złoty haft (bogactwo), obszycie złotawe
+    "kupiec": ("scholar_back", dict(szata=(84, 38, 92), obszycie=(176, 136, 62), zloto=1.0)),
+    # chłopiec zakładnika w Handanie: prosta granatowa szata, smoki prawie znikają
+    "zheng_dziecko": ("dziecko", dict(szata=(58, 72, 102), obszycie=None, zloto=0.15)),
+}
+
+
+def _hsv(rgb):
+    mx, mn = rgb.max(-1), rgb.min(-1)
+    d = mx - mn
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    h = np.zeros_like(mx)
+    k = d > 1e-6
+    rm = k & (mx == r)
+    gm = k & (mx == g) & ~rm
+    bm = k & ~rm & ~gm
+    h[rm] = ((g - b)[rm] / d[rm]) % 6
+    h[gm] = (b - r)[gm] / d[gm] + 2
+    h[bm] = (r - g)[bm] / d[bm] + 4
+    return h * 60, d / np.maximum(mx, 1e-6), mx
+
+
+def stroj(img, nazwa, szata, obszycie=None, zloto=1.0):
+    """szata — nowa barwa czarnej szaty (faktura i cienie zostają); obszycie — barwa czerwonego obszycia (None: bez
+    zmian); zloto — ile złotego haftu zostaje (1 — cały, 0 — haft znika w barwie szaty)."""
+    a = np.asarray(img.convert("RGBA"), np.float32) / 255
+    rgb, al = a[..., :3].copy(), a[..., 3]
+    H_, W_ = al.shape
+    def wielokat(pts):
+        m = Image.new("L", (W_, H_), 0)
+        ImageDraw.Draw(m).polygon(pts, fill=255)
+        return np.asarray(m) > 127
+    tu = al > 0.02
+    if nazwa in STROJ_CIALO:
+        tu &= wielokat(STROJ_CIALO[nazwa])
+    for pts in STROJ_CHRON.get(nazwa, []):
+        tu &= ~wielokat(pts)
+    h, s, v = _hsv(rgb)
+    czern = tu & (v < 0.34) & (s < 0.62)
+    zl = tu & (h > 30) & (h < 58) & (s > 0.32) & (v > 0.3)
+    czerw = tu & ((h < 16) | (h > 338)) & (s > 0.45) & (v > 0.18)
+    sz = np.asarray(szata, np.float32) / 255
+    rgb = np.where(czern[..., None], sz * np.clip(0.62 + (v - 0.13) * 2.4, 0.35, 1.35)[..., None], rgb)
+    if obszycie is not None:
+        rgb = np.where(czerw[..., None], np.asarray(obszycie, np.float32) / 255 * np.clip(v / 0.55, 0.4, 1.4)[..., None], rgb)
+    if zloto < 1:
+        cel = sz * np.clip(0.95 + (v - 0.5) * 0.8, 0.7, 1.35)[..., None]
+        rgb = np.where(zl[..., None], rgb * zloto + cel * (1 - zloto), rgb)
+    return Image.fromarray((np.dstack([np.clip(rgb, 0, 1), al]) * 255).astype(np.uint8))
+
+
+@lru_cache(None)
+def woznica():
+    """Woźnica przy wozach: wycinanka jeźdźca w szacie z niebarwionego płótna (jeździec-posłaniec Qin zostaje czarny)."""
+    im = stroj(raw("rider"), "rider", szata=(116, 92, 66), obszycie=(110, 80, 58), zloto=0.2)
+    im = im.resize((round(im.size[0] * 0.6), round(im.size[1] * 0.6)), Image.LANCZOS)
+    return Sprite(im, "woznica", rim=2)
 
 # ---------- chłopiec Zheng: wycinanka cesarza przerobiona na dziecko ----------
 
@@ -954,10 +1097,26 @@ def dziecko(korona=False, seed=5):
 @lru_cache(None)
 def ribbon(key):
     """Wstęga z papieru: kanał (niebieska) albo rzeka rtęci (srebrna)."""
-    color = {"kanal": (70, 126, 166), "rtec": (200, 206, 214)}[key]
+    if key in ("brzeg", "trakt"):  # brzeg kanału (nasyp z ziemi) albo droga z koleinami: szerszy pas pod wstęgą
+        w, h = 1400, 70
+        pts = [(x, 6 + 5 * math.sin(x / 70.0)) for x in range(0, w + 20, 20)] + [(x, 62 + 5 * math.sin(x / 53.0 + 2)) for x in range(w, -20, -20)]
+        im = piece(w, h, poly(pts), (154, 128, 86) if key == "brzeg" else (170, 140, 98), "gnieciony", edge=3, seed=4, contrast=1.0)
+        if key == "trakt":
+            d = ImageDraw.Draw(im)
+            for y0 in (26, 44):  # dwie koleiny jednej szerokości (osie wozów)
+                d.line([(x, y0 + 3 * math.sin(x / 90.0)) for x in range(10, w - 10, 20)], fill=(104, 80, 52, 230), width=4)
+        return Sprite(im, f"wstega-{key}", rim=1, clean=False)
+    color = {"kanal": (58, 120, 172), "rtec": (200, 206, 214)}[key]
     w, h = 1400, 44
     pts = [(x, 8 + 4 * math.sin(x / 60.0)) for x in range(0, w + 20, 20)] + [(x, 36 + 4 * math.sin(x / 47.0 + 1)) for x in range(w, -20, -20)]
-    return Sprite(piece(w, h, poly(pts), color, "gnieciony", edge=3, seed=3, contrast=0.9), f"wstega-{key}", rim=1, clean=False)
+    im = piece(w, h, poly(pts), color, "gnieciony", edge=3, seed=3, contrast=0.9)
+    if key == "kanal":  # fale na wodzie: jasne kreski, żeby wstęga czytała się jako płynąca woda
+        d = ImageDraw.Draw(im)
+        r = random.Random(11)
+        for _ in range(70):
+            x, y = r.uniform(20, w - 60), r.uniform(16, 28)
+            d.arc([x, y - 4, x + 26, y + 6], 200, 340, fill=(206, 230, 244, 210), width=2)
+    return Sprite(im, f"wstega-{key}", rim=1, clean=False)
 
 
 @lru_cache(None)
@@ -1064,3 +1223,219 @@ def walker(key, h=60):
     im = raw(name)
     k = h * 4 / im.size[1]
     return Sprite(im.resize((max(8, round(im.size[0] * k)), round(im.size[1] * k)), Image.LANCZOS), f"wedrowiec-{key}", rim=1)
+
+
+# ---------- waga w częściach: podstawa stoi, belka się kołysze, szale wiszą osobno ----------
+# Współrzędne w pikselach scale.png (1536 × 1024). Każda część zostaje w układzie całego arkusza (crop=False),
+# więc kotwica w pikselach oryginału ustawia ją dokładnie tam, gdzie była w całej wadze.
+WAGA_OS = (758, 240)  # oś belki (środek bloku na kolumnie)
+WAGA_HAK = {"lewa": (308, 174), "prawa": (1242, 309)}  # gdzie szala wisi na belce
+WAGA_STOPA = (772, 1004)  # środek dolnej krawędzi podstawy
+_WAGA_MASKI = {
+    "podstawa": [(693, 12), (822, 12), (825, 357), (810, 375), (819, 760), (915, 784), (1060, 1015), (485, 1015), (618, 784), (708, 760),
+                 (717, 375), (693, 357)],
+    "belka": [(150, 96), (705, 144), (705, 357), (822, 357), (822, 174), (1443, 252), (1443, 333), (822, 300), (705, 252), (150, 180)],
+    "lewa": [(54, 162), (570, 162), (570, 720), (54, 720)],
+    "prawa": [(975, 294), (1488, 294), (1488, 858), (975, 858)],
+}
+
+
+@lru_cache(None)
+def waga_czesc(nazwa):
+    im = raw("scale")
+    m = Image.new("L", im.size, 0)
+    ImageDraw.Draw(m).polygon(_WAGA_MASKI[nazwa], fill=255)
+    if nazwa == "belka":  # belka nie zabiera kolumny ani szal: tylko to, czego nie ma w innych częściach
+        for inna in ("podstawa",):
+            ImageDraw.Draw(m).polygon(_WAGA_MASKI[inna], fill=0)
+        ImageDraw.Draw(m).polygon([(693, 144), (822, 144), (822, 357), (693, 357)], fill=255)  # blok osi kołysze się z belką
+    if nazwa == "podstawa":
+        ImageDraw.Draw(m).polygon([(693, 144), (822, 144), (822, 357), (693, 357)], fill=0)
+    if nazwa in ("lewa", "prawa"):  # szala bez kawałka belki nad hakiem
+        ImageDraw.Draw(m).polygon(_WAGA_MASKI["belka"], fill=0)
+    out = im.copy()
+    out.putalpha(ImageChops.multiply(im.getchannel("A"), m))
+    return Sprite(out.resize((768, 341), Image.LANCZOS), f"waga-{nazwa}", rim=2, clean=False, pad=0, crop=False)
+
+
+# ---------- zwój mapy rozwinięty płasko na blacie (ukos jak blat stołu w kadrze) ----------
+
+ZWOJ_A, ZWOJ_B = (-36.0, 36.0), (64.0, 34.0)  # zwój na stole z podarunkami: wzdłuż wałka i kierunek rozwijania (marker reżysera)
+ZWOJ_SKALA = 1 / 3.2  # zwój na blacie rysowany w 3,2 px na piksel kadru wzorcowego (zbliżenie detalu)
+
+
+@lru_cache(None)
+def zwoj_plaski(n=16):
+    """Rozwinięta część zwoju (n/16) leżąca na blacie: równoległobok o bokach jak krawędzie blatu w ujęciu ze sztyletem
+    (długi bok wzdłuż wałka — w głąb stołu, krótki — w stronę rozwijania). spr.origin — kotwica rogu przy wałku."""
+    S_ = 1 / ZWOJ_SKALA
+    (ax, ay), (bx, by) = (ZWOJ_A[0] * S_, ZWOJ_A[1] * S_), (ZWOJ_B[0] * S_, ZWOJ_B[1] * S_)
+    f = max(1, n) / 16
+    bx, by = bx * f, by * f
+    src = raw("ledger").crop((80, 260, 1600, 700))
+    src = src.crop((0, 0, max(8, int(src.size[0] * f)), src.size[1])).resize((max(8, int(380 * f)), 110), Image.LANCZOS)
+    pad = 6
+    xs, ys = [0, ax, bx, ax + bx], [0, ay, by, ay + by]
+    x0, y0 = min(xs) - pad, min(ys) - pad
+    W_, H_ = int(max(xs) - x0 + pad), int(max(ys) - y0 + pad)
+    # obraz zwoju: oś u (szerokość obrazka, czytana w stronę rozwijania) → wektor b, oś v (wysokość) → wektor a
+    det = bx * ay - by * ax
+    su, sv = src.size
+    # piksel wyniku (X, Y) = róg + u/su·b + v/sv·a  →  u, v z odwrotności macierzy [b a]
+    cu = (ay / det * su, -ax / det * su)
+    cv = (-by / det * sv, bx / det * sv)
+    coef = (cu[0], cu[1], cu[0] * x0 + cu[1] * y0, cv[0], cv[1], cv[0] * x0 + cv[1] * y0)
+    out = src.transform((W_, H_), Image.AFFINE, coef, resample=Image.BICUBIC)
+    spr = Sprite(out, f"zwoj-plaski-{n}", rim=1, clean=False, pad=0, crop=False)
+    spr.origin = (-x0 / W_, -y0 / H_)
+    return spr
+
+
+# ---------- mapa 36 prowincji (komanderii) Qin po zjednoczeniu ----------
+# Siedziby komanderii (długość, szerokość geograficzna) — w przybliżeniu, według listy 36 komanderii z komentarza do
+# Shiji; granice to podział Woronoja wokół siedzib w obrysie państwa Qin (prawdziwe granice znamy tylko z grubsza).
+KOMANDERIE = [(108.7, 34.4), (104.4, 35.4), (107.6, 36.0), (109.6, 37.6), (109.8, 40.6), (111.3, 40.6), (112.4, 39.9), (114.6, 39.9),
+              (112.5, 37.8), (113.0, 36.2), (111.1, 35.1), (112.4, 34.7), (113.5, 34.2), (112.5, 33.0), (112.2, 30.4), (110.3, 29.0),
+              (107.0, 33.1), (106.6, 29.6), (104.1, 30.7), (113.0, 28.2), (116.8, 32.6), (119.7, 30.6), (120.6, 31.3), (115.6, 34.4),
+              (116.8, 33.9), (117.0, 35.6), (118.3, 34.6), (119.6, 35.6), (118.3, 36.8), (115.5, 40.4), (116.8, 40.4), (118.5, 41.0),
+              (120.5, 41.3), (123.2, 41.3), (115.0, 37.2), (114.5, 36.6)]
+QIN_OBRYS = [(103.5, 36.5), (104.6, 38.2), (106.6, 39.2), (108.0, 41.3), (111.0, 41.6), (114.0, 41.3), (117.0, 41.9), (120.0, 42.3),
+             (123.0, 42.6), (125.2, 41.6), (124.3, 40.0), (122.2, 39.6), (121.3, 39.0), (121.9, 40.6), (120.2, 40.2), (118.6, 39.2),
+             (117.8, 38.5), (118.8, 37.4), (120.3, 37.7), (122.4, 37.2), (121.0, 36.1), (119.4, 35.1), (119.2, 34.4), (120.3, 33.4),
+             (121.0, 32.1), (121.8, 31.2), (121.0, 30.3), (122.0, 29.8), (121.4, 28.5), (120.3, 27.6), (118.0, 27.5), (115.5, 26.4),
+             (113.5, 25.4), (111.5, 25.6), (110.0, 26.2), (108.5, 27.4), (106.5, 27.8), (105.0, 28.0), (103.5, 28.6), (102.8, 30.0),
+             (103.0, 31.6), (103.6, 33.0), (103.2, 34.5)]
+MAPA36_WH = (640, 560)
+
+
+def _m36(lon, lat):
+    w, h = MAPA36_WH
+    return 30 + (lon - 102.5) * 0.83 * 30.0, 22 + (43.2 - lat) * 30.0
+
+
+@lru_cache(None)
+def mapa36():
+    """Arkusz mapy (morze i obrys kraju) oraz 36 kawałków prowincji: [(Sprite, x0, y0)] — x0, y0 to lewy górny róg
+    kawałka w pikselach arkusza. Kawałki są przycięte do siebie, więc kładzie się je kotwicą (0, 0) w tym punkcie."""
+    w, h = MAPA36_WH
+    board = piece(w, h, rect(2, 2, w - 2, h - 2), (226, 214, 184), "gladki", edge=5, seed=93, contrast=1.4)
+    obrys = [_m36(*p) for p in QIN_OBRYS]
+    km = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(km).polygon(obrys, fill=255)
+    yy_, xx_ = np.mgrid[0:h, 0:w]
+    morze_ = (np.asarray(km) < 128) & (xx_ > 420) & (yy_ > 110) & ~((yy_ > 480) & (xx_ < 470)) & (xx_ < w - 4) & (yy_ < h - 4)
+    sea = paper(Image.fromarray((morze_ * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.2)), (150, 178, 186), "gnieciony", 94,
+                contrast=0.9)
+    board = glue(board, sea, shadow=0.2)
+    kraj = rough_mask(poly(obrys), w, h, 1.2, 95)
+    board = glue(board, paper(kraj, (196, 182, 150), "gnieciony", 96, edge=3, contrast=0.9), shadow=0.45)
+    # podział Woronoja wewnątrz obrysu
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    seats = np.array([_m36(*p) for p in KOMANDERIE], np.float32)
+    d = (xx[None] - seats[:, 0, None, None]) ** 2 + (yy[None] - seats[:, 1, None, None]) ** 2
+    lab = d.argmin(0)
+    inside = np.asarray(Image.new("L", (w, h), 0)) > 0
+    m = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(m).polygon(obrys, fill=255)
+    inside = np.asarray(m) > 127
+    paleta = [(58, 54, 60), (84, 74, 70), (46, 46, 54), (96, 84, 72), (70, 62, 66), (52, 58, 62)]
+    czesci = []
+    for n in range(len(KOMANDERIE)):
+        mask = (lab == n) & inside
+        ys, xs = np.nonzero(mask)
+        if len(xs) == 0:
+            continue
+        x0, x1, y0, y1 = xs.min() - 3, xs.max() + 4, ys.min() - 3, ys.max() + 4
+        mm = Image.fromarray((mask[y0:y1, x0:x1] * 255).astype(np.uint8)).filter(ImageFilter.MinFilter(3))
+        mm = mm.filter(ImageFilter.GaussianBlur(0.7))
+        kaw = paper(mm, paleta[n % len(paleta)], "gnieciony", 100 + n, edge=2, edge_color=(226, 206, 160), contrast=0.9)
+        sx, sy = seats[n]
+        dd = ImageDraw.Draw(kaw)
+        cx, cy = sx - x0, sy - y0
+        dd.ellipse([cx - 4, cy - 4, cx + 4, cy + 4], fill=(206, 164, 84, 255))  # siedziba komanderii: złota kropka
+        czesci.append((Sprite(kaw, f"prowincja-{n}", rim=1, clean=False, pad=0, crop=False), int(x0), int(y0)))
+    return Sprite(board, "mapa36", rim=2, clean=False, pad=0, crop=False), czesci
+
+
+@lru_cache(None)
+def cyklop(v=0, rece=True):
+    """Jednooki olbrzym z wyspy nieśmiertelnych (reżyser 15.11: „narysuj cyklopów”): wycinanka z kawałków papieru,
+    duża głowa z jednym okiem, przepaska, maczuga. v — odmiana (barwa przepaski, maczuga w lewej albo prawej ręce).
+    rece=False — sam tułów bez rąk i maczugi: ręce to osobne wycinki na zawiasach (cyklop_reka), żeby mógł prężyć
+    muskuły (reżyser 16.11); barki w (76, 200) i (224, 200) arkusza 300 × 520."""
+    r = random.Random(700 + v)
+    skin = ((176, 132, 96), (160, 120, 92), (186, 142, 104))[v % 3]
+    cloth = ((92, 70, 50), (70, 84, 60), (104, 62, 48))[v % 3]
+    dark = tuple(int(c * 0.7) for c in skin)
+    w, h = 300, 520
+    side = 1 if v % 2 == 0 else -1
+    X = lambda x: 150 + (x - 150) * side
+    P_ = lambda pts: poly([(X(x), y) for x, y in pts])
+    parts = [
+        (P_([(110, 360), (142, 360), (140, 500), (104, 500)]), dark), (P_([(158, 360), (190, 360), (196, 500), (160, 500)]), dark),
+        (P_([(96, 492), (144, 492), (146, 516), (90, 516)]), (70, 52, 40)), (P_([(156, 492), (204, 492), (210, 516), (154, 516)]), (70, 52, 40)),
+        (P_([(84, 190), (216, 190), (232, 300), (68, 300)]), skin, dict(edge=2)),
+        (P_([(70, 280), (230, 280), (242, 380), (58, 380)]), cloth, dict(edge=2)),
+    ] + ([
+        (P_([(70, 196), (40, 210), (20, 330), (44, 336), (66, 250)]), skin), (P_([(230, 196), (262, 210), (282, 320), (258, 326), (234, 250)]), skin),
+        (P_([(262, 300), (296, 120), (280, 112), (244, 300)]), (96, 70, 46)), (ell(X(288), 116, 22, 26), (110, 80, 52), dict(edge=1)),
+    ] if rece else [
+        (ell(76, 210, 22, 20), skin), (ell(224, 210, 22, 20), skin),  # barki, na które zachodzą ramiona
+    ]) + [
+        (ell(150, 110, 78, 84), skin, dict(edge=2)),
+        (ell(150, 98, 34, 28), (240, 236, 222), dict(kind="gladki", edge=1)),
+        (ell(150 + 4 * side, 100, 15, 15), (44, 70, 40), dict(kind="gladki")), (ell(150 + 4 * side, 100, 7, 7), (16, 14, 14), dict(kind="gladki")),
+        (P_([(110, 62), (190, 62), (186, 70), (114, 70)]), (60, 40, 30)),  # jedna gruba brew
+        (P_([(118, 150), (182, 150), (176, 160), (124, 160)]), (90, 40, 34)),
+        (P_([(78, 60), (100, 20), (130, 40), (150, 14), (172, 40), (200, 20), (222, 60), (190, 46), (150, 34), (110, 46)]), (52, 40, 34)),
+    ]
+    return Sprite(stack(w, h, parts, seed=720 + v), f"cyklop-{v}-{int(rece)}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def cyklop_reka(v=0, czesc="ramie"):
+    """Ręka cyklopa z dwóch wycinków na zawiasach: ramię z bicepsem (zawias w barku: (40, 12) arkusza 80 × 112, łokieć
+    w (40, 96)) i przedramię z pięścią (zawias w łokciu: (36, 10) arkusza 72 × 120). Na rot = 0 wisi pionowo w dół."""
+    skin = ((176, 132, 96), (160, 120, 92), (186, 142, 104))[v % 3]
+    jasna = tuple(min(255, int(c * 1.12)) for c in skin)
+    if czesc == "ramie":
+        w, h = 80, 112
+        parts = [(poly([(20, 6), (60, 6), (58, 100), (24, 104)]), skin, dict(edge=2)),
+                 (ell(50, 54, 22, 30), jasna, dict(edge=1)),  # biceps po wewnętrznej stronie
+                 (ell(40, 98, 17, 14), skin)]
+    else:
+        w, h = 72, 120
+        parts = [(poly([(22, 4), (50, 4), (54, 84), (20, 84)]), skin, dict(edge=2)),
+                 (ell(36, 96, 22, 20), skin, dict(edge=2)),  # pięść
+                 (poly([(20, 90), (52, 90), (50, 96), (22, 96)]), tuple(int(c * 0.78) for c in skin))]
+    return Sprite(stack(w, h, parts, seed=740 + v * 2 + (czesc == "ramie")), f"cyklop-{czesc}-{v}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def cyklop_maczuga():
+    """Maczuga cyklopa wbita w ziemię obok niego (kiedy ma wolne ręce): arkusz 90 × 220, dół trzonka w (40, 216)."""
+    parts = [(poly([(30, 216), (60, 50), (76, 54), (50, 216)]), (96, 70, 46)), (ell(66, 44, 22, 28), (110, 80, 52), dict(edge=1))]
+    return Sprite(stack(90, 220, parts, seed=760), "cyklop-maczuga", rim=2, clean=False)
+
+
+# ---------- kurtyna teatru (przejście między aktami) ----------
+
+@lru_cache(None)
+def kurtyna(strona=-1):
+    """Połowa czerwonej kurtyny z fałdami i złotą frędzlą u dołu. strona -1 — lewa (fałdy zbiegają się w prawo), 1 — prawa.
+    Arkusz 760 × 860: zakrywa pół otworu sceny z zapasem na zakładkę i ruch."""
+    w, h = 760, 860
+    m = rough_mask(rect(0, 0, w, h - 24), w, h, 1.2, 81)
+    im = paper(m, (150, 26, 30), "gnieciony", 82, contrast=0.8)
+    a = np.asarray(im, np.float32)
+    xx = np.arange(w, dtype=np.float32)
+    faldy = 0.72 + 0.28 * (0.5 + 0.5 * np.cos(xx / 46.0 * math.pi)) ** 0.8  # pionowe fałdy: jasny grzbiet, ciemna dolina
+    brzeg = np.clip((xx if strona > 0 else (w - 1 - xx)) / 60.0, 0.55, 1.0)  # ciemniej przy brzegu, który się schodzi
+    a[..., :3] *= (faldy * brzeg)[None, :, None]
+    im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
+    fr = piece(w, h, rect(0, h - 40, w, h - 8), GOLD, "gnieciony", seed=83, rough=0.8, contrast=0.9)
+    im = glue(im, fr, shadow=0.5)
+    d = ImageDraw.Draw(im)
+    for x in range(6, w, 14):  # frędzle
+        d.line([(x, h - 10), (x + 2, h - 1)], fill=(176, 132, 60, 255), width=4)
+    return Sprite(im, f"kurtyna-{strona}", rim=2, clean=False, pad=0)

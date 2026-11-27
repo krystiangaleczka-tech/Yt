@@ -30,8 +30,12 @@ WYMOWA = [("Lü Buwei", "Lu Bułej"), ("Jing Ke", "Dżing Ke"), ("Zhao Gao", "D�
           ("Yan", "Jen"), ("Qi", "Czi"), ("przed naszą erą", "przed naszą erą")]
 
 
+# TEATR=1: przepis teatru papierowego (Podręcznik → Lektor, zasada 8): Chatterbox Multilingual z ustawieniami TEATR
+# (mocna ekspresja), tekst bez znaczników emocji, 3 podejścia, potem lektor_studio.py podejscia --teatr (3% wolniej, pauzy)
+TEATR_PRZEPIS = os.environ.get("TEATR") == "1"
 STUDIO = os.environ.get("STUDIO", "1") != "0"  # sposób z Podręcznika → Lektor (studio()); STUDIO=0: dawne jedno podejście
-ZIARNA = [42, 7, 123]  # trzy podejścia na kwestię w sposobie studyjnym; różnią się rytmem (pauzy, melodia), nie barwą
+# trzy podejścia na kwestię w sposobie studyjnym; różnią się rytmem (pauzy, melodia), nie barwą; ZIARNA=42 — jedno podejście
+ZIARNA = [int(z) for z in os.environ.get("ZIARNA", "42,7,123").split(",")]
 PROBY = int(os.environ.get("PROBY", "4"))  # STUDIO=0: ile podejść na kwestię, zanim zostanie najlepsze
 SPRAWDZ = os.environ.get("SPRAWDZ", "1") != "0"  # Whisper sprawdza każde podejście
 PROG = float(os.environ.get("PROG", "0.92"))  # zgodność tekstu z tym, co usłyszał Whisper, przy której podejście jest dobre
@@ -228,6 +232,11 @@ class silnik:
         if SILNIK == "turbo":
             return self.m.generate(txt, audio_prompt_path=str(PROMPT), temperature=float(os.environ.get("TEMPERATURA", "0.8"))
                                    ).detach().cpu().numpy().squeeze().astype(np.float32)
+        if TEATR_PRZEPIS:
+            sys.path.insert(0, str(REPO / "docos"))
+            from lektor_studio import TEATR
+            return self.m.generate(txt, language_id=JEZYK, audio_prompt_path=str(PROMPT), **TEATR
+                                   ).detach().cpu().numpy().squeeze().astype(np.float32)
         return self.m.generate(txt, language_id=JEZYK, audio_prompt_path=str(REF), exaggeration=0.45, cfg_weight=0.45,
                                temperature=0.7).detach().cpu().numpy().squeeze().astype(np.float32)
 
@@ -259,7 +268,11 @@ def studio(jobs, device):
     probka = hashlib.sha256(PROMPT.read_bytes()).hexdigest()[:16]
     model = asr = None
     for n, (klucz, txt) in enumerate(jobs, 1):
-        spoken = AKTORSKIE.get(klucz) or mowiony(txt)
+        if TEATR_PRZEPIS and os.environ.get("FRAZY") == "1":  # przecinki frazowania autora (kwestie_en.FRAZY_EN)
+            from kwestie_en import FRAZY_EN
+            spoken = mowiony(FRAZY_EN.get(klucz, txt))
+        else:
+            spoken = mowiony(txt) if TEATR_PRZEPIS else (AKTORSKIE.get(klucz) or mowiony(txt))  # Multilingual nie czyta znaczników
         meta_path = pod / f"{klucz}.json"
         meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
         if (meta.get("spoken"), meta.get("probka"), meta.get("silnik")) != (spoken, probka, SILNIK):
@@ -293,8 +306,11 @@ def studio(jobs, device):
     del model, asr
     if device == "cuda":
         torch.cuda.empty_cache()
-    # obróbka i wybór w osobnym środowisku (resemble-enhance ma inne wersje bibliotek niż Chatterbox)
-    subprocess.run([enh, "-I", str(REPO / "docos/lektor_studio.py"), "podejscia", str(OUT)], check=True,
+    # obróbka i wybór w osobnym środowisku (resemble-enhance ma inne wersje bibliotek niż Chatterbox);
+    # BEZ_OBROBKI=1: tylko nagrywanie (porcjami na Macu z 8 GB), obróbka raz na końcu: lektor_studio.py podejscia
+    if os.environ.get("BEZ_OBROBKI") == "1":
+        return
+    subprocess.run([enh, "-I", str(REPO / "docos/lektor_studio.py"), "podejscia", str(OUT)] + (["--teatr"] if TEATR_PRZEPIS else []), check=True,
                    env={**os.environ, "PYTHONIOENCODING": "utf-8"})
 
 

@@ -9,6 +9,7 @@ export type Page =
   | "bible"
   | "project-setup"
   | "idea-flow"
+  | "sketches"
   | "master-story"
   | "acts"
   | "sequences"
@@ -150,7 +151,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       const rememberedShot = localStorage.getItem("docos:shot:" + id);
       setTargetScene(rememberedShot && [...p.scenes, ...p.stage_scenes].some((scene) => scene.id === rememberedShot) ? rememberedShot : null);
       const pages: Page[] = [
-        "bible", "project-setup", "idea-flow", "master-story", "acts", "sequences", "script-flow", "scene-plan", "director", "continuity",
+        "bible", "project-setup", "idea-flow", "sketches", "master-story", "acts", "sequences", "script-flow", "scene-plan", "director", "continuity",
         "idea",
         "facts",
         "story",

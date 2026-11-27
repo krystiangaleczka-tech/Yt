@@ -50,9 +50,9 @@ SWIAT = {
                     + r("dorosl", "duża") + ", potem dorosły (352)",
          "traits": "nie chodzi — obraca się na patyczku, pochyla, unosi, opada pod rampę",
          "states": [{"from": r("krol13", "247"), "state": "król-chłopiec (mała lalka w koronie)"}, {"from": r("dorosl", "duża"), "state": "dorosły (duża lalka)"}, {"from": r("koniec", "opada"), "state": "nie żyje — lalki nie ma na scenie"}]},
-        {"id": "lu", "name": "Lü Buwei", "role": "kupiec, potem kanclerz i regent", "look": "wycinanka uczonego w purpurowym obszyciu",
+        {"id": "lu", "name": "Lü Buwei", "role": "kupiec, potem kanclerz i regent", "look": "wycinanka uczonego, cała szata z fioletowego jedwabiu ze złotym haftem, obszycie złotawe",
          "leaves": r("trucizna", "truciznę")},
-        {"id": "ojciec", "name": "ojciec", "role": "książę Qin, zakładnik w Handanie (Yiren)", "look": "wycinanka uczonego w brązowym obszyciu",
+        {"id": "ojciec", "name": "ojciec", "role": "książę Qin, zakładnik w Handanie (Yiren)", "look": "klęczy (wycinanka klęczącego uczonego: inna postawa i twarz niż kupiec); spłowiała szata z niebarwionego płótna, haft prawie niewidoczny (ubogi zakładnik)",
          "leaves": r("ucieczka", "wywiózł")},
         {"id": "lisi", "name": "Li Si", "role": "doradca, potem kanclerz", "look": "wycinanka uczonego w zielonym obszyciu"},
         {"id": "jingke", "name": "Jing Ke", "role": "zamachowiec z Yan", "look": "wycinanka uczonego w jasnym obszyciu",
@@ -68,11 +68,13 @@ SWIAT = {
     "props": [
         {"id": "trojnog", "name": "Trójnóg z brązu", "place": "rampa", "seeded": r("posagi", "trójnogu"),
          "uses": [r("ksiegi", "trójnogu"), r("popiol", "trójnogu")], "note": "W akcie 4 przetapia broń, w akcie 6 płoną w nim księgi; chowa się o zmierzchu."},
-        {"id": "zwoj", "name": "Zwój bambusowy", "place": "rampa", "seeded": r("pismo", "zwojem"), "uses": [r("ksiegi", "zwój")],
-         "note": "Leży na stole pisarzy; w akcie 6 leci do ognia."},
+        {"id": "zwoj", "name": "Zwój bambusowy", "owner": "uczony", "place": "rampa", "seeded": r("ksiegi", "zwojem"),
+         "uses": [r("ksiegi", "trójnogu")], "note": "Księgi uczonego: wysuwa się z nim zza rampy w jego dłoniach i leci do ognia "
+         "(reżyser 16.11: na stole pisarzy zwoju już nie ma, D16)."},
         {"id": "mapa", "name": "Mapa siedmiu królestw", "place": "sala", "seeded": r("mapa", "mapa"), "uses": [r("mapa2", "mapa")],
          "note": "Siedem kawałków barwnego papieru; czarny papier Qin przykrywa pozostałe."},
-        {"id": "mapa_yan", "name": "Zwinięta mapa ze sztyletem", "place": "sala", "seeded": r("dary", "mapa"), "uses": [r("sztylet", "sztylet")]},
+        {"id": "mapa_yan", "name": "Zwinięta mapa ze sztyletem", "place": "sala", "seeded": r("sztylet", "mapie"),
+         "uses": [r("sztylet", "sztylet")], "note": "W ujęciu z darami tylko w kwestii; na stół zjeżdża w ujęciu ze sztyletem (D16)."},
         {"id": "miecz", "name": "Długi miecz króla", "owner": "Zheng", "seeded": r("kolumna", "miecz"), "uses": [r("cios", "miecz")]},
         {"id": "powoz", "name": "Powóz cesarza z czarną chorągwią", "place": "droga", "seeded": r("stela", "powóz"),
          "uses": [r("mlot", "powoz"), r("podroz", "powóz"), r("spisek", "powoz"), r("ryby", "powóz")]},
@@ -99,7 +101,7 @@ SWIAT = {
         {"at": r("odprawa", "król"), "note": "dorosły król odprawia kanclerza", "needsOff": ["krol_maly"]},
         {"at": r("moneta", "stołu"), "note": "moneta toczy się po stole pisarzy", "needs": ["dwor"]},
         {"at": r("miara", "stół"), "note": "waga zjeżdża na stół pisarzy", "needs": ["dwor"]},
-        {"at": r("ksiegi", "stołu"), "note": "zwój leci ze stołu do ognia", "needs": ["dwor"]},
+        {"at": r("ksiegi", "uczonego"), "note": "zwój leci z rąk uczonego do ognia przy stole pisarzy", "needs": ["dwor"]},
         {"at": r("drogi", "wóz"), "note": "wóz jedzie drogą przez środek sceny", "needsOff": ["dwor"]},
         {"at": r("mlot", "noc"), "note": "zamach młotem na nocnej drodze", "needs": ["noc"], "needsOff": ["dwor"]},
         {"at": r("armia", "żołnierze"), "note": "gliniana armia wstaje nocą", "needs": ["noc", "cesarz_zyje"]},
@@ -154,18 +156,43 @@ SWIAT = {
          "do koronacji (247 p.n.e.) bez korony, z dwoma kokami dziecka, potem ta sama lalka w koronie jako król-chłopiec. Dorosły "
          "Zheng to pełna wycinanka cesarza. Powód: mała lalka w koronie i z brodą wyglądała jak trzeci dorosły.", "at": "2026-11-15",
          "by": "reżyser"},
-        {"id": "D9", "text": "Każdy wóz i powóz ciągnie koń z woźnicą na grzbiecie (wycinanka jeźdźca zaprzężona w dyszel). Uwaga "
-         "reżysera na klatce ujęcia d01_06: „ten powóz musi ciągnąć koń!”.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D9", "text": "Każdy wóz i powóz ciągnie koń (uwaga reżysera na klatce ujęcia d01_06: „ten powóz musi ciągnąć koń!”). "
+         "Na koniu siedzi woźnica — jedyny koń w wycinankach ma jeźdźca; woźnicę zaproponował wykonawca, reżyser go zostawił. Woźnica "
+         "jest w szacie z niebarwionego płótna, żeby nie wyglądał jak jeździec-posłaniec Qin.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D11", "text": "Zamiast obszycia w innej barwie (D3) postacie różnią się całym strojem: kupiec Lü Buwei w fioletowym "
+         "jedwabiu ze złotym haftem, ojciec (zakładnik) klęczy, w spłowiałym płótnie — inna postawa i twarz niż kupiec, chłopiec w Handanie w prostej "
+         "granatowej szacie bez smoków, woźnica w niebarwionym płótnie. Powód: reżyser widział w ujęciu 6 „dwóch cesarzy” — ojciec "
+         "i kupiec byli tą samą czarno-złotą dworską szatą, odbitą lustrzanie.", "at": "2026-11-15", "by": "reżyser"},
         {"id": "D10", "text": "Gliniana armia zapada się pod ziemię przy zmianie dekoracji na początku ostatniej podróży (d07_08), więc "
          "nie zasłania powozu, spisku, Fusu ani powstania; o świcie (d08_07) wraca tylko słońce. W finale (d08_10) armia staje jeszcze "
          "raz jako obraz zamykający.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D12", "text": "Kanały (Zhengguo, Lingqu) są na scenie od wykopania (d02_11) do ujęcia „pismo” (d05_06), gdzie zwijają się "
+         "przy zmianie dekoracji; przy każdej zmianie dekoracji rozwijają się na nowo razem z ziemią. Reżyser 15.11: „zaś ten kanał z wodą, "
+         "nie wiem, co tu robi” (d07_05, d07_08, d08_01, d08_08, d08_09).", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D13", "text": "Uwagi reżysera z markerów 15.11 zmieniają wydarzenia ujęć: X nad kanclerzem i nad stracanymi uczonymi, "
+         "kanclerz pije truciznę, zwój z mapą rozwija się na stole i ze środka wyłania się sztylet, Jing Ke dwa razy dosięga króla, zanim "
+         "trafi go torba lekarza, król zabija go mieczem, tabliczki „KRÓL” → „PIERWSZY CESARZ”, mapa 36 komanderii, cesarz przewraca się "
+         "na powozie po ataku młotem, chory kaszle w ostatniej podróży i umiera, ptak przynosi Fusu list, Zhao Gao ma zwykły wzrost "
+         "i podpis, chłopi kopią studnię, kopiec drży. 15 ujęć dłuższych (dane.WYDLUZ), film 11:03.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D14", "text": "Lektor EN zbudowany od nowa przepisem teatru papierowego (Podręcznik → Lektor, zasada 8): te same podejścia "
+         "Chatterbox Turbo z emocjami, 3% wolniej i pauzy w kwestiach losowane z zakresów (lektor_studio.py podejscia --teatr). "
+         "Reżyser wybrał ten wariant zamiast nagrania od nowa silnikiem Multilingual (bez znaczników emocji).", "at": "2026-11-15",
+         "by": "reżyser"},
+        {"id": "D15", "text": "Przejścia: kurtyna z tytułem aktu między aktami, ściemnienie światła przy zmianie miejsca w akcie, poza "
+         "tym cięcie. Przejścia nachodzą na pauzę po kwestii — długość filmu bez zmian.", "at": "2026-11-15", "by": "reżyser"},
+        {"id": "D16", "text": "Uwagi reżysera z 16.11 wieczorem: chłopiec wyskakuje za kadr pod bramą i spada z góry do wozu; trucizna "
+         "leje się z brzegu kielicha do ust; bez zwiniętej mapy na stole w ujęciu z darami i bez zwoju na stole pisarzy (księgi do "
+         "ognia przynosi uczony); ogień sygnałowy dostaje kwestię lektora (8–9 s); na pustym morzu bez żagla i środkowego cyklopa, "
+         "dwaj pozostali podskakują i skaczą do wody; tabliczki Qin → China w ostatnim ujęciu i nowe ujęcie 80 z podziękowaniem dla widzów; kaszel "
+         "z nagrania zamiast syntezy; kurtyna między aktami z dźwiękiem zasuwania i rozsuwania; brakujące efekty "
+         "(lalki zza rampy, płachta na powozie, świt, cyklopi).", "at": "2026-11-16", "by": "reżyser"},
     ],
 }
 
 BIBLIA = {
     "characters": "Zheng (Pierwszy Cesarz) — wycinanka cesarza; chłopiec z Handanu to ta sama wycinanka bez brody i korony, z kokami "
-                  "dziecka, król-chłopiec — w koronie, duża lalka to dorosły król i cesarz. Lü Buwei — kupiec i kanclerz (purpurowe obszycie). Li Si — doradca (zielone). Jing Ke — zamachowiec (jasne). "
-                  "Fusu — najstarszy syn (niebieskie). Zhao Gao — eunuch (szare, w sali większy od wszystkich). Huhai — mała lalka cesarza "
+                  "dziecka, król-chłopiec — w koronie, duża lalka to dorosły król i cesarz. Lü Buwei — kupiec i kanclerz (cała szata z fioletowego jedwabiu). Ojciec — zakładnik, klęczy, w spłowiałym płótnie. Chłopiec w Handanie — prosta granatowa szata. Li Si — doradca (zielone). Jing Ke — zamachowiec (jasne). "
+                  "Fusu — najstarszy syn (niebieskie). Zhao Gao — eunuch (szare, zwykłego wzrostu; nad Huhaiem nachyla się i szepcze). Huhai — mała lalka cesarza "
                   "w niebieskim obszyciu. Pisarz, uczeni, klęczący urzędnicy, jeździec, gliniani żołnierze.",
     "chronology": "259 p.n.e. narodziny w Handanie · 257 ucieczka ojca · ok. 250 powrót do Qin · 247 król · 238 bunt, 235 śmierć Lü Buweia · "
                   "230 Han · 228 Zhao · 227 zamach Jing Ke · 225 Wei · 223 Chu · 222 Yan · 221 Qi i tytuł cesarza · ok. 218 zamach młotem · "

@@ -25,7 +25,7 @@ const CHECKS: [string, string, string][] = [
   ["tempo", "Tempo", "Długości z treści, jednostka w zakresie, sąsiednie ujęcia się różnią."],
   ["narration", "Narracja", "Lektor dopowiada, nie opisuje; nie zdradza niczego przed czasem; jest cisza."],
   ["continuity", "Ciągłość", "Zero błędów wagi 3; księga świata opisuje, co jednostka zmienia."],
-  ["frames", "Kadr", "Każde ujęcie przeszło Wytyczne kadru i ma wydarzenie."],
+  ["frames", "Kadr", "Każde ujęcie przeszło Wytyczne ujęć: ma wydarzenie, właściwą obsadę i rekwizyty, dźwięk każdego zdarzenia, a uwagi i markery reżysera mają odpowiedź."],
 ];
 const WEIGHT: Record<number, string> = { 3: "psuje logikę", 2: "widz wyłapie", 1: "drobne" };
 const WORLD_GROUPS: [string, string][] = [

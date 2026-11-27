@@ -92,14 +92,14 @@
       "id": "lu",
       "name": "Lü Buwei",
       "role": "kupiec, potem kanclerz i regent",
-      "look": "wycinanka uczonego w purpurowym obszyciu",
+      "look": "wycinanka uczonego, cała szata z fioletowego jedwabiu ze złotym haftem, obszycie złotawe",
       "leaves": "d02_06~truciznę"
     },
     {
       "id": "ojciec",
       "name": "ojciec",
       "role": "książę Qin, zakładnik w Handanie (Yiren)",
-      "look": "wycinanka uczonego w brązowym obszyciu",
+      "look": "klęczy (wycinanka klęczącego uczonego: inna postawa i twarz niż kupiec); spłowiała szata z niebarwionego płótna, haft prawie niewidoczny (ubogi zakładnik)",
       "leaves": "d01_06~wywiózł"
     },
     {
@@ -162,12 +162,13 @@
     {
       "id": "zwoj",
       "name": "Zwój bambusowy",
+      "owner": "uczony",
       "place": "rampa",
-      "seeded": "d05_06~zwojem",
+      "seeded": "d06_01~zwojem",
       "uses": [
-        "d06_01~zwój"
+        "d06_01~trójnogu"
       ],
-      "note": "Leży na stole pisarzy; w akcie 6 leci do ognia."
+      "note": "Księgi uczonego: wysuwa się z nim zza rampy w jego dłoniach i leci do ognia (reżyser 16.11: na stole pisarzy zwoju już nie ma, D16)."
     },
     {
       "id": "mapa",
@@ -183,10 +184,11 @@
       "id": "mapa_yan",
       "name": "Zwinięta mapa ze sztyletem",
       "place": "sala",
-      "seeded": "d03_05~mapa",
+      "seeded": "d03_06~mapie",
       "uses": [
         "d03_06~sztylet"
-      ]
+      ],
+      "note": "W ujęciu z darami tylko w kwestii; na stół zjeżdża w ujęciu ze sztyletem (D16)."
     },
     {
       "id": "miecz",
@@ -309,8 +311,8 @@
       ]
     },
     {
-      "at": "d06_01~stołu",
-      "note": "zwój leci ze stołu do ognia",
+      "at": "d06_01~uczonego",
+      "note": "zwój leci z rąk uczonego do ognia przy stole pisarzy",
       "needs": [
         "dwor"
       ]
@@ -584,7 +586,13 @@
     },
     {
       "id": "D9",
-      "text": "Każdy wóz i powóz ciągnie koń z woźnicą na grzbiecie (wycinanka jeźdźca zaprzężona w dyszel). Uwaga reżysera na klatce ujęcia d01_06: „ten powóz musi ciągnąć koń!”.",
+      "text": "Każdy wóz i powóz ciągnie koń (uwaga reżysera na klatce ujęcia d01_06: „ten powóz musi ciągnąć koń!”). Na koniu siedzi woźnica — jedyny koń w wycinankach ma jeźdźca; woźnicę zaproponował wykonawca, reżyser go zostawił. Woźnica jest w szacie z niebarwionego płótna, żeby nie wyglądał jak jeździec-posłaniec Qin.",
+      "at": "2026-11-15",
+      "by": "reżyser"
+    },
+    {
+      "id": "D11",
+      "text": "Zamiast obszycia w innej barwie (D3) postacie różnią się całym strojem: kupiec Lü Buwei w fioletowym jedwabiu ze złotym haftem, ojciec (zakładnik) klęczy, w spłowiałym płótnie — inna postawa i twarz niż kupiec, chłopiec w Handanie w prostej granatowej szacie bez smoków, woźnica w niebarwionym płótnie. Powód: reżyser widział w ujęciu 6 „dwóch cesarzy” — ojciec i kupiec byli tą samą czarno-złotą dworską szatą, odbitą lustrzanie.",
       "at": "2026-11-15",
       "by": "reżyser"
     },
@@ -592,6 +600,36 @@
       "id": "D10",
       "text": "Gliniana armia zapada się pod ziemię przy zmianie dekoracji na początku ostatniej podróży (d07_08), więc nie zasłania powozu, spisku, Fusu ani powstania; o świcie (d08_07) wraca tylko słońce. W finale (d08_10) armia staje jeszcze raz jako obraz zamykający.",
       "at": "2026-11-15",
+      "by": "reżyser"
+    },
+    {
+      "id": "D12",
+      "text": "Kanały (Zhengguo, Lingqu) są na scenie od wykopania (d02_11) do ujęcia „pismo” (d05_06), gdzie zwijają się przy zmianie dekoracji; przy każdej zmianie dekoracji rozwijają się na nowo razem z ziemią. Reżyser 15.11: „zaś ten kanał z wodą, nie wiem, co tu robi” (d07_05, d07_08, d08_01, d08_08, d08_09).",
+      "at": "2026-11-15",
+      "by": "reżyser"
+    },
+    {
+      "id": "D13",
+      "text": "Uwagi reżysera z markerów 15.11 zmieniają wydarzenia ujęć: X nad kanclerzem i nad stracanymi uczonymi, kanclerz pije truciznę, zwój z mapą rozwija się na stole i ze środka wyłania się sztylet, Jing Ke dwa razy dosięga króla, zanim trafi go torba lekarza, król zabija go mieczem, tabliczki „KRÓL” → „PIERWSZY CESARZ”, mapa 36 komanderii, cesarz przewraca się na powozie po ataku młotem, chory kaszle w ostatniej podróży i umiera, ptak przynosi Fusu list, Zhao Gao ma zwykły wzrost i podpis, chłopi kopią studnię, kopiec drży. 15 ujęć dłuższych (dane.WYDLUZ), film 11:03.",
+      "at": "2026-11-15",
+      "by": "reżyser"
+    },
+    {
+      "id": "D14",
+      "text": "Lektor EN zbudowany od nowa przepisem teatru papierowego (Podręcznik → Lektor, zasada 8): te same podejścia Chatterbox Turbo z emocjami, 3% wolniej i pauzy w kwestiach losowane z zakresów (lektor_studio.py podejscia --teatr). Reżyser wybrał ten wariant zamiast nagrania od nowa silnikiem Multilingual (bez znaczników emocji).",
+      "at": "2026-11-15",
+      "by": "reżyser"
+    },
+    {
+      "id": "D15",
+      "text": "Przejścia: kurtyna z tytułem aktu między aktami, ściemnienie światła przy zmianie miejsca w akcie, poza tym cięcie. Przejścia nachodzą na pauzę po kwestii — długość filmu bez zmian.",
+      "at": "2026-11-15",
+      "by": "reżyser"
+    },
+    {
+      "id": "D16",
+      "text": "Uwagi reżysera z 16.11 wieczorem: chłopiec wyskakuje za kadr pod bramą i spada z góry do wozu; trucizna leje się z brzegu kielicha do ust; bez zwiniętej mapy na stole w ujęciu z darami i bez zwoju na stole pisarzy (księgi do ognia przynosi uczony); ogień sygnałowy dostaje kwestię lektora (8–9 s); na pustym morzu bez żagla i środkowego cyklopa, dwaj pozostali podskakują i skaczą do wody; tabliczki Qin → China w ostatnim ujęciu i nowe ujęcie 80 z podziękowaniem dla widzów; kaszel z nagrania zamiast syntezy; kurtyna między aktami z dźwiękiem zasuwania i rozsuwania; brakujące efekty (lalki zza rampy, płachta na powozie, świt, cyklopi).",
+      "at": "2026-11-16",
       "by": "reżyser"
     }
   ]

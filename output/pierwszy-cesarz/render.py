@@ -15,6 +15,8 @@ Ujęcia: ujecia1.py (akty 1–4) i ujecia2.py (akty 5–8), funkcja `s_<klucz>(s
   NADPISZ=1 …                               — wszystkie wybrane ujęcia od nowa
   SZKIC=1 …                                 — szkic 640 × 360, 12 kl./s (przegląd w Studio); bez tego pełna jakość
   NAPISY=0 …                                — bez napisów (czyste ujęcia pod lektora i napisy ze Studio)
+  FILM=1 …                                  — klipy do złożenia całego filmu (render końcowy, zloz.py): klatki na
+                                              wspólnej siatce czasu filmu, film trwa tyle co oś w Studio
 Moduł ma SCENES, DUR, FPS i frame(t) — tak jak pozostałe filmy (scripts/kontrola_ujec.py, wgrywanie do Studio).
 """
 import hashlib
@@ -38,8 +40,8 @@ import swiat  # noqa: E402
 import ujecia1  # noqa: E402
 import ujecia2  # noqa: E402
 import zestaw as Z  # noqa: E402
-from dane import kwestia, okno_kwestii, ujecia  # noqa: E402
-from papier import FPS, H, W, Stage  # noqa: E402
+from dane import AKTY, kwestia, okno_kwestii, ujecia  # noqa: E402
+from papier import FPS, H, W, Stage, back, ease, noise  # noqa: E402
 
 NAPISY = os.environ.get("NAPISY", "1") != "0"
 SZKIC = os.environ.get("SZKIC", "0") == "1"  # szkic do przeglądu w Studio: 640 × 360, 12 kl./s
@@ -60,6 +62,8 @@ KOL = swiat.KOL
 FNS = [getattr(ujecia1, "s_" + k, None) or getattr(ujecia2, "s_" + k, None) for k in KOL]  # None = ujęcie do narysowania
 ODN = [f"d{a:02d}_{k:02d}" for a, k, *_ in UJ]
 # ujęcia, w których dekoracja staje od nowa (pierwsze ujęcie sceny albo zmiana miejsca): elementy wjeżdżają po kolei
+# ujęcia, w których kwestia nie ma paska z napisem, bo ten sam tekst jest dużymi tabliczkami w kadrze (podziękowanie)
+BEZ_NAPISU = {"dzieki"}
 BUDUJ = {"handan", "regent", "machina", "wymarsz", "dary", "ksiaze", "czarne", "drogi", "mur", "armia", "podroz", "spisek", "huhai",
          "powstanie", "studnia", "trucizna"}
 
@@ -69,6 +73,88 @@ for _akt, _k, _klucz, _kadr, _ruch, _sec, _opis, _snd in UJ:
     SCENES.append((_t, _t + _sec, _ruch, kwestia(_snd), *okno_kwestii(_snd)))
     _t += _sec
 DUR = _t
+
+# Ile klatek ma klip ujęcia. Klipy do Studio: zaokrąglone w górę, żeby klip pokrył całe miejsce ujęcia na osi.
+# Render końcowy (FILM=1, pc\renderuj*.bat → zloz.py): ujęcie kończy się na klatce najbliższej swojemu końcowi
+# w rozpisce, więc klipy złożone jeden po drugim trwają dokładnie tyle co oś w Studio, a każde cięcie mija się z nią
+# najwyżej o pół klatki. Zaokrąglanie w górę przy 24 kl./s i długościach w dziesiątych sekundy wydłużało prawie każde
+# ujęcie o ułamek klatki: złożony film „Pierwszego cesarza” EN był o 1,3 s dłuższy od osi, a muzyka i efekty
+# (liczone w sekundach rozpiski) rozjeżdżały się z obrazem — w połowie filmu o ok. 0,6 s (16.11.2026).
+FILM = os.environ.get("FILM", "0") == "1"
+
+
+def klatki_ujecia(i):
+    a, b = SCENES[i][:2]
+    if FILM:
+        return math.floor(b * FPS + 0.5) - math.floor(a * FPS + 0.5)
+    return math.ceil((b - a) * FPS - 1e-9)
+
+
+# ---- przejścia między ujęciami (reżyser 15.11: kurtyna między aktami, ściemnienie przy zmianie miejsca) ----
+# Przejścia nachodzą na pauzę po kwestii i na początek następnego ujęcia — film nie robi się od nich dłuższy.
+GRANICE = []  # na ujęcie: akt, tytuł aktu, czy pierwsze/ostatnie w scenie i w akcie (kolejność jak w dane.ujecia())
+for _n, _tyt, _o, _sceny in AKTY:
+    for _si, (_st, _pl, _beaty) in enumerate(_sceny):
+        _shots = [_x for _b, _sh in _beaty for _x in _sh]
+        for _ui in range(len(_shots)):
+            GRANICE.append(dict(akt=_n, tytul=_tyt, pierwsze_sceny=_ui == 0, ostatnie_sceny=_ui == len(_shots) - 1,
+                                pierwsze_aktu=_si == 0 and _ui == 0, ostatnie_aktu=_si == len(_sceny) - 1 and _ui == len(_shots) - 1))
+assert len(GRANICE) == len(UJ)
+KURTYNA = (1.5, 0.8, 0.25, 0.85)  # zamykanie zaczyna się 1,5 s przed końcem aktu i trwa 0,8 s; w nowym akcie po 0,25 s otwiera się 0,85 s
+CIEMNO = 0.35  # ściemnienie: tyle sekund gaśnie na końcu sceny i tyle zapala się na początku następnej
+
+
+def tytul_aktu(n):
+    return f"Akt {n} · " + next(t for a, t, _o, _s in AKTY if a == n)
+
+
+def _ekran(st, p):
+    """Odwzorowanie kadr wzorcowy → ekran na planie p jest liniowe w każdej osi: (x0, kx, y0, ky)."""
+    a0, ax, ay = st.cam.screen(0, 0, p), st.cam.screen(1, 0, p), st.cam.screen(0, 1, p)
+    return a0[0], ax[0] - a0[0], a0[1], ay[1] - a0[1]
+
+
+def kurtyna(st, k, tytul=None, kt=0.0, p=0.975):
+    """Kurtyna przed sceną w układzie ekranu (kamera jej nie powiększa): k = 0 otwarta, 1 zasunięta; tytuł aktu na
+    tabliczce zjeżdża na środek (kt = 0..1)."""
+    if k <= 0.001 and kt <= 0.001:
+        return
+    x0, kx, y0, ky = _ekran(st, p)
+    na_swiat = lambda sx, sy: ((sx - x0) / kx, (sy - y0) / ky)
+    szer = 700  # szerokość połowy na ekranie (zakładka na środku: 2 × 700 > 1280 + zapas)
+    for strona in (-1, 1):
+        if k <= 0.001:
+            break
+        przes = (1 - ease(k)) * (szer + 60)
+        brzeg = 640 + 30 * strona * -1 + strona * przes  # wewnętrzna krawędź połowy na ekranie
+        wx, wy = na_swiat(brzeg, -70)
+        spr = Z.kurtyna(strona)
+        st.put(spr, wx, wy, p, w=szer / kx, anchor=(1.0 if strona < 0 else 0.0, 0.0),
+               rot=0.5 * noise(st.t, 300 + strona, 0.6) * (1 - k * 0.5), sx=0.86 + 0.14 * ease(k), blur=0, shadow=(8 * strona, 0, 14, 0.45))
+    if tytul and kt > 0.001:
+        spr = Z.tag(tytul, 52)
+        wx, wy = na_swiat(640, 330 - (1 - back(kt, 1.2)) * 520)
+        st.put(spr, wx, wy, p + 0.002, h=96 / ky, anchor=(0.5, 0.5), rot=1.2 * noise(st.t, 333, 0.5), blur=0, shadow=(4, 6, 8, 0.45))
+
+
+def przejscie(st, i, lt, T):
+    """Kurtyna na granicy aktów, ściemnienie na granicy scen w akcie; w pozostałych miejscach cięcie."""
+    g = GRANICE[i]
+    zam, dl, czekaj, otw = KURTYNA
+    if g["ostatnie_aktu"] and i < len(UJ) - 1:
+        k = pr_(lt, T - zam, dl)
+        kurtyna(st, k, tytul_aktu(g["akt"] + 1), pr_(lt, T - zam + dl - 0.1, 0.45))
+    elif g["pierwsze_aktu"] and i > 0:
+        kurtyna(st, 1 - pr_(lt, czekaj, otw), tytul_aktu(g["akt"]), 1 - pr_(lt, 0.0, czekaj + 0.15))
+    else:
+        if g["ostatnie_sceny"] and i < len(UJ) - 1:
+            st.dim *= 1 - ease(pr_(lt, T - CIEMNO, CIEMNO))
+        if g["pierwsze_sceny"] and i > 0:
+            st.dim *= ease(pr_(lt, 0.0, CIEMNO))
+
+
+def pr_(t, a, d):
+    return min(1.0, max(0.0, (t - a) / d))
 
 
 def wrap(txt, n=60):
@@ -122,9 +208,10 @@ def uloz(t, void=None):
             w.build = lt
         st.T = T
         FNS[i](st, w, lt, T)
+        przejscie(st, i, lt, T)
     if not void:
         st.dim *= min(1.0, t / 0.5, max(0.0, (DUR - 0.1 - t) / 1.0))  # film wchodzi z czerni i w nią wychodzi
-    return st, (txt if NAPISY and txt and vs <= lt < min(T - 0.05, vs + vl + 0.35) else None)
+    return st, (txt if NAPISY and txt and KOL[i] not in BEZ_NAPISU and vs <= lt < min(T - 0.05, vs + vl + 0.35) else None)
 
 
 def frame(t, void=None):
@@ -169,11 +256,11 @@ def _pustka(i):
 
 
 def _klip(arg):
-    """Renderuje jedno ujęcie do pliku mp4 (klatki zaokrąglone w górę, żeby klip pokrył ujęcie na osi)."""
+    """Renderuje jedno ujęcie do pliku mp4 (liczba klatek: klatki_ujecia)."""
     import subprocess
     i, out = arg
     a, b = SCENES[i][:2]
-    n = math.ceil((b - a) * FPS - 1e-9)
+    n = klatki_ujecia(i)
     ow, oh = int(round(W * papier.Q)), int(round(H * papier.Q))
     part = out.with_name(out.stem + ".part.mp4")  # plik niedokończony nie wygląda na gotowy po przerwaniu
     proc = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{ow}x{oh}",
@@ -240,7 +327,7 @@ def odcisk(i):
     zr = {}
     _zrodlo(FNS[i], zr)
     dane = [_WSPOLNE, KOL[i], KOL[i] in BUDUJ, sorted((repr(k), v) for k, v in zr.items()), repr(swiat.stan(i)),
-            round(b - a, 6), math.ceil((b - a) * FPS - 1e-9), papier.Q, FPS, NAPISY, CRF, PRESET,
+            round(b - a, 6), klatki_ujecia(i), papier.Q, FPS, NAPISY, CRF, PRESET,
             txt if NAPISY else "", round(vs, 6), round(vl, 6), i == 0, i == len(SCENES) - 1]
     return hashlib.sha256(json.dumps(dane, ensure_ascii=False, default=str).encode()).hexdigest()[:20]
 
@@ -339,8 +426,8 @@ if __name__ == "__main__":
             clip = out / f"{ODN[i]}.mp4"
             if FNS[i] is None or not clip.exists() or (only and i + 1 not in only) or _plik_odcisku(clip).exists():
                 continue
-            n = math.ceil((SCENES[i][1] - SCENES[i][0]) * FPS - 1e-9)
-            got = int(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-show_entries",
+            n = klatki_ujecia(i)
+            got =int(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-show_entries",
                                       "stream=nb_read_packets", "-of", "csv=p=0", str(clip)], capture_output=True, text=True).stdout or 0)
             print(f"{ODN[i]} {KOL[i]}: {'przyjęty' if got == n else f'NIE — {got} klatek, ujęcie ma {n}'}")
             if got == n:

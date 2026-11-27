@@ -74,4 +74,15 @@ Kolejność: najpierw akceptacja w Studio, dopiero potem render.
    The First Emperor (EN, lektor studyjny)”, 79 ujęć z nowymi długościami, lektor a1, muzyka a2, efekty a3, obraz ze starego
    renderu 1440p (KLIPY_STARE, domyślnie klipy_en_1440p) zmniejszony do 720p i dopasowany tempem do nowych długości
    (studio_pc.py).
-2. Po akceptacji: renderuj_en.bat — klipy 1440p do klipy_en_1440p_turbo i film The_First_Emperor_1440p_turbo.mp4.
+2. Po akceptacji: renderuj_en.bat — gotowy film na YouTube, The_First_Emperor_1440p_YouTube.mp4 (obraz 1440p, lektor,
+   muzyka i efekty zmiksowane jak montaż w Studio: muzyka 80 %, efekty i lektor 100 %, ogranicznik 0,95).
+   Przed renderem (od 16.11.2026):
+   - git pull na gałęzi film/pierwszy-cesarz;
+   - rozpakuj w folderze Yt paczkę z Maca build\paczka_pc_dzwiek_en.zip (lektor_en\*.wav i dzwiek_en\muzyka.wav,
+     efekty.wav — tych plików nie ma na GitHubie); stare pliki zastąp.
+   Skrypt najpierw sprawdza (zloz.py --sprawdz), czy każde nagranie ma długość z lektor_en\*.json, a muzyka i efekty
+   długość filmu — przy starych plikach staje przed renderem. Klipy renderuje z FILM=1: ujęcia na siatce czasu filmu,
+   film trwa tyle co oś w Studio. Bez tego klipy były zaokrąglane w górę do pełnej klatki i film wychodził o 1,3 s
+   dłuższy od osi; muzyka i efekty rozjeżdżałyby się z obrazem. Klipy idą do klipy_en_1440p_turbo; ujęcia z tym samym
+   odciskiem co w poprzednim renderze zostają.
+   Eksport MP4 w Studio nie zastępuje renderu: projekt ma 1280 × 720, 30 kl./s i klipy podglądowe.

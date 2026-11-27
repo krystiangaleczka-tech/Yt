@@ -55,9 +55,23 @@ BEZ_ZNAKU = (0.15, 0.25)  # lektor zrobił w środku frazy pauzę > BEZ_ZNAKU_PR
 BEZ_ZNAKU_PROG = 0.30
 
 ROZNICA_MIN = 0.06       # dwie kolejne pauzy tego samego rodzaju różnią się co najmniej o tyle
-BRZEG = 0.03             # tyle wybrzmienia zostaje z każdej strony starej pauzy
+BRZEG = 0.03             # (dawniej) tyle wybrzmienia zostawało z każdej strony starej pauzy
+# Reżyser 16.11.2026: „dziwne przycięcia w środku albo przy końcu słowa” — cicha końcówka słowa (r, s, oddech) bywa
+# poniżej CISZA_DB, a 0,03 s i cyfrowe zero od razu za nią ucinały ją słyszalnie. Teraz zostaje dłuższe wybrzmienie
+# i wygasa łagodnie do zera; przed następnym słowem zostaje cały nabieg z miękkim wejściem.
+BRZEG_TYL = 0.12         # wybrzmienie po słowie (koniec słowa i koniec kwestii), wygaszane do zera
+BRZEG_PRZOD = 0.06       # przed następnym słowem (i przed pierwszym w kwestii), wchodzi łagodnie
 CISZA_DB, KANDYDAT_MIN = -40.0, 0.12   # pauza w nagraniu: co najmniej 0,12 s poniżej -40 dBFS
 TOLERANCJA = 1.0         # pauza dalej niż tyle sekund od miejsca znaku (wg pozycji w tekście) nie jest jego pauzą
+
+# PAUZY_SKALA (np. 1.3): wszystkie zakresy dłuższe o tyle razy — film, w którym autor czyta z dłuższymi pauzami
+# („Pierwszy cesarz” EN, 16.11.2026: średnia pauza autora ok. 0,56 s)
+import os as _os
+_SK = float(_os.environ.get("PAUZY_SKALA", "1.0"))
+if _SK != 1.0:
+    PO_ZDANIU = [(n, a * _SK, b * _SK) for n, a, b in PO_ZDANIU]
+    MAKS_ZDANIE *= _SK
+    PRZECINEK, SREDNIK, MYSLNIK, WIELOKROPEK = [(a * _SK, b * _SK) for a, b in (PRZECINEK, SREDNIK, MYSLNIK, WIELOKROPEK)]
 
 SAMOGLOSKI = "aąeęioóuy"
 
@@ -180,13 +194,24 @@ def przypisz(zn, kandydaci, a, b, sr, dl_tekstu):
     return wynik
 
 
+def _wygas(x):
+    return x * (0.5 + 0.5 * np.cos(np.linspace(0, np.pi, len(x), dtype=np.float32)))
+
+
+def _wejdz(x):
+    return x * (0.5 - 0.5 * np.cos(np.linspace(0, np.pi, len(x), dtype=np.float32)))
+
+
 def ustaw_pauze(y, s, e, cel, sr):
-    """Pauza y[s:e] → długość cel: wybrzmienie z brzegów zostaje, środek to cisza."""
-    br = int(BRZEG * sr)
-    if e - s <= 2 * br:
-        br = (e - s) // 2
-    srodek = max(0, int(cel * sr) - 2 * br)
-    return np.concatenate([y[s:s + br], np.zeros(srodek, dtype=np.float32), y[e - br:e]])
+    """Pauza y[s:e] → długość cel: wybrzmienie słowa przed pauzą (BRZEG_TYL) wygasa łagodnie, nabieg następnego słowa
+    (BRZEG_PRZOD) wchodzi łagodnie, środek to cisza. Krótka pauza: brzegi dzielą ją proporcjonalnie."""
+    tyl, przod = int(BRZEG_TYL * sr), int(BRZEG_PRZOD * sr)
+    dl = min(e - s, int(cel * sr))
+    if tyl + przod > dl:
+        k = dl / max(1, tyl + przod)
+        tyl, przod = int(tyl * k), int(przod * k)
+    srodek = max(0, int(cel * sr) - tyl - przod)
+    return np.concatenate([_wygas(y[s:s + tyl].copy()), np.zeros(srodek, dtype=np.float32), _wejdz(y[e - przod:e].copy())])
 
 
 def kwestia(y, sr, spoken, los, nr_zdania=0, klucz=""):
@@ -219,15 +244,22 @@ def kwestia(y, sr, spoken, los, nr_zdania=0, klucz=""):
             zmiany[i] = cel
             raport.append({"kwestia": klucz, "gdzie": f"{s / sr:.2f} s (bez znaku w tekście)", "regula": "bez znaku",
                            "od": BEZ_ZNAKU[0], "do": BEZ_ZNAKU[1], "wylosowane": cel, "bylo": round((e - s) / sr, 2)})
-    br = int(BRZEG * sr)
-    pocz, kon = max(0, a - br), min(len(y), b + br)
+    pocz, kon = max(0, a - int(BRZEG_PRZOD * sr)), min(len(y), b + int(BRZEG_TYL * sr))
     out, last = [], pocz
     for i in sorted(zmiany):
         s, e = kand[i]
         out += [y[last:s], ustaw_pauze(y, s, e, zmiany[i], sr)]
         last = e
     out.append(y[last:kon])
-    return np.concatenate(out), a - pocz, kon - b, raport, nr_zdania
+    wynik = np.concatenate(out)
+    # brzegi kwestii: łagodnie wygasza się tylko to, co jest przed pierwszym i za ostatnim słowem — samego słowa
+    # nie ściszamy (obróbka studyjna często obcina już ciszę za ostatnim słowem, wtedy nie ma czego wygaszać)
+    przed, za = a - pocz, kon - b
+    if przed > 1:
+        wynik[:przed] = _wejdz(wynik[:przed].copy())
+    if za > 1:
+        wynik[-za:] = _wygas(wynik[-za:].copy())
+    return wynik, przed, za, raport, nr_zdania
 
 
 def ziarno_kwestii(klucz):

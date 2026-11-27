@@ -1,0 +1,78 @@
+.sk-page code { font-size: 12.5px; background: rgba(140, 150, 160, .15); padding: 1px 4px; border-radius: 4px; }
+.sk-status.current strong { color: var(--green, #8dc9ae); }
+.sk-status.stale strong, .sk-status.missing strong { color: #e9ad58; }
+.sk-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.flow-card .sk-play-seconds { flex-direction: row; align-items: center; gap: 8px; width: auto; white-space: nowrap; }
+.flow-card .sk-play-seconds input { width: 74px; padding: 8px; }
+.sk-import { display: flex; flex: 1; gap: 8px; min-width: 280px; flex-wrap: wrap; }
+.sk-import select, .sk-import input { flex: 1 1 220px; min-width: 0; box-sizing: border-box; border-radius: 9px;
+  border: 1px solid var(--border, rgba(128, 128, 128, .3)); background: var(--input-bg, rgba(128, 128, 128, .07));
+  color: inherit; font: inherit; padding: 9px; }
+.sk-import-result ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; color: #e9ad58; font-size: 13px; }
+.sk-import-result li { display: flex; gap: 6px; align-items: baseline; }
+
+.sk-variant.approved { border-color: var(--green, #8dc9ae); }
+.sk-variant-head { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: start; margin-bottom: 14px; }
+.sk-letter { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 11px; font-weight: 800; font-size: 20px;
+  background: var(--accent-soft, #292b3d); color: var(--accent, #b6baf0); }
+.sk-variant-title { display: grid; gap: 5px; min-width: 0; }
+.flow-card .sk-variant-title input { font-size: 17px; font-weight: 700; padding: 8px 10px; }
+.sk-stats { font-size: 13px; color: var(--muted, #989aa3); }
+.sk-variant-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+.sk-variant-actions .icon-button:disabled { opacity: .3; cursor: not-allowed; }
+.sk-scenario { display: grid; gap: 8px; margin-bottom: 14px; }
+.sk-scenario-preview { border: 1px solid var(--border, rgba(128, 128, 128, .22)); border-radius: 10px; padding: 10px 12px; }
+.sk-scenario-preview p { margin: 0 0 8px; white-space: pre-wrap; line-height: 1.5; max-height: 7.5em; overflow: hidden; color: var(--muted, #989aa3); }
+
+.sk-flip { display: grid; gap: 8px; outline: none; border-radius: 12px; }
+.sk-flip:focus-visible { box-shadow: 0 0 0 2px var(--accent, #b6baf0); }
+.sk-flip-empty { padding: 28px; text-align: center; border: 1px dashed var(--border, rgba(128, 128, 128, .4)); color: var(--muted, #989aa3); }
+.sk-frame { position: relative; aspect-ratio: 16 / 9; width: 100%; max-width: 860px; margin: 0 auto; background: #000;
+  border-radius: 10px; overflow: hidden; cursor: pointer; user-select: none; }
+.sk-frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.sk-frame-play { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255, 255, 255, .85);
+  background: rgba(0, 0, 0, .28); pointer-events: none; }
+.sk-frame-nr { position: absolute; top: 10px; left: 12px; font: 600 12px/1.2 ui-monospace, Menlo, monospace; color: #fff;
+  background: rgba(0, 0, 0, .55); padding: 3px 7px; border-radius: 6px; }
+.sk-card-mark { position: absolute; top: 10px; right: 12px; font-size: 12px; font-weight: 800; letter-spacing: .06em; color: #111;
+  background: #f2c94c; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
+.sk-card { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 10px;
+  padding: 42px 8% 0; color: #fff; background: #000; text-align: left; }
+.sk-card-kadr { font-size: clamp(10px, 1.4vw, 13px); letter-spacing: .14em; text-transform: uppercase; color: #bbb; }
+.sk-card-desc { font-size: clamp(15px, 2.6vw, 26px); line-height: 1.3; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical; overflow: hidden; }
+.sk-card-line { position: absolute; left: 8%; right: 8%; bottom: 7%; text-align: center; font-style: italic;
+  font-size: clamp(12px, 1.8vw, 18px); line-height: 1.35; color: #f5f5f5; display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden; }
+.sk-controls { display: flex; align-items: center; gap: 8px; max-width: 860px; width: 100%; margin: 0 auto; }
+.sk-controls button { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; cursor: pointer;
+  color: inherit; background: transparent; border: 1px solid var(--border, rgba(128, 128, 128, .3)); }
+.sk-controls .sk-play-button { width: 42px; height: 38px; background: var(--accent-soft, #292b3d); color: var(--accent, #b6baf0); }
+.sk-scrub { position: relative; flex: 1; min-width: 80px; }
+.sk-scrub input { width: 100%; margin: 0; accent-color: var(--accent, #b6baf0); }
+.sk-marks { position: absolute; left: 0; right: 0; top: -6px; height: 6px; pointer-events: none; }
+.sk-marks span { position: absolute; width: 3px; height: 10px; margin-left: -1px; border-radius: 2px; background: #f2c94c; }
+.sk-time { font: 12px ui-monospace, Menlo, monospace; color: var(--muted, #989aa3); white-space: nowrap; min-width: 82px; text-align: right; }
+.sk-now { max-width: 860px; width: 100%; margin: 0 auto; font-size: 13px; }
+.sk-now p { margin: 4px 0 0; }
+.sk-now-line { font-style: italic; color: var(--muted, #989aa3); }
+
+.sk-shots { margin-top: 14px; }
+.sk-shots summary { cursor: pointer; font-weight: 600; }
+.sk-table { overflow-x: auto; }
+.sk-table table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 980px; }
+.sk-table th, .sk-table td { text-align: left; padding: 5px 4px; border-bottom: 1px solid var(--line, #303136); vertical-align: top; }
+.flow-card .sk-table input, .flow-card .sk-table textarea { padding: 6px 7px; font-size: 13px; border-radius: 7px; }
+.sk-table td.sk-nr { width: 58px; }
+.sk-table td.sk-sec { width: 64px; }
+.sk-table td.sk-frame-cell { width: 130px; }
+.sk-frame-cell { display: grid; gap: 4px; }
+.sk-frame-cell img { width: 112px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 6px; background: #000; }
+.sk-frame-cell .flow-quiet { padding: 4px 8px; }
+.sk-table th:nth-child(5), .sk-table th:nth-child(6) { width: 22%; }
+
+@media (max-width: 760px) {
+  .sk-variant-head { grid-template-columns: auto 1fr; }
+  .sk-variant-actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .sk-card { padding: 34px 6% 0; }
+}

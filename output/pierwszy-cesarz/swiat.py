@@ -29,8 +29,15 @@ BAN = {  # chorągiew: (x, plan, wysokość)
 EMP = (300, 708, 352)  # cesarz: x, linia stóp (za rampą), wysokość
 SMOKI = ((166, 0.765), (432, 0.775))  # dwie chorągwie ze smokiem za cesarzem: x, plan
 STOL = (640, 738, 350)  # stół pisarzy: x, dół, szerokość
+ZWOJ_BLAT = (0.67, 0.255)  # zwój bambusowy na blacie (ułamki szerokości i wysokości rysunku stołu)
+ZWOJ_ROT = 3.5  # zwój leży równolegle do tylnej krawędzi stołu (marker reżysera 16.11, ujęcie 47)
+# Reżyser 16.11 wieczorem (marker w ujęciu 47): „usuń ten zwój i w następnych też” — na stole pisarzy nie leży już zwój
+# bambusowy. Księgi, które cesarz każe spalić, przynosi uczony: zwój jest w jego dłoniach i stamtąd leci do ognia.
+ZWOJ_RECE = (893.0, 497.0)  # zwój w dłoniach uczonego (lalka x = 946, wys. 292) w ujęciu „ksiegi”, plan zwoju w locie
+ZWOJ_RECE_ROT = -18.0
+ZWOJ_LOT_W = 64  # szerokość zwoju z rąk uczonego (w locie i w ogniu, ujęcia „ksiegi” i „popiol”)
 URNA = (1092, 704, 150)  # trójnóg z brązu: x, dół, wysokość
-POSAG = (1238, 226)  # posąg z brązu: x, wysokość
+POSAG = (1238, 268)  # posąg z brązu: x, wysokość (reżyser 15.11: „troszkę większy”)
 KOPIEC = (1316, 602, 580)  # kopiec grobowca: x, dół, szerokość
 PALAC = (250, 240)  # pałac: x, szerokość
 RZEDY = [  # gliniana armia: plan, pasmo ziemi przed rzędem, wysokość, pierwszy x, odstęp, liczba
@@ -67,17 +74,22 @@ def stan(i):
         smoki=[f(po("cesarz") and not po("upadek"))] * 2, smoki_fall=0.0,
         urna=f(po("posagi") and not po("zmierzch")),
         dwor=f(dwor), ksiega=f(dwor), pisze=f(I["pismo"] < i <= I["miara"]),
-        moneta=f(po("moneta") and not po("zmierzch")), moneta_x=1.0,
+        moneta=f(po("moneta") and not po("zmierzch")), moneta_x=1.0, moneta_lez=1.0, moneta_chw=0.0, moneta_skok=0.0,
         waga=f(po("miara") and not po("zmierzch")), odwaznik=f(po("miara") and not po("zmierzch")), waga_rot=0.0,
-        zwoj=f(po("pismo") and not po("ksiegi")), zwoj_lot=0.0,
+        zwoj=0.0, zwoj_lot=0.0, zwoj_rece=0.0,  # zwoju na stole pisarzy już nie ma (reżyser 16.11, ujęcie 47 i następne)
         uczony=f(po("ksiegi") and not po("uczeni")), uczony_lean=0.0, ogien=0.0,
         mur=f(po("mur")), armia=f(po("armia") and not po("podroz")), armia_t=None,  # armia zapada się na początku podróży
         posag=f(po("posagi") and not po("upadek")), posag_fall=0.0,
-        kanal=f(po("kanal")), kanal2=f(po("kanal2")), urzednicy=f(po("prowincje") and not po("powstanie")),
-        stela=f(po("stela")), palac=f(po("palac") and not po("upadek")), kopiec=f(po("kopiec")),
+        # kanały stoją od wykopania do ujęcia „pismo” (tam zwijają się przy zmianie dekoracji); reżyser 15.11: „zaś ten kanał
+        # z wodą nie wiem, co tu robi” w aktach 7–8
+        kanal=f(po("kanal") and not po("pismo")), kanal2=f(po("kanal2") and not po("pismo")),
+        urzednicy=f(po("prowincje") and not po("powstanie")),
+        stela=f(po("stela")), palac=f(po("palac") and not po("upadek")), smoki_palac=f(po("palac")), kopiec=f(po("kopiec")),
         powoz=730.0 if po("podroz") and not po("ryby") else None, zaslona=f(po("spisek") and not po("ryby")),
         znaleziony=f(po("studnia")), sosna=f(po("grobowiec")),
-        zawieszki=[], woz=None, jezdziec=None, wlocznie=None, build=None)
+        zawieszki=[], woz=None, jezdziec=None, wlocznie=None, build=None,
+        galaz=1.0, kopiec_drz=0.0, bez_rzeczy=0.0, cyklopi=f(po("xufu")), oczy_x=0.0,
+        waga_belka=-6.6 if po("miara") else None, waga_szale=(0.0, 0.0), odwaznik_szala=f(po("miara")))  # odważnik został w szali
 
 
 # ---------- kamera, światło, czas ----------
@@ -145,10 +157,36 @@ def cesarz(st, t, w):
     yy = y + (1 - back(w.emp, 1.2)) * h * 1.08 + ease(w.sink) * h * 1.1 - w.lift
     rot = 0.45 * noise(t, 7, 0.4) + w.lean + settle((w.emp - 0.75) / 0.25 if w.emp < 1 else 0, 1.5, 3) - 9 * ease(w.sink / 0.35)
     st.put(Z.S("emperor"), x, yy, P.lalki, h=h, anchor=(0.42, 1.0), rot=rot, sx=w.flip)
+    if w.get("oczy_x", 0.0) > 0:  # martwy: X na oczach (reżyser 15.11), jadą razem z głową lalki
+        c, s_ = math.cos(math.radians(rot)), math.sin(math.radians(rot))
+        for dx, dy, hh in ((6.6, -312.0, 13), (16.0, -313.0, 10)):
+            dx *= w.flip
+            st.put(Z.prop("x_oko"), x + c * dx - s_ * dy, yy + s_ * dx + c * dy, P.lalki + 0.002, h=hh * w.oczy_x, anchor=(0.5, 0.5),
+                   rot=rot, shadow=None)
+
+
+def smoki_przy_palacu(st, w):
+    """Chorągwie ze smokiem po obu stronach pałacu, a pałac pośrodku między nimi i cały widoczny (reżyser 16.11:
+    „przesuń chorągiew w lewo, aby było widać cały ten budynek, a budynek wyśrodkuj pomiędzy chorągwiami” — i w każdym
+    następnym ujęciu z pałacem). Chorągwie wiszą bliżej kamery niż pałac, więc przy każdym ustawieniu kamery liczy się,
+    gdzie mają wisieć, żeby na ekranie stały symetrycznie: odstęp od pałacu to 12% jego szerokości."""
+    ban = Z.S("palace_banner", 0.7)
+    bw = 236 * ban.w / ban.h
+    pp = P.gory + 0.016
+    sx = lambda x, p: st.cam.screen(x, 300, p)[0]
+    lewy, prawy = sx(PALAC[0] - PALAC[1] / 2, pp), sx(PALAC[0] + PALAC[1] / 2, pp)
+    c, pol = (lewy + prawy) / 2, (prawy - lewy) / 2
+    out = []
+    for n, (x0, p) in enumerate(SMOKI):
+        g = sx(x0 + 1, p) - sx(x0, p)  # piksele ekranu na jednostkę kadru wzorcowego na planie chorągwi
+        cel = c + (-1 if n == 0 else 1) * (pol * 1.12 + bw / 2 * g)
+        out.append(x0 + (cel - sx(x0, p)) / g)
+    return out
 
 
 def smoki(st, t, w):
-    for n, ((x, p), k) in enumerate(zip(SMOKI, w.smoki)):
+    xs = smoki_przy_palacu(st, w) if w.get("smoki_palac", 0.0) > 0 else [x for x, _ in SMOKI]
+    for n, ((_, p), x, k) in enumerate(zip(SMOKI, xs, w.smoki)):
         f = clamp(w.smoki_fall * 1.4 - n * 0.4)
         if f >= 1:
             continue
@@ -174,7 +212,7 @@ def mur(st, t, k):
         hh, up = (96, 46) if tower else (74, 15)
         pp = (P.gory if on_mountain else P.gory + 0.02) - 0.004
         rot = 0.0 if tower else clamp(math.degrees(math.atan2(gy2 - gy, 30)), -32, 32)
-        st.put(spr, x, gy - up + (1 - back(pk, 1.4)) * (up + 22), pp, h=hh, anchor=(0.5, 0.0), rot=rot,
+        st.put(spr, x, gy - up + (1 - back(pk, 1.4)) * (up + 70), pp, h=hh, anchor=(0.5, 0.0), rot=rot,
                haze=0.18, shadow=(3, 3, 5, 0.3), z=0.5 if tower else 0.0)
 
 
@@ -185,13 +223,13 @@ def jezdziec(st, t, x, p=0.645, h=100, k=1.0, flip=1.0):
     st.put(Z.S("rider", 0.6), x, y, p, h=h, rot=5 * math.sin(ph * 2 + 0.5) * k + 0.6 * noise(t, 81, 0.6), sx=flip)
 
 
-def wlocznie(st, t, x, p=0.635, band="droga", h=124, n=2, flag=None, up=1.0, seed=0):
+def wlocznie(st, t, x, p=0.635, band="droga", h=124, n=2, flag=None, up=1.0, seed=0, lift=0.0):
     """Las włóczni idący za wzgórzem: widać groty, hełmy i proporce. x — prawy koniec kolumny."""
     for j in range(n):
         xx = x - j * 330 * h / 124
         ph = xx / 30.0
         spr = Z.spears(seed + j) if flag is None else Z.spears(seed + j, flag=flag)
-        st.put(spr, xx, Z.ground(band, clamp(xx, -300, 1500)) + h * 0.5 - abs(math.sin(ph)) * 5 + (1 - back(up, 1.3)) * h + ZAPAD[0],
+        st.put(spr, xx, Z.ground(band, clamp(xx, -300, 1500)) + h * 0.5 - abs(math.sin(ph)) * 5 + (1 - back(up, 1.3)) * h + ZAPAD[0] - lift,
                p - j * 0.004, h=h, anchor=(1.0, 1.0), rot=0.8 * math.sin(ph * 0.7))
 
 
@@ -209,16 +247,31 @@ def woz(st, t, x, p=0.645, h=74, flip=1.0, sy=1.0, rot=0.0, ladunek=None, kon=Tr
         hx = x + 66 * s * flip
         ph2 = hx / 30.0
         hy = Z.ground("droga", clamp(hx, -300, 1500)) + 8 * s - abs(math.sin(ph2)) * 4 * s + ZAPAD[0]
-        st.put(Z.S("rider", 0.6), hx, hy, p + 0.002, h=100 * s, rot=2.5 * math.sin(ph2 * 2 + 0.5) + 0.4 * noise(t, 82, 0.6), sx=flip)
+        st.put(Z.woznica(), hx, hy, p + 0.002, h=100 * s, rot=2.5 * math.sin(ph2 * 2 + 0.5) + 0.4 * noise(t, 82, 0.6), sx=flip)
     return y
 
 
-def powoz(st, t, x, zaslona=0.0, h=84, p=0.645):
-    """Powóz cesarza: wóz z czarną chorągwią; zasłona opada na niego po śmierci cesarza."""
+def powoz(st, t, x, zaslona=0.0, h=84, p=0.645, cesarz=None, ryby=0.0, na_skrzyni=False):
+    """Powóz cesarza: wóz z czarną chorągwią; zasłona opada na niego po śmierci cesarza.
+    cesarz — lalka cesarza jadąca na powozie: (kąt przechyłu, przesunięcie w dół) albo None. na_skrzyni — cesarz stoi
+    na wieku skrzyni, przed chorągiewką, cały widoczny (reżyser 16.11, młot: „postaw go tutaj”); inaczej stoi za skrzynią."""
     y = woz(st, t, x, p=p, h=h, ladunek=(Z.banner("qin"), 74, -34, 10))
-    if zaslona > 0:
-        st.put(Z.prop("zaslona"), x - 8, y - h * 1.02 - (1 - ease_out(zaslona)) * 300, p + 0.002, w=h * 1.9, anchor=(0.5, 0.0),
-               shadow=(3, 4, 5, 0.4))
+    if cesarz is not None:  # kąt -90 = leży (przewraca się w lewo, wzdłuż wieka)
+        rot, dol = cesarz
+        if na_skrzyni:  # stopy na wieku skrzyni (ok. h nad osią kół), przed chorągiewką ładunku
+            st.put(Z.S("emperor"), x - 8, y - h * 1.0 + dol, p - 0.0005, h=h * 0.95, anchor=(0.42, 1.0),
+                   rot=rot + 0.6 * noise(t, 84, 0.7))
+        else:
+            st.put(Z.S("emperor"), x + 14, y - h * 0.50 + dol, p - 0.0015, h=h * 0.95, anchor=(0.42, 1.0),
+                   rot=rot + 0.6 * noise(t, 84, 0.7))
+    if zaslona > 0:  # ciemna płachta z frędzlem; reżyser 15.11: „minimalnie wyżej”
+        top = y - h * 0.98 - (1 - ease_out(zaslona)) * 300
+        st.put(Z.prop("zaslona"), x - 8, top, p + 0.002, w=h * 1.9, anchor=(0.5, 0.0), sy=0.7, shadow=(3, 4, 5, 0.4))
+        if ryby > 0:  # solone ryby zjeżdżają na nitkach i układają się na płachcie (reżyser 15.11)
+            for n, dx in enumerate((-52, -8, 36)):
+                kk = clamp(ryby * 1.5 - n * 0.25)
+                Z.hang(st, Z.prop("ryby"), x - 8 + dx, top - 26, p + 0.0025 + n * 0.0001, kk, t, 170 + n, drop=320, sway=0.4,
+                       h=30, string=kk < 1, strings=(0.3, 0.7), shadow=(2, 3, 3, 0.35))
 
 
 def urna(st, t, w, k):
@@ -254,50 +307,104 @@ def stol(st, t, w, k, sx=None, sw=None):
     return on, down
 
 
+WAGA_H = 104  # wysokość całej wagi w kadrze wzorcowym
+
+
+def waga(st, t, w, bx, by, p):
+    """Waga z czterech części: podstawa stoi nieruchomo (zjeżdża na nitce tylko na początku), belka kołysze się wokół osi,
+    a każda szala wisi na swoim haku i buja się osobno (reżyser 15.11: „porusz osobno każdym odważnikiem”, „to ma stać
+    nieruchomo”). w.waga_belka — kąt belki względem rysunku (None: jak na rysunku), w.waga_szale — wychylenia szal;
+    w.odwaznik_szala — odważnik „斤” zjeżdżający do lewej szali (0..1)."""
+    k = WAGA_H / 1016  # piksele kadru na piksel oryginału scale.png
+    ys = by - ((1 - back(w.waga, 1.1)) * 470 if w.waga < 1 else 0.0)  # zjazd całości na nitce
+    ax, ay = Z.WAGA_STOPA
+    st.put(Z.waga_czesc("podstawa"), bx, ys, p, w=1536 * k, anchor=(ax / 1536, ay / 1024), shadow=(3, 5, 5, 0.42))
+    if w.waga < 1:  # nitka trzyma wagę za czubek kolumny, dopóki nie stanie
+        st.line([(bx - 10 * k, -220), (bx - 10 * k, ys - (ay - 12) * k)], p, width=1.1, color=(70, 56, 44), alpha=0.7, z=-0.5)
+    ox_, oy_ = Z.WAGA_OS
+    px, py = bx + (ox_ - ax) * k, ys + (oy_ - ay) * k  # oś belki w kadrze
+    phi = w.get("waga_belka") or 0.0
+    c, sn = math.cos(math.radians(phi)), math.sin(math.radians(phi))
+    st.put(Z.waga_czesc("belka"), px, py, p + 0.0004, w=1536 * k, anchor=(ox_ / 1536, oy_ / 1024), rot=phi, shadow=(3, 5, 5, 0.42))
+    for n, nazwa in enumerate(("lewa", "prawa")):
+        hx, hy = Z.WAGA_HAK[nazwa]
+        dx, dy = (hx - ox_) * k, (hy - oy_) * k
+        qx, qy = px + c * dx - sn * dy, py + sn * dx + c * dy  # hak po obrocie belki
+        sz = w.get("waga_szale", (0.0, 0.0))[n]
+        st.put(Z.waga_czesc(nazwa), qx, qy, p + 0.0008, w=1536 * k, anchor=(hx / 1536, hy / 1024), rot=sz, shadow=(3, 5, 5, 0.42))
+        if nazwa == "lewa" and w.get("odwaznik_szala", 0.0) > 0:  # odważnik „斤” zjeżdża do lewej szali i jedzie z nią
+            Z.hang(st, Z.weight(), qx - math.sin(math.radians(sz)) * 26, qy + 6, p + 0.0006, w.odwaznik_szala, t, 72, drop=300,
+                   sway=0.0, h=26, rot0=sz, string=w.odwaznik_szala < 1, shadow=(2, 3, 3, 0.4))
+
+
 def dwor(st, t, w):
     """Stół pisarzy z księgą, zwojem, monetami i wagą, klęczący pisarz, uczony i trójnóg z brązu."""
     k = w.dwor
     on = None
     if k > 0:
         on, down = stol(st, t, w, k)
-        sx = STOL[0]
-        rot = 0.5 * noise(t, 21, 0.5) + w.pisze * (1.5 * math.sin(t * 5.2) + 1.0)  # pisarz kiwa się nad księgą
-        st.put(Z.S("scribe", 0.7), sx - 132, 664 + down * 1.25, P.lalki + 0.02, h=214, anchor=(0.45, 1.0), rot=rot)
-        if w.zwoj > 0 and w.zwoj_lot <= 0:
-            st.put(Z.S("bamboo", 0.5), *on(0.56, 0.19), P.rekwizyty + 0.004, w=100, anchor=(0.5, 0.5), rot=-8, shadow=(3, 5, 5, 0.4))
-        if w.ksiega > 0:
-            lx, ly = on(0.33, 0.37)
+        rzeczy = 1.0 - w.get("bez_rzeczy", 0.0)  # reżyser 15.11 (miara): zwoje i pieniądze zdjęte ze stołu, na nich miarka
+        # pisarz klęczy z lewej, PRZED stołem (bliżej kamery): pędzel w jego dłoni sięga księgi na blacie, widać, że pisze
+        # (reżyser 15.11: „żeby było widać, że on pisze, a nie że jest za tym stołem”)
+        pis = w.pisze
+        rot = 0.5 * noise(t, 21, 0.5) + pis * (1.8 * math.sin(t * 7.0) + 2.0)
+        st.put(Z.S("scribe", 0.7), STOL[0] - 168 + pis * 3 * math.sin(t * 3.1), 676 + down * 1.25, P.rekwizyty + 0.014, h=200,
+               anchor=(0.45, 1.0), rot=rot)
+        if w.zwoj > 0 and w.zwoj_lot <= 0 and rzeczy > 0:  # zwój leży wzdłuż blatu (reżyser 15.11: „w tym kierunku”)
+            # cały zwój leży NA blacie: wcześniej jego dalszy koniec wystawał poza tylną krawędź stołu i zwój wisiał
+            # w powietrzu (reżyser 16.11, ujęcie 47); cień tuż pod nim, bo leży, a nie unosi się
+            st.put(Z.S("bamboo", 0.5), *on(*ZWOJ_BLAT), P.rekwizyty + 0.004, w=104, anchor=(0.5, 0.5), rot=ZWOJ_ROT,
+                   shadow=(2, 4, 4, 0.5))
+        if w.ksiega > 0 and rzeczy > 0:
+            lx, ly = on(0.20, 0.42)
             st.put(Z.S("ledger", 0.5), lx + (1 - ease_out(w.ksiega)) * 240, ly, P.rekwizyty + 0.006, w=150, anchor=(0.5, 0.5),
                    rot=4 - 14 * (1 - ease_out(w.ksiega)), shadow=(3, 5, 5, 0.4))
-        st.put(Z.S("ink", 0.4), *on(0.55, 0.44), P.rekwizyty + 0.008, w=36, anchor=(0.5, 0.5), shadow=(2, 3, 4, 0.4))
-        st.put(Z.S("coin_stack", 0.5), *on(0.47, 0.57), P.rekwizyty + 0.010, h=40, anchor=(0.5, 0.85), shadow=(3, 4, 4, 0.4))
-        if w.moneta > 0:  # moneta toczy się po blacie i kładzie przy stosie
-            roll = w.moneta_x
-            mx, my = on(0.585 - 0.37 * (1 - roll), 0.52 - 0.13 * (1 - roll))
-            flat = ease((roll - 0.80) / 0.20)
-            st.put(Z.coin(), mx, my - 18 * (1 - flat), P.rekwizyty + 0.012, h=40, anchor=(0.5, 0.5), rot=-620 * (1 - roll) ** 1.5,
-                   sy=1 - 0.5 * flat, shadow=(3, 4 + 3 * (1 - flat), 4, 0.42))
-        if w.waga > 0:  # waga zjeżdża na nitce na prawy róg blatu
-            bx, by = on(0.80, 0.34)
-            Z.hang(st, Z.S("scale", 0.6), bx, by - 104, P.rekwizyty + 0.012, w.waga, t, 70, drop=470, sway=0.2, h=104,
-                   rot0=w.waga_rot, shadow=(3, 5, 5, 0.42))
-        if w.odwaznik > 0:
-            bx, by = on(0.70, 0.47)
+        if rzeczy > 0:
+            st.put(Z.S("ink", 0.4), *on(0.42, 0.50), P.rekwizyty + 0.008, w=36, anchor=(0.5, 0.5), shadow=(2, 3, 4, 0.4))
+            st.put(Z.S("coin_stack", 0.5), *on(0.47, 0.62), P.rekwizyty + 0.010, h=40, anchor=(0.5, 0.85), shadow=(3, 4, 4, 0.4))
+        if w.moneta > 0 and rzeczy > 0:  # moneta wytacza się zza pisarza, toczy za kałamarzem i stosem, przewraca się
+            # (reżyser 16.11: „nie może ten coin tak dziwnie animować”) — droga punktu styku z blatem; obrót wynika
+            # z przebytej drogi (toczenie bez poślizgu), moneta stoi na blacie i jest ZA kałamarzem i stosem, bo toczy
+            # się dalej od kamery niż one; w.moneta_lez — przewrócenie (0 stoi, 1 leży), w.moneta_chw — dygot po upadku
+            roll, lez, chw = w.moneta_x, w.get("moneta_lez", 1.0), w.get("moneta_chw", 0.0)
+            skok = w.get("moneta_skok", 0.0)  # podskok nad blat tuż przed położeniem się (reżyser 16.11), w pikselach
+            (x0, y0), (x1, y1) = on(0.10, 0.25), on(0.60, 0.46)
+            mx, my = lerp(x0, x1, roll), lerp(y0, y1, roll)
+            r = 20.0  # promień monety w kadrze wzorcowym
+            droga = math.hypot(x1 - x0, y1 - y0) * (1 - roll)
+            st.put(Z.coin(), mx, my - r * (1 - lez) + 0.5 * r * lez - skok, P.rekwizyty + 0.007, h=2 * r, anchor=(0.5, 0.5),
+                   rot=-math.degrees(droga / r) + 5 * chw, sy=1 - 0.5 * lez + 0.10 * abs(chw),
+                   shadow=(3 + 0.3 * skok, 4 + 3 * (1 - lez) + skok, 4 + 0.3 * skok, 0.42))
+        if rzeczy < 1:  # miarka i miara objętości zamiast zwojów i monet
+            mk = 1 - rzeczy
+            st.put(Z.prop("miarka"), *on(0.56, 0.66), P.rekwizyty + 0.012, w=150 * mk, anchor=(0.5, 0.5), rot=14,
+                   shadow=(3, 5, 5, 0.42))
+            st.put(Z.prop("sheng"), *on(0.42, 0.34), P.rekwizyty + 0.008, h=44 * mk, anchor=(0.5, 0.75), shadow=(3, 5, 5, 0.42))
+        if w.waga > 0:  # waga zjeżdża na nitce na prawy róg blatu; stoi, a kołyszą się belka i szale
+            bx, by = on(0.80, 0.40)
+            waga(st, t, w, bx, by, P.rekwizyty + 0.012)
+        if w.odwaznik > 0 and w.get("odwaznik_szala", 0.0) <= 0:
+            bx, by = on(0.70, 0.52)
             Z.hang(st, Z.weight(), bx, by - 40, P.rekwizyty + 0.016, w.odwaznik, t, 71, drop=470, sway=0.2, h=40, shadow=(3, 5, 4, 0.42))
     if w.uczony > 0:  # uczony stoi między stołem a trójnogiem, twarzą do cesarza
         lalka(st, t, "uczony", 946, 292, w.uczony, flip=-1, lean=w.uczony_lean, seed=23)
+        if w.get("zwoj_rece", 0.0) > 0 and w.zwoj_lot <= 0:  # zwój w dłoniach uczonego, wysuwa się razem z nim zza rampy
+            wys = (1 - back(w.uczony, 1.2)) * 292 * 1.1
+            st.put(Z.S("bamboo", 0.5), ZWOJ_RECE[0], ZWOJ_RECE[1] + wys, P.rekwizyty - 0.004, w=ZWOJ_LOT_W, anchor=(0.5, 0.5),
+                   rot=ZWOJ_RECE_ROT + 0.5 * noise(t, 23, 0.45), shadow=(3, 5, 5, 0.4))
     if w.urna > 0:
         fy = urna(st, t, w, w.urna)
-        if w.zwoj_lot > 0 and on:  # zwój leci łukiem ze stołu do ognia, potem czernieje i zapada się
+        if w.zwoj_lot > 0:  # zwój leci łukiem z rąk uczonego do ognia, potem czernieje i zapada się
             f = w.zwoj_lot
-            ax, ay = on(0.56, 0.19)
+            ax, ay = ZWOJ_RECE  # startuje z dłoni uczonego, w tym samym rozmiarze i obrocie
             bx = ax + (URNA[0] - ax) * ease(min(f, 1.0))
             by = ay + (fy - 36 - ay) * min(f, 1.0) - 170 * math.sin(math.pi * min(f, 1.0))
             burn = ease((f - 1.0) / 0.9)
             c = 1 - 0.8 * burn
             if burn < 1:
-                st.put(Z.S("bamboo", 0.5), bx, by + 70 * burn, P.rekwizyty - 0.004, w=100, anchor=(0.5, 0.5),
-                       rot=-8 + 262 * ease(min(f, 1.0)) + 6 * burn, tint=(c, c * 0.92, c * 0.85), shadow=(3, 5, 5, 0.4))
+                st.put(Z.S("bamboo", 0.5), bx, by + 70 * burn, P.rekwizyty - 0.004, w=ZWOJ_LOT_W, anchor=(0.5, 0.5),
+                       rot=ZWOJ_RECE_ROT + (254 - ZWOJ_RECE_ROT) * ease(min(f, 1.0)) + 6 * burn, tint=(c, c * 0.92, c * 0.85),
+                       shadow=(3, 5, 5, 0.4))
 
 
 def armia(st, t, w):
@@ -340,7 +447,10 @@ def wstega(st, key, x0, x1, k, p=0.672, dy=20, band="droga", sy=1.0, blask=0.0):
 def kraj_dodatki(st, t, w):
     """To, co cesarz dobudował: kanały z poletkami, urzędnicy w prowincjach, stela, pałac, kopiec, posąg."""
     for key, k, x0, x1 in (("kanal", w.kanal, 300, 760), ("kanal", w.kanal2, 790, 1250)):
-        wstega(st, key, x0, x1, k)
+        wstega(st, "brzeg", x0 - 14, x1 + 14, k, p=0.6715, dy=20, sy=1.0)  # nasyp z ziemi po obu stronach wody
+        wstega(st, key, x0, x1, k, sy=1.15)
+        if k > 0.05:  # woda płynie: połysk przesuwa się wzdłuż wstęgi
+            wstega(st, key, x0, x1, k, p=0.6725, sy=1.15, blask=0.10 + 0.06 * math.sin(st.t * 2.3 + x0))
         for n in range(6):  # poletka wyskakują za rozwijającą się wstęgą
             fk = clamp(k * 8 - n - 1.5)
             x = x0 + (x1 - x0) * (n + 0.6) / 6.4
@@ -356,13 +466,17 @@ def kraj_dodatki(st, t, w):
         mg = Z.S("mountain_gold", 0.6)
         hh = 560 * mg.h / mg.w
         fx = min((0.3 + d * 0.02 for d in range(21)), key=mg.top)
-        st.put(Z.prop("stela"), 1030 - 280 + fx * 560, 456 - hh + mg.top(fx) * hh + 16 + (1 - back(w.stela, 1.3)) * 60,
-               P.gory_dal + 0.016, h=46, haze=0.3)
+        # duża stela (reżyser 15.11: „zrób ją większą”) wyrasta z grani i kołysze się, zanim stanie
+        st.put(Z.prop("stela"), 1030 - 280 + fx * 560, 456 - hh + mg.top(fx) * hh + 30 + (1 - back(w.stela, 1.3)) * 120,
+               P.gory_dal + 0.016, h=96, haze=0.12, rot=5 * settle((w.stela - 0.5) / 0.5 if w.stela < 1 else 0, 2.5, 1.0)
+               + 6 * (1 - w.stela) * math.sin(st.t * 9))
     if w.palac > 0:
         st.put(Z.palace(), PALAC[0], Z.ground("dal", PALAC[0]) + 12 + (1 - w.palac) * 400, P.gory + 0.016, w=PALAC[1], haze=0.14)
     if w.kopiec > 0:
         kx, ky, kw = KOPIEC
-        st.put(Z.mound(), kx, ky + (1 - back(w.kopiec, 1.05)) * 240, P.miasto + 0.02, w=kw, haze=0.06)
+        dr = w.get("kopiec_drz", 0.0)
+        st.put(Z.mound(), kx + dr * 5 * noise(st.t, 610, 9.0), ky + (1 - back(w.kopiec, 1.05)) * 240 + dr * 3 * noise(st.t, 611, 11.0),
+               P.miasto + 0.02, w=kw, haze=0.06, rot=dr * 0.8 * noise(st.t, 612, 8.0))
     if w.posag > 0 and w.posag_fall < 1:
         px, ph = POSAG
         f = w.posag_fall
@@ -377,7 +491,7 @@ def buduj(w):
     if b is None:
         return
     for key, d in (("sun", 0.0), ("far", 0.1), ("land", 0.25), ("mid", 0.4), ("city", 0.6), ("road", 0.75), ("bridge", 0.85),
-                   ("front", 1.0), ("kopiec", 0.7), ("palac", 0.7)):
+                   ("front", 1.0), ("kopiec", 0.7), ("palac", 0.7), ("kanal", 1.1), ("kanal2", 1.2)):
         w[key] = min(w[key], pr(b, d, 0.7)) if w[key] > 0 else 0.0
     w.clouds = [min(c, pr(b, 0.15 + 0.25 * i, 0.9)) for i, c in enumerate(w.clouds)]
     w.trees = [min(w.trees[0], pr(b, 1.25, 0.7)), min(w.trees[1], pr(b, 1.1, 0.7))]
@@ -422,8 +536,9 @@ def wedrowcy(st, t, w):
 
 def kulisy(st, t, w, dol=True):
     """Przedplan: gałąź sosny zwisa z góry kadru, kępy trzcin przy rampie — nieostre, mijają kamerę najszybciej."""
-    st.put(Z.bough(-1), -60, -40, 0.95, w=520, anchor=(0.0, 0.0), rot=1.5 * noise(t, 301, 0.3), blur=4.0, shadow=(8, 12, 16, 0.35),
-           tint=(0.72, 0.74, 0.70))
+    if w.get("galaz", 1.0) > 0:
+        st.put(Z.bough(-1), -60, -40, 0.95, w=520, anchor=(0.0, 0.0), rot=1.5 * noise(t, 301, 0.3), blur=4.0, shadow=(8, 12, 16, 0.35),
+               tint=(0.72, 0.74, 0.70))
     if dol:
         st.put(Z.reeds(1), 1270, 770, 0.94, h=230, rot=1.2 * noise(t, 302, 0.4), blur=3.5, shadow=None, tint=(0.62, 0.66, 0.6))
         st.put(Z.reeds(2), 40, 776, 0.93, h=190, rot=1.0 * noise(t, 303, 0.4), blur=3.0, shadow=None, tint=(0.62, 0.66, 0.6))
@@ -452,13 +567,15 @@ def swiat(st, t, w):
     if w.woz is not None:
         woz(st, t, w.woz)
     if w.powoz is not None:
-        powoz(st, t, w.powoz, w.zaslona)
+        powoz(st, t, w.powoz, w.zaslona, ryby=w.get("ryby", 0.0))
     if w.znaleziony > 0:  # żołnierz wykopany przy studni i chłop, który go znalazł
         st.put(Z.prop("chlop"), 820, Z.ground("przod", 820) + 14, 0.70, h=120, rot=-6)
         st.put(Z.soldier(2), 912, Z.ground("przod", 912) + 20, 0.70, h=128)
     if w.sosna > 0:
         kx, ky, kw = KOPIEC
-        st.put(Z.S("tree_right"), kx - 8, ky - kw * 420 / 900 * 0.80 + 18 + (1 - back(w.sosna, 1.3)) * 110, P.miasto + 0.018, h=104)
+        dr = w.get("kopiec_drz", 0.0)
+        st.put(Z.S("tree_right"), kx - 8 + dr * 5 * noise(st.t, 610, 9.0), ky - kw * 420 / 900 * 0.80 + 18 + (1 - back(w.sosna, 1.3)) * 110,
+               P.miasto + 0.018, h=104, rot=dr * 2.5 * noise(st.t, 613, 8.0))
     ptaki(st, t, w, seed=int(st.seed))
     wedrowcy(st, t, w)
     armia(st, t, w)
@@ -474,6 +591,12 @@ def ksiezyc(st, t, k, x=648, y=212):
         st.put(Z.glow(), x, y + 54 - (1 - back(k, 1.1)) * 480, P.slonce, w=560, anchor=(0.5, 0.5), mode="add", alpha=0.26 * ease(k),
                shadow=None, tint=(0.75, 0.85, 1.0), z=-1)
         Z.hang(st, Z.moon(), x, y, P.slonce, k, t, 2, drop=480, w=108, shadow=(5, 7, 9, 0.3))
+
+
+def podpis(w, t, txt, x, y, t0, dur=2.8):
+    """Tabliczka z imieniem nad postacią przy jej pierwszym pojawieniu się: zjeżdża na nitce w t0, po dur s odjeżdża w górę.
+    (x, y) — środek górnej krawędzi tabliczki w kadrze wzorcowym, nad głową postaci."""
+    w.zawieszki = list(w.zawieszki) + [(txt, x, y, pr(t, t0, 0.9) * (1 - pr(t, t0 + dur, 0.6)))]
 
 
 def zawieszki(st, t, w):
@@ -532,13 +655,16 @@ def urzednik(st, t, n, bow=0.0, lift=0.0, flip=-1.0, k=1.0):
 
 # ---------- morze ----------
 
-def morze(st, t, w, k=1.0, wyspa=1.0):
+def morze(st, t, w, k=1.0, wyspa=1.0, wyspa_w=400):
     """Scenografia „morze”: papier nieba, wyspa na horyzoncie, cztery pasma fal kołysane w przeciwne strony."""
     n = w.noc
     st.put(Z.sky(), CX, CY, P.niebo, w=1760, anchor=(0.5, 0.5), shadow=None, tint=(1 - 0.62 * n, 1 - 0.54 * n, 1 - 0.28 * n))
     ksiezyc(st, t, w.moon, 420, 150)
     if wyspa > 0:
-        st.put(Z.S("mountain_gold", 0.6), 900, 410 + (1 - back(wyspa, 1.2)) * 170, 0.22, w=250, haze=0.45, shadow=(4, 5, 8, 0.25))
+        wy = WYSPA_Y + (1 - back(wyspa, 1.2)) * wyspa_w * 0.62
+        st.put(Z.S("mountain_gold", 0.6), 900, wy, 0.22, w=wyspa_w, haze=0.45,
+               shadow=(4, 5, 8, 0.25), rot=1.5 * settle((wyspa - 0.6) / 0.4 if wyspa < 1 else 0, 1.5, 2))  # wyspa z górą (reżyser 15.11: większa)
+        cyklopi(st, t, w, wy, wyspa_w)
     for i in range(4):
         kk = clamp(k * 2.2 - i * 0.4)
         if kk > 0:
@@ -549,15 +675,120 @@ def morze(st, t, w, k=1.0, wyspa=1.0):
 
 
 FALE = [(0.30, 384), (0.45, 452), (0.60, 528), (0.75, 606)]  # pasma fal: plan, linia grzbietu
+WYSPA_Y = 446  # dół wyspy (reżyser 15.11: „wyspa niżej”)
+
+
+def cyklopi(st, t, w, wy, wyspa_w):
+    """Jednoocy olbrzymi na stokach wyspy (reżyser 15.11: „narysuj cyklopów”). w.cyklopi — 0..1 wychodzą zza grani."""
+    k = w.get("cyklopi", 0.0)
+    if k <= 0:
+        return
+    mg = Z.S("mountain_gold", 0.6)
+    hh = wyspa_w * mg.h / mg.w
+    for n, fx in enumerate((0.36, 0.52, 0.66)):
+        kk = clamp(k * 1.6 - n * 0.3)
+        if kk <= 0 or n in w.get("cyklopi_bez", ()):  # reżyser 16.11 (puste morze): bez środkowego cyklopa
+            continue
+        x = 900 + (fx - 0.5) * wyspa_w
+        gy = wy - hh + mg.top(fx) * hh + 34
+        h = (100, 114, 92)[n]
+        p = 0.2205 + n * 0.0003
+        y = gy + (1 - back(kk, 1.3)) * h * 1.1
+        rot = 2.5 * math.sin(t * 1.3 + n * 2) + settle((kk - 0.7) / 0.3 if kk < 1 else 0, 1.5, 4)
+        nurek = (w.get("cyklopi_nurek") or {}).get(n)  # reżyser 16.11 (puste morze): skaczą od początku i wskakują do wody
+        if nurek is not None:
+            dx, up, drot = _nurek(t, *nurek)
+            if up < -700:  # dawno pod wodą
+                continue
+            ts = _pod_woda(st, t, nurek, x, gy, p)
+            if ts is not None and t >= ts:
+                _plusk(st, t, ts, x + _nurek(ts, *nurek)[0], p, n)
+            x, y, rot = x + dx, y - up, rot + drot
+        mm = w.get("cyklopi_mm", None)  # reżyser 16.11: „zrób, że oni prężą muskuły” — ręce na zawiasach w barku i łokciu
+        if mm is None:
+            st.put(Z.cyklop(n), x, y, p, h=h, haze=0.25, shadow=(3, 4, 6, 0.25), rot=rot)
+            continue
+        f = mm(n)  # 0 — ręce wiszą, 1 — oba bicepsy napięte (ramię poziomo, przedramię w górę)
+        k = h / 520.0
+        y -= 3 * f * k * 520 / 100  # pręży się: lekko podnosi na palcach
+        side = 1 if n % 2 == 0 else -1
+        st.put(Z.cyklop_maczuga(), x + side * 128 * k, gy + 4, p - 0.0001, h=220 * k, anchor=(40 / 90, 216 / 220), rot=14 * side,
+               haze=0.25, shadow=(3, 4, 6, 0.25))  # maczuga wbita w ziemię obok, ręce ma wolne
+        st.put(Z.cyklop(n, rece=False), x, y, p, h=h, haze=0.25, shadow=(3, 4, 6, 0.25), rot=rot)
+        c, sn = math.cos(math.radians(rot)), math.sin(math.radians(rot))
+        for strona in (-1, 1):  # -1 lewa ręka (na ekranie), 1 prawa
+            bx, by = (150 + 74 * strona - 150) * k, (200 - 520) * k  # bark względem stóp (kotwicy tułowia)
+            sx, sy = x + c * bx - sn * by, y + sn * bx + c * by
+            ra = rot - strona * lerp(14, 92, f)  # ramię: od zwisu lekko na zewnątrz do poziomu
+            pa = rot - strona * lerp(10, 192 + 6 * math.sin(t * 9 + n) * f, f)  # przedramię: od zwisu do pionu w górę, pięść drga
+            r = math.radians(ra)
+            ex, ey = sx - math.sin(r) * 84 * k, sy + math.cos(r) * 84 * k  # łokieć: 84 jednostki arkusza od barku
+            st.put(Z.cyklop_reka(n, "ramie"), sx, sy, p + 0.0001, h=112 * k * (1 + 0.08 * f), anchor=(0.5, 12 / 112), rot=ra,
+                   sx=-strona, haze=0.25, shadow=(2, 3, 5, 0.25))
+            st.put(Z.cyklop_reka(n, "przedramie"), ex, ey, p + 0.00012, h=120 * k, anchor=(0.5, 10 / 120), rot=pa, sx=-strona,
+                   haze=0.25, shadow=(2, 3, 5, 0.25))
+
+
+NUREK_D = 0.8  # skok cyklopa do wody: tyle trwa przesunięcie w bok (lot trwa, aż schowa się za falą)
+
+
+def _nurek(t, t_hop, t_skok, dx):
+    """(przesunięcie x, uniesienie, obrót) cyklopa, który podskakuje w miejscu, a potem skacze łukiem do wody:
+    lot z grawitacji (szczyt ok. 70 nad wyspą po 0,22 s), w locie obraca się głową w stronę skoku."""
+    if t < t_skok:
+        if t < t_hop:
+            return 0.0, 0.0, 0.0
+        f = (t - t_hop) / (t_skok - t_hop)  # podskok na rozgrzewkę
+        return 0.0, 34 * 4 * f * (1 - f), 0.0
+    tau = t - t_skok
+    v0 = 2 * 70.0 / 0.22
+    up = v0 * tau - 0.5 * (v0 / 0.22) * tau * tau
+    return dx * min(1.0, tau / NUREK_D), up, math.copysign(80, dx) * ease(min(1.0, tau / 0.6))
+
+
+def _pod_woda(st, t, nurek, x, gy, p):
+    """Chwila, w której stopy cyklopa schodzą na ekranie pod grzbiet pierwszej fali (plusk), albo None."""
+    t_skok = nurek[1]
+    for k in range(1, 120):
+        tt = t_skok + k * 0.01
+        dx, up, _ = _nurek(tt, *nurek)
+        stopy = st.cam.screen(x + dx, gy - up, p)[1]
+        grzbiet = st.cam.screen(x + dx, fala(0, tt), FALE[0][0])[1]
+        if up < 0 and stopy > grzbiet + 4:
+            return tt
+    return None
+
+
+def _plusk(st, t, ts, xw, p, seed):
+    """Plusk w miejscu, gdzie cyklop wpadł do wody: korona piany i krople lecące łukiem (0,8 s)."""
+    s = (t - ts) / 0.8
+    if s >= 1:
+        return
+    pf = FALE[0][0] + 0.001
+    sx = st.cam.screen(xw, 0, p)[0]  # to samo miejsce na ekranie, ale na planie fali
+    a0, a1 = st.cam.screen(0, 0, pf)[0], st.cam.screen(1, 0, pf)[0]
+    xs = (sx - a0) / (a1 - a0)
+    ys = fala(0, ts) + 6
+    r = random.Random(500 + seed)
+    for j in range(22):  # krople lecą łukiem w górę i spadają z powrotem za grzbiet fali
+        ang = math.radians(r.uniform(-50, 50))
+        v = r.uniform(110, 220)
+        xx = xs + math.sin(ang) * v * s * 0.9 + r.uniform(-8, 8)
+        yy = ys - 10 - math.cos(ang) * v * s + 360 * s * s
+        if yy > ys + 4:
+            continue
+        st.put(Z.prop("kulka"), xx, yy, pf, h=r.uniform(6, 11), anchor=(0.5, 0.5), tint=(0.85, 0.95, 1.1),
+               alpha=min(1.0, 1.6 * (1 - s)), shadow=None)
 
 
 def fala(i, t):
     return FALE[i][1] + 5 * math.sin(t * 1.3 + i * 1.1)
 
 
-def dzonka(st, t, x, f, seed=0):
-    """Dżonka płynąca w głąb sceny: f = 0 (pierwsze pasmo fal, duża) … 1 (za ostatnim pasmem, mała)."""
+def dzonka(st, t, x, f, seed=0, flip=1):
+    """Dżonka płynąca w głąb sceny: f = 0 (pierwsze pasmo fal, duża) … 1 (za ostatnim pasmem, mała). Pod koniec
+    (f > 0,9) przechodzi za ostatnie pasmo fal i chowa się za jego grzbietem (reżyser 15.11: „skryj ich za tą falą”)."""
     f = clamp(f)
-    p = lerp(0.74, 0.29, f)
-    y = lerp(FALE[3][1] + 4, FALE[0][1] - 2, f) + 20 + 5 * math.sin(t * 1.3 + seed) + 60 * ease((f - 0.86) / 0.14)
-    st.put(Z.boat(), x, y, p, h=lerp(150, 34, f), rot=4 * math.sin(t * 1.1 + seed * 2.3), haze=0.35 * f)
+    p = lerp(0.74, 0.31, min(1.0, f / 0.9)) if f < 0.9 else 0.295
+    y = lerp(FALE[3][1] + 4, FALE[0][1] - 2, min(1.0, f / 0.9)) + 20 + 5 * math.sin(t * 1.3 + seed) + 70 * ease((f - 0.9) / 0.1)
+    st.put(Z.boat(), x, y, p, h=lerp(150, 34, min(1.0, f / 0.9)), rot=4 * math.sin(t * 1.1 + seed * 2.3), haze=0.35 * f, sx=flip)

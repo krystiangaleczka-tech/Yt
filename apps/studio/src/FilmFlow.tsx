@@ -13,11 +13,13 @@ import {
 } from "./flowTypes";
 import { saveFlow } from "./flowSave";
 import ContinuityEditor from "./Continuity";
+import SketchStrip from "./SketchStrip";
+import { approvalState, sketchesFrom } from "./sketchTypes";
 import "./FilmFlow.css";
 
 export type FlowPage = "bible" | "project-setup" | "idea-flow" | "master-story" | "acts" | "sequences" | "scene-plan" | "script-flow" | "continuity";
 const nextPage: Record<FlowPage, string> = {
-  bible: "project-setup", "project-setup": "idea-flow", "idea-flow": "master-story", "master-story": "acts", acts: "sequences",
+  bible: "project-setup", "project-setup": "idea-flow", "idea-flow": "sketches", "master-story": "acts", acts: "sequences",
   sequences: "script-flow", "script-flow": "scene-plan",
   "scene-plan": "director", continuity: "export",
 };
@@ -283,6 +285,7 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
         <strong>{bibleFields.filter(x => flow.bible[x.key].trim()).length}/6 uzupełnionych obszarów</strong>
         <button onClick={() => s.setPage("bible")}>Otwórz pamięć filmu <ArrowRight size={14} /></button>
       </div>}
+      {!["bible", "project-setup", "idea-flow"].includes(page) && <SketchStrip project={p} onOpen={() => s.setPage("sketches")} />}
       {page === "bible" && <>
         <div className="flow-explainer">Pamięć jest zapisywana w tym projekcie. AI otrzymuje ją przy generowaniu nowych wariantów i recenzji. Nie trzeba jej uzupełniać w całości przed rozpoczęciem.</div>
         <label className="flow-toggle"><input type="checkbox" checked={flow.factual}
@@ -358,10 +361,23 @@ export default function FilmFlow({ page }: { page: FlowPage }) {
         <div className="flow-actions">
           <Button onClick={() => s.setPage("idea")}>Zaawansowane porównanie pomysłów</Button>
           <Button primary disabled={!p.development.selected_idea_id} icon={ArrowRight}
-            onClick={() => s.setPage("master-story")}>Dalej: Master Story</Button>
+            onClick={() => s.setPage("sketches")}>Dalej: szkice ujęć</Button>
         </div>
       </>}
       {page === "master-story" && <>
+        {(() => {
+          const sk = sketchesFrom(p), approved = sk.approved;
+          if (!approved || approvalState(sk) === "missing") return null;
+          const description = approved.snapshot.scenario.trim() || approved.snapshot.shots
+            .map(x => [x.mark && `[${x.mark}]`, x.description, x.line && `„${x.line}”`].filter(Boolean).join(" ")).join("\n\n");
+          const taken = flow.master.variants.some(v => v.title === approved.title && v.description === description);
+          return <div className="flow-explainer">
+            Zatwierdzony szkic ujęć „{approved.title}” to kierunek tej historii{approvalState(sk) === "stale" ? " (zmieniony po zatwierdzeniu)" : ""}.
+            {taken ? <span className="flow-ok"> <Check size={14} /> Przejęty do Master Story</span> : <button onClick={() => saved(f => {
+              const v = newVariant(approved.title, description); f.master.variants.push(v); f.master.selected = v.id;
+            })}>Przejmij zatwierdzony szkic</button>}
+          </div>;
+        })()}
         {p.development.selected_story_id && <div className="flow-explainer">
           W aplikacji istnieje wybrany wariant historii. Możesz go zaimportować do Master Story bez usuwania źródła.
           <button onClick={() => saved(f => {
