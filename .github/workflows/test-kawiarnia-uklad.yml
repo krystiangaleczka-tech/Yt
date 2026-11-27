@@ -1,0 +1,38 @@
+name: Test ujęcia 24 i regresja 25
+on:
+  push:
+    branches: [test-kawiarnia-uklad]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [klip, porownanie, kontrola, kuchnia]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          python -m pip install numpy pillow scipy
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+      - name: Render albo test
+        working-directory: output/bonnie-i-clyde
+        run: |
+          mkdir -p /tmp/wyniki
+          case "${{ matrix.task }}" in
+            klip) python3 ujecie_kawiarnia.py klip /tmp/wyniki/klip_bez_dzwieku.mp4 && python3 ujecie_kawiarnia.py dzwiek /tmp/wyniki/klip_bez_dzwieku.mp4 /tmp/wyniki/kawiarnia.mp4 ;;
+            porownanie) python3 ujecie_kawiarnia.py porownanie /tmp/wyniki/porownanie.png ;;
+            kontrola) python3 ujecie_kawiarnia.py kontrola /tmp/wyniki ;;
+            kuchnia) python3 ujecie_kuchnia.py kontrola /tmp/kuchnia; cp -a /tmp/kuchnia/. /tmp/wyniki/; grep -E '^\| [^|]+ \| [1-9][0-9]* /' /tmp/wyniki/raport_kuchnia.md && exit 1 || true ;;
+          esac
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.task }}
+          path: /tmp/wyniki/
