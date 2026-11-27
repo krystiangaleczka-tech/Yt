@@ -507,7 +507,15 @@ def s_kawiarnia(st, w, t, T):
 
 
 def s_kuchnia(st, w, t, T):
-    """W ciasnej kuchni Bonnie miesza kakao; drzwiami wchodzi Clyde w kapeluszu i uchyla go; z nitki zjeżdżają dwa serduszka."""
+    """W ciasnej kuchni Bonnie miesza kakao; drzwiami wchodzi Clyde w kapeluszu i uchyla go; z nitki zjeżdżają dwa serduszka.
+    Rysuje ujecie_kuchnia.py na silniku uklad.py (rzędy sceny, przyczepianie, ręka z łokciem, kontrola) — reżyser
+    zatwierdził 27.11.2026."""
+    import ujecie_kuchnia  # tu, nie u góry: ujecie_kuchnia sam korzysta z ujecia_a
+    ujecie_kuchnia.s_kuchnia(st, w, t, T)
+
+
+def s_kuchnia_stara(st, w, t, T):
+    """Wersja do 27.11 (zastąpiona przez ujecie_kuchnia.py): zostaje do porównania — `ujecie_kuchnia.py porownanie`."""
     kam(st, t, 16, 640, 390, 1.1, 0.8)
     wnetrze(st, t, w, sciana="kwiaty", okna=(300,), drzwi=(1060,), meble=(("kuchenka", 420, 170, None), ("stol", 760, 140, None)))
     # garnek przed łyżką: łyżka znika w garnku, kiedy Bonnie miesza (było: łyżka sterczała z ręki obok garnka)

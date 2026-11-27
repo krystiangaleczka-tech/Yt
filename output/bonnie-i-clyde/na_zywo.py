@@ -34,7 +34,7 @@ WYCINKI = DANE / "wycinki"
 STRONA = HERE.parent / "pierwszy-cesarz" / "na_zywo" / "podglad.html"  # ta sama strona podglądu
 # kolejność przeładowania: moduł i wszystko, co z niego korzysta (wycinki w zestaw.py budują się od nowa tylko wtedy,
 # gdy zmienił się zestaw.py albo papier.py — zmiana samego ujęcia liczy się w ułamek sekundy)
-MODULY = ["papier", "zestaw", "zestaw_bc", "dane", "scena", "ujecia_a", "ujecia_b", "render"]
+MODULY = ["papier", "zestaw", "zestaw_bc", "dane", "scena", "ujecia_a", "ujecia_b", "uklad", "ujecie_kuchnia", "render"]
 SILNIK = HERE.parent / "pierwszy-cesarz"  # papier.py i zestaw.py — silnik wspólny z „Pierwszym cesarzem”
 PLIKI = {m: (DOCS if m == "dane" else SILNIK if m in ("papier", "zestaw") else HERE) / f"{m}.py" for m in MODULY}
 

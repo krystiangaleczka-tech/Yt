@@ -551,6 +551,7 @@ i błędy znalezione w kontroli.
 | Miniaturka Pierwszego cesarza (16.11, reżyser) | z dwóch koncepcji wygrało zbliżenie; plan ogólny miał za drobne postacie; cesarz bez obrysu ginął na tle miasta; tabliczka „NO WAY?!” prosta i za wysoko | 5.1 |
 | Miniaturka (16.11, znalezione w kontroli) | ostrze łopaty ucięte krawędzią arkusza wyglądało jak grot; grudy ziemi na żołnierzu jak dziury; szyld z tytułem EN dotykał krawędzi kadru; meteoryt nachodził na ostrze łopaty | 5.2 |
 | Miniaturka (16.11, reżyser) | Fujifilm o sile 1,8 „za mocny”, 0,8 nadal za dużo → 0,5 i minimalne rozjaśnienie; spirale na oczach z białym tłem → grube czarne wprost na skórze | 5.1, 5.4 |
+| Bonnie and Clyde, ujęcie 25 „kuchnia” (27.11, reżyser) | „model AI nie do końca wie, kto trzyma co w ręku, kto jest za czym” — w kuchni Clyde wjeżdżał zza krawędzi kadru obok zamkniętych drzwi (dźwięk drzwi był, drzwi się nie otwierały), „uchylał” kapelusz pustą dłonią nad głową (sztywna ręka z jednym zawiasem nie sięga własnej głowy: bark–kapelusz ≈ 0,75 długości ręki), stół stał za aktorami jak ława | 1.1, 1.2; silnik `output/bonnie-i-clyde/uklad.py`: rzędy sceny zamiast ręcznego p i z, rzecz przyczepiona do dłoni, blatu, naczynia albo głowy, ręka z łokciem (dłoń idzie do punktu, łokieć liczy silnik), kontrola na buforze identyfikatorów i rzut sceny z góry (`ujecie_kuchnia.py kontrola`) |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

@@ -1821,7 +1821,7 @@ ZDARZENIA = {
     "poezja": [(1.6, "whoosh", 0.4), (2.3, "thud", 0.5), (2.4, "indyk", 0.7)],
     "roy": [(3.0, "drzwi", 0.7)],
     "kawiarnia": [(1.45, "nalewanie", 0.85), (2.95, "lomot", 0.9)],
-    "kuchnia": [(0.0, "mieszanie", 3.0), (1.2, "drzwi", 0.6), (3.3, "whoosh", 0.25)],
+    "kuchnia": [(0.0, "mieszanie", 3.0), (1.2, "drzwi", 0.6), (2.95, "stuk", 0.9), (3.3, "whoosh", 0.25)],  # 2,95: drzwi domykają się za Clyde'em
     "areszt": [(0.85, "kajdanki", 1.0), (4.75, "drzwi", 0.9)],
     "waco": [(0.4, "whoosh", 0.3), (1.2, "metal", 0.6), (2.2, "skrzyp", 0.6), (6.3, "boing_m", 0.5)],
     "waco_przed": [(3.6, "papier", 0.3), (6.3, "drzwi", 0.6)],
@@ -2041,6 +2041,18 @@ def skan():
                 setattr(M, nazwa, w_dekor(nazwa, getattr(scena, nazwa)))
     B.motocykl = w_auto(scena.motocykl, "moto")
     scena.lalka = w_lalka(scena.lalka)  # cienie (scena.cien) i pasażerowie (siedzą — pomijani)
+    # ujęcia na silniku uklad.py (ujecie_kuchnia): lalki rysuje Uklad.lalka, a kuchnię — dekoracja (tło jak wnetrze)
+    import ujecie_kuchnia as K
+    import uklad as U
+    w_lalka_scena = w_lalka(lambda st, t, key, x, h=300, *a, **kw: None)
+
+    def w_lalka_ukl(orig):
+        def f(self, nazwa, key, x, h=300, *a, **kw):
+            w_lalka_scena(self.st, self.t, key, x, h, *a, **kw)
+            return orig(self, nazwa, key, x, h, *a, **kw)
+        return f
+    U.Uklad.lalka = w_lalka_ukl(U.Uklad.lalka)
+    K.dekoracja = w_dekor("wnetrze", K.dekoracja)
     J.hang = w_hang
     starts = [a for a, b, *_ in R.SCENES]
     import bisect
