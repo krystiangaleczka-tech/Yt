@@ -1,13 +1,17 @@
-name: Szybka diagnostyka kadru 24
+name: Kawiarnia - poprawka animacji ręki
 on:
   push:
     branches: [test-kawiarnia-uklad]
 permissions:
   contents: read
 jobs:
-  diagnostyka:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [klip, kontrola]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -16,25 +20,17 @@ jobs:
       - run: |
           python -m pip install numpy pillow scipy
           sudo apt-get update -qq
-          sudo apt-get install -y fonts-noto-cjk fonts-dejavu-core
-      - working-directory: output/bonnie-i-clyde
+          sudo apt-get install -y ffmpeg fonts-noto-cjk fonts-dejavu-core
+      - name: Render albo test
+        working-directory: output/bonnie-i-clyde
         run: |
-          python -u - <<'PY'
-          import base64, io
-          from PIL import Image
-          import ujecie_kawiarnia as K
-          import uklad as U
-          R = K._render()
-          i,_ = K.podmien(R)
-          a,b = R.SCENES[i][:2]
-          print("CZAS",b-a,"FPS",R.FPS,flush=True)
-          for t in (0.0,0.6,0.95,1.1,1.25,1.45,1.8,2.29,2.55,2.95,3.2,7.55,8.1,9.55,10.35):
-              st,_ = R.uloz(a+t)
-              wyn,*_ = U.kontrola(st)
-              print("WYNIK",t,len(wyn),[(o,v) for o,ok,v in wyn if not ok],flush=True)
-              if t in (1.8,2.95,7.55):
-                  im = st.render().resize((480,270), Image.LANCZOS)
-                  buf=io.BytesIO()
-                  im.save(buf,format="JPEG",quality=55)
-                  print("IMG",t,base64.b64encode(buf.getvalue()).decode(),flush=True)
-          PY
+          mkdir -p /tmp/wyniki
+          case "${{ matrix.task }}" in
+            klip) python3 ujecie_kawiarnia.py klip /tmp/wyniki/klip_bez_dzwieku.mp4 && python3 ujecie_kawiarnia.py dzwiek /tmp/wyniki/klip_bez_dzwieku.mp4 /tmp/wyniki/kawiarnia.mp4 ;;
+            kontrola) python3 ujecie_kawiarnia.py kontrola /tmp/wyniki; cat /tmp/wyniki/raport_kawiarnia.md ;;
+          esac
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.task }}
+          path: /tmp/wyniki/
