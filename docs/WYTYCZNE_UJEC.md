@@ -195,6 +195,13 @@ Ruch przedmiotu liczy się z jego fizyki, a nie z osobnych krzywych „na oko”
 - **Upadek przyspiesza:** przewracanie i spadanie idą coraz szybciej (ok. 0,3–0,45 s), nie jednostajnie i nie w
   zwolnionym tempie; po uderzeniu krótki, gasnący dygot. Mały podskok tuż przed położeniem się (kilka pikseli kadru
   wzorcowego) daje wyraźny moment zdarzenia — rzecz kładzie się w locie i spada tam, gdzie ma leżeć.
+- **Dygot na krawędzi dna:** rzecz postawiona z hukiem (dzbanek walnięty o ladę) kołysze się wokół tego narożnika dna,
+  który dotyka blatu, a druga krawędź unosi się — nie obraca się wokół środka dna, bo wtedy narożnik wchodzi w blat
+  („kawiarnia” 27.11: kontrola „stoi na blacie” pokazała dno 3 px pod blatem). Rzecz obok na tym samym blacie (filiżanka)
+  podskakuje razem z uderzeniem.
+- **Toczenie z podskokami** (kula stepowego zielska): w locie kula leci po paraboli i dalej się obraca (kąt nadal z drogi),
+  a w każdej chwili styku dno leży na posadzce. Kontrola: dno = posadzka − wysokość podskoku w każdej klatce, w której
+  posadzka jest w kadrze.
 - **Lekka rzecz frunie:** kapelusz, kartka, list, pióro i gazeta opadają zygzakiem jak liść, kołyszą się i kładą na płask,
   a nie spadają jak kamień. Reżyser 23.11 („Bonnie and Clyde”): „niech ta czapka tak fruwa na ziemię z postrzeloną dziurą”,
   „ta kartka ma latać w powietrzu 4 s i wlepić się tak jak teraz”, kapelusz z okna auta „leci do góry w tym kierunku i spada
@@ -353,6 +360,11 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 - To, co wpada do naczynia (kulki rtęci, trucizna), znika za jego przednim brzegiem i nie wychodzi poza obrys (reżyser
   15.11: „kulki wychodzą poza wazę”) — jak przy otworze (1.1). Strumień wypływa z brzegu naczynia i kończy się
   w ustach; początek i koniec mierzy się na klatce.
+- Strumień z naczynia do naczynia (kawa z dzbanka do filiżanki): dzióbek stoi **nad otworem** drugiego naczynia, strumień
+  zaczyna się na końcu dzióbka, spada w dół i kończy się kilka pikseli pod brzegiem, schowany za przednią ścianką
+  (plan strumienia tuż za filiżanką); na początku rośnie od dzióbka w dół, na końcu odrywa się od dzióbka; w naczyniu
+  pojawia się tafla napoju. W `uklad.py`: `u.trafia` (koniec strumienia między brzegami otworu) + `u.w_naczyniu` (nic spod
+  brzegu) + `u.dotyka` strumienia i dzióbka w tym samym punkcie (wzór: `ujecie_kawiarnia.strumien`).
 - Nitka jest tylko przy tym, co teatr spuszcza z góry (zawieszka, księżyc, mapa, kielich); krople, kulki i drobiazgi
   spadają bez nitek („usuń te linie”).
 - Drobne rzeczy w ruchu idą tak wolno, żeby widz zdążył je zobaczyć („te srebrne kulki niech dużo wolniej zjeżdżają”).
@@ -438,6 +450,9 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 - Lalki i auta wchodzą dopiero, kiedy dekoracja się zbuduje (`scena.wejscie`); na pustym płótnie nikt nie stoi.
   To samo dotyczy rzeczy: rekwizyt, zawieszka i nitka postawione wprost w ujęciu pojawiają się po zbudowaniu dekoracji
   (`render.po_budowie`), a światło za oknem zapala się, gdy stoi ściana — teczka nie wisi nad pustym płótnem przed biurkiem.
+  Wyjątek: rzecz w dłoni albo na głowie lalki wchodzi **razem z lalką**, pełna od pierwszej klatki — nie prześwituje
+  w dłoni wysuwającej się lalki (w `uklad.py`: `u.w_dloni` albo `u.rzecz(..., z_lalka=True)`; „kawiarnia” 27.11: dzbanek
+  i gazeta przez 0,3 s prześwitywały w dłoniach, bo `po_budowie` przyciemniał je jak rekwizyty postawione na scenie).
 - Pasażer auta jest widoczny w oknie od pasa w górę; nogi nie wystają spod karoserii (`siedzi=True`). Rzecz w oknie
   (gazeta) stoi obok głowy, nie na niej.
 - Rzecz leżąca na ziemi, leżąca postać i woda, w której ktoś brodzi, są nad rampą — inaczej rampa i napisy je chowają
@@ -486,12 +501,22 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 ### 1.28 Biomechanika lalki i rekwizytu
 Reżyser 19.11 („umiejscowienie tych rekwizytów w rękach, albo na stole, przy stole itp. jest tragiczne… ogarnij biomechanikę”).
 Lalka teatru papierowego ma ciało sztywne i dwie ręce, każda to jeden odcinek od barku do dłoni (zawias tylko w barku). Z tego
-wynikają zasady — liczone, nie zgadywane (`scena.bark`, `scena.dlon`, `scena.siegnij`, `scena.stan_przy`):
+wynikają zasady — liczone, nie zgadywane (`scena.bark`, `scena.dlon`, `scena.siegnij`, `scena.stan_przy`).
+W silniku `uklad.py` (1.32) ręka ma **łokieć**: ramię i przedramię na spince, zasięg = ramię + przedramię, kąty liczy
+odwrotna kinematyka (`u.lalka(..., przod=cel)`); `siegnij` zastępuje kontrola „dłoń sięga celu”, a `stan_przy` —
+ustawienie postaci z punktu chwytu (wzór: `ujecie_kawiarnia.stan_bonnie_x`: ucho dzbanka w 80% zasięgu ręki). Zasady
+niżej obowiązują w obu silnikach:
 
 **Zasięg i kolejność.** Najpierw ustala się punkt, którego dotyka dłoń (ucho dzbanka nad filiżanką, brzeg gazety przy twarzy,
 dłoń partnera, blat), potem kąt ręki z tego punktu: `kat, dosiega = siegnij(lalka, x, punkt)`. Jeśli dłoń nie dosięga
 (odległość od barku większa niż ręka), lalka **podchodzi** (`stan_przy`) albo rzecz leży bliżej — rzecz nigdy nie przyskakuje
 do dłoni, a dłoń nie wisi w powietrzu obok rzeczy.
+
+**Narzędzie ustawia się od końca, który pracuje.** Rzecz z dwoma ważnymi punktami (dzbanek: ucho i dzióbek; konewka, łyżka
+z czerpakiem, pióro, nóż) liczy się od tego, co robi: najpierw dzióbek nad otworem filiżanki (z filiżanki, która stoi na
+blacie), z niego i z przechyłu — ucho, z ucha — cel dłoni, z celu dłoni — miejsce postaci. Przechylając dzbanek, obraca się
+go wokół dzióbka (dzióbek stoi nad filiżanką, dłoń z uchem się przesuwa), a nie wokół dłoni. Odwrotna kolejność (postać →
+dłoń → dzbanek) daje strumień obok filiżanki.
 
 **Chwyt za uchwyt.** Każdy rekwizyt ma punkt chwytu w arkuszu (kotwica `trzyma`): dzbanek — ucho, rewolwer — kolba (0.3, 0.75),
 karabin — szyjka kolby (0.3, 0.55), kula — rączka (0.5, 0.45), laska — gałka, gazeta — bliższy brzeg, miarka — kasetka.
@@ -556,6 +581,15 @@ Clyde przy Bonnie i W.D. trzyma ją pod ramię, a nie stoi metr dalej (marker 24
   wystawały nogi pasażerów, w każdym ujęciu z `kurz=True` (reżyser 24.11: „w kilku nadal nie ma spodów aut”).
 - **Wariant sprawdza się jak nowy wycinek.** Każdy przełącznik wycinka (kurz, dziury, napis, noc) zmienia arkusz: obejrzyj
   go raz obok wersji podstawowej, zanim pojedzie do ujęć.
+- **Punkt chwytu leży na papierze.** Rekwizyt, który ktoś trzyma, nalewa albo stawia, ma w arkuszu punkty: chwyt, koniec
+  roboczy (dzióbek, lufa), dno. Zanim pojedzie do ujęć, obejrzyj arkusz raz w powiększeniu z tymi punktami zaznaczonymi:
+  ucho jest przyklejone do korpusu, dzióbek wychodzi z korpusu, dno to dolna krawędź papieru. `zestaw_bc.REKWIZYTY["dzbanek"]`
+  ma ucho 17 px obok korpusu (wisi w powietrzu), więc dłoń na uchu nie trzymała dzbanka — „kawiarnia” 27.11 rysuje własny
+  dzbanek (`ujecie_kawiarnia.dzbanek_ark`); inne ujęcia ze starym dzbankiem trzeba przejrzeć (1.6).
+- **Mebel nie ma szpar.** Mebel jest sklejony z kawałków o poszarpanych brzegach i między nimi zostają szparki 1–3 px, przez
+  które prześwituje to, co za nim — przez ladę prześwitywała Bonnie („kawiarnia” 27.11, kontrola „od pasa w dół za ladą”).
+  `u.mebel` w `uklad.py` kładzie za każdym meblem jego plecy (obrys z zalepionymi szparkami, ciemniejsza barwa mebla);
+  mebel rysowany poza silnikiem (`scena.wnetrze`) trzeba sprawdzić tak samo, kiedy ktoś za nim stoi.
 - **Kostium z jednego kawałka.** Strój, który zakłada się na lalkę (suknia ślubna, płaszcz), to jeden wycinek od linii
   ramion do dołu, przed tułowiem i za przednią ręką, z pochyleniem lalki — nie dzwon doklejony od pasa do sukienki z arkusza
   lalki (reżyser 24.11: „suknia ma być w jednej całości, a nie w dwóch częściach”).
@@ -580,6 +614,11 @@ pustą dłonią nad głową. Dlatego:
 - **Najpierw rzut z góry.** Przed rysunkiem ujęcia z meblami, drzwiami i rzeczami w dłoniach zapisz rzędy sceny (za ścianą,
   przy ścianie, aktorzy, przód przed aktorami) i kto stoi w którym; kto jest za ladą, a kto przed nią, i dlaczego. Plan głębi
   i kolejność rysowania wynikają z rzędu, nie z liczby wpisanej przy wycinku.
+- **Bliższy rząd nie stoi przed akcją ujęcia.** Kto stoi bliżej widza, stoi z boku tego, o czym jest ujęcie, a nie przed
+  tym — i to samo dotyczy rzeczy w jego dłoniach. „Kawiarnia” (27.11): Bonnie za ladą (obsługa stoi za ladą, lada zasłania
+  ją od pasa jak kuchenka w „kuchni”), klient przed ladą, ale przy jej końcu — gdyby stał przed środkiem lady, zasłoniłby
+  filiżankę i nalewanie; jego gazeta zasłaniała filiżankę jeszcze, póki wisiała za nisko (kontrola „filiżanka: widać ≥ 95%”
+  pokazała 82%). Na to, o czym jest ujęcie, zawsze stawiaj kontrolę `u.widac(…, 0.95)`.
 - **Każda rzecz jest do czegoś przyczepiona**: do dłoni (za punkt chwytu), do blatu, do wnętrza naczynia albo do głowy.
   Położenie liczy się w każdej klatce z tego, do czego jest przyczepiona (garnek jedzie razem z wyrastającą kuchenką).
   Przepięcie, np. z głowy do dłoni, dzieje się w tej klatce, w której dłoń dotyka chwytu (1.28).
@@ -591,12 +630,25 @@ pustą dłonią nad głową. Dlatego:
 - **Kontrola każdej klatki na buforze identyfikatorów** (każdy wycinek ma właściciela): ile widać każdej rzeczy, czy dłoń
   dotyka chwytu, czy dno stoi na blacie, czy nic nie wychodzi spod brzegu naczynia ani poza otwór drzwi, czy dłoń sięga
   celu. Obok klatki rzut sceny z góry z rzędami, przyczepieniami i kamerą.
+- **Kontrola nie przechodzi na pusto.** Kontrola, której w danej klatce nie da się sprawdzić — rzeczy jeszcze nie ma
+  (wyłania się przy budowie dekoracji), punkt albo dno jest poza kadrem (przy zbliżeniu 1,15 posadzka jest pod dolną
+  krawędzią, kula za prawym brzegiem) — nie daje „OK”, tylko trafia do pominiętych z powodem (`st.uklad.pominiete`).
+  Raport (`uklad.zlicz` + `uklad.raport_md`) pokazuje przy każdej kontroli: z błędem / sprawdzonych / pominiętych,
+  a kontrola sprawdzona w **zero** klatek jest błędem — zapisana, a nigdy niesprawdzona niczego nie dowodzi
+  („kawiarnia” 27.11: „filiżanka stoi na blacie” przechodziła, kiedy filiżanki jeszcze nie było). Kontrolę zapisuj bez
+  warunku „dokładnie w tej chwili” i sprawdź, czy każda kontrola z opisu ujęcia ma swój wiersz w raporcie — kontrola styku
+  zielska z posadzką czekała na podskok równy dokładnie zeru, nie trafiła w żadną klatkę i w raporcie nie było jej wcale.
+- **Nowa kontrola dostaje dowód.** Kiedy dopisujesz nowy rodzaj kontroli albo nową kontrolę rzeczy w dłoni, raz celowo
+  zepsuj to, co sprawdza (dzbanek przesunięty o 20 px od dłoni), pokaż, że kontrola to łapie, i cofnij — wzór:
+  `python3 ujecie_kawiarnia.py dowod <katalog>`.
 
 Silnik: `output/bonnie-i-clyde/uklad.py` (nakładka na `papier.Stage` i `scena.lalka`; `Uklad(st, t)`, `u.mebel`, `u.na`,
-`u.lalka`, `u.rzecz`, `kontrola(st)`, `rzut(st, …)`), wzór: `ujecie_kuchnia.py` (`… kontrola`: 17 rodzajów kontroli,
-131 klatek, 0 błędów; zatwierdzone przez reżysera 27.11). Na 27.11 silnik jest na gałęzi `bonnie-i-clyde-kuchnia-uklad`,
-jeszcze nie scalonej z gałęzią filmu, a ujęcie 24 „kawiarnia” jest w próbach (gałąź `test-kawiarnia-uklad`, „nic nie
-wgrywaj, to są testy”). Ujęcia z meblami, drzwiami i rzeczami w dłoniach budujemy odtąd na tym silniku.
+`u.lalka`, `u.rzecz`, `u.w_dloni`, `u.trafia`, `kontrola(st)`, `zlicz`, `raport_md`, `rzut(st, …)`), wzory:
+`ujecie_kuchnia.py` (ujęcie 25, zatwierdzone przez reżysera 27.11: 17 kontroli, 0 błędów) i `ujecie_kawiarnia.py` (ujęcie 24:
+strumień do filiżanki, odstawianie z hukiem, gazeta w obu dłoniach, toczenie z podskokami; 24 kontrole na każdej z 250 klatek,
+0 błędów; czeka na reżysera). Na 27.11 silnik jest na gałęziach `bonnie-i-clyde-kuchnia-uklad` (kuchnia) i
+`claude/bonnie-i-clyde-kawiarnia` (kawiarnia + usprawnienia silnika z tej sekcji), jeszcze nie scalonych z gałęzią filmu.
+Ujęcia z meblami, drzwiami i rzeczami w dłoniach budujemy odtąd na tym silniku.
 
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
@@ -636,6 +688,12 @@ Zanim ujęcie trafi do Studio do oceny:
    „pusta krawędź” bywa fałszywa — rozstrzyga test płótna w kolorze magenta (nienarysowane miejsce świeci na różowo).
    Po poprawkach porównaj render z materiałem w Studio na **tych samych numerach klatek** i wgraj tylko zmienione ujęcia
    (`studio_dzien.py <dzień> <projekt> tylko=…`).
+   - **Ujęcie na silniku `uklad.py`** (1.32): `python3 ujecie_<klucz>.py kontrola <katalog>` — raport ze **wszystkich**
+     klatek ujęcia (nie co drugiej: przy 24 kl./s pełny przebieg 10-sekundowego ujęcia to ok. minuty), 0 błędów, żadnej
+     kontroli sprawdzonej w zero klatek, a pominięte tylko z powodem, który wynika z osi czasu (budowa dekoracji, punkt
+     poza kadrem). Obejrzyj arkusz kontroli (klatka + rzut z góry w chwilach zdarzeń) i arkusz zbliżeń dłoni. Przy nowej
+     kontroli — dowód celowym błędem (1.32). Po zmianie silnika uruchom kontrolę także ujęć już zatwierdzonych na nim
+     (`ujecie_kuchnia.py kontrola`).
 4. **Przejrzyj uwagi**: wszystkie uwagi reżysera w ujęciach i markery na klatkach z tego filmu muszą mieć odpowiedź w
    obrazie. Marker ma klatkę osi Studio (30 kl./s), render ma 24 kl./s — przeliczaj przez sekundy. Listę do pracy daje
    `python3 scripts/uwagi_rezysera.py <projekt> [--od RRRR-MM-DD] [--md plik.md]`: numer ujęcia, sekunda, klatka renderu,
@@ -944,6 +1002,7 @@ i błędy znalezione w kontroli.
 | Bonnie and Clyde, 24.11 (czego nie objął wiersz z 24.11) | noc i dzień zmieniały się przez cięcie albo wcale (ujęcia 20–21: „słońce na księżyc… z ciemności i księżyca zmienić na słońce”); karta z aktami znikała z teczki w jednej klatce; dym po zasadzce rzedł za szybko („dłużej dym”); reżyser dopisał znaki: oczy „< <”, nuty nad saksofonem, gwiazdy; napisy lektora wypalone w obrazie („usuń te napisy”) | 1.2, 1.6, 1.13, 1.20, 1.22, 1.25 |
 | Miniaturki Bonnie and Clyde (24–25.11, reżyser i wyniki po 18 h) | plan ogólny w beżach (C, D) — CTR 2,1 % przy 3,2 % „Syna słońca”, w 320 px nie widać min; w plakacie D krzaki za duże, auto za wysoko, czapki w dłoniach ginęły na polu; Test & Compare przyjmuje najwyżej 3 warianty | 5.6 |
 | Bonnie and Clyde, ujęcie 25 „kuchnia” (27.11, reżyser) | „model AI nie do końca wie, kto trzyma co w ręku, kto jest za czym” — Clyde wjeżdżał zza krawędzi kadru obok zamkniętych drzwi (dźwięk drzwi był, drzwi się nie otwierały), „uchylał” kapelusz pustą dłonią nad głową (sztywna ręka z jednym zawiasem nie sięga własnej głowy), stół stał za aktorami jak ława | 1.1, 1.2, 1.32 (nowa; silnik `uklad.py`) |
+| Bonnie and Clyde, ujęcie 24 „kawiarnia” (27.11, kontrola silnika `uklad.py` — nie marker reżysera) | kontrola „stoi na blacie” przechodziła, kiedy filiżanki jeszcze nie było, a kontrola styku zielska nie trafiła w żadną klatkę; przy krawędzi kadru kontrola mierzyła brzeg kadru zamiast dna; dzbanek z zestawu ma ucho 17 px obok korpusu; przez szparki w ladzie prześwitywała Bonnie; gazeta klienta zasłaniała filiżankę (82%); dzbanek kołysany wokół środka dna wchodził 3 px w blat; dzbanek i gazeta prześwitywały w dłoniach wysuwających się lalek | 1.12, 1.22, 1.27, 1.28, 1.29, 1.32, 3.3 |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
