@@ -96,6 +96,29 @@ def odstawiony(u, nazwa, key, fu, h, k):
     return geo
 
 
+@lru_cache(None)
+def palce_bonnie():
+    """Ta sama papierowa dłoń, tylko przednia część chwytu nad uchem.
+    Pozostała część dłoni zostaje za uchem dzbanka."""
+    im = J._ramie_img(J.spec("bonnie_kelnerka"))
+    alpha = np.asarray(im.getchannel("A")).copy()
+    yy, xx = np.ogrid[:im.height, :im.width]
+    # Przednia połowa dłoni na arkuszu: nie powielamy rękawa ani przedramienia.
+    f = J.figura("bonnie_kelnerka")
+    mask = (yy >= 216) & (xx <= f.zawias[0] + 3)
+    im.putalpha(Image.fromarray(np.where(mask, alpha, 0).astype(np.uint8)))
+    return U.Sprite(im, "Bonnie-palce-chwyt", rim=0, clean=False, crop=False)
+
+
+def pokaz_chwyt(u, s, xy, p):
+    f = J.figura("bonnie_kelnerka")
+    ratio = u.st.cam.mag(s["p"]) / u.st.cam.mag(p)
+    with u.obiekt("Bonnie", "lalka"):
+        u.st.put(palce_bonnie(), *xy, p, h=f.ah*s["sc"]*ratio,
+                 anchor=(f.zawias[0]/f.aw, J.DLON[1]/f.ah),
+                 rot=s["przod"]["r2"], sx=s["flip"], z=0.04, shadow=None)
+
+
 def dzbanek_i_bonnie(u, w, t, k, kubek, mutacja=0.0):
     ark = U.ark_rek("dzbanek")
     rest = na_blacie_geo(u, ark, FU_DZBANEK, H_DZBANEK)
@@ -156,6 +179,7 @@ def dzbanek_i_bonnie(u, w, t, k, kubek, mutacja=0.0):
         hx, hy = na_plan(u.st, dlon, s["p"], p)
         # Mutacja przesuwa rzeczywisty rysowany wycinek, nie cel dłoni.
         geo = u.rzecz("dzbanek", ark, hx + mutacja, hy, p, UCHO, H_DZBANEK, rot=kat, z=0.02)
+        pokaz_chwyt(u, s, (hx, hy), p)
         u.relacje.append(("dzbanek", "Bonnie", "w dłoni za ucho"))
         u.kontakt(xy3(geo(*UCHO), p), xy3(dlon, s["p"]),
                   "dzbanek: ucho w dłoni Bonnie", tol=2.0)
