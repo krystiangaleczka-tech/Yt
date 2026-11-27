@@ -16,6 +16,9 @@ i uwagi reżysera · 5 miniaturka · 6 skąd te zasady.
 ## 0. Przepis na ujęcie — od wiersza rozpiski do Studio
 
 Każde ujęcie powstaje w tej samej kolejności. Pominięty krok to zwykle marker reżysera dzień później.
+Poprawka istniejącego ujęcia zaczyna się od diagnozy starego, zanim zmieni się kod: zmierz w kodzie i na klatkach, co
+jest źle (gdzie jest dłoń względem rzeczy, co zasłania twarz, przez co przechodzi rzecz, w którym planie stoi lalka),
+i przy każdej zmianie zapisz w docstringu ujęcia „Było: …” (kawiarnia 27.11, wersja Gemini).
 
 1. **Wiersz rozpiski** (`docs/filmy/<film>/ujecia/dane.py`): klucz, kadr (TYT karta, PO plan ogólny, PP plan pełny,
    PŚ plan średni, Z zbliżenie, D detal), ruch kamery, **opis**, dźwięk i kwestia. Opis to scenariusz ujęcia: kto jest
@@ -28,6 +31,9 @@ Każde ujęcie powstaje w tej samej kolejności. Pominięty krok to zwykle marke
    poprzedniego ujęcia tej sceny minus to, co cięcie świadomie zmienia (1.2, 1.6).
 3. **Obsada i rekwizyty**: kogo i co widać, zgodnie z opisem i kwestią — kogo lektor wymienia, ten jest w kadrze, nikogo
    ponad to. Nowa postać dostaje podpis (1.15); każda postać ma własną sylwetkę, strój i stałą skalę (1.6, 1.24).
+   Przy każdej postaci zapisz jednym zdaniem, co robi, na co patrzy i co trzyma — rekwizyt ma w ujęciu zadanie, a nie
+   tylko stoi obok postaci (1.16, spojrzenie). Przeczytaj kwestię jeszcze raz i wyłów z niej szczegół, który da się
+   pokazać rzeczą (kawiarnia 27.11: „a waitress still wearing his ring” → obrączka na dłoni Bonnie trzymającej dzbanek).
 4. **Oś czasu ujęcia**: wypisz zdarzenia z sekundami od początku ujęcia — wejście, zdarzenie główne, reakcja, skutek,
    wyjście — i ułóż je pod kwestią: to, o czym mówi lektor, dzieje się, kiedy o tym mówi, albo tuż po (1.11). Każde
    zdarzenie ma przyczynę, fazy i dźwięk (1.12, 1.21). Dłuższe ujęcie ma drugie wydarzenie albo ruch w tle (1.8).
@@ -43,7 +49,10 @@ Każde ujęcie powstaje w tej samej kolejności. Pominięty krok to zwykle marke
 8. **Dźwięk**: każde zdarzenie z osi czasu ma wpis w `efekty.ZDARZENIA` w tej samej sekundzie; głos człowieka
    z nagrania (1.12, 1.14).
 9. **Kontrola** (sekcja 3), potem Studio (sekcja 4). W docstringu funkcji ujęcia i w opisie z rozpiski zapisz, czego
-   chciał reżyser (cytat z datą) — następna poprawka nie może tego cofnąć.
+   chciał reżyser (cytat z datą) — następna poprawka nie może tego cofnąć. Każde miejsce styku (dłoń–rzecz,
+   rzecz–blat, strumień–naczynie) i łączenie wycinków obejrzyj w powiększeniu na klatce zdarzenia — tak wyszedł szew na
+   ladzie w kawiarni (27.11). Czego kontrola nie łapie, dopisz do niej jako nowy test (w Bonnie and Clyde: `uklad.py`),
+   zamiast oglądać to ręcznie przy każdym ujęciu.
 
 ## 1. Zasady kadru
 
@@ -206,6 +215,14 @@ Przy podmianie zsyntezowanego dźwięku na próbkę stara synteza liczy się dal
   ciągle skacze w miejscu”).
 - Ruch w tę i z powrotem ożywia dłuższe ujęcie: dżonki płyną zakosami, cesarz chodzi po sali (reżyser 15.11: „niech
   oni sobie pływają lewo, prawo, lewo, prawo”).
+- **Spojrzenie.** Rzecz, na którą postać patrzy (gazeta, list, mapa, zdjęcie), trzyma przed oczami, w stronę spojrzenia,
+  a nie na twarzy: środek rzeczy ok. ¼ wysokości lalki przed twarzą i ok. 1/10 niżej, lekko przechylony (ok. 10°).
+  Twarz zostaje widoczna — gazeta na środku twarzy czyta się jak chowanie się, nie czytanie (reżyser 27.11 o kawiarni
+  w wersji Gemini: „gazetę ułożył przed oczami …, trzymając ją i tak jakby czytając”).
+- Rzecz czytaną trzyma się oburącz: przednia dłoń na bliższym brzegu, tylna podpiera spód. Najpierw ustaw rzecz (od
+  korpusu postaci w tej klatce), potem dłonie w jej punktach chwytu — wtedy szelest albo drgnięcie rusza też dłonie.
+- Czasowniki patrzenia z opisu i kwestii (czyta, nie podnosi wzroku, odprowadza wzrokiem) gra się układem twarzy
+  i rzeczy, a nie samym rekwizytem obok postaci.
 
 ### 1.17 Potęga to liczba i przestrzeń
 Wojsko, tłum, państwo, budowę i bogactwo pokazuje się ilością i rozmachem. Reżyser za każdym razem prosił o więcej
@@ -552,6 +569,7 @@ i błędy znalezione w kontroli.
 | Miniaturka (16.11, znalezione w kontroli) | ostrze łopaty ucięte krawędzią arkusza wyglądało jak grot; grudy ziemi na żołnierzu jak dziury; szyld z tytułem EN dotykał krawędzi kadru; meteoryt nachodził na ostrze łopaty | 5.2 |
 | Miniaturka (16.11, reżyser) | Fujifilm o sile 1,8 „za mocny”, 0,8 nadal za dużo → 0,5 i minimalne rozjaśnienie; spirale na oczach z białym tłem → grube czarne wprost na skórze | 5.1, 5.4 |
 | Bonnie and Clyde, ujęcie 25 „kuchnia” (27.11, reżyser) | „model AI nie do końca wie, kto trzyma co w ręku, kto jest za czym” — w kuchni Clyde wjeżdżał zza krawędzi kadru obok zamkniętych drzwi (dźwięk drzwi był, drzwi się nie otwierały), „uchylał” kapelusz pustą dłonią nad głową (sztywna ręka z jednym zawiasem nie sięga własnej głowy: bark–kapelusz ≈ 0,75 długości ręki), stół stał za aktorami jak ława | 1.1, 1.2; silnik `output/bonnie-i-clyde/uklad.py`: rzędy sceny zamiast ręcznego p i z, rzecz przyczepiona do dłoni, blatu, naczynia albo głowy, ręka z łokciem (dłoń idzie do punktu, łokieć liczy silnik), kontrola na buforze identyfikatorów i rzut sceny z góry (`ujecie_kuchnia.py kontrola`) |
+| Bonnie and Clyde, ujęcie 24 „kawiarnia” (27.11, reżyser, porównanie wersji: stara, ChatGPT, Gemini, Claude) | najlepsza wersja Gemini „gazetę ułożył przed oczami …, trzymając ją i tak jakby czytając” i dała Bonnie obrączkę z kwestii („still wearing his ring”); w starej gazeta leżała na środku twarzy klienta, a jedna sztywna ręka sterczała nad kartką; u ChatGPT „problemy z ręką, nie widać zbytnio kawy, bo miesza się z czarną linią na ścianie”, „brak interakcji”, zwrot bez obrotu; u Claude zielsko obracało się niezależnie od przebytej drogi. Pomocnik `czyta_gazete` (`ujecia_a.py`) nadal kładzie gazetę na twarz w ujęciach z drukarzem i z Hamerem — do poprawy przy ich przeróbce | 1.16 (spojrzenie), 1.12, 0 (diagnoza przed poprawką, krok 3, krok 9) |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
