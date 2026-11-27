@@ -20,7 +20,7 @@ jobs:
       - run: |
           python -m pip install numpy pillow scipy
           sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg
+          sudo apt-get install -y ffmpeg fonts-noto-cjk fonts-dejavu-core
       - name: Render albo test
         working-directory: output/bonnie-i-clyde
         run: |
