@@ -25,10 +25,10 @@ from scena import P, bk, kam, lerp, pr, ease
 KLUCZ = "kawiarnia"
 NALANIE, KONIEC_NALEWANIA, LOMOT = 1.45, 2.30, 2.95
 GAG, GAG_DL, SZELEST = 7.0, 2.6, 0.55
-BONNIE_X, BONNIE_H = 595, 290
+BONNIE_X, BONNIE_H = 570, 290
 KLIENT_X, KLIENT_H = 820, 300
 LADA_X, LADA_H = 640, 150
-FU_DZBANEK, FU_KUBEK = 0.44, 0.65
+FU_DZBANEK, FU_KUBEK = 0.47, 0.65
 H_DZBANEK, H_KUBEK, H_GAZETA = 60, 34, 130
 # Punkty na oryginalnych arkuszach J.REKWIZYTY, nie współrzędne w kadrze.
 UCHO, DZIOBEK = (18, 84), (146, 55)
@@ -102,8 +102,6 @@ def dzbanek_i_bonnie(u, w, t, k, kubek, mutacja=0.0):
     p = rest.p
     dno = rest(*rest.kotw)
     chwyt_stoi = rest(*UCHO)
-    # Zanim dzbanek jest przechylony, unosi się pionowo z blatu.
-    wysoko = (chwyt_stoi[0], chwyt_stoi[1] - 65)
     ust = kubek(*USTE_KUBKA)
     cel_dziobka = (ust[0], ust[1] - 25)
     # Położenie ucha wynika z celu dzióbka i obrotu arkusza.
@@ -111,21 +109,23 @@ def dzbanek_i_bonnie(u, w, t, k, kubek, mutacja=0.0):
     dx, dy = SW._off((DZIOBEK[0] - UCHO[0]) * rest.k,
                      (DZIOBEK[1] - UCHO[1]) * rest.k, obrot)
     lej = (cel_dziobka[0] - dx, cel_dziobka[1] - dy)
+    # Jeden ruch w przód i w górę, bez pionowego unoszenia pod twarz.
+    # Ucho pozostaje przed barkiem: gałąź IK z łokciem w dół nie przeskakuje.
+    def tor(f):
+        x, y = miks(chwyt_stoi, lej, f)
+        return x + 8 * math.sin(math.pi * f), y - 4 * math.sin(math.pi * f)
+
     if t < 1.10:
         uch, kat = chwyt_stoi, 0.0
-    elif t < 1.27:
-        uch, kat = miks(chwyt_stoi, wysoko, ease(pr(t, 1.10, 0.17))), 0.0
     elif t < NALANIE:
-        f = ease(pr(t, 1.27, NALANIE - 1.27))
-        uch, kat = miks(wysoko, lej, f), obrot * f
+        f = ease(pr(t, 1.10, NALANIE - 1.10))
+        uch, kat = tor(f), obrot * ease(pr(f, 0.28, 0.72))
     elif t < KONIEC_NALEWANIA:
         uch, kat = lej, obrot
-    elif t < 2.55:
-        f = ease(pr(t, KONIEC_NALEWANIA, 2.55 - KONIEC_NALEWANIA))
-        uch, kat = miks(lej, wysoko, f), obrot * (1 - f)
     elif t < LOMOT:
-        f = pr(t, 2.55, LOMOT - 2.55) ** 1.6
-        uch, kat = miks(wysoko, chwyt_stoi, f), 0.0
+        q = pr(t, KONIEC_NALEWANIA, LOMOT - KONIEC_NALEWANIA)
+        f = 1 - q ** 1.7
+        uch, kat = tor(f), obrot * ease(pr(f, 0.28, 0.72))
     else:
         uch, kat = chwyt_stoi, 0.0
 
@@ -146,6 +146,8 @@ def dzbanek_i_bonnie(u, w, t, k, kubek, mutacja=0.0):
     s = u.lalka("Bonnie", "bonnie_kelnerka", BONNIE_X, BONNIE_H,
                 rzad="za ladą", k=wej, wejscie=False, flip=flip, przod=cel,
                 tyl=10.0, lokiec=("dol", "dol"))
+    if s is not None:
+        u.bonnie_ramie = s["przod"]
     trzyma = 1.10 <= t < LOMOT
     wiez(u, "dzbanek: stan chwytu zgodny z osią czasu", not trzyma or s is not None,
          "w dłoni" if trzyma else "na ladzie")
@@ -326,9 +328,20 @@ def kontrola(katalog):
     im.save(kat / "kontrola_kawiarnia.png")
     # Wszystkie klatki, nie co druga jak we wzorcu.
     n = math.ceil((b-a)*R.FPS - 1e-9)
+    poprzedni = None
     for fr in range(n):
         c = min(fr/R.FPS, b-a-1e-3)
-        _, (wyn, *_) = sprawdz(c)
+        st, (wyn, *_) = sprawdz(c)
+        ramie = getattr(st.uklad, "bonnie_ramie", None)
+        if ramie is not None and 0.95 <= c <= 3.20:
+            bark, lokiec = ramie["bark"], ramie["lokiec"]
+            wektor = (lokiec[0]-bark[0], lokiec[1]-bark[1])
+            if poprzedni is not None:
+                delta = math.hypot(wektor[0]-poprzedni[0], wektor[1]-poprzedni[1])
+                wyn.append(("Bonnie: ciągłość łokcia między klatkami", delta <= 18, f"{delta:.2f} px/kl."))
+            poprzedni = wektor
+        else:
+            poprzedni = None
         wpis(c, wyn)
     # Dodatkowe dokładne granice zdarzeń (nie muszą wypadać na klatkę).
     for c in (1.10, NALANIE, KONIEC_NALEWANIA, LOMOT, GAG,
