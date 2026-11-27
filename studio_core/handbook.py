@@ -17,6 +17,7 @@ MANIFEST = [
     ("lektor", "Lektor: głos jak z wyciszonego studia", "docs/podrecznik/07_LEKTOR.md"),
     ("dzwiek", "Dźwięk: muzyka, efekty i głosy", "docs/podrecznik/08_DZWIEK.md"),
     ("humor", "Humor i gagi: groteska w teatrze papierowym", "docs/podrecznik/09_HUMOR.md"),
+    ("publikacja", "Publikacja: miniaturka, tytuł, napisy i Shortsy", "docs/podrecznik/10_PUBLIKACJA.md"),
     ("recenzja", "Recenzja jednostki (dnia)", "docs/podrecznik/05_RECENZJA.md"),
     ("dziennik", "Dziennik pracy i zmiany w locie", "docs/podrecznik/06_DZIENNIK_I_ZMIANY.md"),
 ]

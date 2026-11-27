@@ -174,5 +174,16 @@ Cały film od tematu do Studio w półtora dnia. Kolejność, która się sprawd
    API na porcie 8876).
 9. **Dźwięk** według rozdziału „Dźwięk”: próbka do akceptacji, dopiero potem `studio_film.py dzwiek`.
 10. **Dziennik** po każdym etapie (co, dlaczego, pliki, wynik kontroli), a w nim cytat zgody reżysera.
-11. **Lektora nagrywa reżyser na końcu**, render końcowy też należy do niego. Po każdej zmianie długości ujęć:
-    `plan`, `klatki` i ponownie dźwięk (muzyka i efekty idą jednym klipem na cały film).
+11. **Lektor** to klon głosu autora we wszystkich kwestiach (reżyser 23.11 przy „Bonnie and Clyde”: „zrób głos mój
+    lektorski w całym filmie tak jak w poprzednich”), jedno podejście na kwestię i kontrola Whisperem (rozdział „Lektor”).
+    Po nagraniu ujęcia mają długość z prawdziwych kwestii, a akcja przekłada się sama (`render.czas_akcji`, rozdział
+    „Animacja kodem”). Po każdej zmianie długości ujęć: `plan`, `klatki` i ponownie dźwięk (muzyka i efekty idą jednym
+    klipem na cały film).
+12. **Tury poprawek reżysera.** Reżyser ogląda film w Studio (podgląd na żywo; na telefonie — szybki podgląd całego filmu
+    640 × 360, 12 kl./s, z pełnym dźwiękiem, w czterech częściach po 4–6 min i do 15 MB, 23.11) i zostawia markery oraz uwagi.
+    Każda tura: lista z `scripts/uwagi_rezysera.py`, porównanie z raportem poprzedniej tury, poprawki w kodzie, dźwięk od
+    nowa, raport `docs/filmy/<film>/uwagi_rezysera_<data>.md` i lekcje w Wytycznych (sekcja 4.2 i tabela „Skąd te zasady”).
+    „Bonnie and Clyde” miał cztery tury (19, 21, 23 i 24.11): 30, 28, 91 i 20 markerów.
+13. **Render końcowy** należy do reżysera (albo idzie na jego wyraźną prośbę): `FILM=1 ROZDZIELCZOSC=1440 PROCESY=3
+    render.py klipy …`, potem `zloz.py` (rozdział niżej, „Poprawki w Studio i render końcowy”).
+14. **Publikacja i Shortsy** — rozdział „Publikacja: miniaturka, tytuł, napisy i Shortsy”.

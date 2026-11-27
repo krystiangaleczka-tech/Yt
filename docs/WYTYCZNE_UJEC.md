@@ -6,7 +6,9 @@ błędów rysunku. Każdy punkt poniżej wziął się z prawdziwej poprawki (sek
 w ujęciach, z markerów na klatkach i z rozmów przy pracy.
 
 **Wzorce do powielania.** Teatr papierowy: „Pierwszy cesarz” EN (projekt `prj_65a9a00a6f9d402c`, 80 ujęć, 11:18,
-zatwierdzony przez reżysera 16.11.2026 po trzech turach markerów, render końcowy 17.11). Kreskówka 2D: „Oddział C”
+zatwierdzony przez reżysera 16.11.2026 po trzech turach markerów, render końcowy 17.11) i „Bonnie and Clyde” EN (projekt
+`prj_dad935cf1d7446fa`, 119 ujęć, 18:19, gagi, klon lektora i podgląd na żywo; cztery tury markerów 19–24.11, 169 markerów
+i 17 uwag, opublikowany 25.11 — raporty tur w `docs/filmy/bonnie-i-clyde/uwagi_rezysera_<data>.md`). Kreskówka 2D: „Oddział C”
 0:00–0:53 (poprawione przez reżysera 3.11, wzorzec dla dni 2–30). Nowy film tej samej techniki zaczyna się od silnika
 i sposobu pracy wzorca, nie od zera; scenerię i obsadę rysuje się nowe (Podręcznik, „Animacja rysowana kodem”).
 
@@ -23,11 +25,13 @@ Każde ujęcie powstaje w tej samej kolejności. Pominięty krok to zwykle marke
    bramą stoi mały chłopiec, a na niego spada z góry duża lalka króla”). Opis bez czasownika („sala nocą”, „puste
    morze”) znaczy, że ujęcie nie ma wydarzenia — reżyser to wyłapie (Rytm 1).
 2. **Stan świata na wejściu**: co już stoi na scenie (dekoracje i rekwizyty z poprzednich ujęć tej sceny), kto jest,
-   kto co trzyma, w jakim jest stanie (żywy, chory, w koronie, oblepiony ziemią). Stan liczy kod świata z kamieni
+   kto co trzyma, w jakim jest stanie (żywy, chory, w koronie, oblepiony ziemią), jaka jest pora dnia (1.6). Stan liczy kod świata z kamieni
    milowych rozpiski (`swiat.stan`, `po("mur")`), a nie pamięć wykonawcy. Pierwsza klatka ujęcia = ostatnia klatka
    poprzedniego ujęcia tej sceny minus to, co cięcie świadomie zmienia (1.2, 1.6).
 3. **Obsada i rekwizyty**: kogo i co widać, zgodnie z opisem i kwestią — kogo lektor wymienia, ten jest w kadrze, nikogo
    ponad to. Nowa postać dostaje podpis (1.15); każda postać ma własną sylwetkę, strój i stałą skalę (1.6, 1.24).
+   Przy meblach i rzeczach w dłoniach: kto stoi za czym i do czego jest przyczepiona każda rzecz (dłoń, blat, naczynie,
+   głowa) — rzut sceny z góry (1.32).
 4. **Oś czasu ujęcia**: wypisz zdarzenia z sekundami od początku ujęcia — wejście, zdarzenie główne, reakcja, skutek,
    wyjście — i ułóż je pod kwestią: to, o czym mówi lektor, dzieje się, kiedy o tym mówi, albo tuż po (1.11). Każde
    zdarzenie ma przyczynę, fazy i dźwięk (1.12, 1.21). Dłuższe ujęcie ma drugie wydarzenie albo ruch w tle (1.8).
@@ -67,6 +71,9 @@ Każda postać lub rzecz wchodzi przez drzwi, zza krawędzi kadru, zza przeszkod
   (15.11: „zaś ten kanał z wodą…”, „znowu wyrzuć ten kanał i wodę”), bo poprawiano go w ujęciach, a nie w stanie świata.
 - Postać, która wychodzi za kadr, w następnym ujęciu wchodzi z tej samej strony (wyskok za górną krawędź → spadnięcie
   z góry do wozu, reżyser 16.11); nie „przeskakuje” na nowe miejsce przez cięcie.
+- Rzecz, która jest skutkiem zdarzenia w tym ujęciu, pojawia się w kadrze w chwili zdarzenia: czapki zabitych spadają
+  z góry i dopiero potem leżą, kapelusz wylatuje z okna auta i ląduje — nie leży od pierwszej klatki (markery 24.11 w ujęciu
+  48 „Bonnie and Clyde”: „spada czapka”, „spada druga czapka”).
 - Efekty świetlne, maski jasności i migotanie nie mogą przypadkiem wygasić ważnego elementu (oczy w ciemności muszą
   zostać wszystkie i nie mrugać razem z lampą). Elementy do zachowania wybieraj z obrazu **przed** maską i migotaniem.
 
@@ -111,6 +118,12 @@ zamknięte drzwi sprawdza się klamką, a nie tylko się o nich mówi.
   sceny, a nie dopisuje w jednym ujęciu; przed oddaniem obejrzyj wszystkie te ujęcia.
 - To, o czym jest ujęcie (pałac, czarka z rtęcią), widać w całości: dekoracja boczna stoi po bokach i go nie zasłania,
   a rzecz na rampie czy stole jest nad jej krawędzią, nie w połowie za nią.
+- **Pora dnia to stan świata.** Ujęcie zaczyna się w porze, w której skończyło się poprzednie ujęcie tej sceny, a noc
+  zapada albo mija na oczach widza: chmury unoszą się na nitkach, zjeżdża księżyc i po kolei gwiazdy; rano księżyc
+  i gwiazdy odjeżdżają w górę i zjeżdża słońce („Bonnie and Clyde”: `scena.niebo` z `w.zmierzch`, `scena.gwiazdy`). Reżyser
+  24.11 o ujęciach 20–21: „w połowie ujęcia 20 zmieniłbym słońce na księżyc, ściemnił na noc i dodał gwiazdy, i pamiętaj:
+  w ujęciu 21 musisz z ciemności i księżyca zmienić na słońce”. Kwestia albo opis z nocą („Nocą W.D. wysiada…”) ma w kadrze
+  księżyc albo gwiazdy (marker 23.11 w ujęciu 66: „niech wjedzie tu księżyc”), a tło dźwięku idzie za porą (noc — świerszcze).
 
 ### 1.7 Tłum to osobne postacie
 Każdy w grupie ma własne opóźnienie, tempo i własną reakcję (jeden przystaje, drugi się spóźnia, trzeci unosi ręce
@@ -128,6 +141,10 @@ ujęcie się wydłuża, a wszystko za nim przesuwa się razem. Dlatego **czasy w
   czy wydarzenie się skończyło i czy widz zdążył je zobaczyć w całości.
 - Reżyser podaje chwile wprost („po 2 s słuchawka spada”, „zombie po 2 s podnoszą ręce”, „po 1,5 s szybkie zbliżenie
   25%”) — taka liczba to sekunda od początku ujęcia na osi czasu (0.4).
+- **Bez martwych sekund.** Ujęcie nie zaczyna się kilkoma sekundami ciemności ani pustej sceny, a długie martwe ujęcie
+  nie stoi obok ujęć za krótkich na swoją akcję. Reżyser 19.11 („Bonnie and Clyde”, Eastham): „czemu jest przez 5 s ciemna
+  scena, a poprzednie 2 były turbo krótkie? wytnij to i wydłuż tamte poprzednie po 2 s” — czas z martwego fragmentu dostają
+  sąsiednie ujęcia, którym go brakowało.
 
 ### 1.9 Długość ujęcia wynika z treści, a dzień z ujęć
 Nie ma siatki „tyle sekund na ujęcie” ani „tyle sekund na dzień”. Kwestia lektora albo dialog trwa tyle, ile jej
@@ -162,6 +179,10 @@ siekiery spadającej na stopę). O czym mówi lektor, to lalka robi na scenie:
 kaszle; „zginął” — widać śmierć, a nie tylko zniknięcie. Postać ma stałą skalę: grozę pokazuje się gestem, cieniem
 i światłem, nie powiększeniem lalki.
 
+W historii o prawdziwych ofiarach („Bonnie and Clyde”) śmierć pokazuje teatr cieni za parawanem albo ślad: czapka, która
+spada i zostaje na drodze, kapelusz z dziurą po kuli, dziewięć czapek na „nine dead lawmen”. Bez X na oczach, bez jęków
+zabitych i bez gagu (Podręcznik → Humor, „Granica”; Dźwięk, „Głosy ludzi”).
+
 ### 1.12 Rzecz, która się toczy, spada albo przewraca, rusza się jak prawdziwa
 Ruch przedmiotu liczy się z jego fizyki, a nie z osobnych krzywych „na oko” (ujęcie 47 „Pierwszego cesarza”, moneta).
 - **Toczenie bez poślizgu:** kąt obrotu wynika z przebytej drogi (droga ÷ promień), nigdy z osobnej krzywej czasu.
@@ -174,6 +195,10 @@ Ruch przedmiotu liczy się z jego fizyki, a nie z osobnych krzywych „na oko”
 - **Upadek przyspiesza:** przewracanie i spadanie idą coraz szybciej (ok. 0,3–0,45 s), nie jednostajnie i nie w
   zwolnionym tempie; po uderzeniu krótki, gasnący dygot. Mały podskok tuż przed położeniem się (kilka pikseli kadru
   wzorcowego) daje wyraźny moment zdarzenia — rzecz kładzie się w locie i spada tam, gdzie ma leżeć.
+- **Lekka rzecz frunie:** kapelusz, kartka, list, pióro i gazeta opadają zygzakiem jak liść, kołyszą się i kładą na płask,
+  a nie spadają jak kamień. Reżyser 23.11 („Bonnie and Clyde”): „niech ta czapka tak fruwa na ziemię z postrzeloną dziurą”,
+  „ta kartka ma latać w powietrzu 4 s i wlepić się tak jak teraz”, kapelusz z okna auta „leci do góry w tym kierunku i spada
+  na ziemię w 4 s” — czas z uwagi to czas od wylotu do położenia się, a miejsce lądowania to miejsce, w którym rzecz potem leży.
 - **Każde zdarzenie ma dźwięk w tej samej chwili:** podniesienie, uderzenie o blat, toczenie. Czasy w
   `efekty.ZDARZENIA` są te same co w funkcji ujęcia; dźwięk ciągły (toczenie) cichnie, kiedy rzecz jest w powietrzu.
 - **Dźwięk poprawia się punktowo:** po zmianie jednego zdarzenia ścieżka efektów ma się różnić od poprzedniej tylko
@@ -190,6 +215,14 @@ Każdy napis, który widz ma przeczytać — tabliczka z okrzykiem („AW!…”
 czy sztandarze, tytuł aktu — jest w języku wersji filmu. W kodzie ujęcia stoi tekst polski, a wersja angielska bierze
 go przez `zestaw` z `kwestie_en.ETYKIETY`; nowy napis od razu dostaje tam tłumaczenie. Znaki chińskie zostają tylko
 jako ozdoba, której nikt nie musi rozumieć (pieczęć, wzór na chorągwi) — nie jako treść, o której mówi lektor.
+Tabliczka z markera „po angielsku” to okrzyk, jaki powiedziałby widz tej wersji, a nie przekład słowo w słowo
+(„tabliczka maminsynek po angielsku” → „MAMA'S BOY!”, 23.11).
+
+**Napisów lektora nie wypala się w obrazie** (reżyser 24.11, „Bonnie and Clyde”: „usuń te napisy, bo odpaliłem Studio
+i nadal są w ujęciach”). Ujęcia, podgląd na żywo i render końcowy rysują się bez paska napisów (`render.py`; `NAPISY=1`
+włącza go z powrotem), a napisy EN i PL idą na YouTube jako pliki `.srt` (`napisy_yt.py`). Cały kadr, także dół pod dawnym
+paskiem, jest narysowany i sprawdzony na klatce. Ważna akcja dalej stoi nad dolnym pasem kadru, bo tam YouTube kładzie
+napisy i pasek odtwarzania. Napisy, które są częścią obrazu (tabliczki, szyldy, zawieszki, nagłówki gazet), zostają.
 
 ### 1.14 Głos człowieka z nagrania, nie z szumu
 Kaszel, jęk, rzężenie, okrzyk czy westchnienie postaci to dźwięk z nagrania głosu (model mowy ze znacznikiem — Chatterbox
@@ -280,6 +313,14 @@ Reżyser opowiada gagami i znakami jak z komiksu. Znak znaczy w każdym filmie t
 | zgięcie i kaszel z nagrania | choroba | `s_podroz`, 1.14 |
 | kaszel, chwianie, X na oczach, opadanie pod rampę, rzężenie | konanie | `s_koniec`, `s_list` |
 | spirale na oczach | oszołomienie (miniaturka) | 5.1 |
+| oczy „< <” na chwilę, usta „o” | zachwyt, „wow” na widok czegoś | „Bonnie and Clyde”: `zestaw_bc` `oczy="mniejszosc"` (24.11; ten sam znak przy tym samym widoku w ujęciach 14 i 49) |
+| nuty wylatujące z instrumentu | muzyka grana w kadrze | `J.nuta` (24.11, saksofon Clyde'a przy ustach) |
+| „Z” nad głowami | sen | ujęcie 20 „wagon” (śpiąca rodzina pod wozem) |
+| komiksowy obłok z gwiazdkami nad czynnością | czynność, której nie rysujemy w szczegółach (wiązanie drutem, szamotanina); po obłoku widać jej skutek | ujęcie 64 „drzewo” (23.11: „ukryj środek ich ciała z drutami w takiej chmurze jak w bajkach”) |
+| księżyc albo słońce na nitce, gwiazdy zjeżdżające po kolei | pora dnia; zmierzch i świt w kadrze (1.6) | `scena.niebo` + `w.zmierzch`, `scena.gwiazdy` (24.11) |
+| komiksowy dym albo kurz za autem jadącym poziomo, poślizg bokiem | pęd, ucieczka — także auto na mapie (1.27) | ujęcie 19 „obietnica”, mapa w biurze Hamera (21.11, 23.11) |
+| dziury po kulach w szybie i karoserii, jadą razem z autem | ostrzał | ujęcia 74 „sowers”, 109 „dym” |
+| czapka albo kapelusz z dziurą po kuli, spada i zostaje | śmierć stróża prawa bez pokazywania ciała (1.11) | ujęcia 48, 76, 97, 118 |
 
 Znak wisi nad postacią, której dotyczy: serce nad każdym z zakochanych, kajdanki nad tym, kogo aresztują — nie pośrodku
 między nimi (markery 21.11: „nad nią serce”, „nad nim serce”, „nad nim kajdanki”).
@@ -315,6 +356,11 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
 - Nitka jest tylko przy tym, co teatr spuszcza z góry (zawieszka, księżyc, mapa, kielich); krople, kulki i drobiazgi
   spadają bez nitek („usuń te linie”).
 - Drobne rzeczy w ruchu idą tak wolno, żeby widz zdążył je zobaczyć („te srebrne kulki niech dużo wolniej zjeżdżają”).
+- To samo dotyczy teczki, kieszeni i szuflady: rzecz chowana do środka zjeżdża za przednią ściankę i zostaje w środku,
+  a nie znika w jednej klatce (24.11, ujęcie 118 „Bonnie and Clyde”: „napraw to ściąganie w dół na linkach” — karta z aktami
+  schodzi na linkach za teczkę).
+- Nitka idzie z punktu, na którym wisi: pęknięta nić na mapie zwisa z jednej pinezki, a po supełku biegnie dalej od tej
+  samej (24.11, ujęcie 86: „linia ma być prowadzona z jednej kropki, a nie z dwóch”).
 
 ### 1.23 Kulminacja jest mocna
 - Uderzenie, wybuch i upadek mają wyraźną siłę: mocny wstrząs kamery, duży płomień (meteoryt, reżyser 15.11: „bardziej
@@ -342,6 +388,13 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
   jak z projektora (reżyser 23.11: „poruszaj tymi postaciami… tak, jakby film po prostu leciał”); Bonnie na zdjęciu „robi
   pajacyka” (`zestaw_bc.zdjecie_pajacyk`). Światło żyje: lampa mruga albo zapala się na wydarzenie (`scena.mruganie`,
   `wnetrze(jasnosc=…)`), auto daje znak światłami (`ujecia_a.swiatla`, `miga`).
+- Rzecz, która w życiu nie stoi, nie stoi w kadrze: auto z pracującym silnikiem drży i szarpie się, „jakby minimalnie
+  chciało jechać, ale jest na ręcznym” (marker 19.11); dym po strzelaninie unosi się przez całe ujęcie i rzednie dopiero
+  pod koniec (24.11: „dłużej dym”); błoto pryska łukiem spod buksującego koła (24.11). Światło, które gaśnie albo się psuje,
+  robi to na wydarzenie i ma skutek (Wellington 24.11: reflektory mrugają i gasną, więc nikt nie widzi tablicy DETOUR).
+- Gest po czynności dopowiada postać: po strzale ręka z rewolwerem idzie do ust i dmucha w dym z lufy (marker 19.11),
+  strażnik na „STOP!” podnosi rękę, Hamer odmawia uniesioną dłonią, którą macha (23.11). Kto długo stoi w kadrze, ma swój
+  ruch w tę i z powrotem (Blanche chodzi wzdłuż grządki i podlewa, Henry za szybą rozgląda się „jeszcze 2× lewo prawo”).
 - Zwrot postaci zaczyna się od przeciwnego kierunku, żeby był widoczny (Iwarebiko najpierw patrzy w lewo, potem
   zwraca się ku słońcu). Ujęcie przejścia albo przybycia ma końcówkę „już na miejscu” (Ninigi stoi na szczycie, wojsko
   wchodzi w las) — 1.18.
@@ -408,8 +461,15 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
   w tułowiu (marker 21.11: „gazeta za ręką, a nie w nim i na głowie”) — dłoń leży na bliższym brzegu kartki; łyżka miesza w garnku (garnek przed łyżką); laska sięga ziemi; miarka zwisa z dłoni wzdłuż mierzonego;
   kapelusz uniesiony w dłoni w oknie auta (pasażer może trzymać rzecz). Każdą trzymaną rzecz sprawdza się na arkuszu
   zbliżeń dłoni (wycinek 240 px wokół dłoni w kilku chwilach ujęcia).
-- **Postać niesiona leży na rękach niosącego**, po stronie, w którą wyciąga ręce; stojący trzyma karabin w dłoniach
-  (`KARABIN()`), a nie „na kolanach” w powietrzu.
+- **Postać niesiona wisi przez bark niosącego**: biodra na barku, głowa i ręce zwisają za plecami, nogi z przodu, a przednia
+  ręka niosącego (w skrócie) trzyma ją za uda (marker 23.11 w ujęciu 65: „Bonnie połóż tak, głową w dół na barkach Clyde'a”,
+  „jedną rękę pozginaj w ten sposób na Bonnie”; wcześniej leżała na wyciągniętych rękach i wisiała za plecami). Stojący
+  trzyma karabin w dłoniach (`KARABIN()`), a nie „na kolanach” w powietrzu.
+- **Wycinek na mapie gra jak w teatrze**: auto jadące po mapie stoi poziomo, jak lalka na scenie (nie obraca się wzdłuż drogi
+  jak w widoku z góry), na zakrętach ślizga się bokiem, a za nim kłębi się komiksowy dym albo kurz; druga trasa to ten sam
+  gag po innej drodze (marker 21.11 w ujęciu 19: „autka mają driftować po mapie z dymem”, „tak samo jak tamto, tylko inna
+  trasa”; uwaga 23.11: „auta mają być poziomo, a za nimi taki komiksowy dym”). Mapa wisi tak nisko, że widać ją całą nad dolnym
+  pasem kadru (23.11 w ujęciach 80, 81, 97: „mapa niżej”).
 - **Zmiana bohatera albo miejsca ma łącznik**: kiedy opowieść przechodzi od jednej postaci do drugiej (Clyde → Bonnie)
   albo do innego miasta, pierwsza kwestia nowej sceny mówi, gdzie i kiedy jesteśmy („Meanwhile, a few miles away in Cement
   City…”), zjeżdża zawieszka miejsca, a obraz łączy oba ujęcia (indyk, który uciekł w West Dallas, spada w Cement City).
@@ -468,7 +528,8 @@ pod połą przy dłoni na piersi — nie przy biodrze sukienki (marker 21.11: �
 
 **Postać na pojeździe**: siedzi (`siedzi=True`, biodra na siedzisku, pace, grzbiecie konia), nie stoi obok; zsiada łukiem
 (skok) na ziemię, a wsiada łukiem do okna i dalej siedzi w nim widoczna — nie znika w przenikaniu (marker 21.11: „clyde
-w aucie”). Jeździec na koniu: biodra na grzbiecie, nogi zakrywa koń.
+w aucie”). Z auta, które ugrzęzło, wyskakuje się łukiem „przez dach” (marker 19.11, Kaufman). Jeździec na koniu: biodra na
+grzbiecie, nogi zakrywa koń.
 
 **Nakrycie głowy zdejmuje ręka**: dłoń idzie do czubka głowy (ręka w skrócie), kapelusz przechodzi z głowy do dłoni w jednej
 klatce (lalka bez kapelusza + sam kapelusz z tego samego rysunku), potem uchylony wraca na głowę albo zostaje w dłoni przy boku
@@ -481,7 +542,8 @@ kobiety do kasetki, broń Hamera w górę i do ręki z drugiej strony, kapelusz 
 koszyka); ręka rzucającego robi zamach.
 
 **Kontakt dwóch postaci** (pocałunek, uścisk): podchodzą, aż głowy albo dłonie się zetkną, i nie wchodzą jedna w drugą;
-wyższa się pochyla (`lean`), niższa unosi (`lift`); potem wracają na swoje miejsca.
+wyższa się pochyla (`lean`), niższa unosi (`lift`); potem wracają na swoje miejsca. Postacie, które są razem, stoją razem:
+Clyde przy Bonnie i W.D. trzyma ją pod ramię, a nie stoi metr dalej (marker 24.11: „przybliż go do nich dwóch”).
 
 **Kontrola**: arkusz zbliżeń dłoni (wycinek 240 px wokół każdej dłoni z rzeczą w kilku chwilach ujęcia) i arkusz stołów
 (rzeczy na blacie, postacie przy meblach) przed oddaniem ujęć.
@@ -510,6 +572,32 @@ Słuchawka przy uchu, przepustka chowana do kieszeni, dłoń na czyjejś piersi 
 która prowadzi do barku tej postaci (albo wychodzi spod kadru tam, gdzie ten bark jest). Nie ma słuchawek wiszących
 przy uchu ani dłoni bez ręki (`kit_a.handset(..., who=)`, `kit_a.listening`).
 
+### 1.32 Układ sceny liczy silnik: kto za czym stoi i do czego jest przyczepiona każda rzecz
+Reżyser 27.11 („Bonnie and Clyde”, ujęcie 25 „kuchnia”): „model AI nie do końca wie, kto trzyma co w ręku, kto jest za czym”.
+Przy ręcznym `x`, `y`, `p` i `z` każdego wycinka te decyzje zostawały wyobraźni wykonawcy i wracały jako markery: stół stał za
+aktorami jak ława, Clyde wjeżdżał zza krawędzi kadru obok zamkniętych drzwi, choć słychać było drzwi, a kapelusz „uchylał”
+pustą dłonią nad głową. Dlatego:
+- **Najpierw rzut z góry.** Przed rysunkiem ujęcia z meblami, drzwiami i rzeczami w dłoniach zapisz rzędy sceny (za ścianą,
+  przy ścianie, aktorzy, przód przed aktorami) i kto stoi w którym; kto jest za ladą, a kto przed nią, i dlaczego. Plan głębi
+  i kolejność rysowania wynikają z rzędu, nie z liczby wpisanej przy wycinku.
+- **Każda rzecz jest do czegoś przyczepiona**: do dłoni (za punkt chwytu), do blatu, do wnętrza naczynia albo do głowy.
+  Położenie liczy się w każdej klatce z tego, do czego jest przyczepiona (garnek jedzie razem z wyrastającą kuchenką).
+  Przepięcie, np. z głowy do dłoni, dzieje się w tej klatce, w której dłoń dotyka chwytu (1.28).
+- **Gest do głowy, ust i ucha robi ręka z łokciem**: dłoń idzie do punktu, a kąty barku i łokcia liczy silnik (odwrotna
+  kinematyka dwóch odcinków). Sztywna ręka z jednym zawiasem nie sięga własnej głowy: od barku do kapelusza jest ok. 0,75
+  długości ręki.
+- **Wejście przez drzwi to przejście z rzędu do rzędu**: drzwi się otwierają, postać przechodzi przez otwór, drzwi się
+  domykają. Dźwięk drzwi oznacza, że drzwi się ruszają (1.2).
+- **Kontrola każdej klatki na buforze identyfikatorów** (każdy wycinek ma właściciela): ile widać każdej rzeczy, czy dłoń
+  dotyka chwytu, czy dno stoi na blacie, czy nic nie wychodzi spod brzegu naczynia ani poza otwór drzwi, czy dłoń sięga
+  celu. Obok klatki rzut sceny z góry z rzędami, przyczepieniami i kamerą.
+
+Silnik: `output/bonnie-i-clyde/uklad.py` (nakładka na `papier.Stage` i `scena.lalka`; `Uklad(st, t)`, `u.mebel`, `u.na`,
+`u.lalka`, `u.rzecz`, `kontrola(st)`, `rzut(st, …)`), wzór: `ujecie_kuchnia.py` (`… kontrola`: 17 rodzajów kontroli,
+131 klatek, 0 błędów; zatwierdzone przez reżysera 27.11). Na 27.11 silnik jest na gałęzi `bonnie-i-clyde-kuchnia-uklad`,
+jeszcze nie scalonej z gałęzią filmu, a ujęcie 24 „kawiarnia” jest w próbach (gałąź `test-kawiarnia-uklad`, „nic nie
+wgrywaj, to są testy”). Ujęcia z meblami, drzwiami i rzeczami w dłoniach budujemy odtąd na tym silniku.
+
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
 - Osobne warstwy: tło bez postaci, postać (PNG RGBA, przezroczyste tło), **pierwszy plan zasłaniający** (drzwi z
@@ -536,6 +624,12 @@ Zanim ujęcie trafi do Studio do oceny:
    - **Dźwięk**: przy opisie ujęcia przejdź listę `efekty.ZDARZENIA` — każde zdarzenie z osi czasu (0.4) ma swój
      dźwięk w tej samej sekundzie; wysuwanie lalek, opadanie płacht i gesty też.
    - **Wydarzenie się kończy**: na ostatniej klatce wzrost, przemarsz albo upadek jest skończony i stoi chwilę (1.18).
+   - **Pary cięć**: dla każdego ujęcia n sprawdź n−1 → n → n+1 — czy n wynika z tego, co stało się w n−1 (miejsce, pora
+     dnia, kto gdzie jest, kto co trzyma, co leży), i czy n+1 to kontynuuje. Gdzie wynikanie się rwie, wolno dodać krótkie
+     ujęcie-pomost (reżyser 21.11, „Bonnie and Clyde”: „zobacz każde ujęcie n i sprawdź, czy n+1 i n−1 jest spójne w miarę
+     z poprzedzającymi wydarzeniami… możesz dodać sceny jakieś pomiędzy łączące te dwa ujęcia — możesz, nie musisz”; 19.11:
+     „raz Bonnie jest w kawiarni, nagle jest w więzieniu… musi być jakieś ujęcie pomiędzy” → pomosty „poezja” i „waco_przed”).
+     Przy tym przeglądzie liczy się każda drobna uwaga reżysera (21.11: „najbardziej dla mnie są ważne te drobne uwagi!”).
 2. **Skrajne położenia**: przy każdym otworze obejrzyj klatkę, w której ruchoma rzecz jest najbliżej krawędzi otworu.
 3. **Automatycznie**: `python3 scripts/kontrola_ujec.py output/<film>/render.py` — szuka pustych krawędzi kadru
    (koniec świata), gasnących jasnych elementów i robi arkusz klatek do obejrzenia. W ciemnych ujęciach z winietą
@@ -598,7 +692,12 @@ Wszystko naraz: `python3 scripts/uwagi_rezysera.py <projekt>` (tylko czyta plik 
 **Kreska.**
 - Obrys pokazuje rzecz, o którą chodzi; „tu”, „tutaj”, „stąd”, „postaw go tutaj” — miejsce kreski; „w tym kierunku”,
   „w kierunku, który narysowałem” — kierunek kreski od pierwszego do ostatniego punktu (sztylet, zwój); dwie kreski —
-  dwa miejsca (np. skąd i dokąd).
+  dwa miejsca (np. skąd i dokąd). „Stąd rzuć monetę”, „kapelusz stąd leci do góry w tym kierunku” — początek kreski to dłoń,
+  z której rzecz wylatuje, kreska to tor (1.28). Obrys rzeczy to też jej wielkość („większa teczka” — teczka w rozmiarze
+  obrysu, 23.11).
+- Kreska na postaci wskazuje tę postać: poprawka jest dla niej, a odpowiedź ją nazywa (23.11, ujęcie 119 „Bonnie and Clyde”:
+  „jej narysuj czapkę z daszkiem” — kreska leżała na postaci w czarnym garniturze, czyli na Darbym, więc czapkę dostał on,
+  z pytaniem w raporcie, czy o niego chodziło).
 - Kreska leży w kadrze **ekranu na tej klatce**, z ruchem kamery, a nie w kadrze wzorcowym: punkt przelicza się przez
   kamerę ujęcia w tej chwili. Przed poprawką obejrzyj klatkę markera razem z jego kreską — zwój poprawiany „na oko”
   dostał drugą uwagę o tym samym (16.11).
@@ -628,11 +727,27 @@ Wszystko naraz: `python3 scripts/uwagi_rezysera.py <projekt>` (tylko czyta plik 
 | „minimalnie”, „troszkę”, „lekko” | mała zmiana tego jednego parametru (kilka pikseli kadru wzorcowego, kilka stopni); reszta ujęcia bez zmian |
 | „opisz w narracji”, „dograj narrację” | zmiana od góry: kwestia w rozpisce i w tłumaczeniu, nagranie lektora (za zgodą reżysera), długość ujęcia, dopiero potem obraz (CLAUDE.md) |
 | angielskie słowa: poison, coin, clay soldiers, tomb | rzecz z filmu w wersji EN — chodzi o tę rzecz w kadrze, nie o napis |
+| „w klatce 240 … w klatce 273” | klatka osi Studio (30 kl./s): 240 = 8,0 s, 273 = 9,1 s od początku ujęcia; przelicz przez `scena.rs` (Kreska) |
+| „od 5 s zjeżdża … aż do 6,20, a po 0,5 s podnosi” | sekundy osi Studio od początku ujęcia: początek, koniec i odstęp zdarzenia (0.4, 1.8) |
+| „chodzi lewo prawo prawo lewo prawo prawo lewo dół góra” | kroki i obroty dokładnie w tej kolejności, „dół góra” — przysiad i wstanie (Hamer na ganku, 23.11) |
+| „drift”, „driftować” | auto w poślizgu bokiem, z kurzem albo komiksowym dymem; na mapie stoi poziomo (1.27) |
+| „Ken Burns” | powolny najazd kamery na szczegół, o którym jest kwestia (23.11, rzeka: „Ken Burns na myjący kadr głowy”) |
+| „mrugaj lampą”, „zaświeć lampami z tyłu”, „lampa zaświeciła” | żarówka albo reflektor mruga kilka razy w tej chwili albo zapala się na dobre (`scena.mruganie`, `ujecia_a.swiatla` / `miga`, 1.25) |
+| „…i dźwięk dodaj”, „dźwięk trąbienia”, „dźwięk hamowania” | zdarzenie dźwiękowe w tej sekundzie; jeśli w kadrze nie ma przyczyny (gwizdek, klakson), dorysuj ją (1.12) |
+| „więcej wyjaśnień”, „zastanów się, czy dobrze jest narysowane całe ujęcie według opisu sceny i narracji” | przegląd ujęcia słowo po słowie kwestii: kiedy, gdzie, kto, co i jaki skutek — w kwestii i w kadrze (1.19) |
+| „napraw to, co napisałem w markerach” | uwaga w ujęciu odsyła do markerów tego ujęcia — wykonaj je razem, w kolejności klatek |
+| „muzyka weddingowa”, „zmień muzykę” | temat muzyki z treści sceny (Podręcznik → Dźwięk, „Muzyka”) |
+| „nic się nie dzieje”, „nikt się nie rusza” | ujęcie bez wydarzenia (1.8, Rytm 1) — albo podgląd na żywo jeszcze go nie przeliczył i gra zapasowa klatka; sprawdź jedno i drugie, zanim odpowiesz |
 
 **Kiedy nie wiadomo.** Jeśli tekst i kreska dają dwie różne poprawki, zapytaj reżysera jednym pytaniem z obiema
-możliwościami, zanim narysujesz; zgadnięta poprawka wraca jako druga uwaga.
+możliwościami, zanim narysujesz; zgadnięta poprawka wraca jako druga uwaga. Jeśli poprawka przeczy faktom filmu, napisz, co
+mówią źródła, i zaproponuj obraz zgodny z nimi (19.11, Ohio: reżyser zaproponował tam Bonnie, a w Ohio złapano Clyde'a —
+po wyjaśnieniu został Clyde).
 
-**Po wykonaniu.** Marker zostaje w Studio. Reżyser dostaje odpowiedź przy każdym markerze (zrobione albo pytanie).
+**Po wykonaniu.** Marker zostaje w Studio. Reżyser dostaje odpowiedź przy każdym markerze (zrobione albo pytanie),
+a każda tura ma raport `docs/filmy/<film>/uwagi_rezysera_<data>.md`: zmiany wspólne, tabela „ujęcie · marker albo uwaga ·
+zrobione”, co sprawdzono i co zostaje do decyzji reżysera (reżyser 23.11: „opisz te błędy, moje uwagi i poprawki do pliku”).
+Raport poprzedniej tury jest też miarą przy następnej (Data uwagi).
 Wymaganie reżysera trafia do docstringu funkcji ujęcia i do opisu w rozpisce (cytat z datą), żeby następna zmiana go
 nie cofnęła. Nowy błąd — wiersz w tabeli „Skąd te zasady”; nowa klasa błędu — nowa zasada w sekcji 1.
 
@@ -689,9 +804,27 @@ i rozjaśnienie półtonów `JASNOSC=0.07` (czerń i biel bez zmian). Czysty obr
 4. Poprawki reżysera są zwykle małe („przekrzyw”, „niżej”, „grubsze”, „mniej fuji”): jedna liczba w `KADRY`,
    `OCZY_CESARZA` albo `MOC`, potem znowu krok 3.
 
+### 5.6 Lekcje z „Bonnie and Clyde” (24–25.11.2026)
+Skrypt: `output/bonnie-i-clyde/miniatura.py` (warianty C, D, E, G; `postac_k` / `duza` rysują lalki filmu w skali ekranu,
+`twarz` dokłada minę, `zaslona` przyciemnia albo barwi samo tło — `J.glow` w zwykłym trybie prawie nie kryje).
+- **Plan ogólny w beżach się nie klika.** C i D (cała scena, ciepłe beże) dały po 18 h CTR 2,1 % przy 3,2 % „Syna słońca”:
+  w 320 × 180 twarze nie mają miny. Następne warianty to **zbliżenie dwóch twarzy z wyraźną miną na ciemnym albo barwnym
+  tle** (E: zasadzka, Bonnie i Clyde do pasa z krzykiem; G: ciemnia w czerwonym świetle, Bonnie mruga z cygarem — ciemnię
+  wybrał reżyser). Zasada 5.1 (zbliżenie) obowiązuje także wtedy, gdy kusi plakat z całej akcji.
+- **Plakat z akcji (D) — poprawki reżysera**, gdy już jest: rekwizyty z ujęcia filmu w jego skali („krzaki są za duże —
+  weź te krzaki z tego ujęcia… dużo mniejsze”), aktorzy pierwszego planu nisko, żeby było widać temat „w całej okazałości”;
+  bohaterowie w rozkroku i „dużo większy napis”; auto niżej, tak żeby schować tylne koła; postacie z dołu wynurzone o ok.
+  10 % i z kapeluszami w uniesionych dłoniach pod ok. 45°; rzecz w dłoni z białym obrysem, żeby odcinała się od pola
+  („czapki weź jakoś bardziej odznacz, może biała obwódka”); grubsze litery napisu; w tle rozmyte drobiazgi epoki (kaktusy).
+- **Bez cudzych znaków towarowych.** GTA 6 może być w tytule, ale w miniaturce nie ma grafik z gry.
+- **Test A/B miniaturek** (Studio YouTube → Test & Compare): najwyżej 3 warianty — nowy wariant zastępuje stary, nie
+  dochodzi; każdy tytuł idzie w parze z miniaturką, która pokazuje to, co tytuł obiecuje. Przy ok. 120 wyświetleniach
+  miniatury na wariant test nie wyłoni zwycięzcy; wyniki czyta się po 7 i 28 dniach (Podręcznik → Publikacja).
+
 ## 6. Skąd te zasady
 
-Od pilota (29.10.2026) i „Oddziału C” (3.11) przez „Pierwszego cesarza” EN (16.11) do „Syna słońca” EN (18.11); wiersze w kolejności dat. Źródła:
+Od pilota (29.10.2026) i „Oddziału C” (3.11) przez „Pierwszego cesarza” EN (16.11) i „Syna słońca” EN (18.11) do „Bonnie and
+Clyde” EN (19–27.11); wiersze w kolejności dat. Źródła:
 uwagi w ujęciach i markery na klatkach w Studio (`scripts/uwagi_rezysera.py`), rozmowy z reżyserem przy pracy
 i błędy znalezione w kontroli.
 
@@ -805,6 +938,12 @@ i błędy znalezione w kontroli.
 | Bonnie and Clyde, 28 markerów i uwaga (21.11, reżyser) | rewolwer znikał z dłoni, kiedy ta sama ręka wyjmowała cygaro z ust; strzał padał poza kadrem; chłopak dawał cygaro Bonnie do ręki zamiast do ust; gazeta klienta na głowie i w tułowiu; łyżka obok garnka; serca pośrodku zamiast nad każdym z zakochanych; „pod płaszcz” bez płaszcza; Clyde znikał przy wsiadaniu do auta; kwestia „palce” mówiła o czym innym niż obraz; plan nadpisał uwagę reżysera, a dźwięk nie poszedł za nowymi ujęciami | 1.11, 1.20, 1.27, 1.28, 4.1 |
 | Bonnie and Clyde, 91 markerów i 13 uwag (23.11, reżyser) | tabliczki zjeżdżały dopiero w sekundzie markera i nie tam, gdzie kreska; kapelusze były wklejone w głowę (zdjęcie = podmiana lalki); scena za parawanem w Platte City i Sowers nie mówiła kiedy, gdzie i kto; ekran kina i zdjęcie stały nieruchomo; rzeczy rzucane brały się znikąd; słońce, lampy i światła aut nie grały; Gault bez cechy, po której się go rozpozna | 1.19, 1.20, 1.25, 1.28, 4.2 |
 | Bonnie and Clyde, 21 markerów, uwagi i czat (24.11, reżyser) | spód auta znikał w każdym ujęciu z kurzem (półprzezroczysty kolor podmieniał alfę wycinka); suknia Maree z dwóch części; ujęcia 20, 118 i 119 statyczne, „nic się nie dzieje”, a śpiąca rodzina z opisu ujęcia 20 leżała schowana za rampą; czapki leżały od pierwszej klatki zamiast spaść; saksofon przy ręce, nie przy ustach; nić na mapie zwisała z dwóch kropek; brakowało dźwięków przy miauczeniu, trąbieniu, gwizdkach i hamowaniu | 1.8, 1.12, 1.25, 1.28, 1.29, 4.2 |
+| Bonnie and Clyde, przegląd wszystkich markerów i uwag filmu (27.11: 169 markerów z 19–24.11, 17 uwag, czat) — markery w ujęciach 36–43 (19.11) | reżyser rozpisał gag przed stacją jako ciąg z chwilami („Bonnie wysiada… on po 1 s odjeżdża… Bonnie biegnie, wyciąga Clyde'a z auta, a auto z kurzem samo odjeżdża… u góry tabliczki let's rob it”, „możesz wydłużyć tę scenę”); z rabunku stacji „zamień na 1 banknot”; z ugrzęźniętego Forda mieli „wyskoczyć (przez dach jakby)”, a policja „iść na nich za kadr powoli”; po strzale Clyde bez gestu („rękę podnosi do góry i dmucha w dym z rewolweru”); „nie widać tabliczki” w Atoce; auto na postoju martwe („ruszaj tym autem, jakby minimalnie chciało jechać, ale jest na ręcznym”); Eastham zaczynał się 5 s ciemności po dwóch „turbo krótkich” ujęciach | 1.8, 1.25, 1.27, 1.28 |
+| Bonnie and Clyde, czat (19.11 i 21.11, reżyser) | „raz Bonnie jest w kawiarni, nagle jest w więzieniu… musi być jakieś ujęcie pomiędzy”; „zobacz każde ujęcie n i sprawdź, czy n+1 i n−1 jest spójne… możesz dodać sceny pomiędzy”; Ohio: propozycja Bonnie wbrew faktom (złapano tam Clyde'a), wyjaśniona przed zmianą | 3.1 (pary cięć), 4.2 |
+| Bonnie and Clyde, markery 23.11 (czego nie objął wiersz z 23.11) | Bonnie niesiona na wyciągniętych rękach, a miała wisieć przez bark głową w dół; wiązanie drutem rysowane wprost, a miało zniknąć w obłoku „jak w bajkach”; kapelusz z dziurą spadał jak kamień („niech fruwa”), kartka miała latać 4 s; auta na mapie obracały się wzdłuż drogi i nie driftowały; mapa za nisko w kadrze; chwile w klatkach osi Studio („w klatce 240… 273”) i kroki „lewo prawo prawo lewo”; „tabliczka maminsynek po angielsku”; kreska na postaci w czarnym garniturze (czapka z daszkiem) | 1.12, 1.13, 1.20, 1.27, 4.2 |
+| Bonnie and Clyde, 24.11 (czego nie objął wiersz z 24.11) | noc i dzień zmieniały się przez cięcie albo wcale (ujęcia 20–21: „słońce na księżyc… z ciemności i księżyca zmienić na słońce”); karta z aktami znikała z teczki w jednej klatce; dym po zasadzce rzedł za szybko („dłużej dym”); reżyser dopisał znaki: oczy „< <”, nuty nad saksofonem, gwiazdy; napisy lektora wypalone w obrazie („usuń te napisy”) | 1.2, 1.6, 1.13, 1.20, 1.22, 1.25 |
+| Miniaturki Bonnie and Clyde (24–25.11, reżyser i wyniki po 18 h) | plan ogólny w beżach (C, D) — CTR 2,1 % przy 3,2 % „Syna słońca”, w 320 px nie widać min; w plakacie D krzaki za duże, auto za wysoko, czapki w dłoniach ginęły na polu; Test & Compare przyjmuje najwyżej 3 warianty | 5.6 |
+| Bonnie and Clyde, ujęcie 25 „kuchnia” (27.11, reżyser) | „model AI nie do końca wie, kto trzyma co w ręku, kto jest za czym” — Clyde wjeżdżał zza krawędzi kadru obok zamkniętych drzwi (dźwięk drzwi był, drzwi się nie otwierały), „uchylał” kapelusz pustą dłonią nad głową (sztywna ręka z jednym zawiasem nie sięga własnej głowy), stół stał za aktorami jak ława | 1.1, 1.2, 1.32 (nowa; silnik `uklad.py`) |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

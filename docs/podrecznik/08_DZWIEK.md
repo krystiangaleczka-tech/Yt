@@ -1,7 +1,7 @@
 # Dźwięk: muzyka, efekty i głosy
 
 Dźwięk filmu teatru papierowego bez lektora: ścieżka **Muzyka** (a2) i ścieżka **Efekty** (a3), każda jednym klipem
-na cały film. Lektora nagrywa reżyser (rozdział „Lektor”). Wzór: „Bonnie and Clyde” (19.11.2026) — `output/bonnie-i-clyde/`
+na cały film. Lektor to osobna ścieżka: klon głosu autora (rozdział „Lektor”). Wzór: „Bonnie and Clyde” (19.11.2026) — `output/bonnie-i-clyde/`
 `efekty.py`, `glosy.py`, `probka_dzwieku.py`; reżyser chciał, żeby dźwięk był „engaging”, i zatwierdził próbkę.
 
 ## Muzyka
@@ -36,6 +36,11 @@ na cały film. Lektora nagrywa reżyser (rozdział „Lektor”). Wzór: „Bonn
    i wraca w 0,5 s, żeby dźwięk gagu wybrzmiał. Ściszanie, przystanki i cisza przed szczytem liczą się jako obwiednia
    w 100 Hz i dopiero potem rozciągają na próbki (pętla w 100 Hz trwa ułamek sekundy, na 44,1 kHz — minuty). Bez muzycznego podkreślania każdego ruchu — przy kilkudziesięciu gagach
    muzyka by się jąkała.
+10. **Temat z treści sceny, nie z aktu.** Scena, która ma swój nastrój, dostaje swój temat, nawet jeśli trwa jedno ujęcie:
+    ślub — marsz weselny na organach (chór weselny z „Lohengrina” Wagnera, domena publiczna), noc i sen — kołysanka
+    z pozytywki, wieczór z poezją — walczyk salonowy; od następnej sceny wraca temat aktu. Reżyser 24.11 („Bonnie and Clyde”):
+    „muzyka weddingowa”, „od ujęcia 20 do 23 musisz dodać jakieś efekty i muzykę zmienić” — cały akt I grał blues i ragtime,
+    także pod ślubem i nocą w obozie. Nowy temat to nowy rodzaj dźwięku: próbka przed wgraniem (Akceptacja).
 
 ## Efekty
 
@@ -52,6 +57,15 @@ na cały film. Lektora nagrywa reżyser (rozdział „Lektor”). Wzór: „Bonn
    ulica, pokój, pole w upale z cykadami, drukarnia, kino z projektorem), zmiana dekoracji — papier i drewno, kurtyny
    z dźwiękiem z „Pierwszego cesarza”.
 5. **Zapowiedź** ma uderzenie na każdym cięciu (jak zwiastun).
+6. **Każda czynność, która w życiu brzmi, brzmi i tu** — także ta, której podsłuch nie widzi: klakson, pisk hamulców,
+   buksowanie w błocie, gwizdek, zwierzę pod swoją tabliczką („MEOW!”), deszcz, świerszcze od zmroku. Reżyser 24.11 dopisywał
+   je markerami („dźwięk trąbienia”, „dźwięk hamowania”, „zrób, że mają gwizdki i dźwięk gwizdka”, „miauu! (i dźwięk
+   dodaj)”). Przy przeglądzie ujęcia wypisz czasowniki z opisu, kwestii i markerów i sprawdź, czy każdy ma wpis w `ZDARZENIA`
+   w tej samej sekundzie; jeśli dźwięk nie ma przyczyny w kadrze (gwizdek), dorysuj ją.
+7. **Błysk stoi w jednym miejscu.** Skan rozpoznaje błysk (strzał, flesz) po położeniu, więc położenie błysku zaokrągla się
+   i trzyma przez cały błysk — błysk przy drżącej dłoni dał 159 dźwięków flesza w jednym ujęciu (23.11).
+8. **Chwile z markerów w dźwięku** zapisuje się w sekundach osi Studio i przelicza `efekty.rr(s)` (Wytyczne 4.2, „Kreska”) —
+   po nagraniu lektora ujęcia mają długość z prawdziwych kwestii, więc sekunda z tempa szacunkowego mija się z obrazem.
 
 ## Głosy ludzi
 
@@ -81,7 +95,8 @@ na cały film. Lektora nagrywa reżyser (rozdział „Lektor”). Wzór: „Bonn
 2. Do czasu zgody na głosy: `BEZ_GLOSOW=1 python3 -I efekty.py` (reszta dźwięku już zatwierdzona).
 3. `studio_film.py dzwiek` — muzyka na a2 (głośność 0,8), efekty na a3 (1,0); wpis w dzienniku z cytatem zgody.
 4. Po każdej zmianie długości ujęć (nowy początek, skrócony akt) przelicz dźwięk i wgraj ponownie — inaczej rozjedzie
-   się z obrazem.
+   się z obrazem. To samo po każdej turze poprawek rysunku, nawet gdy długości się nie zmieniły: nowe zdarzenia, tabliczki
+   i błyski mają nowe dźwięki (24.11: same `efekty.py` + `studio_film.py dzwiek`).
 
 ## Kontrola
 

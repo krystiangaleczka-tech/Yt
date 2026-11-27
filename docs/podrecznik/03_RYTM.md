@@ -81,8 +81,22 @@ i opowieść się bronią. Miniatura klika się przyzwoicie.
 4. Między prologiem a aktem I **bez kurtyny i tabliczki aktu** (wygląda jak drugi start filmu); zamiast niej ściemnienie i
    zawieszka miejsca i czasu („West Dallas, 1920s”). Kurtyny z tytułami aktów od aktu II.
 5. Tło bohatera krótko i z napięciem; nowa nazwa najwyżej co ok. 20 s i zawsze z podpisem; co 45–60 s nowe pytanie albo zwrot.
-6. Napisy, podpisy i tabliczki czytelne na telefonie; angielskie napisy także jako osobny plik.
+6. Podpisy i tabliczki czytelne na telefonie. Napisy lektora tylko jako osobne pliki EN i PL — od 24.11 nie wypala się ich
+   w obrazie (Wytyczne 1.13).
 7. Wyniki czytać po źródłach ruchu; reklamę puszczać, gdy ruch organiczny trzyma po 30 s co najmniej ok. 60 %.
+
+**Wyniki „Bonnie and Clyde” (opublikowany 25.11.2026 o 0:47, 18:20, bez reklamy).** Po 18 h: 291 wyświetleń miniatury,
+CTR 2,1 %, 9 wyświetleń; po ok. 36 h: 366 wyświetleń miniatury, CTR 1,9 %, 24 wyświetlenia, z czego tylko 7 z kliknięć
+w miniaturę i ok. 5 osób (reszta to powtórne odtworzenia), średnio 8:34 (7:31 u tych, którzy kliknęli miniaturę), 2
+udostępnienia, 6 polubień. Reżyser: „film 18 min, myślałem, że im dłuższy, tym się będzie lepiej oglądał, a tu nagle dupa”.
+Wnioski:
+1. **Długość nie przyciąga widzów** — najpierw decyduje miniaturka (CTR), potem pierwsze 30 s. Kto kliknął, oglądał
+   długo, więc historia i teatr się bronią; brakowało wejść (Wytyczne 5.6). Docelowa długość zostaje 8–12 min (reżyser
+   10.11); dłuższy film tylko wtedy, gdy historia tego wymaga i reżyser zatwierdzi to w szkicu („Bonnie and Clyde”: szkic D
+   = A + pościg Hamera, 17:40 → 18:19).
+2. **Shortsy od razu po filmie.** Shortsy kanału miały po 34–184 wyświetleń, czyli tyle co długie filmy — film bez Shortsów
+   traci drugie wejście (Podręcznik → Publikacja).
+3. Liczby z pierwszych dni czyta się po źródłach ruchu i po unikalnych widzach; ocena po 7 i 28 dniach.
 
 **Jak skrócić akt tła (Bonnie and Clyde, akt I: 149 → 119 s, 19.11.2026).** Ujęcie, którego treść da się dopowiedzieć
 w sąsiedniej kwestii, wypada („szkoła” → „Bonnie Parker wrote poems…” w kwestii ślubu; więzienie Roya i obrączka →

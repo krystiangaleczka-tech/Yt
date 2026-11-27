@@ -72,6 +72,17 @@ i pomocnicze), `ujecia_a.py` / `ujecia_b.py`. Zasady, które dopisał silnik:
 | Nic nie zasłania twarzy w oknie i nikt przypadkiem nie celuje w partnera | gazeta obok głowy, nie na niej; karabin czyszczony leży na kolanach |
 | Skrót w zapowiedzi bez zdradzających podpisów | `render.WYCINEK` od chwili akcji, ale po zjechaniu podpisu („Frank Hamer” jest tajemnicą do aktu V) |
 | Przejście bez kurtyny | `render.BEZ_KURTYNY = {1}` — prolog przechodzi w akt I ściemnieniem (Rytm, „jeden początek”) |
+| Chwila z markera po nagraniu lektora (21–24.11) | stała w sekundach osi Studio, przeliczana `scena.rs(klucz, s)` w rysunku i `efekty.rr(s)` w dźwięku (Wytyczne 4.2) |
+| Tor rzeczy przez punkt z markera | liczony w kadrze ekranu, z kamerą ujęcia: kula odbija się od brzegów kadru lustrzanie (5 odbić) i kończy dokładnie w punkcie markera (ujęcie 13) |
+| Ręka do ust, piersi, kieszeni | `lalka(skrot=…, tyl_przed=…)` i `scena.do_punktu` — ręka w skrócie, tylna przed tułowiem (Wytyczne 1.28) |
+| Tabliczka z markera | `ujecia_a.tab_tu` — punkt ekranu → kadr wzorcowy, zjazd 0,7 s przed sekundą markera (Wytyczne 1.20) |
+| Kapelusz w dłoni | `ujecia_a.kapelusz_reka` + `Figura.kapelusz` / `bez_kapelusza`; cecha postaci w lalce (`scena.SLOMA`) |
+| Noc w ujęciu | `scena.niebo` z `w.zmierzch` (papier nocy na papier dnia, chmury na nitkach), `scena.gwiazdy` (Wytyczne 1.6) |
+| Lampy i światła auta | `scena.mruganie` + `wnetrze(jasnosc=…)`, `ujecia_a.swiatla` + `miga` |
+| Nakładka na wycinek (kurz, błoto) | `alpha_composite` tylko tam, gdzie wycinek ma papier — `ImageDraw` z półprzezroczystym kolorem podmienia alfę (Wytyczne 1.29) |
+| Kto za czym stoi, co jest do czego przyczepione (27.11) | `uklad.py`: rzędy sceny, przyczepianie, ręka z łokciem, kontrola na buforze identyfikatorów i rzut z góry (Wytyczne 1.32) |
+| Policzone ujęcia podglądu zostają na dysku | po uruchomieniu Studio ujęcia grają od razu, bez starej klatki zapasowej; „nikt się nie rusza” bywa jeszcze nieprzeliczonym ujęciem |
+| Render końcowy 1440p (24.11) | `ROZDZIELCZOSC=1440` rysuje prawdziwe 1440p — lepiej niż 1080p powiększone (faktura papieru, drobny druk); pamięć cieni dała tylko 4 % (lalki i kamera drgają o ułamki piksela), warstwy stałe 1,6×, ale z przeskokiem krawędzi tła o 1 px w 1 z 42 klatek — wyłączone, póki reżyser nie obejrzy klipu |
 
 **Przegląd po akcie.** Arkusz po 6 ujęć z miniaturami 400 px (`R.arkusz(zakres, plik, cols=3, tw=400)`), potem pełne
 klatki tylko tam, gdzie coś nie gra; poprawki od razu dla całej klasy błędu (w silniku), nie w jednym ujęciu.

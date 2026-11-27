@@ -31,7 +31,9 @@ ją rzeczywistością. Każdy film ma ten silnik zapisany w Story Bible, zanim p
 Śmiejemy się z legendy, prasy, pozerstwa, nieudolności i biedy, która udaje blask — **nigdy z ofiar i nigdy ze śmierci**.
 Ujęcie, w którym ktoś ginie, i ujęcie żałoby nie mają gagu. Od zwrotu, po którym publiczność przestaje kibicować (w
 „Bonnie and Clyde”: Grapevine), humor dotyczy już tylko mitu — gazet, Hollywood, jarmarku — a nie bohaterów. Czarny humor
-(grabarz, który mierzy pasażerkę) idzie tylko za zgodą reżysera.
+(grabarz, który mierzy pasażerkę) idzie tylko za zgodą reżysera. Śmierć prawdziwych ofiar pokazuje teatr cieni albo ślad
+(czapka, która spada i zostaje, kapelusz z dziurą po kuli) — Wytyczne 1.11. Okrzyk przy śmierci („OUCH!”, „OH LORD!”)
+to reakcja, nie żart: bez puzonu i bez przystanku muzyki.
 
 ## Gdzie gag stoi w ujęciu
 
@@ -124,6 +126,23 @@ idzie jako próbka do reżysera (rozdział „Dźwięk”).
 | Rzeczy w dłoniach źle ułożone: karabiny w X, gazety obok twarzy, laska w górę, miarka w powietrzu | Arkusz zbliżeń dłoni przed oddaniem; chwyty `KARABIN_PION`, `GAZETA` (Wytyczne 1.27) |
 | Gag kurtyny na końcu filmu wpadał w końcowe ściemnienie | Gag kończy się co najmniej 1 s przed ściemnieniem ostatniego ujęcia |
 | Trzy dźwięki gagów były nowe (kaszel silnika, werbel, zapałka) | Gag z istniejącymi dźwiękami idzie od razu; nowy rodzaj czeka na próbkę (`efekty.NOWE`) |
+
+### Gagi, które reżyser dopisał markerami (21–24.11.2026, „Bonnie and Clyde”)
+
+Po pierwszych 46 gagach reżyser dokładał je markerami w trakcie oglądania — to wzór, czego szuka, zanim sam o to poprosi.
+
+| Reżyser dopisał | Zasada |
+|---|---|
+| „dźwięk kota, bo dostał tym papierem” (kulka gazety wylatywała za kadr bez skutku) | Gag ma przyczynę i skutek: rzecz, która wylatuje za kadr, w coś trafia, a słychać to spoza kadru |
+| „dźwignij powoli słońce za kadr, bo ono też się boi”; „zaczyna padać deszcz, ale jest słonecznie nadal” | Dekoracja też gra: słońce, księżyc i pogoda reagują na scenę albo jej przeczą |
+| „trzask i niech ten grafit gdzieś poleci, kredka się łamie” | Rzecz pod presją postaci pęka: ołówek Hamera trzaska, czubek odlatuje łukiem, „SNAP!” |
+| Hamer „chodzi lewo prawo prawo lewo… i w tle latają kule pocisków takich jak w ujęciu na początku filmu”, podrzuca broń i łapie ją z drugiej strony, „tabliczka easy.” | Wejście twardziela to popis: rytm kroków, klamra z hakiem (te same kule co w ujęciu 13), sztuczka z bronią i krótka puenta |
+| „Bonnie rzuca przez dach do góry im pranie na koszyki”, „stąd rzuć monetę” | Rzut celny jak w kreskówce: każda rzecz leci łukiem z dłoni i trafia do swojego koszyka, z dźwiękiem |
+| „na końcu wyskakują i strzelają oboje kulami pikselowymi… troszkę skróć tę jazdę auta” | Gag w innym medium (gra 8-bit) ma fizykę i dźwięk tego medium (pikselowe kule, „pew”); żeby zmieścić puentę, skraca się to, co przed nią, a nie puentę |
+| „na każdej gazecie duża śmiejąca się buzia Bonnie”, „u góry różne odbitki Bonnie, czarne” | Legenda przesadza obraz bohatera — silnik humoru 1, powtórzony w rekwizytach |
+| „tabliczka maminsynek po angielsku”, „Remember I don't smoke cigars!”, „need help?!” przy Fordzie w rowie | Tabliczka to krótka riposta w języku wersji; cecha postaci (cygaro) i gag powracający (rów) wracają w tabliczce |
+| „postaw Bonnie, jak rękami coś robi… ukryj środek ich ciała z drutami w takiej chmurze jak w bajkach” | Czynność trudna do narysowania idzie w komiksowym obłoku z gwiazdkami, a po nim widać skutek (Wytyczne 1.20) |
+| „miauu!”, „aaaa”, „oh lord!”, „yaw”, „we got them!” ×6 | Każda tabliczka ma głos albo dźwięk (rozdział „Dźwięk”, Efekty 6); kilka takich samych nad grupą — po jednej nad każdym, na przemian wyżej i niżej |
 
 
 ## Lekcje z „Syna słońca” (20.11.2026, mit japoński, 25 gagów)
