@@ -591,7 +591,8 @@ def s_marsz(st, w, t, T):
     for n in range(6):
         x = lerp(-200 + n * 150, 300 + n * 150, ease(pr(t, 0.0, T * 0.9)))
         K.zolnierz(st, t, f"żołnierz {n + 1}", ZOLNIERZE[n], x, 240, glebia=(n % 2), flip=1, hop=5)
-    xa = lerp(-560, -60, ease(pr(t, 0.0, T * 0.9)))
+    # armata na wozie z koniem jedzie za piechotą w kadrze (przegląd 28.11: jechała całe ujęcie za lewym brzegiem)
+    xa = lerp(60, 520, ease(pr(t, 0.0, T * 0.9)))
     if K.wjechal():
         u.put("armata", J.rek_kz("armata"), xa, STOPY - 2, u.p("lalki", -1), h=110, anchor=(0.5, 1.0))
         K.zaprzeg(st, t, "armata", xa + 110, STOPY - 2, u.p("lalki", -1), 1, h_kon=120, woznica=None)
