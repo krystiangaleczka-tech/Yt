@@ -788,7 +788,7 @@ def teatr_kz(st, t, w, lewa=1.0, prawa=1.0, wydma_k=1.0, gory_k=1.0, kul=True, p
     if wydma_k > 0:
         Z0.rise(st, J.wydma(0), 260, 700, P.wzgorza, min(wydma_k, lewa, bk(w, 0.2, 0.9)), t, 803, w=1150, wob=0.0, lift=460,
                 anchor=(0.5, 1.0))
-    Z0.rise(st, J.podloga((120, 86, 60)), CX, 800, P.droga, bk(w, 0.5), t, 77, w=2000, anchor=(0.5, 1.0), lift=200, wob=0)
+    Z0.rise(st, J.grunt((150, 120, 84)), CX, 800, P.droga, bk(w, 0.5), t, 77, w=2000, anchor=(0.5, 1.0), lift=200, wob=0)
     rampa(st, bk(w, 0.7, 0.6))
 
 

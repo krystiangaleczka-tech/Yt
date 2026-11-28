@@ -785,7 +785,7 @@ def s_raport(st, w, t, T):
     t_stamp, t_year, t_rose = sl("raport", "stamped"), sl("raport", "year"), sl("raport", "rose")
     kladzie = ease(pr(t, 0.4, 0.6))
     urz = K.lalka(st, t, "urzędnik", "urzednik", 760, 300, flip=-1,
-                  przod=lambda s: (lerp(s["bark_przod"][0] - 20, 600, kladzie), lerp(s["bark_przod"][1] + 120, blat - 20, kladzie)) if t < t_stamp
+                  przod=lambda s: K.w_zasiegu(s, (lerp(s["bark_przod"][0] - 20, 600, kladzie), lerp(s["bark_przod"][1] + 120, blat - 20, kladzie)), f=1.0) if t < t_stamp
                   else 30 + 120 * _bump(t, t_stamp + 0.6, 0.6))
     pieczatka(st, t, t_stamp, "SHAMIL: FINISHED", x=560, y=blat - 30, p=u.p("przod", 0.6), h_rap=120, spada=t_rose + 0.5)
     if t > t_year:
@@ -814,7 +814,7 @@ def s_syn_na_polnoc(st, w, t, T):
     st.put(_niebo, CX, CY, P.niebo, w=1760, anchor=(0.5, 0.5), shadow=None, tint=(0.82, 0.86, 0.94))
     chmury(st, t, w)
     Z0.rise(st, J.iglice(), CX, 640, P.miasto, ease(pr(t, t_pet, 1.2)), t, 870, w=1500, wob=0.0, lift=460, anchor=(0.5, 1.0))
-    Z0.rise(st, J.podloga((236, 236, 240)), CX, 800, P.droga, 1.0, t, 1250, w=2000, anchor=(0.5, 1.0), lift=200, wob=0)
+    Z0.rise(st, J.grunt((236, 236, 240)), CX, 800, P.droga, 1.0, t, 1250, w=2000, anchor=(0.5, 1.0), lift=200, wob=0)  # śnieżna droga
     rampa(st)
     u = K.uk(st, t)
     u.put("szlaban", J.rek_kz("szlaban"), 980, STOPY - 4, u.p("lalki", -2), h=200, anchor=(0.5, 1.0))
@@ -870,7 +870,8 @@ def s_kreski(st, w, t, T):
     ox, oy = _off(0, (414 - 70) * kk, rot)
     dlon_ = (czubek[0] - ox, czubek[1] - oy)
     patrzy = ease(pr(t, sl("kreski", "back") - 0.6, 0.6))
-    szk = K.lalka(st, t, "Szamil", w.szamil, 768, 300, flip=lerp(1, -1, patrzy), przod=dlon_ if patrzy < 0.5 else 8)
+    szk = K.lalka(st, t, "Szamil", w.szamil, 768, 300, flip=lerp(1, -1, patrzy),
+                  przod=(lambda s: K.w_zasiegu(s, dlon_, f=1.0)) if patrzy < 0.5 else 8)
     if patrzy < 0.5:
         geo = K.w_dloni(st, t, "kindżał", "kindzal", szk, hk, rot=rot)
         if geo and ryje:

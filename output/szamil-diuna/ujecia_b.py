@@ -396,11 +396,11 @@ def s_cena(st, w, t, T):
     ox, oy = _off((0 - 170) * kk, (42 - 30) * kk, rot)
     gladzi = t > t_forty + 1.4
     szk = K.lalka(st, t, "Szamil", w.szamil, 516, 300, flip=1, siedzi=True, y=K.y_siedzi(w.szamil, 300, blat_y + 14),
-                  przod=(lambda s: s["punkt"](176, 196)) if gladzi else (nib[0] - ox, nib[1] - oy))
+                  przod=(lambda s: s["punkt"](176, 196)) if gladzi else (lambda s: K.w_zasiegu(s, (nib[0] - ox, nib[1] - oy), f=1.0)))
     if not gladzi:
         geo = K.w_dloni(st, t, "pióro", "pioro", szk, hp, rot=rot)
-        if geo and pisze:
-            u.dotyka("list", (*geo(0, 42), u.p("przod", 0.3)), "stalówka na kartce", 5.0)
+        if geo and pisze and wejscie(1.0) >= 1:  # w chwili wejścia lalki (wysuwa się zza rampy) pióro jeszcze nie pisze
+            u.dotyka("list", (*geo(0, 42), u.p("przod", 0.3)), "stalówka na kartce", 6.0)
     slowo(st, t, "PADISHAH", 560, 60, pr(t, t_pad, 0.8), seed=20, h=66)
     if t > t_son:  # rysunek chłopca na kartce obok, zjeżdża na nitce
         J.hang(st, J.rek_kz("kartka_list"), 250, 250, P.rekwizyty, pr(t, t_son, 0.7), t, 1340, h=150, drop=300)
@@ -575,7 +575,7 @@ def s_obcy(st, w, t, T):
     u.rzecz("stolik", K.ark("stol_niski"), 690, STOPY + 10, u.p("przod"), (180, 120), 90)
     blat_y = K.pkt("stol_niski", 180, 20, 690, STOPY + 10, 90)[1]
     szk = K.lalka(st, t, "syn", "dzamal_gorski", 600, 290, flip=1, siedzi=True, y=K.y_siedzi("dzamal_gorski", 290, blat_y + 12),
-                  przod=(700, blat_y - 70))
+                  przod=lambda s: K.w_zasiegu(s, (700, blat_y - 70), f=1.0))  # przy wejściu lalki ręka sięga, ile może
     K.w_dloni(st, t, "książka", "ksiazka_ros", szk, 70, rot=0)
     k = ease(pr(t, t_miss - 0.4, 0.8)) * (1 - ease(pr(t, po_kw("obcy", 0.1), 0.3)))
     if k > 0:
