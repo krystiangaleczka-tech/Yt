@@ -6,11 +6,16 @@ Wzór: output/bonnie-i-clyde/studio_film.py (ten sam plan: akty, sekwencje, scen
   python3 -I studio_film.py szkice   — import szkiców A/B/C z docs/filmy/szamil-diuna/szkice/
   python3 -I studio_film.py klatki [tylko=3,6]  — po jednej klatce ze środka ujęcia na oś montażu (v1): Montaż ma co odtwarzać,
                                        a ruch ujęć Studio rysuje na żywo z kodu (legacy.teatr, na_zywo.py)
+  python3 -I studio_film.py os       — klatki ujęć (już wgrane) od nowa na oś v1 w miejscach ujęć, po zmianie długości
+                                       (np. po nagraniu lektora); bez rysowania klatek
+  python3 -I studio_film.py lektor   — kwestie lektora z lektor_en/*.wav na ścieżkę Lektor (a1), od oddechu w ujęciu
   python3 -I studio_film.py plan     — Master Story, akty, sekwencje, scenariusz, plan scen, reżyseria i ujęcia z rozpiski
                                        (dane.py); ujęcia Studio dopasowane po legacy.klucz; kontrola ciągłości i wpis w dzienniku
 Studio musi działać (port 8876). Identyfikator projektu pamięta studio.json obok skryptu.
 """
+import hashlib
 import json
+import math
 import mimetypes
 import os
 import re
@@ -27,7 +32,7 @@ REPO = Path("/Users/krystiangaleczka/Documents/YT")  # Studio i flowTypes.ts ży
 FILM = REPO / "docs/filmy/szamil-diuna"
 sys.path.insert(0, str(FILM / "ujecia"))
 import ksiega  # noqa: E402
-from dane import AKTY, kwestia, ujecia  # noqa: E402
+from dane import AKTY, HAK, LEKTOR, kwestia, okno_kwestii, ujecia  # noqa: E402
 
 AUTO_UWAGA = re.compile(r"^(Kadr|Typ|Beat|Dźwięk|Cel|Przejście):")
 API = f"http://127.0.0.1:{os.environ.get('DOCOS_API_PORT', '8876')}/api"
@@ -324,8 +329,65 @@ def klatki(args):
     print(f"klatki: {len(done)} ujęć | klipów na osi {len(p['sequence']['clips'])} | rewizja {p['revision']}")
 
 
+def os_v1():
+    """Po zmianie długości ujęć (plan z NOWA_OS=1 zdjął klipy v1) kładzie wgrane klatki ujęć z powrotem na oś, każdą
+    w miejscu i długości swojego ujęcia (to-timeline) — bez rysowania klatek od nowa."""
+    pid_ = pid()
+    p = call(f"/projects/{pid_}")
+    na_osi = {c.get("scene_id") for c in p["sequence"]["clips"] if c["track_id"] == "v1"}
+    n = 0
+    for s in sorted(p["scenes"], key=lambda s: s["start"]):
+        if s.get("asset_id") and s["id"] not in na_osi:
+            p = call(f"/projects/{pid_}/scenes/{s['id']}/to-timeline", {"expected_revision": p["revision"]})
+            n += 1
+    print(f"oś v1: dołożono {n} klipów | klipów na osi {len(p['sequence']['clips'])} | rewizja {p['revision']}")
+
+
+def _sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+
+
+def lektor():
+    """Lektor (ścieżka a1, klip na kwestię, od oddechu w ujęciu) — wzór: „Bonnie and Clyde” studio_film.dzwiek(lektor=True).
+    Plik wgrywa się raz (studio.json pamięta jego sumę), zmieniona kwestia albo nowe nagranie idą od nowa."""
+    st = json.loads(STATE.read_text())
+    pid_ = st["pid"]
+    p = call(f"/projects/{pid_}")
+    fps = p["sequence"]["fps_num"] / p["sequence"]["fps_den"]
+    by_shot = {s["legacy"].get("flow_director_shot_id"): s for s in p["scenes"]}
+    ops = [{"type": "remove_clip", "clip_id": c["id"]} for c in p["sequence"]["clips"] if c["track_id"] == "a1"]
+    brak = []
+    for r in rozpiska():
+        if not kwestia(r["snd"]):
+            continue
+        sc, wav = by_shot[r["sid"]], LEKTOR / f"{r['klucz']}.wav"
+        meta = json.loads(wav.with_suffix(".json").read_text()) if wav.with_suffix(".json").exists() else {}
+        if not wav.exists() or meta.get("text") != kwestia(r["snd"]):
+            brak.append(r["klucz"])
+            continue
+        cached = st.setdefault("lektor", {}).get(r["klucz"])
+        if not cached or cached["sha"] != _sha(wav):
+            cached = st["lektor"][r["klucz"]] = {"asset": upload(pid_, wav, f"lektor {r['ref']} {r['klucz']}.wav"), "sha": _sha(wav)}
+            STATE.write_text(json.dumps(st, ensure_ascii=False, indent=1))
+        start = sc["start"] + round(okno_kwestii(r["snd"], r["klucz"] in HAK)[0] * fps)  # w haku krótszy oddech
+        ops.append({"type": "add_clip", "clip": {"track_id": "a1", "asset_id": cached["asset"], "scene_id": sc["id"],
+                                                 "title": f"Lektor · {kwestia(r['snd'])[:80]}", "start": start,
+                                                 "duration": max(1, math.ceil(meta["duration"] * fps))}})
+    p = call(f"/projects/{pid_}")  # wgrane pliki podbiły rewizję
+    for i in range(0, len(ops), 200):
+        p = call(f"/projects/{pid_}/edits", {"expected_revision": p["revision"], "operations": ops[i:i + 200]})
+    n1 = sum(c["track_id"] == "a1" for c in p["sequence"]["clips"])
+    call(f"/projects/{pid_}/flow/log", {"entry": {
+        "who": "studio_film.py", "kind": "wgranie", "summary": f"Lektor wgrany: {n1} kwestii na ścieżce Lektor",
+        "details": "Klon głosu autora (Chatterbox Multilingual, przepis TEATR, jedno podejście na kwestię, ziarno 42; "
+                   "lektor_studio.py podejscia --teatr), reżyser 28.11.2026: „nagraj lektora”. Długości ujęć z prawdziwych nagrań "
+                   "(dane.nagranie), akcja przełożona na nie (render.czas_akcji)." + (f" Bez nagrania: {', '.join(brak)}." if brak else ""),
+        "files": ["output/szamil-diuna/lektor_en.py", "output/szamil-diuna/lektor_en/"]}})
+    print(f"lektor: {n1} klipów | bez nagrania: {', '.join(brak) or '—'} | rewizja {p['revision']}")
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "klatki":
         klatki(sys.argv[2:])
         sys.exit(0)
-    {"rozwoj": rozwoj, "szkice": szkice, "plan": plan}[sys.argv[1]]()
+    {"rozwoj": rozwoj, "szkice": szkice, "plan": plan, "lektor": lektor, "os": os_v1}[sys.argv[1]]()

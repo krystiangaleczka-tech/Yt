@@ -30,6 +30,9 @@ ujęcie: (klucz, kadr, ruch, sekundy, opis wydarzenia, dźwięk)
 - dźwięk zaczynający się od „L:” to kwestia lektora po angielsku.
 Ton: historyczny, bez polityki dnia dzisiejszego (księga D3); Szamil nie jest Paulem (D4).
 """
+import json
+from pathlib import Path
+
 
 N = None
 AKTY = [
@@ -519,12 +522,33 @@ def slownie(txt):
     return txt
 
 
-def okno_kwestii(dzwiek, hak=False):
-    """(start, długość) kwestii w ujęciu: oddech, potem mowa według tempa lektora (nagrań jeszcze nie ma)."""
+LEKTOR = Path(__file__).resolve().parents[4] / "output/szamil-diuna/lektor_en"  # klon głosu autora (lektor_en.py), poza repo
+BEZ_NAGRAN = [False]  # True: długości z tempa lektora (TEMPO_EN), w którym ułożono akcję ujęć (render.czas_akcji)
+
+
+def nagranie(dzwiek):
+    """Długość nagranej kwestii (lektor_en/<klucz>.json) albo None, gdy jeszcze jej nie ma albo tekst się zmienił."""
+    txt = kwestia(dzwiek)
+    for f in LEKTOR.glob("*.json") if txt and LEKTOR.exists() and not BEZ_NAGRAN[0] else ():
+        meta = json.loads(f.read_text(encoding="utf-8"))
+        if meta.get("text") == txt and "duration" in meta:
+            return meta["duration"]
+    return None
+
+
+def okno_tempa(dzwiek, hak=False):
+    """(start, długość) kwestii według tempa lektora — rytm, w którym ułożono akcję (ujecia_a.sl, po_kw)."""
     txt = kwestia(dzwiek)
     if not txt:
         return (0.0, 0.0)
     return (0.4 if hak else 0.6, len(slownie(txt).split()) / TEMPO_EN)
+
+
+def okno_kwestii(dzwiek, hak=False):
+    """(start, długość) kwestii w ujęciu: oddech, potem nagranie lektora — a zanim powstanie, tempo lektora."""
+    start, dl = okno_tempa(dzwiek, hak)
+    real = nagranie(dzwiek) if dl else None
+    return (start, real if real else dl)
 
 
 def ujecia(akt=None):
@@ -584,4 +608,3 @@ if __name__ == "__main__":
     print(f"kontrola rytmu: {len(uw)} uwag")
     for u in uw:
         print("  -", u)
-BEZ_NAGRAN = [False]  # zgodność z render.py („Bonnie and Clyde”): długości z tempa lektora, nagrań jeszcze nie ma

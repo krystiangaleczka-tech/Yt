@@ -11,7 +11,7 @@ import math
 import re
 
 import uklad_kz as K  # silnik uklad.py: rzędy, przyczepianie, ręka z łokciem, kontrola każdej klatki (Wytyczne 1.32)
-from dane import HAK, kwestia, okno_kwestii, slownie, ujecia
+from dane import HAK, kwestia, okno_tempa, slownie, ujecia
 from scena import (CX, CY, I, J, P, STOPY, Z0, _off, arrakis_sc, back, bk, blysk, cien, clamp, ease, ease_out, gabinet,  # noqa: F401
                    gimry_sc, gwiazdy, iks, izba, jaskinia, jazda, kam, kaukaz, ksiezyc, kulisy, lalka, las_bukowy, lerp, miczik,
                    mur_przod, noise, parawan, petersburg, podpis, pr, rampa, gruzja, sala_balowa, settle, siegnij, snieg, swiatlo,
@@ -30,7 +30,7 @@ def _slowa(klucz):
 def sl(klucz, slowo, n=1):
     """Chwila (sekundy od początku ujęcia), w której lektor zaczyna mówić `slowo` (n-te wystąpienie) — według tempa
     rozpiski (dane.TEMPO_EN). Wytyczne 1.11: to, o czym mówi lektor, dzieje się wtedy albo tuż po."""
-    start, dl = okno_kwestii(_UJ[klucz][7], klucz in HAK)
+    start, dl = okno_tempa(_UJ[klucz][7], klucz in HAK)
     ws = _slowa(klucz)
     cel = re.sub(r"[^a-z0-9']", "", slowo.lower())
     trafy = [i for i, s in enumerate(ws) if s.startswith(cel)]
@@ -40,7 +40,7 @@ def sl(klucz, slowo, n=1):
 
 def po_kw(klucz, d=0.2):
     """Chwila tuż po końcu kwestii (gag w pauzie, Humor)."""
-    start, dl = okno_kwestii(_UJ[klucz][7], klucz in HAK)
+    start, dl = okno_tempa(_UJ[klucz][7], klucz in HAK)
     return start + dl + d
 
 

@@ -2,3 +2,6 @@ build/
 __pycache__/
 # identyfikator projektu Studio i stan wgrań — lokalnie, nie do publicznego repozytorium (jak studio*.json innych filmów)
 studio.json
+# nagrania lektora (głos autora) — nie do repozytorium
+lektor_en/
+lektor_*.log
