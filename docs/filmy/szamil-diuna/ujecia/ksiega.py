@@ -26,8 +26,9 @@ def r(klucz, kotwica=""):
 SWIAT = {
     "version": 1,
     "unitLabel": "Akt",
-    # szkic E (28.11): akty 60–115 s; prolog to jednostka 0 wewnątrz aktu 1 (world.prologue ustawia studio_film.py)
-    "tempo": {"minSeconds": 55, "maxSeconds": 115, "maxVoiceShare": 0.85},
+    # szkic E (28.11): akty 60–115 s z tempa rozpiski; z prawdziwym lektorem (D12) 64–125 s — górna granica 130 s;
+    # prolog to jednostka 0 wewnątrz aktu 1 (world.prologue ustawia studio_film.py)
+    "tempo": {"minSeconds": 55, "maxSeconds": 130, "maxVoiceShare": 0.85},
     "places": [
         {"id": "teatr", "name": "Teatr papierowy", "note": "Rama z ciemnego rzeźbionego drewna; prolog i puenta: wydma (Arrakis) "
          "i góry Kaukazu obok siebie; maszynista za kulisami (laska z hakiem).", "connects": ["gory", "pustynia"]},
@@ -167,6 +168,11 @@ SWIAT = {
          "70 ujęć, 9:45, kwestia w 61 ujęciach i 2–4 wydarzenia pod słowa w każdym; otwarcie od Diuny, którą widz zna; Gimry 1832 "
          "(skok — legenda), Dargo 1845 i „Biscuit Expedition”, Tołstoj, Kaługa; słowa z Diuny zasiane w historii; 22 gagi (GAGI.md). "
          "Silnik, lalki i dekoracje z D zostają."},
+        {"id": "D12", "at": "2026-11-28", "by": "wykonawca", "text": "Lektor nagrany klonem (reżyser 28.11: „nagraj lektora”): "
+         "61 kwestii, przepis TEATR, ziarno 42, 12 kwestii poprawionych ziarnem 123 albo 7 po kontroli Whisperem i ucięć. Klon czyta "
+         "2,64 słowa/s zamiast 2,84 z rozpiski, więc film urósł z 9:58 do 10:34, a akt IV (syn i księżne) do 124 s — długość "
+         "z historii i z nagrań (reżyser: „nie róbmy stricte 4–5-minutowego filmu”), stąd górna granica tempa 130 s. Akcja "
+         "przechodzi na nagrania sama (render.czas_akcji), wydarzenia zostają na swoich słowach."},
         {"id": "D11", "at": "2026-11-28", "by": "wykonawca", "text": "Cisza w szkicu E mieszka w ujęciach (pauza po kwestii, gag, "
          "emocjonalne trzymanie uścisku), a nie w osobnych wstawkach 1,4–2,4 s bez słów — reżyser 28.11 o wersji D: „trzy ujęcia "
          "długie, nagle jedno pół sekundy”. Uwaga kontroli „lektor w 100% ujęć” (waga 1) jest świadoma; wzór „Syn słońca” "

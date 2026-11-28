@@ -57,7 +57,7 @@ AKTY = [
    ]),
    ("Diuna i zwrot", "Teatr papierowy w ramie z rzeźbionego drewna: najpierw cała scena to pustynia, potem góry Kaukazu", [
      ("Kurtyna startu", [
-      ("tytul", "TYT", "naj", 3.7, "Kurtyna startu rozsuwa się na pustynię: wydmy, dwa słońca, na grzbiecie wydmy mała lalka w "
+      ("tytul", "TYT", "naj", 4.4, "Kurtyna startu rozsuwa się na pustynię: wydmy, dwa słońca, na grzbiecie wydmy mała lalka w "
        "ciemnym płaszczu pustyni (fremen); 0,5 s z góry zjeżdża szyld „The Imam Who Fought Russia for 25 Years”; 2,6 s piasek "
        "na grzbiecie drga (coś jest pod spodem)", "L: Almost no Dune fan knows his name."),
      ]),
@@ -536,12 +536,23 @@ def nagranie(dzwiek):
     return None
 
 
+# Oddech przed kwestią inny niż zwykły (0,6 s; w haku 0,4 s): kwestia zapowiedzi trwa 6 s nagrania i wychodzi poza
+# zapowiedź (6,0 s), więc zaczyna się wcześniej, a kwestia przy kurtynie startu później — między zdaniami zostaje pauza
+# (nagranie 28.11: przy 0,6 s jedno zdanie kończyło się dokładnie tam, gdzie zaczynało się drugie)
+ODDECH = {"zap_skok": 0.3, "tytul": 1.1}
+
+
 def okno_tempa(dzwiek, hak=False):
     """(start, długość) kwestii według tempa lektora — rytm, w którym ułożono akcję (ujecia_a.sl, po_kw)."""
     txt = kwestia(dzwiek)
     if not txt:
         return (0.0, 0.0)
-    return (0.4 if hak else 0.6, len(slownie(txt).split()) / TEMPO_EN)
+    if not KLUCZ_KWESTII:
+        KLUCZ_KWESTII.update({kwestia(x[5]): x[0] for _n, _t, _o, sc in AKTY for _s, _p, bt in sc for _b, sh in bt for x in sh})
+    return (ODDECH.get(KLUCZ_KWESTII.get(txt), 0.4 if hak else 0.6), len(slownie(txt).split()) / TEMPO_EN)
+
+
+KLUCZ_KWESTII = {}
 
 
 def okno_kwestii(dzwiek, hak=False):
