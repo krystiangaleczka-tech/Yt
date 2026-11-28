@@ -172,7 +172,8 @@ SWIAT = {
          "61 kwestii, przepis TEATR, ziarno 42, 12 kwestii poprawionych ziarnem 123 albo 7 po kontroli Whisperem i ucięć. Klon czyta "
          "2,64 słowa/s zamiast 2,84 z rozpiski, więc film urósł z 9:58 do 10:34, a akt IV (syn i księżne) do 124 s — długość "
          "z historii i z nagrań (reżyser: „nie róbmy stricte 4–5-minutowego filmu”), stąd górna granica tempa 130 s. Akcja "
-         "przechodzi na nagrania sama (render.czas_akcji), wydarzenia zostają na swoich słowach."},
+         "przechodzi na nagrania sama (render.czas_akcji), wydarzenia zostają na swoich słowach. Reżyser 28.11, zapytany, czy skracać "
+         "do ok. 7 min: „zostaw 10:33, zatwierdzam dźwięk, wgraj”."},
         {"id": "D11", "at": "2026-11-28", "by": "wykonawca", "text": "Cisza w szkicu E mieszka w ujęciach (pauza po kwestii, gag, "
          "emocjonalne trzymanie uścisku), a nie w osobnych wstawkach 1,4–2,4 s bez słów — reżyser 28.11 o wersji D: „trzy ujęcia "
          "długie, nagle jedno pół sekundy”. Uwaga kontroli „lektor w 100% ujęć” (waga 1) jest świadoma; wzór „Syn słońca” "

@@ -9,6 +9,8 @@ Wzór: output/bonnie-i-clyde/studio_film.py (ten sam plan: akty, sekwencje, scen
   python3 -I studio_film.py os       — klatki ujęć (już wgrane) od nowa na oś v1 w miejscach ujęć, po zmianie długości
                                        (np. po nagraniu lektora); bez rysowania klatek
   python3 -I studio_film.py lektor   — kwestie lektora z lektor_en/*.wav na ścieżkę Lektor (a1), od oddechu w ujęciu
+  python3 -I studio_film.py dzwiek   — muzyka (a2, głośność 0,8) i efekty (a3) z dzwiek_en/*.wav, po jednym klipie na cały
+                                       film (efekty.py; próbkę zatwierdza reżyser — ZGODA="cytat" trafia do dziennika)
   python3 -I studio_film.py plan     — Master Story, akty, sekwencje, scenariusz, plan scen, reżyseria i ujęcia z rozpiski
                                        (dane.py); ujęcia Studio dopasowane po legacy.klucz; kontrola ciągłości i wpis w dzienniku
 Studio musi działać (port 8876). Identyfikator projektu pamięta studio.json obok skryptu.
@@ -17,6 +19,7 @@ import hashlib
 import json
 import math
 import mimetypes
+import wave
 import os
 import re
 import subprocess
@@ -343,6 +346,41 @@ def os_v1():
     print(f"oś v1: dołożono {n} klipów | klipów na osi {len(p['sequence']['clips'])} | rewizja {p['revision']}")
 
 
+def dzwiek():
+    """Muzyka (a2) i efekty (a3), po jednym klipie na cały film — wzór: „Bonnie and Clyde” studio_film.dzwiek. Stare klipy
+    a2/a3 schodzą z osi; klip nie wychodzi poza koniec ostatniego ujęcia."""
+    pid_ = pid()
+    p = call(f"/projects/{pid_}")
+    fps = p["sequence"]["fps_num"] / p["sequence"]["fps_den"]
+    total = max(s["start"] + s["duration"] for s in p["scenes"])
+    ops = [{"type": "remove_clip", "clip_id": c["id"]} for c in p["sequence"]["clips"] if c["track_id"] in ("a2", "a3")]
+    wgrane = []
+    for track, name, vol in (("a2", "muzyka", 0.8), ("a3", "efekty", 1.0)):
+        wav = HERE / "dzwiek_en" / f"{name}.wav"
+        if not wav.exists():
+            print(f"brak {wav} — bez ścieżki {name}")
+            continue
+        aid = upload(pid_, wav, f"{name} — cały film.wav")
+        with wave.open(str(wav)) as w:
+            frames = min(total, math.floor(w.getnframes() / w.getframerate() * fps))
+        ops.append({"type": "add_clip", "clip": {"track_id": track, "asset_id": aid, "title": f"{name.capitalize()} · cały film",
+                                                 "start": 0, "duration": frames, "volume": vol}})
+        wgrane.append(f"{name} {frames / fps:.1f} s")
+    p = call(f"/projects/{pid_}")  # wgrane pliki podbiły rewizję
+    p = call(f"/projects/{pid_}/edits", {"expected_revision": p["revision"], "operations": ops})
+    zgoda = os.environ.get("ZGODA", "")
+    call(f"/projects/{pid_}/flow/log", {"entry": {
+        "who": "studio_film.py", "kind": "wgranie", "summary": "Dźwięk wgrany: " + ", ".join(wgrane),
+        "details": "Muzyka i efekty: synteza w numpy, output/szamil-diuna/efekty.py — tematy Kaukazu i Diuny (góry: pandur, duduk, "
+                   "zurna; lezginka 6/8 z doli i garmoszką; marsz imperium; lament; bałałajka; walc; pustynia: burdon, bendir, ney), "
+                   "motyw Szamila (przedstawienie, uścisk, biała flaga), cisza przed szczytami (skok, zasadzka, uścisk, szturm Gunibu), "
+                   "efekty z podsłuchu ujęć (konie, kroki lalek, strzały, armaty, pieczątki, koza, robak, kartki, nitki) i tła miejsc; "
+                   "pod kwestiami ściszone łagodnie. Bez głosów ludzi." + (f" Próbkę (probka_dzwieku.py) zatwierdził reżyser: „{zgoda}”."
+                                                                          if zgoda else ""),
+        "files": ["output/szamil-diuna/efekty.py", "output/szamil-diuna/probka_dzwieku.py"]}})
+    print(f"dźwięk: {', '.join(wgrane) or 'nic'} | klipów na osi {len(p['sequence']['clips'])} | rewizja {p['revision']}")
+
+
 def _sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
 
@@ -390,4 +428,4 @@ if __name__ == "__main__":
     if sys.argv[1] == "klatki":
         klatki(sys.argv[2:])
         sys.exit(0)
-    {"rozwoj": rozwoj, "szkice": szkice, "plan": plan, "lektor": lektor, "os": os_v1}[sys.argv[1]]()
+    {"rozwoj": rozwoj, "szkice": szkice, "plan": plan, "lektor": lektor, "os": os_v1, "dzwiek": dzwiek}[sys.argv[1]]()
