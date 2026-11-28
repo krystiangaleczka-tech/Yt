@@ -63,12 +63,12 @@ class Stan(dict):
 
 
 def stan(i):
-    """Stan świata na początku ujęcia i (od 0) — księga świata: noc pod Achulgo, zima w Petersburgu, powaga od śmierci syna."""
+    """Stan świata na początku ujęcia i (od 0) — księga świata (szkic E): siwy Szamil od Gunibu, powaga od śmierci syna do pieczątki."""
     po = lambda k: i > I[k]
     f = lambda c: 1.0 if c else 0.0
     return Stan(build=None, noc=0.0, sun=1.0, sun_xy=(905, 110), moon=0.0, clouds=[1.0, 1.0, 1.0], zawieszki=[], kulisy=True,
-                mgla=0.0, szamil=("szamil_stary" if po("flaga") else "szamil"), syn_wrocil=f(po("przeprawa_syn")),
-                powaga=f(I["swieca"] <= i <= I["medyna"]))
+                mgla=0.0, szamil=("szamil_stary" if i >= I["gunib"] else "szamil"), syn_wrocil=f(po("syn_wraca")),
+                powaga=f(I["smierc"] <= i <= I["stempel"]))
 
 
 # ---------- czas, kamera, światło ----------
@@ -358,9 +358,31 @@ def iks(st, x, y, t, t0, h=200, p=None, mig=2):
             st.put(Z0.prop("x"), x, y, p, h=h * (0.8 + 0.2 * back(k, 1.6)), anchor=(0.5, 0.5), rot=-4 + 8 * n, shadow=(4, 6, 6, 0.45))
 
 
+def _w_kadrze(st, x, y, p, szer, wys=46, m=14):
+    """Punkt zawieszenia tabliczki przesunięty tak, żeby cała tabliczka była w kadrze tej kamery (szkic E, 28.11: zawieszki
+    miejsca na y = 40 uciekały za górną krawędź, kiedy kamera była przybliżona albo opuszczona)."""
+    cam = getattr(st, "cam", None)
+    if cam is None:
+        return x, y
+    a0, ax, ay = cam.screen(0, 0, p), cam.screen(1, 0, p), cam.screen(0, 1, p)
+    kx, ky = ax[0] - a0[0], ay[1] - a0[1]
+    if not kx or not ky:
+        return x, y
+    sw = lambda sx: (sx - a0[0]) / kx
+    sh = lambda sy: (sy - a0[1]) / ky
+    y = max(y, sh(m))
+    y = min(y, sh(H - 70) - wys)  # nad pasem napisów
+    lo, hi = sw(m) + szer / 2, sw(W - m) - szer / 2
+    if lo < hi:
+        x = min(max(x, lo), hi)
+    return x, y
+
+
 def zawieszki(st, t, w):
     for txt, x, y, k in w.zawieszki:
-        J.hang(st, J.tag(txt), x, y, P.rekwizyty + 0.02, k, t, 90 + len(txt), drop=460, sway=1.6, h=46, shadow=(4, 6, 6, 0.4))
+        spr = J.tag(txt)
+        x, y = _w_kadrze(st, x, y, P.rekwizyty + 0.02, spr.w * 46 / spr.h)
+        J.hang(st, spr, x, y, P.rekwizyty + 0.02, k, t, 90 + len(txt), drop=460, sway=1.6, h=46, shadow=(4, 6, 6, 0.4))
 
 
 def blysk(st, x, y, p, t, t0, r=260, kolor=(1.0, 0.9, 0.6), dl=0.12):
@@ -820,8 +842,10 @@ def petersburg(st, t, w, kul=False):
 
 
 def sala_balowa(st, t, w):
-    """Sala balowa: ściana z oknami i kolumnami, żyrandol na nitce, posadzka."""
-    st.put(J.sala(), CX, 740, P.miasto, w=1900, anchor=(0.5, 1.0), shadow=None)
+    """Sala balowa: ściana z oknami i kolumnami, żyrandol na nitce, posadzka (pod spodem stała podłoga — przy budowie dekoracji
+    test „końca świata” 28.11 znalazł puste płótno pod salą)."""
+    spod(st, (130, 92, 62))
+    st.put(J.sala(), CX, 740, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None)
     J.hang(st, J.zyrandol(), CX, -20, P.most, bk(w, 0.3), t, 871, w=300, drop=500, sway=0.6, shadow=(6, 9, 10, 0.3))
     rampa(st, bk(w, 0.7, 0.6))
 
@@ -861,3 +885,123 @@ def pustynia(st, t, w, k=1.0):
             tint=(0.9, 0.86, 0.8))
     Z0.rise(st, J.wydma(0), 400, 720, P.wzgorza, min(k, bk(w, 0.35, 0.9)), t, 896, w=1300, wob=0.0, lift=460, anchor=(0.5, 1.0))
     rampa(st, bk(w, 0.7, 0.6))
+
+
+# =====================================================================================================================
+# ---------- scenografie szkicu E (przebudowa 28.11.2026) ----------
+# Reżyser 28.11 o wersji D: „na każdym ujęciu praktycznie nic się nie dzieje”, a w tle prawie zawsze te same szare góry.
+# Szkic E: pustynia Arrakis, Gimry z wieżą, gabinet w Petersburgu, bukowy las Czeczenii, Kaługa — każda scena ma swoje miejsce.
+# =====================================================================================================================
+
+def snieg(st, t, k=1.0, n=22, seed=0, p=None, wiatr=0.0):
+    """Papierowy śnieg z bibuły: płatki spadają, każdy w swoim tempie; k 0..1 — ile płatków już pada (śnieg zaczyna się)."""
+    if k <= 0:
+        return
+    p = P.rekwizyty - 0.01 if p is None else p
+    r = random.Random(seed)
+    for i in range(int(n * k)):
+        v, x0, f0, sz = r.uniform(0.12, 0.22), r.uniform(-60, 1340), r.random(), r.uniform(7, 12)
+        f = (t * v + f0) % 1.0
+        st.put(Z0.prop("kulka"), (x0 + wiatr * f * 120 + 18 * math.sin(t * 1.3 + i)) % 1400 - 60, -30 + f * 790, p, h=sz,
+               anchor=(0.5, 0.5), tint=(1.0, 1.0, 1.0), shadow=None)
+
+
+def arrakis_sc(st, t, w, wydmy=1.0, skala=False, skala_x=980, kul=True, dwa_slonca=True):
+    """Arrakis z papieru: ciepłe niebo, dwa słońca, trzy wydmy (daleka, środkowa, bliska); skala z jaskinią (sietch) opcjonalnie.
+    wydmy 0..1 — wydmy stoją; mniej — zapadają się pod scenę (zwrot w „zamiana”)."""
+    _niebo_kz(st, w, (1.0, 0.88, 0.72))
+    if dwa_slonca:
+        slonce(st, t, w, xy=(300, 110))
+        slonce(st, t, w, xy=(420, 170), alpha=0.6)
+    else:
+        slonce(st, t, w, xy=(330, 120))
+    zap = 1.0 - wydmy
+    for n, (v, x, y, p, wd, tint) in enumerate(((1, 900, 600, P.gory_dal, 1500, (0.92, 0.86, 0.8)), (0, 300, 660, P.gory, 1400, None),
+                                                 (1, 1000, 720, P.wzgorza, 1300, (1.04, 1.0, 0.94)))):
+        k = min(1.0, bk(w, 0.1 + 0.15 * n, 0.9))
+        if k <= 0 or zap >= 1:
+            continue
+        Z0.rise(st, J.wydma(v), x, y + ease(zap) * 520, p, k, t, 960 + n, w=wd, wob=0.0, lift=460, anchor=(0.5, 1.0), tint=tint)
+    if skala and zap < 1:  # skała przed bliską wydmą (przegląd 28.11: za wydmą jej nie było widać)
+        Z0.rise(st, J.skala(), skala_x, 740 + ease(zap) * 520, P.wzgorza + 0.002, bk(w, 0.35, 0.9), t, 965, w=380, wob=0.0, lift=480,
+                anchor=(0.5, 1.0), sy=0.62, tint=(1.05, 0.86, 0.64))
+    rampa(st, bk(w, 0.7, 0.6))
+    if kul:
+        kulisy(st, t, w, gazeta=False, gora=False)
+
+
+def jaskinia(st, x, y, p, h=120):
+    """Ciemne wejście do jaskini w skale (sietch): półokrągły otwór."""
+    if h <= 1:
+        return
+    st.put(J.rek_kz("jaskinia"), x, y, p, h=h, anchor=(0.5, 1.0), shadow=None)
+
+
+def gimry_sc(st, t, w, wieza_x=None, aul_x=980, potok=True, kul=True, zmierzch=0.0):
+    """Gimry: wąwóz w górach, auł tarasami na zboczu, kamienna wieża przy ścieżce (obiekt „wieża”), potok w dole."""
+    _niebo_kz(st, w, (lerp(1.0, 0.86, zmierzch), lerp(1.0, 0.78, zmierzch), lerp(1.0, 0.9, zmierzch)))
+    slonce(st, t, w, alpha=1.0 - zmierzch)
+    chmury(st, t, w)
+    gory_pasmo(st, t, w, "dal", CX, 560, P.gory_dal, 0.1, haze=0.2, seed=7)
+    gory_pasmo(st, t, w, "srodek", CX, 640, P.gory, 0.2, seed=8)
+    if aul_x is not None:
+        Z0.rise(st, J.aul(1), aul_x, 660, P.miasto, bk(w, 0.4, 0.8), t, 970, w=700, wob=0.0, lift=420, anchor=(0.5, 1.0))
+    if wieza_x is not None:
+        u = getattr(st, "uklad", None)
+        if u is not None:
+            with u.obiekt("wieża", "dekoracja"):
+                Z0.rise(st, J.rek_kz("wieza"), wieza_x, 712, P.most, bk(w, 0.45, 0.8), t, 971, h=560, wob=0.0, lift=600, anchor=(0.5, 1.0))
+        else:
+            Z0.rise(st, J.rek_kz("wieza"), wieza_x, 712, P.most, bk(w, 0.45, 0.8), t, 971, h=560, wob=0.0, lift=600, anchor=(0.5, 1.0))
+    if potok:
+        Z0.rise(st, J.rzeka(False), CX, 772, P.drzewa, bk(w, 0.5), t, 972, w=2000, wob=0.0, lift=160, anchor=(0.5, 1.0), sy=0.6)
+    rampa(st, bk(w, 0.7, 0.6))
+    if kul:
+        kulisy(st, t, w, gazeta=False)
+
+
+def gabinet(st, t, w, okno_x=1010, biurko_x=None, noc=False, stol_mapa=False, kul=False):
+    """Gabinet w Petersburgu: zielona tapeta, wysokie okno (za nim śnieg albo dzwony), podłoga, biurko urzędnika
+    (biurko_x) albo stół z mapą (stol_mapa). Zwraca y blatu."""
+    st.put(J.sciana("zielen"), CX, 720, P.miasto, w=2200, anchor=(0.5, 1.0), shadow=None)
+    spod(st, (110, 80, 56))
+    J.hang(st, J.okno(noc), okno_x, 120, P.miasto + 0.01, bk(w, 0.2), t, 975, h=340, drop=500, sway=0.3, strings=(0.1, 0.9))
+    Z0.rise(st, J.podloga((110, 80, 56)), CX, 820, P.droga, bk(w, 0.3), t, 976, w=2200, wob=0.0, lift=220, anchor=(0.5, 1.0))
+    st.put(J.glow(), okno_x, 300, P.miasto + 0.012, w=700, anchor=(0.5, 0.5), mode="add", alpha=0.12, shadow=None)
+    rampa(st, bk(w, 0.6, 0.6))
+    if kul:
+        kulisy(st, t, w, dol=False)
+
+
+def las_bukowy(st, t, w, ciemno=0.0, droga=True, kul=True, x0=0.0):
+    """Bukowy las Czeczenii: dalszy rząd buków przymglony, bliższy rząd wysokich pni (korony wychodzą nad kadr, więc pod nimi
+    widać lalki i drogę — przegląd 28.11: niskie korony robiły z lasu zieloną ścianę); ciemno 0..1 — las gęstnieje."""
+    _niebo_kz(st, w, (lerp(1.0, 0.7, ciemno), lerp(1.0, 0.74, ciemno), lerp(1.0, 0.7, ciemno)))
+    slonce(st, t, w, alpha=1.0 - ciemno)
+    chmury(st, t, w)
+    gory_pasmo(st, t, w, "dal", CX, 560, P.gory_dal, 0.1, haze=0.3, seed=9, tint=(0.8, 0.86, 0.8))
+    for n in range(8):
+        x = (-80 + n * 200 + x0 * 0.5) % 1600 - 160
+        Z0.rise(st, J.rek_kz("buk"), x, 620, P.gory + 0.004 * n, bk(w, 0.15 + 0.04 * n), t, 980 + n, h=330, wob=0.2, anchor=(0.5, 1.0),
+                haze=0.3, tint=(0.8, 0.86, 0.82))
+    if droga:
+        Z0.rise(st, J.droga(2, (150, 128, 96)), CX, 726, P.droga + 0.06, bk(w, 0.35), t, 988, w=2200, wob=0.0, lift=140, anchor=(0.5, 1.0))
+    for n in range(4):
+        x = (120 + n * 420 + x0) % 1700 - 200
+        Z0.rise(st, J.rek_kz("buk"), x, 700, P.wzgorza + 0.003 * n, bk(w, 0.3 + 0.05 * n), t, 990 + n, h=980, wob=0.25, anchor=(0.5, 1.0),
+                tint=(lerp(0.92, 0.55, ciemno), lerp(0.92, 0.58, ciemno), lerp(0.9, 0.55, ciemno)))
+    rampa(st, bk(w, 0.7, 0.6))
+    if kul:
+        kulisy(st, t, w, gazeta=True)
+
+
+def kaluga_sc(st, t, w, kul=True):
+    """Kaługa: niebo, łagodne zielone wzgórza, dom z kolumienkami; płot (obiekt „płot”) stawia ujęcie, bo gapie stoją za nim."""
+    _niebo_kz(st, w, (0.96, 0.98, 1.0))
+    slonce(st, t, w)
+    chmury(st, t, w)
+    gory_pasmo(st, t, w, "dal", CX, 560, P.gory_dal, 0.1, haze=0.3, seed=11, tint=(0.7, 0.86, 0.66))
+    Z0.rise(st, J.rek_kz("dom_kaluga"), 760, 650, P.miasto, bk(w, 0.3, 0.9), t, 1000, w=760, wob=0.0, lift=460, anchor=(0.5, 1.0))
+    rampa(st, bk(w, 0.7, 0.6))
+    if kul:
+        kulisy(st, t, w, gazeta=False)

@@ -38,7 +38,7 @@ KADR = {"PO": "plan ogólny", "PP": "plan pełny", "PŚ": "plan średni", "Z": "
 RUCH = {"stat": "statyczna", "naj": "najazd", "odj": "odjazd", "pan": "panorama", "jaz": "jazda za postacią",
         "szarp": "szarpnięcie kamery", "kb": "Ken Burns po obrazie z wydarzeniem"}
 TYPE = {"PO": "wide", "PP": "wide", "PŚ": "medium", "Z": "close-up", "D": "insert", "TYT": "insert"}
-NAPIECIE = {0: 7, 1: 5, 2: 7, 3: 8, 4: 5}  # krzywa filmu: napięcie aktu 0–10
+NAPIECIE = {0: 7, 1: 6, 2: 7, 3: 7, 4: 8, 5: 8, 6: 5}  # krzywa filmu (szkic E): napięcie aktu 0–10
 
 ZRODLA = [
     {"id": "src_larb_collins", "title": "The Secret History of Dune", "author": "Will Collins", "edition": "Los Angeles Review of "
@@ -182,12 +182,9 @@ def plan():
     flow = {**old, "version": 1, "factual": True, "bible": ksiega.BIBLIA, "world": dict(ksiega.SWIAT), "book": ksiega.WARSZTAT,
             "acts": [], "sequences": [], "outlines": [], "scripts": {},
             "director": {"mode": "manual", "plans": {}, "customPatterns": []}}
-    # Master Story = zatwierdzony szkic, tak jak przycisk „Przejmij zatwierdzony szkic” w Studio (tytuł i scenariusz migawki)
-    snap = ((old.get("sketches") or {}).get("approved") or {}).get("snapshot") or {}
-    if snap.get("scenario"):
-        flow["master"] = node("master", snap.get("title") or TITLE, snap["scenario"])
-    elif not (old.get("master") or {}).get("variants"):
-        flow["master"] = node("master", TITLE, " ".join(a[2] for a in AKTY))
+    # Master Story z rozpiski szkicu E (przebudowa 28.11.2026, reżyser: „przebuduj to”) — nie z migawki zatwierdzonego szkicu D,
+    # bo D jest już historią; szkic E czeka na zatwierdzenie reżysera w etapie Szkice ujęć
+    flow["master"] = node("master", TITLE, " ".join(a[2] for a in AKTY))
     n0 = sum(r["akt"] == 0 for r in rows)
     flow["world"]["prologue"] = {"1": n0}
     t = 0.0
@@ -215,7 +212,7 @@ def plan():
                               "soundCue": "; ".join(r["snd"] for r in brows if r["snd"] and not r["snd"].startswith("L:"))[:990],
                               "patternId": "exposition" if any(r["kadr"] == "TYT" for r in brows) else
                               ("rapid-intercut" if any(r["ruch"] == "szarp" for r in brows) else
-                               "evidence" if n == 4 else "slow-burn")})
+                               "evidence" if n == 6 else "slow-burn")})
                 for r in brows:
                     shots.append({"id": r["sid"], "beatId": r["bid"], "typeId": TYPE[r["kadr"]], "title": tytul(r["opis"]),
                                   "description": f"[{tc(t)}–{tc(t + r['sec'])}] ({KADR[r['kadr']]} · {RUCH[r['ruch']]}) {r['opis']}",
@@ -257,6 +254,15 @@ def plan():
                          "teatr": {"film": "szamil-diuna", "jezyk": "en", "odn": r["ref"]}})
         scenes.append(s)
         cursor += frames
+    # klipy osi, których ujęcia znikają z rozpiski (przebudowa 28.11: wszystkie ujęcia szkicu D), wypadają przed zapisem ujęć
+    # (operacja osi `remove_clip`); NOWA_OS=1 zdejmuje też klipy ujęć, które zostają, bo stoją w starych miejscach — `klatki`
+    # kładzie je od nowa w miejscu ujęcia
+    zostaja = {s.get("id") for s in scenes if s.get("id")}
+    usun = [c for c in p["sequence"]["clips"] if (c.get("scene_id") and c["scene_id"] not in zostaja)
+            or (os.environ.get("NOWA_OS") == "1" and c["track_id"] == "v1")]
+    for i in range(0, len(usun), 200):
+        p = call(f"/projects/{p['id']}/edits", {"expected_revision": p["revision"],
+                                                 "operations": [{"type": "remove_clip", "clip_id": c["id"]} for c in usun[i:i + 200]]})
     p = call(f"/projects/{p['id']}", {"expected_revision": p["revision"], "changes": {"scenes": scenes}}, "PATCH")
     rep = call(f"/projects/{p['id']}/continuity/check", {})
     tot = rep["totals"]
@@ -264,9 +270,9 @@ def plan():
         print(f"  [{i['severity']}] {i.get('ref') or ('akt ' + str(i.get('unit')))} {i['rule']}: {i['message']}")
     call(f"/projects/{p['id']}/flow/log", {"entry": {
         "who": "Claude (studio_film.py)", "kind": "tworzenie",
-        "summary": f"Plan filmu wgrany z rozpiski: {len(AKTY)} jednostek (prolog + 4 akty), {len(rows)} ujęć, {tc(t)}",
+        "summary": f"Plan filmu wgrany z rozpiski: {len(AKTY)} jednostek (prolog + {len(AKTY) - 1} aktów), {len(rows)} ujęć, {tc(t)}",
         "details": f"Kontrola ciągłości (waga 3 / 2 / 1): {tot.get('3', 0)} / {tot.get('2', 0)} / {tot.get('1', 0)}. Źródło: "
-                   "zatwierdzony szkic A „Dwa zdania”. Ujęcia czekają na rysunek (kod output/szamil-diuna).",
+                   "szkic E — przebudowa całego filmu 28.11.2026 (reżyser: „przebuduj to”); ujęcia narysowane kodem (output/szamil-diuna, podgląd na żywo).",
         "files": ["docs/filmy/szamil-diuna/ujecia/dane.py", "docs/filmy/szamil-diuna/ujecia/ksiega.py"]}})
     print(f"projekt {p['id']} | {len(rows)} ujęć, {tc(t)} | kontrola {tot.get('3', 0)}/{tot.get('2', 0)}/{tot.get('1', 0)}")
 

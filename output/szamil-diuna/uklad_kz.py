@@ -25,7 +25,7 @@ BIODRO = (150, 414)  # punkt arkusza korpusu na spodzie tułowia lalki siedzące
 # punkty chwytu (piksele arkusza rek_kz): rękojeść, drzewce, róg kartki
 CHWYT = {"szabla": (60, 44), "karabin": (156, 49), "kindzal": (40, 70), "flaga_biala": (16, 250), "choragiew": (20, 300),
          "czerkieska": (24, 64), "kartka_list": (30, 80), "lupa": (240, 240), "ksiazka_ros": (24, 160),
-         "pioro": (170, 30), "swieca": (45, 210)}
+         "pioro": (170, 30), "swieca": (45, 210), "zeszyt": (14, 60), "kartka": (10, 55), "rekawica": (120, 60)}
 
 
 def uk(st, t):
@@ -62,7 +62,10 @@ def zolnierz(st, t, nazwa, key, x, h, y=STOPY, rzad="lalki", flip=1.0, glebia=0.
 def jezdziec(st, t, nazwa, key, x, y=STOPY, rzad="lalki", flip=1.0, h=170, k=1.0, seed=0, galop=1.0, glebia=0.0, przod=10.0,
              tyl=0.0, pasazer=None, dziecko=None):
     """Koń (obiekt „koń (nazwa)”) i jeździec w siodle; pasazer / dziecko — klucze lalek siedzących za i przed jeźdźcem.
-    Każdy siedzący ma kontrolę „siedzi w siodle” (maska konia przy biodrze). Zwraca szkielet jeźdźca."""
+    Każdy siedzący ma kontrolę „siedzi w siodle” (maska konia przy biodrze). Zwraca szkielet jeźdźca.
+    Koń z jeźdźcem wjeżdża dopiero, gdy dekoracja się zbuduje (scena.wejscie): przy budowie koń był przezroczysty
+    (render.po_budowie), a jeździec już stał — wisiał w powietrzu (kontrola układu 28.11, „Tołstoj”, „księżne”)."""
+    k = k * SW.wejscie(1.0)
     if k <= 0:
         return None
     u = uk(st, t)
@@ -107,7 +110,10 @@ def y_siedzi(key, h, y_siedziska):
 
 def zaprzeg(st, t, nazwa, x, y, p, flip, h_kon=120, woznica="woznica", h_w=150, siedzisko=None, dx_kon=None, galop=0.5, seed=0):
     """Koń w zaprzęgu przed pojazdem (wóz, kibitka, armata) i woźnica na koźle (Wytyczne 1.6: „wóz i powóz ciągnie koń,
-    a ktoś nim powozi”). x — przód pojazdu (dyszel), flip — kierunek jazdy; siedzisko = (x, y) kozła i nazwa pojazdu."""
+    a ktoś nim powozi”). x — przód pojazdu (dyszel), flip — kierunek jazdy; siedzisko = (x, y) kozła i nazwa pojazdu.
+    Zaprzęg wjeżdża dopiero po budowie dekoracji, razem z pojazdem (ujęcie rysuje pojazd pod `po_budowie_wjechal()`)."""
+    if SW.wejscie(0.9) < 1:
+        return
     u = uk(st, t)
     hk = h_kon * 0.95
     yy = y - abs(math.sin(t * 7 + seed)) * 3 * galop
@@ -125,6 +131,11 @@ def zaprzeg(st, t, nazwa, x, y, p, flip, h_kon=120, woznica="woznica", h_w=150, 
         if szk:
             with u.obiekt(f"lejce ({nazwa})", "rzecz"):
                 st.line([szk["przod"]["dlon"], (xk + hk * 0.35 * flip, yy - hk * 0.75)], p + 0.003, width=1.4, color=(50, 36, 26), alpha=0.9)
+
+
+def wjechal():
+    """Czy dekoracja już stoi (pojazdy, wozy i armaty wjeżdżają dopiero po budowie — tak jak lalki i konie)."""
+    return SW.wejscie(0.9) >= 1
 
 
 def pkt(key, u, v, x, y, h, anchor=(0.5, 1.0), sx=1.0):

@@ -123,9 +123,9 @@ BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
 # miejsca w filmie i z jego długością (kamera i zdarzenia liczą się tak jak w oryginale) — to skrót, a nie nowa scena.
 # Trzeci element: długość, z jaką liczy się oryginał, gdy ujęcie skraca samo siebie (teatr: od 1 s, za kurtyną zapala się
 # lampa, szyld „SON OF THE SUN” widać, gdy kurtyna się rozsunie, bracia wysuwają się na polanę, kamera dojeżdża do 5 s).
-WYCINEK = {"zap_akhulgo": ("armaty", 0.3), "zap_tratwa": ("tratwa", 0.9), "zap_najazd": ("jezdzcy", 0.4),
-           "zap_rzeka": ("brzegi", 0.8), "zap_mundur": ("mundur", 0.9), "zap_gunib": ("flaga", 0.7), "zap_slowa": ("kanly", 1.2),
-           "zap_wydma": ("pytanie", 0.6)}
+WYCINEK = {"zap_skok": ("skok", 2.4), "zap_armaty": ("armaty", 0.7), "zap_tratwa": ("tratwa", 3.2), "zap_dargo": ("dargo", 5.6),
+           "zap_najazd": ("tsinandali", 5.3), "zap_rzeka": ("przeprawa", 1.6), "zap_gunib": ("szturm_gunib", 1.4),
+           "zap_slowa": ("slowa1", 1.6), "zap_wydma": ("herbert", 3.2)}
 # Kurtyna startu (reżyser 18.11.2026: „po spoilerze na końcu ściemnienie i kurtyna startu z pierwszym ujęciem”): ujęcie
 # zaczyna się zasuniętą kurtyną bez tytułu, która się rozsuwa (zapowiedź kończy się ściemnieniem — koniec swojej sceny).
 KURTYNA_START = {"tytul"}
@@ -144,7 +144,7 @@ BUDUJ |= {KOL[_i] for _i, _g in enumerate(GRANICE) if _g["pierwsze_sceny"]}
 # Ta sama dekoracja co w poprzednim ujęciu (to samo miejsce, czas leci dalej): bez gaśnięcia i bez budowy od zera, zwykłe cięcie.
 # Przegląd 19.11 („ujęcie po ujęciu zbytnio nie kontynuowało poprzedniego”): pole pod Waldo po śmiechu Darby'ego, rzeka po
 # Dexfield, nocna droga po odejściu W.D., Kansas po jeździe z Boydem budowały się od pustego płótna jak nowa historia.
-CIAGLOSC = {"dwie_wojny", "slowo_kindjal"}  # KINDJAL: góry wyrosły już w „pytanie”, słowo spada od razu
+CIAGLOSC = {"dwie_wojny"}  # to samo miejsce co poprzednie ujęcie (scena podzielona), bez gaśnięcia i bez budowy
 BUDUJ -= CIAGLOSC
 KURTYNA = (1.5, 0.8, 0.25, 0.85)  # zamykanie 1,5 s przed końcem aktu, trwa 0,8 s; w nowym akcie po 0,25 s otwiera się 0,85 s
 CIEMNO = 0.35  # ściemnienie: tyle sekund gaśnie na końcu sceny i tyle zapala się na początku następnej
@@ -153,14 +153,15 @@ CIEMNO = 0.35  # ściemnienie: tyle sekund gaśnie na końcu sceny i tyle zapala
 BEZ_KURTYNY = {1}
 
 
-# Kurtyny aktów II–IV (szkic D, reżyser 28.11: „Zatwierdzam”): mała tabliczka „Act N — SŁOWO” (słowo z Diuny), pod nią pytanie.
-SLOWA_AKTOW = {2: ("KANLY", "How do you buy back a son?"), 3: ("SIRIDAR", "How does a 25-year war end?"),
-               4: ("SIETCH", "What did Dune take?")}
+# Kurtyny aktów II–VI (szkic E, 28.11): mała tabliczka „Act N”, pod nią pytanie, na które akt odpowiada (Wytyczne 1.26).
+# Słowa z Diuny nie wiszą już na kurtynach — padają w historii, kiedy lektor je wyjaśnia (reżyser 28.11: „nic nie wiadomo,
+# o co chodzi”).
+PYTANIA_AKTOW = {2: "What would you give to buy time?", 3: "Can you win by burning your own capital?",
+                 4: "How do you buy back a son?", 5: "How does a 25-year war end?", 6: "How did his war get into Dune?"}
 
 
 def tytul_aktu(n):
-    slowo, pytanie = SLOWA_AKTOW[n]
-    return f"Act {n} — {slowo} · {pytanie}"
+    return f"Act {n} · {PYTANIA_AKTOW[n]}"
 
 
 def _ekran(st, p):
@@ -258,7 +259,7 @@ def ziarno(i):
 # i list unosiły się w powietrzu w pierwszej sekundzie budowy.
 SCENOGRAFIA = {"niebo", "slonce", "ksiezyc", "chmury", "rampa", "kulisy", "pas", "ciemnosc", "parawan", "wnetrze", "dekoracja",
                "gwiazdy", "teatr_kz", "kaukaz", "gruzja", "petersburg", "sala_balowa", "miczik", "izba", "pustynia", "gory_pasmo",
-               "mur_przod", "_niebo_kz"}
+               "mur_przod", "_niebo_kz", "arrakis_sc", "gimry_sc", "gabinet", "las_bukowy", "kaluga_sc", "pracownia", "snieg"}
 SAME_WCHODZA = SCENOGRAFIA | {"lalka", "auto", "motocykl", "ciezarowka", "cien", "rise"}  # mają własne wejście / wyrastanie
 
 

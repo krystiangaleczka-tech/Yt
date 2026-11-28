@@ -2660,3 +2660,255 @@ def obraz(nazwa):
 def kurtyna_kz(strona):
     """Kurtyna z ciemnego bordowego aksamitu (ta sama budowa co w poprzednich filmach)."""
     return Z0.Z0.kurtyna(strona) if hasattr(Z0, "Z0") else Z0.kurtyna(strona)
+
+
+# =====================================================================================================================
+# ---------- szkic E (przebudowa 28.11.2026): nowe lalki i wycinki ----------
+# Reżyser 28.11: „przebuduj to… przecież to ma być zajebiste”. Gimry 1832, gabinet w Petersburgu z mapą i pieczątką,
+# bukowy las Czeczenii, Dargo, Tołstoj, Kaługa, robak z Diuny i fremeni (własne wycinanki, nic z filmów — księga D5).
+# =====================================================================================================================
+
+_kapelusz_d = _kapelusz
+
+
+def _kapelusz(s, parts):  # noqa: F811 — kaptur fremena i dwurożny kapelusz z pióropuszem (Woroncow)
+    k, c = s["kapelusz"], s["kapelusz_kolor"]
+    if k == "kaptur":  # kaptur płaszcza pustyni: obejmuje głowę, spływa na ramiona; twarz odsłonięta
+        parts += [(poly([(100, 120), (104, 70), (126, 46), (152, 40), (180, 46), (202, 70), (206, 120), (212, 200), (186, 214),
+                         (190, 120), (186, 84), (152, 70), (120, 84), (116, 120), (120, 214), (94, 200)]), c,
+                   dict(kind="gnieciony", contrast=1.1, edge=2)),
+                  (poly([(124, 150), (188, 146), (186, 176), (126, 178)]), _shade(c, 0.6))]  # zasłona na usta, pod oczami
+    elif k == "dwurozny":  # czarny dwurożny kapelusz z ogromnym białym pióropuszem (gag z żyrandolem)
+        parts += [(poly([(84, 96), (222, 96), (196, 70), (152, 58), (110, 70)]), c, dict(edge=2)),
+                  (ell(152, 80, 10, 10), GOLD)]  # pióropusz osobno: rek_kz("pioropusz") w ujęciu, nad czubkiem głowy
+    elif k == "kepi":  # czapka kadeta / ochotnika (Tołstoj, młody Dżamaluddin)
+        parts += [(poly([(112, 92), (196, 92), (192, 62), (116, 62)]), c, dict(edge=2)),
+                  (rect(112, 84, 196, 92), (190, 40, 40)), (poly([(160, 92), (214, 98), (206, 104), (166, 100)]), (24, 22, 22))]
+    else:
+        _kapelusz_d(s, parts)
+
+
+PIASEK = (196, 170, 120)
+LALKI.update({
+    # fremeni — własne wycinanki: piaskowe płaszcze z kapturem, ciemna zasłona na usta (bez twarzy aktorów, D5)
+    "fremen": dict(wlosy=(60, 44, 32), kapelusz="kaptur", kapelusz_kolor=(150, 124, 86), stroj="plaszcz", gora=(170, 140, 98),
+                   dol=(120, 98, 70), koszula=(90, 74, 56), krawat=None, buty=(80, 64, 48), pas=(70, 56, 40), dluga=True),
+    "fremen2": dict(wlosy=(40, 30, 24), kapelusz="kaptur", kapelusz_kolor=(120, 104, 80), stroj="plaszcz", gora=(144, 122, 90),
+                    dol=(110, 90, 64), koszula=(90, 74, 56), krawat=None, buty=(80, 64, 48), pas=(70, 56, 40), dluga=True, szer=1.05),
+    # car Mikołaj I (biały mundur, wąsy) — inny niż Aleksander II („car”)
+    "nikolaj": dict(wlosy=(150, 120, 86), fryzura="zaczesane", wasy=True, stroj="mundur", gora=(236, 232, 220), dol=(40, 46, 70),
+                    koszula=(190, 40, 40), krawat=None, buty=(24, 22, 22), epolety=GOLD, pas=GOLD, odznaka=True, szer=1.06),
+    "general": dict(wlosy=(220, 216, 210), wasy=True, broda=True, kapelusz="czapka", kapelusz_kolor=(40, 58, 48), stroj="mundur",
+                    gora=(40, 58, 48), dol=(170, 40, 40), koszula=(190, 40, 40), krawat=None, buty=(24, 22, 22), epolety=GOLD, szer=1.08),
+    # urzędnik z pieczątką (gag powracający): czarny frak, okulary; w 1859 siwy
+    "urzednik": dict(wlosy=(60, 46, 36), fryzura="zaczesane", okulary=True, stroj="garnitur", gora=(34, 34, 40), dol=(34, 34, 40),
+                     koszula=(240, 236, 226), krawat=(30, 30, 34)),
+    "urzednik_stary": dict(wlosy=(214, 210, 204), fryzura="zaczesane", okulary=True, wasy=True, stroj="garnitur", gora=(34, 34, 40),
+                           dol=(34, 34, 40), koszula=(240, 236, 226), krawat=(30, 30, 34)),
+    "vorontsov": dict(wlosy=(200, 190, 176), wasy=True, kapelusz="dwurozny", kapelusz_kolor=(30, 28, 30), stroj="mundur",
+                      gora=(36, 52, 44), dol=(236, 232, 220), koszula=(190, 40, 40), krawat=None, buty=(24, 22, 22), epolety=GOLD,
+                      pas=GOLD, szer=1.02),
+    "tolstoj": dict(wlosy=(80, 60, 44), wasy=True, kapelusz="kepi", kapelusz_kolor=(70, 76, 70), stroj="mundur", gora=(96, 100, 92),
+                    dol=(60, 64, 60), koszula=(200, 40, 40), krawat=None, buty=(28, 24, 22), pas=(40, 34, 30)),
+    "sado": dict(wlosy=(30, 26, 24), wasy=True, kapelusz="papacha", kapelusz_kolor=(150, 130, 110), stroj="plaszcz", gora=(110, 90, 70),
+                 dol=(60, 52, 44), koszula=(200, 180, 150), krawat=None, buty=(28, 24, 22), gazyry=True, pas=(70, 64, 56), szer=0.96),
+    "dzamal_sredni": dict(wlosy=(40, 32, 28), fryzura="zaczesane", kapelusz="kepi", kapelusz_kolor=(40, 46, 70), stroj="mundur",
+                          gora=(40, 46, 70), dol=(40, 46, 70), koszula=(200, 40, 40), krawat=None, buty=(24, 22, 22), pas=(236, 232, 220),
+                          szer=0.97),
+    "gap1": dict(kobieta=True, wlosy=(120, 80, 50), fryzura="kok", kapelusz="kapelusik", kapelusz_kolor=(120, 60, 90), stroj="sukienka",
+                 gora=(170, 120, 150), dol=(170, 120, 150), kolnierzyk=(250, 244, 232), dluga=True),
+    "gap2": dict(wlosy=(150, 110, 70), wasy=True, kapelusz="melonik", kapelusz_kolor=(40, 36, 34), stroj="garnitur", gora=(90, 80, 70),
+                 dol=(70, 64, 60), koszula=(236, 232, 220), krawat=(110, 40, 40)),
+    "gap3": dict(wlosy=(200, 160, 100), fryzura="loki", stroj="koszula", koszula=(220, 200, 170), gora=(220, 200, 170),
+                 dol=(80, 70, 60), krawat=None, szer=0.9),
+})
+
+
+@lru_cache(None)
+def raport(stempel=None, stary=False, w=620, h=420):
+    """Raport z gór na biurku urzędnika: linie maszynopisu, podpis; stempel — czerwony napis pieczątki ukośnie."""
+    papier = (232, 220, 190) if stary else (244, 236, 214)
+    parts = [(rect(6, 6, w - 6, h - 6), papier, dict(kind="gladki", edge=3)),
+             (glyphs("REPORT FROM THE CAUCASUS", 30, FONT_MASZ, 0, (w / 2, 46), "mm"), INK)]
+    r = random.Random(w + h)
+    for n in range(7):
+        parts.append((rect(50, 92 + n * 34, 50 + r.uniform(380, 520), 100 + n * 34), _shade(INK, 1.8)))
+    if stempel:
+        f = ImageFont.truetype(FONT_PL, 64, index=PL_IDX)
+        tw = f.getlength(stempel)
+        sc = min(1.0, (w - 90) / max(tw, 1))
+        parts += [(poly([(w / 2 - tw * sc / 2 - 24, 190), (w / 2 + tw * sc / 2 + 24, 170), (w / 2 + tw * sc / 2 + 30, 270),
+                         (w / 2 - tw * sc / 2 - 18, 290)]), (196, 40, 40), dict(kind="gladki", edge=0, contrast=0.6)),
+                  (poly([(w / 2 - tw * sc / 2 - 14, 200), (w / 2 + tw * sc / 2 + 14, 182), (w / 2 + tw * sc / 2 + 20, 260),
+                         (w / 2 - tw * sc / 2 - 8, 278)]), papier),
+                  (glyphs(stempel, int(64 * sc), FONT_PL, PL_IDX, (w / 2, 230), "mm"), (196, 40, 40), dict(kind="gladki", rough=0.8))]
+    return Sprite(stack(w, h, parts, seed=17 + len(stempel or "")), f"raport-{stempel}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def mapa_kaukazu(w=1000, h=560):
+    """Papierowa mapa Kaukazu na stole: morza, grzbiety gór, rzeki, napis CAUCASUS, strzałka do DARGO (osobno)."""
+    parts = [(rect(6, 6, w - 6, h - 6), (230, 212, 168), dict(kind="gladki", edge=4)),
+             (poly([(6, 6), (150, 6), (110, 250), (150, 554), (6, 554)]), (150, 176, 190)),
+             (poly([(w - 6, 6), (w - 130, 6), (w - 90, 300), (w - 140, 554), (w - 6, 554)]), (150, 176, 190))]
+    for n in range(9):
+        x = 230 + n * 66
+        y = 300 - 60 * math.sin(n / 8 * math.pi)
+        parts.append((poly([(x - 46, y + 40), (x, y - 40), (x + 46, y + 40)]), (150, 120, 90)))
+        parts.append((poly([(x - 14, y - 16), (x, y - 40), (x + 14, y - 16)]), (246, 244, 238)))
+    parts += [(_band((300, 380), (500, 520), 5), (110, 150, 180)), (_band((620, 360), (560, 540), 5), (110, 150, 180)),
+              (glyphs("CAUCASUS", 50, FONT_PL, PL_IDX, (w / 2, 120), "mm"), INK)]
+    return Sprite(stack(w, h, parts, seed=303), "mapa-kaukazu", rim=2, clean=False)
+
+
+@lru_cache(None)
+def rek_e(key):
+    """Wycinki szkicu E (arkusze w pikselach; kotwice podane przy użyciu w ujęciach)."""
+    if key == "robak":  # robak z Diuny: łuk z pierścieni, okrągła paszcza z zębami u góry; dół (0.5, 1.0)
+        p = []
+        for n in range(9):
+            y = 900 - n * 92
+            x = 180 + 40 * math.sin(n / 3.0)
+            r = 118 - n * 3
+            p.append((ell(x, y, r, 60), _shade((176, 140, 100), 0.86 + 0.06 * (n % 2)), dict(edge=2, kind="gnieciony")))
+            p.append((ell(x, y - 30, r - 10, 18), _shade((150, 116, 80), 0.9)))
+        p += [(ell(196, 110, 120, 100), (150, 112, 78), dict(edge=3)), (ell(196, 110, 92, 74), (60, 30, 26)),
+              (ell(196, 110, 56, 42), (24, 12, 12))]
+        for a in range(0, 360, 30):  # zęby w paszczy
+            cx, cy = 196 + 80 * math.cos(math.radians(a)), 110 + 62 * math.sin(math.radians(a))
+            ix, iy = 196 + 58 * math.cos(math.radians(a + 8)), 110 + 44 * math.sin(math.radians(a + 8))
+            p.append((poly([(cx, cy), (ix, iy), (196 + 76 * math.cos(math.radians(a + 16)), 110 + 60 * math.sin(math.radians(a + 16)))]),
+                      (240, 232, 206)))
+        return _rek(key, 380, 960, p)
+    if key == "koza":  # koza z bródką i rogami, zwrócona w prawo; stopy (0.5, 1.0)
+        return _rek(key, 300, 240, [(ell(130, 120, 96, 52), (232, 228, 218), dict(edge=2)), (_band((200, 100), (236, 50), 34), (232, 228, 218)),
+                                    (ell(248, 46, 34, 24), (232, 228, 218)), (poly([(236, 24), (220, -4), (232, 2), (246, 26)]), (120, 104, 84)),
+                                    (poly([(268, 58), (262, 92), (254, 60)]), (160, 150, 136)), (ell(256, 38, 4, 4), (20, 20, 20)),
+                                    (poly([(224, 30), (206, 20), (222, 42)]), (210, 200, 186))] +
+                    [(_band((x, 160), (x, 236), 14), (210, 204, 192)) for x in (70, 100, 160, 190)] +
+                    [(poly([(36, 104), (14, 84), (30, 116)]), (210, 204, 192))])
+    if key == "koza_meh":  # ta sama koza z otwartym pyskiem
+        im = rek_e("koza")
+        return _rek(key, 300, 240, [(ell(130, 120, 96, 52), (232, 228, 218), dict(edge=2)), (_band((200, 100), (236, 50), 34), (232, 228, 218)),
+                                    (ell(248, 46, 34, 24), (232, 228, 218)), (poly([(236, 24), (220, -4), (232, 2), (246, 26)]), (120, 104, 84)),
+                                    (poly([(268, 58), (262, 92), (254, 60)]), (160, 150, 136)), (ell(256, 38, 4, 4), (20, 20, 20)),
+                                    (poly([(262, 50), (290, 44), (290, 62), (264, 60)]), (90, 40, 40)),
+                                    (poly([(224, 30), (206, 20), (222, 42)]), (210, 200, 186))] +
+                    [(_band((x, 160), (x, 236), 14), (210, 204, 192)) for x in (70, 100, 160, 190)] +
+                    [(poly([(36, 104), (14, 84), (30, 116)]), (210, 204, 192))]) if im else None
+    if key == "kot":
+        return _rek(key, 200, 150, [(ell(90, 96, 70, 36), (60, 56, 56), dict(edge=2)), (ell(160, 70, 30, 28), (60, 56, 56)),
+                                    (poly([(140, 50), (146, 22), (158, 46)]), (60, 56, 56)), (poly([(166, 46), (180, 20), (184, 50)]), (60, 56, 56)),
+                                    (ell(170, 66, 4, 4), (230, 210, 80)), (_band((24, 90), (4, 30), 10), (60, 56, 56))] +
+                    [(_band((x, 120), (x, 148), 10), (60, 56, 56)) for x in (50, 70, 110, 130)])
+    if key == "pieczatka":  # drewniana rączka, metalowa podstawa; dół (0.5, 1.0)
+        return _rek(key, 160, 220, [(ell(80, 34, 40, 30), (120, 80, 50), dict(edge=2)), (rect(66, 50, 94, 150), (130, 90, 56)),
+                                    (rect(20, 150, 140, 184), (70, 70, 76), dict(kind="gladki")), (rect(16, 184, 144, 214), (170, 40, 40))])
+    if key == "gora_mapy":  # papierowa góra wstająca z mapy (zawias u dołu)
+        return _rek(key, 260, 220, [(poly([(10, 214), (130, 10), (250, 214)]), (150, 120, 90), dict(edge=2, shade=0.2)),
+                                    (poly([(96, 70), (130, 10), (164, 70), (146, 62), (130, 78), (114, 62)]), (246, 244, 238))])
+    if key == "zolnierzyk":  # cynowy żołnierzyk na podstawce
+        return _rek(key, 40, 100, [(rect(6, 88, 34, 100), (120, 120, 126)), (rect(12, 40, 28, 90), (236, 232, 220)),
+                                   (ell(20, 30, 9, 9), (230, 200, 170)), (rect(11, 14, 29, 24), (236, 234, 226)), (rect(30, 4, 33, 70), (90, 90, 96))])
+    if key == "wieza":  # kamienna wieża w Gimry: okno u góry (otwór), drzwi na podwyższonym progu u dołu
+        r = random.Random(11)
+        p = [(poly([(30, 900), (50, 60), (250, 60), (270, 900)]), (168, 152, 126), dict(edge=3, shade=0.18))]
+        for row in range(20):
+            for n in range(5):
+                p.append((ell(60 + n * 46 + (23 if row % 2 else 0) + r.uniform(-4, 4), 90 + row * 42, 20, 13),
+                          _shade((168, 152, 126), r.uniform(0.84, 1.08))))
+        p += [(poly([(40, 60), (150, 0), (260, 60)]), (120, 96, 70), dict(edge=2)), (rect(100, 140, 200, 250), (40, 30, 26)),
+              (rect(96, 640, 204, 820), (60, 44, 34)), (rect(80, 820, 220, 860), (140, 126, 104))]
+        return _rek(key, 300, 900, p, dziura=(108, 148, 192, 244))
+    if key == "szalas":  # szałas pasterza z kamienia i gałęzi, ciemne wejście
+        return _rek(key, 460, 320, [(poly([(20, 316), (40, 120), (230, 20), (420, 120), (440, 316)]), (130, 110, 84), dict(edge=2, shade=0.2)),
+                                    (poly([(10, 140), (230, 6), (450, 140), (420, 150), (230, 40), (40, 150)]), (90, 70, 46)),
+                                    (poly([(170, 316), (180, 190), (230, 160), (280, 190), (290, 316)]), (30, 24, 20))])
+    if key == "meczet_cien":  # sylwetka meczetu z kopułą i minaretem (teatr cieni)
+        return _rek(key, 800, 480, [(rect(120, 220, 680, 480), (20, 16, 14)), (ell(400, 220, 170, 150), (20, 16, 14)),
+                                    (rect(392, 40, 408, 80), (20, 16, 14)), (rect(700, 60, 740, 480), (20, 16, 14)),
+                                    (poly([(690, 70), (720, 0), (750, 70)]), (20, 16, 14))])
+    if key == "buk":  # buk: gładki szary pień, okrągła korona
+        p = [(poly([(150, 700), (160, 260), (196, 260), (210, 700)]), (150, 150, 146), dict(edge=2, kind="gladki"))]
+        p += [(ell(178 + dx, 180 + dy, 110, 90), _shade((96, 128, 70), 0.9 + 0.05 * (i % 3)), dict(edge=2))
+              for i, (dx, dy) in enumerate(((-90, 40), (80, 30), (0, -40), (-40, 90), (60, 100), (0, 40)))]
+        return _rek(key, 360, 700, p)
+    if key == "pien_lezacy":  # ścięty buk w poprzek drogi
+        return _rek(key, 700, 140, [(poly([(10, 70), (640, 50), (690, 80), (650, 110), (20, 120)]), (150, 150, 146), dict(edge=2)),
+                                    (ell(40, 95, 30, 26), (200, 180, 140))] +
+                    [(ell(500 + dx, 50 + dy, 70, 50), (96, 128, 70)) for dx, dy in ((0, 0), (90, 20), (40, -20))])
+    if key == "worek_suchary":
+        return _rek(key, 170, 190, [(poly([(30, 60), (140, 60), (160, 184), (10, 184)]), (196, 176, 136), dict(edge=2)),
+                                    (rect(62, 40, 108, 66), (160, 138, 100)),
+                                    (glyphs("SUKHARI", 26, FONT_MASZ, 0, (85, 130), "mm"), (90, 60, 40))])
+    if key == "suchar":
+        return _rek(key, 70, 50, [(poly([(6, 10), (64, 4), (66, 44), (4, 46)]), (214, 176, 110), dict(edge=2)),
+                                  (ell(24, 22, 3, 3), (170, 130, 80)), (ell(44, 30, 3, 3), (170, 130, 80))])
+    if key == "zeszyt":  # zeszyt otwarty; chwyt (14, 60)
+        return _rek(key, 160, 110, [(rect(4, 6, 156, 104), (90, 70, 56), dict(edge=2)), (rect(10, 10, 78, 100), (244, 238, 222)),
+                                    (rect(82, 10, 150, 100), (244, 238, 222))] +
+                    [(rect(16, 24 + n * 12, 70, 27 + n * 12), (120, 110, 100)) for n in range(6)])
+    if key == "kartka":
+        return _rek(key, 90, 110, [(poly([(4, 6), (86, 2), (88, 104), (2, 108)]), (244, 238, 222), dict(kind="gladki", edge=2))] +
+                    [(rect(12, 18 + n * 14, 74, 21 + n * 14), (120, 110, 100)) for n in range(6)])
+    if key == "dom_kaluga":  # parterowy dom z kolumienkami i mezaninem (Kaługa)
+        p = [(rect(40, 150, 760, 440), (226, 206, 160), dict(edge=3, shade=0.12)), (poly([(20, 160), (400, 40), (780, 160)]), (110, 120, 110), dict(edge=2)),
+             (poly([(300, 150), (400, 90), (500, 150)]), (236, 220, 180), dict(edge=2))]
+        p += [(rect(x, 170, x + 22, 440), (246, 240, 226)) for x in (300, 350, 430, 480)]
+        p += [(rect(x, 230, x + 70, 330), (110, 140, 160)) for x in (80, 180, 580, 680)]
+        p += [(rect(370, 300, 430, 440), (110, 76, 52)), (rect(260, 430, 540, 450), (200, 190, 170))]
+        return _rek(key, 800, 450, p)
+    if key == "plot":  # drewniany płot z desek (zza niego wychylają się gapie)
+        p = [(rect(0, 60, 1400, 80), (150, 112, 72)), (rect(0, 120, 1400, 140), (150, 112, 72))]
+        p += [(poly([(x, 160), (x, 20), (x + 20, 4), (x + 40, 20), (x + 40, 160)]), _shade((176, 136, 90), 0.9 + 0.08 * ((x // 48) % 3)),
+               dict(edge=2)) for x in range(4, 1396, 48)]
+        return _rek(key, 1400, 160, p)
+    if key == "laska_hak":  # ręka maszynisty zza kulis: rękaw, dłoń, długa laska z hakiem; poziomo, rękaw z lewej
+        return _rek(key, 900, 120, [(poly([(0, 30), (170, 40), (176, 90), (0, 100)]), (50, 48, 52), dict(edge=2)),
+                                    (ell(196, 64, 30, 26), (226, 196, 164)), (_band((200, 64), (820, 60), 10), (130, 96, 60)),
+                                    (_band((820, 60), (870, 70), 10), (130, 96, 60)), (_band((870, 70), (880, 104), 10), (130, 96, 60)),
+                                    (_band((880, 104), (850, 110), 10), (130, 96, 60))])
+    if key == "rekawica":  # dłoń w rękawicy z herbem (strona Diuny w akcie VI); chwyt (120, 60)
+        return _rek(key, 200, 130, [(poly([(0, 30), (90, 30), (96, 100), (0, 100)]), (40, 40, 60), dict(edge=2)),
+                                    (ell(130, 64, 44, 40), (90, 70, 50), dict(edge=2)), (ell(50, 64, 20, 20), GOLD)])
+    if key == "kamien_kartka":
+        return _rek(key, 90, 80, [(ell(40, 46, 34, 28), (130, 124, 116), dict(edge=2)), (rect(40, 6, 90, 50), (244, 238, 222))])
+    if key == "szlaban":  # szlaban w biało-czarne pasy i budka wartownika
+        p = [(rect(10, 60, 110, 300), (236, 232, 220), dict(edge=2)), (poly([(0, 60), (60, 10), (120, 60)]), (40, 36, 34))]
+        p += [(rect(10, 80 + n * 44, 110, 102 + n * 44), (30, 28, 28)) for n in range(5)]
+        p += [(rect(110, 170, 380, 186), (236, 232, 220))] + [(rect(130 + n * 50, 170, 152 + n * 50, 186), (30, 28, 28)) for n in range(5)]
+        return _rek(key, 380, 300, p)
+    if key == "list_szamila":  # list z pieczęcią i arabskim pismem (kreski)
+        p = [(rect(6, 6, 314, 214), (240, 226, 196), dict(kind="gladki", edge=2))]
+        r = random.Random(5)
+        p += [(rect(r.uniform(30, 60), 30 + n * 26, r.uniform(240, 290), 34 + n * 26), (60, 50, 70)) for n in range(6)]
+        p += [(ell(270, 190, 18, 18), (170, 40, 40))]
+        return _rek(key, 320, 220, p)
+    if key == "jaskinia":  # ciemny łuk wejścia do jaskini w skale (sietch); dół (0.5, 1.0)
+        return _rek(key, 220, 180, [(poly([(10, 180), (14, 110), (40, 50), (110, 14), (180, 50), (206, 110), (210, 180)]), (40, 26, 20),
+                                     dict(edge=2)), (poly([(40, 180), (44, 120), (70, 74), (110, 50), (150, 74), (176, 120), (180, 180)]), (18, 12, 10))])
+    if key == "pioropusz":  # ogromny biały pióropusz Woroncowa; dół (0.5, 1.0) wpięty w kapelusz
+        return _rek(key, 160, 420, [(poly([(70, 420), (40, 300), (30, 180), (60, 70), (110, 0), (120, 90), (130, 200), (110, 320),
+                                          (96, 420)]), (250, 248, 240), dict(kind="gnieciony", contrast=0.8, edge=2)),
+                                    (poly([(80, 400), (70, 260), (84, 120), (100, 40)]), (226, 222, 214))])
+    raise KeyError(key)
+
+
+_rek_kz_d = rek_kz
+
+
+def rek_kz(key):  # noqa: F811 — najpierw wycinki szkicu E, potem dawne
+    try:
+        return rek_e(key)
+    except KeyError:
+        return _rek_kz_d(key)
+
+
+@lru_cache(None)
+def cyfra(txt, size=110, kolor=(40, 28, 24)):
+    """Pojedyncze cyfry i znaki liczby na liście Szamila (gag: zera odpadają); bez tła."""
+    f = ImageFont.truetype(FONT_PL, size, index=PL_IDX)
+    w = int(f.getlength(txt)) + 16
+    h = size + 30
+    return Sprite(stack(w, h, [(glyphs(txt, size, FONT_PL, PL_IDX, (w / 2, h / 2), "mm"), kolor, dict(kind="gladki", rough=0.6))],
+                        seed=len(txt) + size), f"cyfra-{txt}-{size}", rim=1, clean=False)
