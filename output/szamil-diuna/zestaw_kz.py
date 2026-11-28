@@ -542,6 +542,19 @@ class Figura:
             self._siedzi = Sprite(im, f"lalka-siedzi-{self.key}", rim=2, clean=False, crop=False)
         return self._siedzi
 
+    @property
+    def nogi(self):
+        """Same nogi (od bioder w dół) na arkuszu korpusu: siedząca lalka zwiesza je z siedziska do podłogi (uklad.lalka,
+        nogi=y podłogi). Bez nich korpus siedzący na łóżku, ławce albo kamieniu wyglądał jak ucięty (reżyser 28.11: „w 51
+        oni nie mają nóg, tak ma być?”)."""
+        if getattr(self, "_nogi", None) is None:
+            im = _korpus_img(self.s).copy()
+            a = im.getchannel("A")
+            a.paste(0, (0, 0, im.size[0], BIODRO - 6))
+            im.putalpha(a)
+            self._nogi = Sprite(im, f"lalka-nogi-{self.key}", rim=2, clean=False, crop=False)
+        return self._nogi
+
 
 @lru_cache(None)
 def figura(key):
@@ -3455,6 +3468,9 @@ MEBLE["biurko_pisarza"] = (460, 230, [(rect(0, 0, 460, 26), (176, 130, 84)), (re
                                       (rect(30, 60, 150, 110), (176, 130, 84)), (rect(30, 130, 150, 180), (176, 130, 84))])
 MEBLE["lozko_kz"] = (520, 200, [(rect(0, 70, 520, 170), (140, 50, 44), dict(edge=2)), (rect(0, 60, 520, 84), (220, 180, 90)), (rect(0, 20, 24, 200), (96, 64, 40)),
                                 (rect(496, 50, 520, 200), (96, 64, 40)), (ell(80, 64, 60, 26), (230, 224, 206))])
+# kołdra na łóżko (ujęcie „smierc”, reżyser 28.11: „w 51 oni nie mają nóg”): chory leży pod nią, widać go od pasa w górę
+MEBLE["koldra_kz"] = (460, 140, [(rect(0, 22, 460, 140), (176, 128, 74), dict(edge=2)), (ell(270, 26, 170, 18), (176, 128, 74)),
+                                 (rect(0, 100, 460, 105), (150, 104, 58)), (ell(22, 70, 22, 56), (232, 226, 208), dict(edge=2))])
 MEBLE["skrzynka"] = (220, 160, [(rect(0, 0, 220, 20), (110, 70, 42)), (rect(6, 20, 214, 160), (96, 60, 36), dict(edge=2)),
                                 (ell(60, 90, 26, 40), (130, 88, 56)), (ell(160, 90, 26, 40), (130, 88, 56)), (rect(100, 70, 120, 110), GOLD)])
 

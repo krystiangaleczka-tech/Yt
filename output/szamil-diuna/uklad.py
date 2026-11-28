@@ -338,7 +338,7 @@ class Uklad:
 
     # ---- lalka ----
     def lalka(self, nazwa, key, x, h=300, rzad="lalki", y=SW.STOPY, flip=1.0, lean=0.0, sink=0.0, lift=0.0, hop=0.0, k=1.0,
-              wejscie=True, przod=0.0, tyl=0.0, lokiec=("dol", "dol"), glebia=0.0, kapelusz=None, siedzi=False, tint=None,
+              wejscie=True, przod=0.0, tyl=0.0, lokiec=("dol", "dol"), glebia=0.0, kapelusz=None, siedzi=False, nogi=None, tint=None,
               alpha=1.0, shadow=True, blur=None):
         """Lalka na patyczku (te same liczby co scena.lalka: wejście zza rampy, chwianie, obrót), ale:
         - ręce z łokciem: przod / tyl to kąt w stopniach (0 — opuszczona, 90 — przed siebie) albo cel dłoni (x, y)
@@ -399,6 +399,12 @@ class Uklad:
             if hat is not None and kapelusz.get("gdzie") == "glowa":  # cień kapelusza na ścianę (korpus go zasłoni)
                 st.put(hat, x, yy, p, h=f.ch * sc, anchor=(af[0] / f.cw, af[1] / f.ch), rot=rot, sx=flip, z=-0.001, **kw)
             st.put(body, x, yy, p, h=f.ch * sc, anchor=(af[0] / f.cw, af[1] / f.ch), rot=rot, sx=flip, **kw)
+            if siedzi and nogi is not None:  # nogi zwieszone z siedziska do podłogi y=nogi (reżyser 28.11: „nie mają nóg”)
+                dl_nog = (f.stopa - J.BIODRO) * sc
+                biodro = yy - dl_nog
+                if nogi > biodro + 4:
+                    st.put(f.nogi, x, nogi, p, h=f.ch * sc, anchor=(af[0] / f.cw, af[1] / f.ch), rot=rot, sx=flip,
+                           sy=min(1.0, (nogi - biodro) / dl_nog), z=-0.002, **kw)
         if hat is not None:
             hn = kapelusz.get("nazwa", f"kapelusz ({nazwa})")
             kw_h = dict(kw, shadow=(2, 3, 2.5, 0.42))  # cień jak przy sklejaniu wycinanki

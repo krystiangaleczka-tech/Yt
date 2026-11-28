@@ -394,7 +394,7 @@ def s_cena(st, w, t, T):
     kk = hp / 70
     ox, oy = _off((0 - 170) * kk, (42 - 30) * kk, rot)
     gladzi = t > t_forty + 1.4
-    szk = K.lalka(st, t, "Szamil", w.szamil, 516, 300, flip=1, siedzi=True, y=K.y_siedzi(w.szamil, 300, blat_y + 14),
+    szk = K.lalka(st, t, "Szamil", w.szamil, 516, 300, flip=1, siedzi=True, nogi=STOPY, y=K.y_siedzi(w.szamil, 300, blat_y + 14),
                   przod=(lambda s: s["punkt"](176, 196)) if gladzi else (lambda s: K.w_zasiegu(s, (nib[0] - ox, nib[1] - oy), f=1.0)))
     if not gladzi:
         geo = K.w_dloni(st, t, "pióro", "pioro", szk, hp, rot=rot)
@@ -573,7 +573,7 @@ def s_obcy(st, w, t, T):
     t_str, t_miss = sl("obcy", "stranger"), sl("obcy", "missed")
     u.rzecz("stolik", K.ark("stol_niski"), 690, STOPY + 10, u.p("przod"), (180, 120), 90)
     blat_y = K.pkt("stol_niski", 180, 20, 690, STOPY + 10, 90)[1]
-    szk = K.lalka(st, t, "syn", "dzamal_gorski", 600, 290, flip=1, siedzi=True, y=K.y_siedzi("dzamal_gorski", 290, blat_y + 12),
+    szk = K.lalka(st, t, "syn", "dzamal_gorski", 600, 290, flip=1, siedzi=True, nogi=STOPY, y=K.y_siedzi("dzamal_gorski", 290, blat_y + 12),
                   przod=lambda s: K.w_zasiegu(s, (700, blat_y - 70), f=1.0))  # przy wejściu lalki ręka sięga, ile może
     K.w_dloni(st, t, "książka", "ksiazka_ros", szk, 70, rot=0)
     k = ease(pr(t, t_miss - 0.4, 0.8)) * (1 - ease(pr(t, po_kw("obcy", 0.1), 0.3)))
@@ -587,8 +587,10 @@ def s_obcy(st, w, t, T):
 
 
 def s_smierc(st, w, t, T):
-    """Syn w łóżku, przy nim świeca na szafce, Szamil siedzi obok; syn kaszle; na „died” płomień świecy drży i gaśnie, smużka
-    dymu — bez gagu; kurtyna w pauzie (render: „Act 5 · How does a 25-year war end?”)."""
+    """Syn leży w łóżku pod kołdrą, oparty o poduszkę; przy nim świeca na szafce; Szamil stoi przy łóżku, dłoń na kołdrze;
+    syn kaszle; na „died” syn osuwa się na poduszkę, płomień świecy drży i gaśnie, smużka dymu — bez gagu; kurtyna w pauzie
+    (render: „Act 5 · How does a 25-year war end?”). Lalka siedząca to korpus bez nóg — na łóżku przodem do widza wyglądała
+    jak ucięta (reżyser 28.11: „w 51 oni nie mają nóg”), więc syn jest pod kołdrą, a Szamil stoi."""
     kam(st, t, I["smierc"], 640, 470, lerp(1.3, 1.45, ease(t / T)), 0.8)
     izba_kz(st, t, w, 2, okno_x=980, noc=True)
     w.noc = 0.6
@@ -601,11 +603,13 @@ def s_smierc(st, w, t, T):
     _, my = u.powierzchnia("łóżko", "materac", 0.5)
     kaszel = sum(_bump(t, a, 0.2) for a in (0.7, 1.3, 2.2))
     lezy = ease(pr(t, t_died - 0.6, 0.8))
-    syn = K.lalka(st, t, "syn", "dzamal_gorski", 680, 260, flip=1, siedzi=True, y=K.y_siedzi("dzamal_gorski", 260, my + 4), lean=20 * kaszel + 14 * lezy,
-                  rzad="lalki")
-    K.siedzi_na(st, t, "syn", syn, "łóżko", 8.0)
-    sz = K.lalka(st, t, "Szamil", w.szamil, 520, 300, flip=1, siedzi=True, y=K.y_siedzi(w.szamil, 300, my + 4), lean=-6 * lezy)
-    K.siedzi_na(st, t, "Szamil", sz, "łóżko", 8.0)
+    # syn LEŻY (reżyser 28.11: „jak on leży pod kołdrą, to weź go połóż”): lalka obrócona o 90° wokół stóp, głowa na
+    # poduszce u wezgłowia, ciało pod kołdrą; kaszel unosi pierś, na „died” głowa opada
+    syn = K.lalka(st, t, "syn", "dzamal_gorski", 742, 260, y=600, flip=1, lean=-90 - 4 * kaszel + 3 * lezy, rzad="lalki")
+    u.rzedy["kołdra"] = P.lalki + 0.02
+    u.mebel("kołdra", "koldra_kz", 680, 96, rzad="kołdra", seed=131, y=650)  # od szyi po stopy, zwisa trochę na bok łóżka
+    sz = K.lalka(st, t, "Szamil", w.szamil, 425, 300, flip=1, lean=6 * lezy, rzad="przod",
+                 przod=lambda s: K.w_zasiegu(s, (500, 600)))
     gasnie = pr(t, t_died + 0.3, 0.3)
     if gasnie < 1:
         plomien(st, sx + 3 * math.sin(t * 20) * pr(t, t_died, 0.3), sy - 80 * 0.9, u.p("przy_scianie") + 0.003, t, h=26 * (1 - gasnie))
@@ -721,8 +725,9 @@ def s_kapitulacja(st, w, t, T):
     u = K.uk(st, t)
     t_bar, t_sir = sl("kapitulacja", "baryatinsky"), sl("kapitulacja", "siridar")
     kh = 90
-    u.put("kamień", Z0.prop("kamien"), 360, STOPY + 6, u.p("przod", -2), h=kh, anchor=(0.5, 1.0))
-    ks = K.lalka(st, t, "Bariatinski", "bariatinski", 360, 300, flip=1, siedzi=True, y=K.y_siedzi("bariatinski", 300, STOPY + 6 - kh * 0.8),
+    # kamień ZA księciem: jego nogi zwisają przed kamieniem (przed kamieniem książę był samym korpusem — reżyser 28.11)
+    u.put("kamień", Z0.prop("kamien"), 360, STOPY + 6, u.p("lalki", -2), h=kh, anchor=(0.5, 1.0))
+    ks = K.lalka(st, t, "Bariatinski", "bariatinski", 360, 300, flip=1, siedzi=True, nogi=STOPY, y=K.y_siedzi("bariatinski", 300, STOPY + 6 - kh * 0.8),
                  przod=20 + 50 * _bump(t, t_sir + 0.8, 1.0))
     if ks and ks["k"] >= 1:
         K.siedzi_na(st, t, "Bariatinski", ks, "kamień", 8.0)
@@ -854,7 +859,7 @@ def pracownia(st, t, w, rok, kto, x=600, sciana="paski"):
     stuk = lambda faza: 6 * max(0.0, math.sin(t * 16 + faza))
     _, blat_y = u.powierzchnia("biurko", "blat", 0.5)
     stoi = wejscie(1.0) >= 1  # przy budowie dekoracji maszyna jeszcze wyrasta: dłonie opuszczone (kontrola 28.11)
-    szk = K.lalka(st, t, kto, kto, x, 290, flip=1, siedzi=True, y=K.y_siedzi(kto, 290, blat_y + (40 if kto == "blanch" else 8)),
+    szk = K.lalka(st, t, kto, kto, x, 290, flip=1, siedzi=True, nogi=STOPY, y=K.y_siedzi(kto, 290, blat_y + (40 if kto == "blanch" else 8)),
                   przod=(lambda s: (geo(250, 112)[0], geo(250, 112)[1] - 4 + stuk(0))) if stoi else 8,
                   tyl=(lambda s: (geo(160, 112)[0], geo(160, 112)[1] - 4 + stuk(1.6))) if stoi else 6)
     if szk and stoi:

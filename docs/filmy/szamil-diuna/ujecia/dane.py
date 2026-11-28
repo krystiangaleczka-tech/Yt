@@ -365,8 +365,8 @@ AKTY = [
       ("obcy", "PŚ", "stat", N, "Izba: syn w czerkiesce siedzi nad rosyjską książką, za oknem śnieg; 2,2 s nad nim obłok "
        "z miniaturą Petersburga: iglice, wirujące pary; 5 s Szamil w drzwiach patrzy na syna; 7 s obłok pęka i znika",
        "L: But Jamal al-Din had become a stranger in the mountains. He missed his books and the life of the capital."),
-      ("smierc", "PŚ", "stat", N, "Syn w łóżku, przy nim świeca, Szamil siada obok; 0,6 s syn kaszle; 3,4 s na „died” płomień "
-       "świecy drży i gaśnie, smużka dymu; bez gagu; kurtyna w pauzie, na niej „Act 5” i pytanie „How does a 25-year war end?”",
+      ("smierc", "PŚ", "stat", N, "Syn leży w łóżku pod kołdrą, oparty o poduszkę, przy nim świeca; Szamil stoi przy łóżku, dłoń "
+       "na kołdrze; 0,6 s syn kaszle; 3,4 s na „died” syn osuwa się na poduszkę, płomień świecy drży i gaśnie, smużka dymu; bez gagu; kurtyna w pauzie, na niej „Act 5” i pytanie „How does a 25-year war end?”",
        "L: Three years after coming home, in 1858, he fell ill and died."),
      ]),
    ]),
