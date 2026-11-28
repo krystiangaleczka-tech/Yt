@@ -21,7 +21,7 @@ export type FlowPage = "bible" | "project-setup" | "idea-flow" | "master-story" 
 const nextPage: Record<FlowPage, string> = {
   bible: "project-setup", "project-setup": "idea-flow", "idea-flow": "sketches", "master-story": "acts", acts: "sequences",
   sequences: "script-flow", "script-flow": "scene-plan",
-  "scene-plan": "director", continuity: "export",
+  "scene-plan": "director", continuity: "readiness",
 };
 type AIKind = "ideas" | "master" | "act" | "sequences" | "outlines" | "script" | "review";
 type AIRequest = { kind: AIKind; targetId?: string };

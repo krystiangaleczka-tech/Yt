@@ -30,7 +30,15 @@ Każda jednostka przechodzi ten sam cykl:
 
 Story Bible → Projekt → Pomysł i tytuł → **Szkice ujęć** → Master Story → Akty → Sekwencje → Scenariusz → Plan scen →
 Reżyseria i napięcie → Sceny / Canvas → Ujęcia → Montaż → **Continuity Editor** (świat, kontrola, recenzje, dziennik,
-warsztat) → Eksport.
+warsztat) → **Gotowość filmu** → Eksport.
+
+**Gotowość filmu** pokazuje, których kroków z „Nowy film krok po kroku” (7–13) filmowi jeszcze brakuje do oddania:
+lektor na ścieżce a1 (brakujące kwestie z numerami ujęć), muzyka a2 i efekty a3 na całą oś (dźwięk krótszy albo dłuższy od
+filmu = „do przeliczenia”), zgoda reżysera na próbkę dźwięku, recenzje jednostek, kontrola ciągłości i render końcowy
+(tylko informacja — robi go reżyser). Stan liczy się sam z projektu (`GET /api/projects/{id}/gotowosc`); ręcznie zapisuje
+się tylko decyzję reżysera o próbce — z cytatem, jako wpis „próbka dźwięku” w dzienniku
+(`POST /api/projects/{id}/gotowosc/probka {"decision": "zatwierdzona" | "do poprawy", "quote", "sample"}`). Zanim film
+trafi do reżysera, wszystkie wiersze poza „informacja” mają być „gotowe”.
 
 Zmiana na wcześniejszym etapie unieważnia zatwierdzenia późniejszych (podpisy). Zmiana ujęć unieważnia recenzję
 jednostki i oznacza jednostki z nią powiązane (rozdział „Dziennik pracy i zmiany w locie”).
