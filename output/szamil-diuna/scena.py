@@ -1344,3 +1344,12 @@ def gran_wieczor_sc(st, t, w):
     klif(st, t, w, 8, 1260, 780, P.wzgorza, h=900, d=0.25, kolor=(98, 84, 86))
     ziemia(st, t, w, (90, 76, 80))
     rampa(st, bk(w, 0.7, 0.6))
+
+
+
+# Blaty mebli tego filmu (dekoracje 2): rejestrowane tutaj, bo podgląd na żywo (na_zywo.py) przeładowuje scena.py po
+# zapisie, a moduły silnika układu (uklad, uklad_kz) wczytuje raz — bez tego ujęcia z nowymi meblami zwracały błąd
+# „nie ma ujęcia 'stol_palac'” (28.11).
+import uklad as _U  # noqa: E402
+_U.POWIERZCHNIE.update({"stol_palac": {"blat": (0, 360, 0)}, "biurko_palac": {"blat": (0, 460, 0)}, "stol_polowy": {"blat": (0, 360, 0)},
+                        "biurko_pisarza": {"blat": (0, 460, 0)}, "lozko_kz": {"materac": (30, 490, 62)}, "skrzynka": {"blat": (0, 220, 0)}})

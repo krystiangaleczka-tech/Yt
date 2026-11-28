@@ -31,8 +31,9 @@ def kontroluj(klucze=None, krok=1, czesc=(0, 1), raport=RAPORT):
             st, _ = render.uloz(t)
             if getattr(st, "uklad", None) is None:
                 break
-            if n == 0 and not (st.uklad.kontrole or st.uklad.wiezy):
-                break  # ujęcie bez rzeczy w dłoniach, siedzenia i otworów — nie ma czego sprawdzać w buforze
+            # Bez wcześniejszego „break”, gdy pierwsza klatka nie ma kontroli: w pierwszej klatce dekoracja dopiero się buduje,
+            # a lalki i rzeczy w dłoniach wchodzą później — takie ujęcia (mapa, imam, gabinety) wypadały z kontroli w całości
+            # (28.11, dekoracje 2). Ujęcie bez żadnej kontroli w całym czasie po prostu nie trafia do raportu (rap pusty).
             U.zlicz(rap, st, U.kontrola(st)[0], t - a)
             n += 1
         if not rap:

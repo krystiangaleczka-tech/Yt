@@ -245,7 +245,13 @@ WARSZTAT = {
               "3. Księga świata: `ujecia/ksiega.py`.\n"
               "4. `python3 -I output/szamil-diuna/studio_film.py plan` — plan, księga i warsztat do Studio + kontrola ciągłości.\n"
               "5. Rysunek po aktach, arkusz klatek, kontrola (Wytyczne 3), podgląd na żywo.\n"
-              "6. Dźwięk (próbka do akceptacji), lektor (klon, jedno podejście na kwestię), recenzja aktu i dziennik.",
+              "6. Kontrole przed Studio: `python3 -I output/szamil-diuna/kontrola_scenografii.py` (co najmniej 4 dekoracje na 2 min, "
+              "Wytyczne 1.33), `python3 -I scripts/powtorzenia_kwestii.py szamil-diuna` (kwestie bez zdań z innych filmów), "
+              "`kontrola_ukladu.py`, `render.py kontrola` (koniec świata).\n"
+              "7. Lektor: `output/szamil-diuna/lektor_en.py` (klon, jedno podejście na kwestię), obróbka `TEATR_TEMPO=1.06 "
+              "PAUZY_SKALA=0.85 … lektor_studio.py podejscia … --teatr` (reżyser 28.11: „przyspiesz klona troszkę”); "
+              "`studio_film.py lektor`.\n"
+              "8. Dźwięk: `efekty.py` → `probka_dzwieku.py` (próbka do akceptacji) → `studio_film.py dzwiek`; recenzja aktu i dziennik.",
     "files": [
         {"path": "docs/filmy/szamil-diuna/szkice/buduj_szkice.py", "role": "szkice A–C"},
         {"path": "docs/filmy/szamil-diuna/ujecia/dane.py", "role": "rozpiska szkicu E: akty, sceny, ujęcia, kwestie EN; kontrola_rytmu()"},
@@ -253,7 +259,12 @@ WARSZTAT = {
         {"path": "docs/filmy/szamil-diuna/GAGI.md", "role": "22 gagi szkicu E, silnik humoru, granica tonu"},
         {"path": "docs/filmy/szamil-diuna/szkice/szkic_e.py", "role": "szkic E (przebudowa 28.11) do etapu Szkice ujęć"},
         {"path": "docs/filmy/szamil-diuna/ujecia/ksiega.py", "role": "księga świata, Story Bible i warsztat"},
-        {"path": "output/szamil-diuna/studio_film.py", "role": "plan, księga i rozwój filmu do Studio"},
+        {"path": "output/szamil-diuna/studio_film.py", "role": "plan, klatki, oś (os), lektor i dźwięk do Studio"},
+        {"path": "output/szamil-diuna/scena.py", "role": "dekoracje (dekoracje 2: każda scena ma swoje miejsce, porę i kompozycję)"},
+        {"path": "output/szamil-diuna/kontrola_scenografii.py", "role": "różnorodność dekoracji w oknach 2 minut (Wytyczne 1.33)"},
+        {"path": "scripts/powtorzenia_kwestii.py", "role": "kwestie powtarzające zdania innych filmów"},
+        {"path": "output/szamil-diuna/lektor_en.py", "role": "lektor: klon głosu autora, wymowa nazw"},
+        {"path": "output/szamil-diuna/efekty.py", "role": "muzyka i efekty (tematy Kaukazu i Diuny, podsłuch ujęć)"},
     ],
 }
 
