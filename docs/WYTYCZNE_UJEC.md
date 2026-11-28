@@ -28,6 +28,13 @@ Każde ujęcie powstaje w tej samej kolejności. Pominięty krok to zwykle marke
    na scenie, skąd wchodzi, co robi i w jakiej kolejności, co zostaje na końcu („pada niebieska chorągiew Zhao; pod
    bramą stoi mały chłopiec, a na niego spada z góry duża lalka króla”). Opis bez czasownika („sala nocą”, „puste
    morze”) znaczy, że ujęcie nie ma wydarzenia — reżyser to wyłapie (Rytm 1).
+   **Ujęcie rysuje się z opisu i kwestii, nie z pamięci.** Zanim napiszesz kod, rozbij opis i kwestię lektora na listę
+   elementów: kto, co, gdzie, co robi, na którym słowie, gag. Zapisz ją w docstringu funkcji ujęcia, np. „kolumna
+   maszeruje · wóz z koniem i woźnicą · armata · na »fired« muridzi zza buków, dym · gag: puka w pień → z dziupli murid
+   puka go w czapkę → »?!«”. Każdy element ma swój kod. Po narysowaniu przy każdym elemencie wskaż klatkę arkusza, w której
+   go widać (sekcja 3, „Opis zdanie po zdaniu”). Gdy czegoś z opisu nie da się pokazać albo lepiej działa inaczej, popraw
+   opis w rozpisce i powiedz o tym reżyserowi — rozjazd opisu i obrazu to błąd (reżyser 28.11, ujęcie 34: „porównaj je
+   do opisu sceny”).
 2. **Stan świata na wejściu**: co już stoi na scenie (dekoracje i rekwizyty z poprzednich ujęć tej sceny), kto jest,
    kto co trzyma, w jakim jest stanie (żywy, chory, w koronie, oblepiony ziemią), jaka jest pora dnia (1.6). Stan liczy kod świata z kamieni
    milowych rozpiski (`swiat.stan`, `po("mur")`), a nie pamięć wykonawcy. Pierwsza klatka ujęcia = ostatnia klatka

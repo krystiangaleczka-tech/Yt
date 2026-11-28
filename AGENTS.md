@@ -15,6 +15,11 @@
   długości = stary klip przedłużony stopklatką albo przycięty (`studio_pc.py --aktualizuj --stopklatka`), bez
   rysowania od nowa. Nigdy nie rysuj całego filmu, żeby poprawić kilka ujęć. Jak to robić krok po kroku: Podręcznik,
   „Jak pracujemy” → „Poprawki w Studio i render końcowy”.
+- **Ujęcie powstaje według opisu sceny z rozpiski i kwestii lektora** (`docs/filmy/<film>/ujecia/dane.py`). Przed
+  kodem rozbij opis i kwestię na listę elementów (kto, co, gdzie, co robi, na którym słowie, gag) i zapisz ją
+  w docstringu ujęcia; po narysowaniu obejrzyj arkusz klatek i przy każdym elemencie wskaż klatkę, w której go widać.
+  Brak elementu albo rozjazd z opisem to błąd — popraw ujęcie albo opis i powiedz o tym reżyserowi (Wytyczne 0 i 3,
+  reżyser 28.11.2026: „porównaj je do opisu sceny”).
 - Autor jest reżyserem: ocenia grę i rytm, nie wyłapuje błędów rysunku. Zmiany robi się w Studio (ujęcia i montaż),
   bez eksportu, dopóki o niego nie poprosi.
 - Nowy błąd kadru zauważony przez reżysera dopisz do tabeli „Skąd te zasady” w wytycznych i, jeśli to nowa klasa błędu,

@@ -224,6 +224,9 @@ usłyszy „jest w Studio”.
 6. Układ sceny bez błędów we wszystkich klatkach (Wytyczne 1.32) — kontrola sprawdza ujęcie do końca, także gdy w pierwszej
    klatce dekoracja dopiero się buduje (28.11 przez ten skrót 12 ujęć nie było sprawdzanych); koniec świata bez pustek.
 7. Arkusze klatek zmienionych ujęć obejrzane: obsada, rekwizyty, pary cięć n−1 → n → n+1 (Wytyczne 3).
+   Każde ujęcie porównane z **opisem i kwestią zdanie po zdaniu**: każdy element opisu (postać, rekwizyt, akcja na słowie,
+   gag) ma klatkę, w której go widać; brak = błąd, rozjazd = poprawka ujęcia albo opisu z informacją dla reżysera
+   (Wytyczne 0 i 3; reżyser 28.11: „popraw ujęcie 34 oraz też porównaj je do opisu sceny”).
 
 **Dźwięk**
 8. Nowy rodzaj dźwięku → próbka do reżysera (fragmenty z planszami, lektor w miksie); po zmianie długości ujęć muzyka
