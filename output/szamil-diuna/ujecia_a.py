@@ -189,8 +189,12 @@ def s_arrakis(st, w, t, T):
     kam(st, t, I["arrakis"], lerp(560, 720, ease(t / T)), 390, 1.08, 0.8)
     arrakis_sc(st, t, w, skala=True, skala_x=1080)
     u = K.uk(st, t)
-    wys = ease(pr(t, 0.5, 0.9)) * (1 - ease(pr(t, 2.0, 0.8)))  # robak: wynurza się z lewej zaraz na początku i chowa się
-    robak(st, t, 260, 640, P.gory - 0.003, wys, h=420)
+    # robak: wynurza się z lewej zaraz na początku, wyraźnie nad grzbietem wydmy (pierścienie i paszcza), i po chwili się
+    # zanurza (przegląd 28.11: przy y = 640 nad grzbiet wystawała tylko paszcza, przez ułamek sekundy)
+    wys = ease(pr(t, 0.5, 1.0)) * (1 - ease(pr(t, 4.0, 1.0)))
+    robak(st, t, lerp(230, 300, ease(pr(t, 0.5, 4.5))), 540, P.gory - 0.003, wys, h=460, rot=-6 + 10 * ease(pr(t, 0.5, 4.5)))
+    if 0 < wys < 1:
+        dym(st, 270, 300, P.gory - 0.002, t, 0.6 if t < 3 else 4.1, r=200, dl=1.4, seed=7, tint=(0.95, 0.82, 0.6))
     t_kindjal, t_houses, t_sietch = sl("arrakis", "kindjal"), sl("arrakis", "houses"), sl("arrakis", "sietches")
     f1 = K.lalka(st, t, "fremen 1", "fremen", 460, 300, flip=1, przod=lambda s: 8 + 112 * ease(pr(t, t_kindjal - 0.3, 0.4)))
     K.lalka(st, t, "fremen 2", "fremen2", 720, 300, flip=-1, przod=lambda s: 10 + 20 * ease(pr(t, t_kindjal, 0.4)))
@@ -391,11 +395,23 @@ def s_wieza(st, w, t, T):
     u.rzedy["w_wiezy"] = P.most - 0.004
     zniknal = pr(t, t_kill, 0.4)
     if zniknal < 1:
-        K.lalka(st, t, "Ghazi w oknie", "ghazi", (ox0 + ox1) / 2 - 8, 150, y=oy1 + 70, rzad="w_wiezy", flip=1, sink=zniknal, wejscie=False)
+        K.lalka(st, t, "Ghazi w oknie", "ghazi", (ox0 + ox1) / 2 - 13, 150, y=oy1 + 70, rzad="w_wiezy", flip=1, sink=zniknal, wejscie=False)
+    # Szamil w oknie obok Ghaziego (opis: „Ghazi i Szamil w oknach wieży”; przegląd 28.11: był sam Ghazi); po śmierci
+    # Ghaziego schodzi z okna, a na „door” staje w drzwiach na podwyższonym progu (jak na początku ujęcia „skok”)
+    schodzi = pr(t, t_kill + 0.8, 0.4)
+    if schodzi < 1:
+        K.lalka(st, t, "Szamil w oknie", w.szamil, (ox0 + ox1) / 2 + 14, 150, y=oy1 + 70, rzad="w_wiezy", flip=-1, sink=schodzi,
+                wejscie=False)
+    prog = (WIEZA_X, 712 - 560 * (1 - 820 / 900) - 8)
+    w_drzwiach = ease(pr(t, t_door - 0.9, 0.5))
+    if w_drzwiach > 0:
+        u.rzedy["prog"] = P.lalki + 0.005
+        K.lalka(st, t, "Szamil w drzwiach", w.szamil, prog[0], 300, y=prog[1] + 60 * (1 - w_drzwiach), rzad="prog", flip=1,
+                wejscie=False, alpha=min(1.0, 2 * w_drzwiach))
     spad = pr(t, t_kill + 0.1, 0.6)
     if spad > 0:  # papacha spada łukiem z okna i zostaje na ziemi
         px = lerp((ox0 + ox1) / 2, (ox0 + ox1) / 2 + 70, spad)
-        py = lerp(oy0 + 20, STOPY - 10, spad ** 2)
+        py = lerp(oy0 + 20, STOPY - 34, spad ** 2)  # zostaje na ziemi nad rampą (przy STOPY − 10 chowała się za rampą)
         st.put(J.figura("ghazi").kapelusz[0], px, py, P.lalki + 0.03, h=40, anchor=(0.5, 0.5), rot=200 * spad if spad < 1 else 170)
     for n in range(5):  # szereg żołnierzy dookoła wieży (szósty stał poza kadrem — kontrola 28.11); strzelają, dymki
         x = 640 + n * 100

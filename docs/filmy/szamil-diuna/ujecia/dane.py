@@ -485,8 +485,10 @@ AKTY = [
       ("biala_flaga", "PŚ", "naj", N, "0,6 s Szamil na grani podnosi białą flagę; 3,5 s obok niego cień syna w mundurze, który "
        "rozwiewa się jak dym; 6 s Szamil opuszcza flagę i patrzy na wydmę",
        "L: Shamil's real war ended on a mountain, with a white flag, and a son he could not keep."),
-      ("dzieki", "TYT", "stat", N, "0,3 s kurtyna zasuwa się; 0,9 s na niej zjeżdża szyld „Paper Theatre”; 1,6 s spod kurtyny wychyla się mały "
-       "robak i chowa się z powrotem", "L: Thanks for watching Paper Theatre."),
+      ("dzieki", "TYT", "stat", N, "0,3 s kurtyna zasuwa się; 0,9 s na niej zjeżdża szyld „Paper Theatre”; na „subscribe” obok zjeżdża "
+       "tabliczka „SUBSCRIBE”, na „like” druga „LIKE”; na „Bye-bye” spod kurtyny wychyla się mały robak i chowa się z powrotem "
+       "(reżyser 28.11: „dograj thanks for watching paper theatre and please support me, subscribe and like my videos. bye bye”)",
+       "L: Thanks for watching Paper Theatre. Please support me, subscribe and like my videos. Bye-bye!"),
      ]),
    ]),
   ]),

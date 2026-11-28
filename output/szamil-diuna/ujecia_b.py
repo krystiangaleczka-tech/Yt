@@ -207,7 +207,7 @@ def s_suchary(st, w, t, T):
     las_bukowy(st, t, w, ciemno=0.5 * ciem, x0=t * 30)
     u = K.uk(st, t)
     for n in range(2 if K.wjechal() else 0):
-        xw = lerp(1300 + n * 420, 300 + n * 420, pr(t, 0, T))
+        xw = lerp(1000 + n * 400, 260 + n * 400, pr(t, 0, T))  # przegląd 28.11: wozy wjeżdżały zza prawego brzegu dopiero pod koniec
         u.put(f"wóz {n + 1}", J.rek_kz("woz"), xw, STOPY + 2, u.p("lalki", -2), h=120, anchor=(0.5, 1.0), sx=-1, rot=1.2 * math.sin(t * 6 + n))
         by = K.pkt("woz", 310, 112, xw, STOPY + 2, 120)[1]
         for m in range(2):
@@ -215,15 +215,19 @@ def s_suchary(st, w, t, T):
         K.zaprzeg(st, t, f"wóz {n + 1}", K.pkt("woz", 590, 160, xw, STOPY + 2, 120, sx=-1)[0], STOPY + 2, u.p("lalki", -2), -1, h_kon=110,
                   h_w=96, woznica=("zolnierz4", "zolnierz6")[n],
                   siedzisko=((K.pkt("woz", 550, 112, xw, STOPY + 2, 120, sx=-1)[0], by + 6), f"wóz {n + 1}"))
-        K.zolnierz(st, t, f"eskorta {n + 1}", ZOLNIERZE[n + 1], xw + 220, 230, flip=-1, hop=5)
+        for m in range(2):  # eskorta: dwóch żołnierzy przy każdym wozie (kolumna, nie pojedynczy wóz)
+            K.zolnierz(st, t, f"eskorta {n + 1}.{m + 1}", ZOLNIERZE[(2 * n + m + 1) % 6], xw + 200 + 110 * m, 230, flip=-1, hop=5,
+                       glebia=m)
     t_wait = sl("suchary", "waiting")
-    for n in range(6):  # oczy i lufy w koronach buków
+    for n in range(6):  # oczy i lufy w koronach buków: wyraźne, lufa celuje w dół na drogę
         k = ease(pr(t, t_wait + 0.2 * n, 0.4))
         if k > 0:
-            x, y = 160 + n * 200, 160 + (n % 3) * 50
-            for d in (-9, 9):
-                st.put(Z0.prop("kulka"), x + d, y, P.wzgorza + 0.01, h=10 * k, anchor=(0.5, 0.5), tint=(1.0, 1.0, 0.85), shadow=None)
-            st.line([(x + 20, y + 20), (x + 20 + 40 * k, y + 30)], P.wzgorza + 0.011, width=4, color=(40, 40, 44), alpha=k)
+            x, y = 140 + n * 200, 150 + (n % 3) * 45
+            st.put(Z0.prop("kulka"), x, y, P.wzgorza + 0.0095, h=34 * k, anchor=(0.5, 0.5), tint=(0.12, 0.1, 0.08), shadow=None)
+            for d in (-8, 8):
+                st.put(Z0.prop("kulka"), x + d, y - 2, P.wzgorza + 0.01, h=11 * k, anchor=(0.5, 0.5), tint=(1.0, 1.0, 0.85), shadow=None)
+            st.put(J.rek_kz("karabin"), x + 6, y + 10, P.wzgorza + 0.011, w=120 * k, anchor=(0.3, 0.55), sx=-1 if n % 2 else 1,
+                   rot=24 if n % 2 == 0 else -24, alpha=k, shadow=None)
     koniec(st, w, t, dim=lerp(1.0, 0.82, ciem))
 
 
@@ -233,18 +237,26 @@ def s_zasadzka(st, w, t, T):
     y0, p0, ph = parawan(st, t, w)
     kam(st, t, I["zasadzka"], 640, y0 - ph * 0.5 - 20, 1.4, p0)
     t_cut, t_bisc = sl("zasadzka", "cut"), sl("zasadzka", "biscuit")
-    for n, x in enumerate((300, 960)):
-        pad = ease(pr(t, 0.6 + 0.5 * n, 0.6))
-        st.put(J.rek_kz("buk"), x, y0 - 40, p0 + 0.003, h=330, anchor=(0.5, 1.0), rot=(-78 if n else 78) * pad, tint=(0.08, 0.06, 0.05),
+    # przegląd 28.11: buki padały, zanim zbudował się parawan, i zlewały się z wozem; teraz kolumna wjeżdża, przed nią i za nią
+    # padają buki (korona na drodze), kolumna staje; worek z sucharami zostaje na drodze przed wozem
+    t_pad = 1.6
+    jazda = min(t, t_pad + 0.3)
+    xw = 470 + 90 * jazda  # staje mniej więcej na środku parawanu
+    for n, (x, kier) in enumerate(((xw + 180, 1), (xw - 180, -1))):  # pień przy kolumnie, korona pada na drogę na zewnątrz
+        pad = ease(pr(t, t_pad + 0.45 * n, 0.7))
+        st.put(J.rek_kz("buk"), x, y0 - 40, p0 + 0.003, h=230, anchor=(0.5, 1.0), rot=kier * 84 * pad, tint=(0.08, 0.06, 0.05),
                blur=1.6, shadow=None)
-    st.put(J.rek_kz("woz"), 640, y0 - 40, p0 + 0.002, h=110, anchor=(0.5, 1.0), tint=(0.08, 0.06, 0.05), blur=1.6, shadow=None)
+    st.put(J.rek_kz("woz"), xw, y0 - 40, p0 + 0.002, h=110, anchor=(0.5, 1.0), tint=(0.08, 0.06, 0.05), blur=1.6, shadow=None,
+           rot=1.0 * math.sin(t * 7) * (t < t_pad))
     for n in range(4):
         pad = pr(t, t_cut + 0.3 * n, 0.6)
         if pad < 1:
-            cien(st, t, ZOLNIERZE[n], 460 + n * 110, 200, y0 - 40, p0 + 0.004, flip=1 if n % 2 else -1, sink=pad)
+            cien(st, t, ZOLNIERZE[n], xw - 150 + n * 100, 200, y0 - 40, p0 + 0.004, flip=1 if n % 2 else -1, sink=pad, hop=5 * (t < t_pad))
         blysk(st, 200 + n * 300, y0 - 260, p0 + 0.006, t, t_cut - 0.4 + 0.3 * n, r=180)
     if t > t_cut + 1.6:
-        st.put(J.rek_kz("worek_suchary"), 640, y0 - 40, p0 + 0.005, h=70, anchor=(0.5, 1.0), tint=(0.08, 0.06, 0.05), blur=1.4, shadow=None)
+        spad = ease(pr(t, t_cut + 1.6, 0.5))
+        st.put(J.rek_kz("worek_suchary"), xw + 130, lerp(y0 - 140, y0 - 40, spad), p0 + 0.005, h=70, anchor=(0.5, 1.0),
+               rot=-18 * spad, tint=(0.08, 0.06, 0.05), blur=1.4, shadow=None)
     J.hang(st, J.tag("THE BISCUIT EXPEDITION", 44), CX, y0 - ph - 10, P.rekwizyty, pr(t, t_bisc, 0.9), t, 1330, h=70, drop=360, strings=(0.2, 0.8),
            shadow=(5, 8, 8, 0.4))
     koniec(st, w, t)
@@ -971,9 +983,12 @@ def s_slowa1(st, w, t, T):
         K.w_dloni(st, t, "kindżał", "kindzal", murid, 90, rot=-90)
     else:
         k = ease(prz)
-        st.put(J.rek_kz("kindzal"), lerp(990, 380, k), lerp(540, 470, k) - 120 * math.sin(math.pi * k), P.lalki + 0.03, h=90, anchor=(0.5, 0.5),
-               rot=lerp(0, 360, k) if k < 1 else -90)
-        st.put(J.rek_kz("rekawica"), 330, 500, P.lalki + 0.031, h=60, anchor=(0.2, 0.5), alpha=ease(pr(t, t_kindjal + 0.6, 0.4)))
+        # dłoń w rękawicy z herbem wysuwa się zza lewej kulisy po stronie pustyni (przegląd 28.11: rękawica wisiała w powietrzu
+        # na środku sceny) i łapie kindżał
+        rx = lerp(-160, 60, ease(pr(t, t_kindjal + 0.2, 0.6)))
+        st.put(J.rek_kz("kindzal"), lerp(990, rx + 50, k), lerp(540, 470, k) - 120 * math.sin(math.pi * k), P.lalki + 0.03, h=90,
+               anchor=(0.5, 0.5), rot=lerp(0, 360, k) if k < 1 else -90)
+        st.put(J.rek_kz("rekawica"), rx, 500, P.lalki + 0.031, h=60, anchor=(0.2, 0.5))
     koniec(st, w, t)
 
 
@@ -1047,10 +1062,12 @@ def s_zdanie(st, w, t, T):
             a = ease(pr(t, t_dune + 1.2 + 0.9 * n, 0.4))
             if a > 0:
                 st.put(J.glow(), cx, 210, P.rekwizyty + 0.02, w=520, anchor=(0.5, 0.5), mode="add", alpha=0.35 * a, shadow=None, tint=(1.0, 0.82, 0.4))
-    t0 = po_kw("zdanie", 0.2)
+    # kindżał spada ostrzem w dół i wbija się w półkę między kartami (przegląd 28.11: wbijał się przy STOPY − 40, pod dolnym
+    # brzegiem kadru, i to dopiero po kwestii — nie było go widać)
+    t0 = min(po_kw("zdanie", 0.2), t_dune + 3.4)
     k = pr(t, t0, 0.32)
     if k > 0:
-        y = lerp(-260, STOPY - 40, k ** 2)
+        y = lerp(-260, 470, k ** 2)
         drga = 6 * math.sin((t - t0) * 40) * math.exp(-(t - t0 - 0.32) * 5) if t > t0 + 0.32 else 0.0
         st.put(J.rek_kz("kindzal"), 640, y, P.rekwizyty + 0.01, h=200, anchor=(0.5, 0.86), rot=drga, shadow=(5, 7, 8, 0.4))
     koniec(st, w, t, dim=0.96)
@@ -1073,10 +1090,10 @@ def s_przyslowie(st, w, t, T):
     k = pr(t, t_bec + 1.0, 0.7)
     if k > 0:
         J.hang(st, J.slowo("desert", 40), 860, 240, P.rekwizyty + 0.012, k, t, 1372, h=56, drop=400, shadow=(4, 6, 6, 0.35))
-        for n in range(8):
-            ff = (t * 1.2 + n * 0.125) % 1.0
-            st.put(Z0.prop("kulka"), 820 + n * 12, 300 + ff * 360, P.rekwizyty + 0.005, h=6, anchor=(0.5, 0.5), tint=(0.95, 0.78, 0.5),
-                   shadow=None, alpha=k)
+        for n in range(18):  # piasek sypie się spod „desert” (przegląd 28.11: ziarnka 6 px były niewidoczne)
+            ff = (t * 1.1 + n * 0.0557) % 1.0
+            st.put(Z0.prop("kulka"), 812 + (n * 7) % 96 + 6 * math.sin(t * 3 + n), 300 + ff * 380, P.rekwizyty + 0.005, h=11,
+                   anchor=(0.5, 0.5), tint=(0.95, 0.78, 0.5), shadow=(1, 2, 2, 0.35), alpha=k)
     koniec(st, w, t, dim=0.96)
 
 
@@ -1088,9 +1105,9 @@ def s_zastrzezenie(st, w, t, T):
     t_paul, t_war = sl("zastrzezenie", "paul"), sl("zastrzezenie", "war")
     for n, (x, key) in enumerate(((330, "ksiazki"), (520, "mapa_pustyni"), (720, "ksiazki"), (900, "ksiazki"))):
         st.put(J.rek_kz(key), x, STOPY + 4, P.lalki + 0.01 * (n % 2), h=140 if key == "ksiazki" else 120, anchor=(0.5, 1.0), rot=4 * (n % 2 - 0.5))
-    krec = math.sin((t - t_paul) * 12) * _bump(t, t_paul + 0.5, 0.6)
+    krec = math.sin((t - t_paul) * 10) * _bump(t, t_paul + 0.6, 1.0)
     kladzie = ease(pr(t, t_war - 0.3, 0.5))
-    K.lalka(st, t, "Szamil", w.szamil, 1060, 290, flip=-1, lean=6 * krec,
+    K.lalka(st, t, "Szamil", w.szamil, 1010, 290, flip=-1, lean=11 * krec,  # przegląd 28.11: przy x 1060 ucięty prawym brzegiem
             przod=lambda s: K.w_zasiegu(s, (lerp(K.U.Uklad.dlon_z_kata(s, 8)[0], 930, kladzie), lerp(K.U.Uklad.dlon_z_kata(s, 8)[1], STOPY - 130, kladzie))))
     koniec(st, w, t)
 
@@ -1107,10 +1124,13 @@ def s_dwie_wojny(st, w, t, T):
     for n in range(2):
         J.hang(st, J.S("cloud_right", 0.5), 980 + n * 200, 60 + n * 40, P.chmury + 0.01 * n, pr(t, t_won - 0.6 + 0.4 * n, 1.0), t, 970 + n,
                w=420, tint=(0.6, 0.62, 0.68), shadow=(6, 9, 10, 0.3))
-    if t > t_won:
-        for n in range(10):
-            f = (t * 0.25 + n * 0.1) % 1.0
-            st.put(Z0.prop("kulka"), 820 + (n * 47) % 460, 120 + f * 560, P.rekwizyty - 0.01, h=8, anchor=(0.5, 0.5), tint=(1, 1, 1), shadow=None)
+    if t > t_won:  # śnieg spod szarych chmur nad górami (przegląd 28.11: płatki 8 px ginęły na szarych górach)
+        gest = ease(pr(t, t_won, 1.0))
+        for n in range(26):
+            f = (t * 0.22 + n * 0.137) % 1.0
+            x = 780 + (n * 53) % 500 + 14 * math.sin(t * 2 + n)
+            st.put(Z0.prop("kulka"), x, 130 + f * 560, P.rekwizyty - 0.01, h=15, anchor=(0.5, 0.5), tint=(1, 1, 1), alpha=gest,
+                   shadow=(1, 2, 2, 0.45))
     koniec(st, w, t)
 
 
@@ -1132,8 +1152,8 @@ def s_biala_flaga(st, w, t, T):
 
 
 def s_dzieki(st, w, t, T):
-    """Kurtyna zasuwa się; na niej szyld „Paper Theatre”; spod kurtyny wychyla się mały robak i chowa się z powrotem (robak:
-    puenta); napis w kadrze — bez napisu lektora."""
+    """Kurtyna zasuwa się; na niej szyld „Paper Theatre”; na „subscribe” i „like” zjeżdżają tabliczki SUBSCRIBE i LIKE; na
+    „Bye-bye” spod kurtyny wychyla się mały robak i chowa się z powrotem (robak: puenta)."""
     kam(st, t, I["dzieki"], CX, CY, 1.0, 0.8, drift=0.0)
     teatr_kz(st, t, w)
     k = ease(pr(t, 0.3, 0.9))
@@ -1142,7 +1162,11 @@ def s_dzieki(st, w, t, T):
         st.put(J.Z0.kurtyna(strona), CX - 30 * strona + strona * przes, -70, 0.975, w=700, anchor=(1.0 if strona < 0 else 0.0, 0.0),
                shadow=(8 * strona, 0, 14, 0.45))
     J.hang(st, J.tag("Paper Theatre", 56), CX, 280, 0.978, pr(t, 0.9, 0.7), t, 990, h=100, drop=520, shadow=(5, 8, 8, 0.45))
-    wys = ease(pr(t, 1.6, 0.5)) * (1 - ease(pr(t, 3.0, 0.4)))
+    # reżyser 28.11: pożegnanie z prośbą o subskrypcję — tabliczki na słowach lektora, robak na „Bye-bye”
+    t_sub, t_like, t_bye = sl("dzieki", "subscribe"), sl("dzieki", "like"), sl("dzieki", "bye")
+    J.hang(st, J.tag("SUBSCRIBE", 40), CX - 170, 420, 0.978, pr(t, t_sub - 0.1, 0.6), t, 991, h=70, drop=520, shadow=(5, 8, 8, 0.45))
+    J.hang(st, J.tag("LIKE", 40), CX + 190, 420, 0.978, pr(t, t_like - 0.1, 0.6), t, 992, h=70, drop=520, shadow=(5, 8, 8, 0.45))
+    wys = ease(pr(t, t_bye - 0.2, 0.5)) * (1 - ease(pr(t, t_bye + 1.6, 0.4)))
     if wys > 0:
-        st.put(J.rek_kz("robak"), 860, 760 - 120 * wys, 0.977, h=200, anchor=(0.5, 0.0), rot=8 * math.sin(t * 4), shadow=(4, 6, 8, 0.4))
+        st.put(J.rek_kz("robak"), 860, 770 - 190 * wys, 0.977, h=200, anchor=(0.5, 0.0), rot=8 * math.sin(t * 4), shadow=(4, 6, 8, 0.4))
     koniec(st, w, t)
