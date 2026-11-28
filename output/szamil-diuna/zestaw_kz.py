@@ -2498,13 +2498,16 @@ def zyrandol():
 _REK_IMG = {}  # arkusze rekwizytów (PIL) — uklad.Ark liczy z nich punkty chwytu i dno (Wytyczne 1.28, 1.32)
 
 
-def _rek(name, w, h, parts, seed=0, dziura=None):
+def _rek(name, w, h, parts, seed=0, dziura=None, owal=None):
     """Rekwizyt sklejony z kawałków; dziura — prostokąt (x0, y0, x1, y1) wycięty w arkuszu (okno, przez które widać to,
-    co za rzeczą — Wytyczne 1.1)."""
+    co za rzeczą — Wytyczne 1.1); owal — to samo, ale owalny otwór (dziupla)."""
     img = stack(w, h, parts, seed=seed or len(name) * 7)
-    if dziura:
+    if dziura or owal:
         a = img.getchannel("A")
-        a.paste(0, tuple(int(v) for v in dziura))
+        if dziura:
+            a.paste(0, tuple(int(v) for v in dziura))
+        if owal:
+            ImageDraw.Draw(a).ellipse(tuple(int(v) for v in owal), fill=0)
         img.putalpha(a)
     _REK_IMG[name] = img
     return Sprite(img, f"kz-{name}", rim=2, clean=False)
@@ -2820,6 +2823,11 @@ def rek_e(key):
     if key == "gora_mapy":  # papierowa góra wstająca z mapy (zawias u dołu)
         return _rek(key, 260, 220, [(poly([(10, 214), (130, 10), (250, 214)]), (150, 120, 90), dict(edge=2, shade=0.2)),
                                     (poly([(96, 70), (130, 10), (164, 70), (146, 62), (130, 78), (114, 62)]), (246, 244, 238))])
+    if key == "sztaluga":  # stołowa sztaluga pod mapę: dwie nogi w A i półka; dół (0.5, 1.0), wierzch półki 64/260 nad dołem
+        drewno = (122, 86, 54)
+        return _rek(key, 360, 260, [(_band((40, 256), (176, 8), 12), drewno), (_band((320, 256), (184, 8), 12), drewno),
+                                    (_band((180, 6), (180, 200), 8), _shade(drewno, 0.85)),
+                                    (rect(14, 196, 346, 212), _shade(drewno, 1.1), dict(edge=2))])
     if key == "zolnierzyk":  # cynowy żołnierzyk na podstawce
         return _rek(key, 40, 100, [(rect(6, 88, 34, 100), (120, 120, 126)), (rect(12, 40, 28, 90), (236, 232, 220)),
                                    (ell(20, 30, 9, 9), (230, 200, 170)), (rect(11, 14, 29, 24), (236, 234, 226)), (rect(30, 4, 33, 70), (90, 90, 96))])
@@ -2846,6 +2854,17 @@ def rek_e(key):
         p += [(ell(178 + dx, 180 + dy, 110, 90), _shade((96, 128, 70), 0.9 + 0.05 * (i % 3)), dict(edge=2))
               for i, (dx, dy) in enumerate(((-90, 40), (80, 30), (0, -40), (-40, 90), (60, 100), (0, 40)))]
         return _rek(key, 360, 700, p)
+    if key == "buk_dziupla":  # buk jak „buk” z dziuplą na wysokości głowy: owalny otwór (widać, co za pniem), warga kory wokół
+        p = [(poly([(150, 700), (160, 260), (196, 260), (210, 700)]), (150, 150, 146), dict(edge=2, kind="gladki")),
+             (ell(179, 554, 20, 25), (104, 98, 88), dict(edge=2))]
+        p += [(ell(178 + dx, 180 + dy, 110, 90), _shade((96, 128, 70), 0.9 + 0.05 * (i % 3)), dict(edge=2))
+              for i, (dx, dy) in enumerate(((-90, 40), (80, 30), (0, -40), (-40, 90), (60, 100), (0, 40)))]
+        return _rek(key, 360, 700, p, seed=29, owal=(166, 536, 192, 572))
+    if key == "dziupla_wnetrze":  # ciemne wnętrze dziupli (za otworem pnia); środek (0.5, 0.5)
+        return _rek(key, 60, 76, [(ell(30, 38, 28, 36), (34, 28, 24), dict(kind="gladki"))])
+    if key == "lufa":  # wylot lufy z bagnetem wysuwany z dziupli; tył lufy (0.0, 0.5), w prawo
+        return _rek(key, 120, 24, [(rect(0, 8, 92, 16), (58, 56, 58), dict(kind="gladki")), (rect(78, 6, 86, 18), (150, 120, 70)),
+                                   (poly([(86, 10), (120, 12), (86, 15)]), (214, 218, 222), dict(kind="gladki"))])
     if key == "pien_lezacy":  # ścięty buk w poprzek drogi
         return _rek(key, 700, 140, [(poly([(10, 70), (640, 50), (690, 80), (650, 110), (20, 120)]), (150, 150, 146), dict(edge=2)),
                                     (ell(40, 95, 30, 26), (200, 180, 140))] +

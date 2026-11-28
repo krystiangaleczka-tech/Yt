@@ -537,25 +537,44 @@ def s_mapa(st, w, t, T):
     t_tsar, t_valley = sl("mapa", "tsar"), sl("mapa", "valley")
     u.mebel("stół", "stol_palac", 640, 190, rzad="przod")
     _, blat = u.powierzchnia("stół", "blat", 0.5)
-    mapa_w = 520
-    st.put(J.mapa_kaukazu(), 640, blat - 2, u.p("przod", 0.5), w=mapa_w, anchor=(0.5, 1.0), sy=0.32, shadow=(3, 4, 6, 0.3))
+    # mapa w swoich proporcjach na stołowej sztaludze (reżyser 28.11, ujęcie 22: „ta mapa jest jakaś rozciągnięta i ten napis
+    # Caucasus też” — wcześniej leżała ściśnięta sy=0,32, szersza niż stół, z płaskim napisem)
+    sz_h = 170
+    polka = blat - sz_h * 64 / 260
+    p_mapy = u.p(("przy_scianie", "lalki", 0.7))  # sztaluga na tylnym brzegu stołu: za lalkami, ręka generała przed mapą
+    st.put(J.rek_kz("sztaluga"), 640, blat, p_mapy - 0.001, h=sz_h, anchor=(0.5, 1.0), shadow=(3, 4, 6, 0.3))
+    st.put(J.mapa_kaukazu(), 640, polka + 2, p_mapy, w=310, anchor=(0.5, 1.0), shadow=(3, 4, 6, 0.3))
     K.lalka(st, t, "car Mikołaj I", "nikolaj", 900, 330, flip=-1, rzad="lalki", przod=lambda s: 20 + 40 * _bump(t, po_kw("mapa", 0.5), 0.6))
     podpis(w, t, "Tsar Nicholas I", 900, 230, t_tsar, 2.8)
-    gen = K.lalka(st, t, "generał", "general", 380, 320, flip=1, przod=lambda s: 60 + 20 * math.sin(t * 2) * (t < t_valley))
+    # kij (szabla) pcha ostatniego żołnierzyka po dole mapy; tylna dłoń łapie ostatniego na brzegu mapy
+    kij_h, kat = 20, 15
+    sza = K.ark("szabla")
+    Ls = (sza.x0 + sza.ws - K.CHWYT["szabla"][0]) * kij_h / J.rek_kz("szabla").h
+    x0 = lerp(560, 650, ease(pr(t, 1.0, t_valley - 1.0)))  # ostatni żołnierzyk w szeregu
+    reka_kij = (x0 - 12 - Ls * math.cos(math.radians(kat)), polka - 20 + Ls * math.sin(math.radians(kat)))
+    lap = ease(pr(t, t_valley + 0.5, 0.5))
+    gen = K.lalka(st, t, "generał", "general", 400, 320, flip=1, przod=lambda s: K.w_zasiegu(s, reka_kij),
+                  tyl=(lambda s: K.w_zasiegu(s, (lerp(s["bark_tyl"][0] + 10, 498, lap), lerp(s["bark_tyl"][1] + 110, polka - 24, lap)),
+                                             reka="tyl")) if lap > 0 else -6)
     if gen:
-        K.w_dloni(st, t, "kij generała", "szabla", gen, 30, rot=-10)
+        K.w_dloni(st, t, "kij generała", "szabla", gen, kij_h, rot=-kat)
     gora = ease(pr(t, t_valley, 0.35))
     gx = 700
-    st.put(J.rek_kz("gora_mapy"), gx, blat - 12, u.p("przod", 0.6), h=110, anchor=(0.5, 1.0), sy=lerp(0.15, 1.0, gora),
+    st.put(J.rek_kz("gora_mapy"), gx, polka - 8, u.p("przod", 0.6), h=80, anchor=(0.5, 1.0), sy=lerp(0.15, 1.0, gora),
            shadow=(4, 6, 8, 0.3))
-    for n in range(6):  # żołnierzyki: jadą po mapie w prawo, z góry zjeżdżają w lewo i spadają ze stołu
-        x = lerp(470 + n * 22, gx - 30 + n * 6, ease(pr(t, 1.0 + 0.1 * n, t_valley - 1.0)))
+    for n in range(6):  # żołnierzyki: jadą po dole mapy w prawo, z góry zjeżdżają w lewo, spadają z mapy i leżą na blacie
+        x = lerp(560 + n * 18, gx - 50 + n * 12, ease(pr(t, 1.0, t_valley - 1.0)))
         zj = pr(t, t_valley + 0.1 + 0.08 * n, 0.6)
-        x -= 260 * zj
-        y = blat - 6 - 40 * gora * (1 - zj) + 300 * max(0.0, zj - 0.6) ** 2 * (n < 5)
-        if n == 5:  # ostatniego łapie generał (zostaje przy krawędzi stołu)
-            x = max(x, 470)
-        st.put(J.rek_kz("zolnierzyk"), x, y, u.p("przod", 0.7), h=34, anchor=(0.5, 1.0), rot=-25 * zj)
+        y, rot = polka - 10 - 30 * gora * (1 - zj), -25 * zj
+        if n == 5:  # ostatniego łapie generał: zatrzymuje się na lewym brzegu mapy i chwieje
+            x = lerp(x, 500, zj)
+            rot = -25 * zj * math.cos(6 * max(0.0, t - t_valley - 0.8)) * math.exp(-1.2 * max(0.0, t - t_valley - 0.8))
+        else:
+            spad = max(0.0, (zj - 0.6) / 0.4)
+            x = lerp(x, 500 + n * 16, zj)
+            y = lerp(y, blat, spad ** 2)
+            rot -= 65 * spad
+        st.put(J.rek_kz("zolnierzyk"), x, y, u.p("przod", 0.7), h=34, anchor=(0.5, 1.0), rot=rot)
     if gora > 0:
         podpis(w, t, "!", 900, 230, po_kw("mapa", 0.3), 1.6)
     koniec(st, w, t, extra=(1.02, 1.0, 0.96))

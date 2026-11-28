@@ -72,39 +72,73 @@ def s_vorontsov(st, w, t, T):
 
 
 def s_pochod(st, w, t, T):
-    """Bukowy las: kolumna wojska, wozy z workami, armata; zza buków wychylają się muridzi, dymki strzałów, chowają się;
-    gag po kwestii: żołnierz puka w pień, z dziupli murid puka go w czapkę i znika; żołnierz patrzy na kolegów („?!”)."""
-    jedzie = t * 26
-    kam(st, t, I["pochod"], 640, 410, 1.05, 0.72)
-    las_bukowy(st, t, w, x0=-jedzie)
+    """Bukowy las: kolumna maszeruje w prawo — żołnierze na przedzie drogi, za nimi wóz z workami (koń, woźnica) ciągnie
+    armatę; na „fired” zza trzech buków wychylają się muridzi z karabinami, błysk i dym u wylotu lufy, chowają się;
+    gag po kwestii: ostatni żołnierz staje, odwraca się do buka z dziuplą i puka w pień („KNOCK KNOCK”), w dziupli pojawia
+    się twarz murida, z otworu wysuwa się lufa i stuka żołnierza w czapkę, murid znika; żołnierz odwraca się do kolegów („?!”).
+    Przegląd 28.11 (reżyser: „popraw ujęcie 34 oraz też porównaj je do opisu sceny”): kolumna stała w miejscu (jechał tylko
+    las), nie było armaty ani konia przy wozie, muridzi stali na widoku między żołnierzami, dziupla była czarnym
+    prostokątem, a z „dziupli” wychodziła sama papacha."""
+    kam(st, t, I["pochod"], lerp(600, 680, ease(t / T)), 410, 1.05, 0.72)
+    las_bukowy(st, t, w)  # pnie stoją: bliższy rząd w x = −80, 340, 760, 1180
     u = K.uk(st, t)
     t_fired = sl("pochod", "fired")
     gag = po_kw("pochod", 0.0)
-    for n in range(5):
-        x = 140 + n * 170 + (0 if t < gag else 0)
-        K.zolnierz(st, t, f"żołnierz {n + 1}", ZOLNIERZE[n], x, 230, glebia=(n % 2), flip=1, hop=5 * (t < gag))
-    xw = 1040
+    v = 32.0  # krok kolumny (px/s)
+    pien_x = 470
+    t_stop = gag - 0.6
+    x_k = pien_x + 84  # tu staje ostatni żołnierz, twarzą do pnia
+    # tylny pas drogi: wóz z workami (koń, woźnica) ciągnie armatę na dyszlu
+    xw = 560 + v * t
     if K.wjechal():
+        xa = xw - 250
+        u.put("armata", J.rek_kz("armata"), xa, STOPY + 2, u.p("lalki", -2.1), h=104, anchor=(0.5, 1.0), sx=-1,
+              rot=0.8 * math.sin(t * 6 + 1))
+        st.line([(xa + 40, STOPY - 22), (xw - 150, STOPY - 26)], u.p("lalki", -2.05), width=4, color=(96, 70, 44))
         woz_z_workami(st, t, u, xw)
-    u.rzedy["za_drzewami"] = P.wzgorza - 0.006
-    for n, (x, s_) in enumerate(((330, t_fired), (690, t_fired + 0.5), (1000, t_fired + 1.0))):
+    # przedni pas: czterech żołnierzy; ostatni (n = 0) zatrzymuje się przy buku z dziuplą
+    for n in range(1, 4):
+        K.zolnierz(st, t, f"żołnierz {n + 1}", ZOLNIERZE[n], x_k - v * t_stop + 140 * n + v * t, 230, glebia=(n % 2), flip=1, hop=6)
+    xk = x_k - v * (t_stop - min(t, t_stop))
+    puka = ease(pr(t, gag, 0.15)) * (1 - ease(pr(t, gag + 0.55, 0.15)))
+    reka_puk = (pien_x + 30 + 6 * abs(math.sin((t - gag) * 3 * math.pi / 0.6)), STOPY - 150)
+    zwrot = -1 if t_stop <= t < gag + 1.8 else 1
+    stuk = _bump(t, gag + 1.15, 0.12)
+    szk = K.lalka(st, t, "żołnierz 1", ZOLNIERZE[0], xk, 230, flip=zwrot, hop=6 * (t < t_stop), sink=6 * stuk,
+                  przod=(lambda s: K.w_zasiegu(s, reka_puk)) if puka > 0 else 4, tyl=-6)
+    K.w_dloni(st, t, "karabin (żołnierz 1)", "karabin", szk, 230 * 0.62 * 90 / 520, rot=-90, reka="tyl")
+    # muridzi zza buków: wychylają się z karabinem, strzał, chowają się (za pniem, plan za drzewami)
+    u.rzedy["za_drzewami"] = P.wzgorza - 0.006  # na zboczu za drogą: głowy i lufy nad czapkami kolumny
+    kar = K.ark("karabin")
+    for n, (xp, strona, s_) in enumerate(((340, 1, t_fired), (760, -1, t_fired + 0.5), (1180, -1, t_fired + 1.0))):
         wych = ease(pr(t, s_ - 0.4, 0.3)) * (1 - ease(pr(t, s_ + 0.9, 0.3)))
         if wych > 0:
-            K.lalka(st, t, f"murid za bukiem {n + 1}", MURIDZI[n], x + 40 * wych, 200, y=STOPY - 30, rzad="za_drzewami", flip=-1, wejscie=False,
-                    przod=90)
-            blysk(st, x - 20, STOPY - 160, P.wzgorza, t, s_ + 0.1, r=140)
-            dym(st, x - 30, STOPY - 170, P.wzgorza + 0.01, t, s_ + 0.1, r=100, seed=n)
-    # gag: pień buka przed żołnierzem 2 z dziuplą (wycinek pnia blisko), żołnierz puka, z dziupli wychyla się murid
-    pien_x = 440
-    st.put(J.rek_kz("buk"), pien_x, STOPY + 30, P.lalki + 0.02, h=1100, anchor=(0.5, 1.0), shadow=(6, 8, 10, 0.35), tint=(0.78, 0.76, 0.72))
-    st.put(Z0.black(), pien_x + 6, STOPY - 170, P.lalki + 0.021, w=34, h=48, anchor=(0.5, 0.5), shadow=None, alpha=0.9)
-    puk = gag + 0.2
-    if t > puk:
-        wych = ease(pr(t, puk + 0.6, 0.25)) * (1 - ease(pr(t, puk + 1.3, 0.25)))
-        if wych > 0:
-            st.put(J.figura("murid5").kapelusz[0], pien_x + 4, STOPY - 196 + 20 * (1 - wych), P.lalki + 0.0215, h=46 * wych, anchor=(0.5, 0.5))
-        podpis(w, t, "KNOCK KNOCK", pien_x, 230, puk, 1.0)
-        podpis(w, t, "?!", 310, 260, puk + 1.5, 1.6)
+            m = K.lalka(st, t, f"murid za bukiem {n + 1}", MURIDZI[n], xp + strona * 46 * wych, 180, y=STOPY - 88, rzad="za_drzewami",
+                        flip=strona, wejscie=False, przod=88, tyl=60)
+            g = K.w_dloni(st, t, f"karabin (murid {n + 1})", "karabin", m, 115 * kar.hs / kar.ws, rot=0)  # karabin ~115 px
+            if g is not None:
+                lx, ly = g(430, 44)
+                blysk(st, lx, ly, P.wzgorza + 0.02, t, s_ + 0.1, r=120)
+                dym(st, lx, ly - 6, P.wzgorza + 0.021, t, s_ + 0.1, r=90, seed=n)
+    # buk z dziuplą przed drogą; za otworem ciemne wnętrze, w nim twarz murida, z otworu wysuwa się lufa
+    ab = K.ark("buk_dziupla")  # arkusz przycięty: kotwica (0.5, 1.0) to środek dołu przyciętego arkusza
+    k_buk = 1100 / ab.hs
+    dz_x, dz_y = pien_x + (179 - ab.x0 - ab.ws / 2) * k_buk, STOPY + 30 - (ab.y0 + ab.hs - 554) * k_buk
+    kb = bk(w, 0.45)  # buk wysuwa się z dekoracją; wnętrze dziupli dopiero, gdy stoi
+    Z0.rise(st, J.rek_kz("buk_dziupla"), pien_x, STOPY + 30, P.lalki + 0.02, kb, t, 997, h=1100, wob=0.0, anchor=(0.5, 1.0),
+            shadow=(6, 8, 10, 0.35), tint=(0.78, 0.76, 0.72))
+    if kb >= 1:
+        st.put(J.rek_kz("dziupla_wnetrze"), dz_x, dz_y, P.lalki + 0.0185, h=64, anchor=(0.5, 0.5), shadow=None)
+    twarz = ease(pr(t, gag + 0.6, 0.3)) * (1 - ease(pr(t, gag + 1.5, 0.25)))
+    if twarz > 0:
+        u.rzedy["dziupla"] = P.lalki + 0.019  # za pniem, przed ciemnym wnętrzem
+        K.lalka(st, t, "murid w dziupli", MURIDZI[4], dz_x - 2, 230, y=dz_y + 196 + 44 * (1 - twarz), rzad="dziupla",
+                flip=1, wejscie=False, alpha=1.0)
+    lufa = ease(pr(t, gag + 0.9, 0.2)) * (1 - ease(pr(t, gag + 1.3, 0.2)))
+    if lufa > 0:  # wylot lufy z bagnetem wysuwa się z otworu w stronę czapki żołnierza
+        st.put(J.rek_kz("lufa"), dz_x - 4, dz_y + 2, P.lalki + 0.0205, h=16, anchor=(0.0, 0.5), sx=lufa, rot=-15, shadow=(2, 3, 3, 0.3))
+    podpis(w, t, "KNOCK KNOCK", pien_x, 250, gag, 1.1)
+    podpis(w, t, "?!", x_k, 300, gag + 1.8, 0.8)
     koniec(st, w, t)
 
 
