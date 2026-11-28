@@ -123,7 +123,7 @@ BEZ_NAPISU = {"dzieki"}  # tekst jest w kadrze (tabliczki z podziękowaniem)
 # miejsca w filmie i z jego długością (kamera i zdarzenia liczą się tak jak w oryginale) — to skrót, a nie nowa scena.
 # Trzeci element: długość, z jaką liczy się oryginał, gdy ujęcie skraca samo siebie (teatr: od 1 s, za kurtyną zapala się
 # lampa, szyld „SON OF THE SUN” widać, gdy kurtyna się rozsunie, bracia wysuwają się na polanę, kamera dojeżdża do 5 s).
-WYCINEK = {"zap_skok": ("skok", 2.4), "zap_armaty": ("armaty", 0.7), "zap_tratwa": ("tratwa", 3.2), "zap_dargo": ("dargo", 5.6),
+WYCINEK = {"zap_skok": ("tolstoj", 5.8), "zap_armaty": ("armaty", 0.7), "zap_tratwa": ("tratwa", 3.2), "zap_dargo": ("dargo", 5.6),
            "zap_najazd": ("tsinandali", 5.3), "zap_rzeka": ("przeprawa", 1.6), "zap_gunib": ("szturm_gunib", 1.4),
            "zap_slowa": ("slowa1", 1.6), "zap_wydma": ("herbert", 3.2)}
 # Kurtyna startu (reżyser 18.11.2026: „po spoilerze na końcu ściemnienie i kurtyna startu z pierwszym ujęciem”): ujęcie

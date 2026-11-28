@@ -3457,3 +3457,16 @@ MEBLE["lozko_kz"] = (520, 200, [(rect(0, 70, 520, 170), (140, 50, 44), dict(edge
                                 (rect(496, 50, 520, 200), (96, 64, 40)), (ell(80, 64, 60, 26), (230, 224, 206))])
 MEBLE["skrzynka"] = (220, 160, [(rect(0, 0, 220, 20), (110, 70, 42)), (rect(6, 20, 214, 160), (96, 60, 36), dict(edge=2)),
                                 (ell(60, 90, 26, 40), (130, 88, 56)), (ell(160, 90, 26, 40), (130, 88, 56)), (rect(100, 70, 120, 110), GOLD)])
+
+
+@lru_cache(None)
+def szczyt():
+    """Jeden wielki szczyt Kaukazu (1100 × 640): dwa wierzchołki jak Elbrus, szeroka czapa śniegu, żleby."""
+    w, h = 1100, 640
+    kolor = (136, 140, 156)
+    parts = [(poly([(0, h), (300, 220), (420, 90), (520, 140), (640, 60), (800, 230), (1100, h)]), kolor, dict(edge=3, shade=0.2, contrast=1.1)),
+             (poly([(330, 200), (420, 90), (520, 140), (640, 60), (760, 200), (690, 190), (640, 230), (560, 180), (500, 230), (440, 170),
+                    (380, 230)]), (246, 246, 244), dict(kind="gladki", contrast=0.6))]
+    for x0 in (360, 470, 600, 700):
+        parts.append((_band((x0, 240), (x0 - 40 + (x0 % 3) * 30, 520), 10), _shade(kolor, 0.8)))
+    return Sprite(stack_d(w, h, parts, seed=260), "szczyt", rim=3, clean=False)

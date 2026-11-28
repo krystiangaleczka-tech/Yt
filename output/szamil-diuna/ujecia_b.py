@@ -8,7 +8,7 @@ from ujecia_a import (CX, CY, I, J, K, MURIDZI, P, STOPY, ZOLNIERZE, Z0, _bump, 
                      dym, ease, ease_out, gabinet, gimry_sc, izba, jaskinia, jezdziec, kam, kaukaz, koniec, koza, ksiezyc, lalka,
                      las_bukowy, lerp, miczik, mur_przod, noise, parawan, pieczatka, plomien, po_kw, podpis, pr, pustynia, robak,
                      sala_balowa, sl, slowo, snieg, teatr_kz, gruzja, kaluga_sc, wnetrze, arrakis_sc, SZABLA, FLAGA, gory_pasmo, rampa)
-from scena import MICZIK_SWIATLO, chmury, spod, swiatlo, wejscie  # noqa: F401
+from scena import MICZIK_SWIATLO, chmury, cykl_dni, niebo_dni, spod, swiatlo, wejscie  # noqa: F401
 from scena import (biblioteka_sc, gabinet_cara, gran_wieczor_sc, izba_kz, kaluga_sc2, namiot_sc, polka_sc, pracownia_sc,  # noqa: F401,E402
                    przedgorze_sc, sala_tronowa_sc, sala_tyflis_sc, wedeno_sc)
 
@@ -352,12 +352,11 @@ def s_wedeno(st, w, t, T):
     w zeszycie i zerka na wartownika."""
     kam(st, t, I["wedeno"], lerp(640, 700, ease(t / T)), 420, lerp(1.0, 1.18, ease(t / T)), 0.75)
     t_eight, t_gov = sl("wedeno", "eight"), sl("wedeno", "governess")
-    mies = pr(t, t_eight, 2.6)
+    mies = pr(t, t_eight, 3.6)
+    ciala, noc = cykl_dni(t, t_eight, 3.6, cykle=3)  # miesiące mijają: słońce i księżyc na nitkach po kolei (ujęcie 24, 28.11)
+    wedeno_sc(st, t, w, cialo=False)
+    niebo_dni(st, t, w, ciala, noc, gwiazdy_seed=13)
     if 0 < mies < 1:
-        w.noc = 1.0 if 0.4 < (mies * 3) % 1.0 < 0.75 else 0.0
-    wedeno_sc(st, t, w)
-    if 0 < mies < 1:
-        ksiezyc(st, t, 1.0, x=lerp(1200, 100, (mies * 3) % 1.0), y=140)
         snieg(st, t, math.sin(math.pi * mies), seed=12)
     u = K.uk(st, t)
     sw, sx0, sy1 = 620, 700, STOPY
@@ -375,7 +374,7 @@ def s_wedeno(st, w, t, T):
         u.w_otworze(key, (x0 - 2, y0 - 2, x1 + 2, y1 + 2, u.p("sciana_domu")), f"{key}: widać tylko przez okno")
     K.zolnierz(st, t, "strażnik", "murid2", 420, 290, flip=lerp(1, -1, _bump(t, po_kw("wedeno", 0.2), 0.6)))
     podpis(w, t, "Vedeno", 380, 40, 0.5, T)
-    koniec(st, w, t)
+    koniec(st, w, t, dim=1.0 - 0.45 * noc)
 
 
 def s_cena(st, w, t, T):
@@ -633,7 +632,7 @@ def s_gunib(st, w, t, T):
     """Płaskowyż z wioską wyrasta z mgły, zawieszka „Gunib, 1859”; na „sixty-two” na krawędzi staje Szamil z siwą brodą;
     wiatr szarpie czarną chorągwią; kamień obsuwa się z urwiska."""
     kam(st, t, I["gunib"], 700, lerp(420, 380, ease(t / T)), lerp(1.0, 1.25, ease(t / T)), 0.6)
-    kaukaz(st, t, w, blisko=False)
+    kaukaz(st, t, w, blisko=False, uklad=2)
     top = plaskowyz(st, t, w)
     u = K.uk(st, t)
     t_62 = sl("gunib", "sixty")
@@ -654,7 +653,7 @@ def s_liczby(st, w, t, T):
     """Kamera odjeżdża: garstka obrońców na górze, tabliczka „400”; dookoła góry wysuwają się rzędy wojska aż po horyzont,
     każdy rząd z opóźnieniem; tabliczka „16,000” (potęga = liczba i przestrzeń, 1.17)."""
     kam(st, t, I["liczby"], 700, 420, lerp(1.4, 0.98, ease(pr(t, 0, T * 0.7))), 0.6)
-    kaukaz(st, t, w, blisko=False)
+    kaukaz(st, t, w, blisko=False, uklad=2)
     top = plaskowyz(st, t, w)
     u = K.uk(st, t)
     t_400, t_16 = sl("liczby", "four"), sl("liczby", "sixteen")
@@ -679,7 +678,7 @@ def s_szturm_gunib(st, w, t, T):
     """Świt: żołnierze wspinają się po urwisku na linach, jeden za drugim (dłonie na linie); pierwszy dosięga krawędzi;
     na górze unosi się biała flaga i powiewa; cisza."""
     kam(st, t, I["szturm_gunib"], 660, 460, 1.15, 0.66)
-    kaukaz(st, t, w, blisko=False)
+    kaukaz(st, t, w, blisko=False, uklad=2)
     top = plaskowyz(st, t, w, wd=640)
     u = K.uk(st, t)
     u.rzedy["urwisko"] = P.most + 0.006

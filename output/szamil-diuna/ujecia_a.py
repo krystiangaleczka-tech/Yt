@@ -17,7 +17,7 @@ from scena import (CX, CY, I, J, P, STOPY, Z0, _off, arrakis_sc, back, bk, blysk
                    mur_przod, noise, parawan, petersburg, podpis, pr, rampa, gruzja, sala_balowa, settle, siegnij, snieg, swiatlo,
                    teatr_kz, zawieszki, pustynia, ciemnosc, slonce, kaluga_sc, wnetrze, gory_pasmo)
 from scena import (SKALA_OBOZ, bateria_sc, brama_sc, dziedziniec_sc, gabinet_cara, klif, oboz_sc, ostaniec_sc,  # noqa: F401,E402
-                   przelecz_sc, rzeka_wieczor, skala_jaskinia, skala_sc, skala_szczyt, wawoz_sc, wieza_sc)
+                   przelecz_sc, rzeka_wieczor, skala_jaskinia, skala_sc, skala_szczyt, wawoz_sc, wieza_sc, cykl_dni, niebo_dni)
 
 ZOLNIERZE = ("zolnierz", "zolnierz2", "zolnierz3", "zolnierz4", "zolnierz5", "zolnierz6")  # sześć różnych żołnierzy (1.6)
 MURIDZI = ("murid", "murid2", "murid3", "murid4", "murid5", "sado")
@@ -214,7 +214,8 @@ def s_arrakis(st, w, t, T):
     jaskinia(st, 1080, 700, P.wzgorza + 0.003, h=90 * ease(pr(t, t_sietch - 0.2, 0.4)))
     slowo(st, t, "SIETCH", 1080, 330, pr(t, t_sietch, 0.8), seed=1, h=70)
     dym(st, 660, 560, P.wzgorza, t, gag + 1.5, r=260, dl=1.6, seed=5, tint=(0.95, 0.82, 0.6))
-    u.widac("fremen 1", 0.9, "fremen 1: widać ≥ 90%")
+    if t > 1.5:  # po wejściu lalki (wejście kończy się ok. 1,4 s); wcześniej fremen dopiero wjeżdża na scenę (kontrola 28.11)
+        u.widac("fremen 1", 0.9, "fremen 1: widać ≥ 90%")
     koniec(st, w, t)
 
 
@@ -265,7 +266,7 @@ def s_przedstawienie(st, w, t, T):
     (gag: jego nigdy nie ma tam, gdzie celują)."""
     kam(st, t, I["przedstawienie"], lerp(700, 880, ease(pr(t, 0, 2.5))), lerp(400, 430, ease(pr(t, 0, 2.5))),
         lerp(1.05, 1.5, ease(pr(t, 0, 2.6))), 0.8)
-    kaukaz(st, t, w, aul=300)
+    kaukaz(st, t, w, uklad=1, aul=300)
     snieg(st, t, 0.5, seed=4)
     t_imie, t_wanted = sl("przedstawienie", "shamil"), sl("przedstawienie", "wanted")
     u = K.uk(st, t)
@@ -297,8 +298,8 @@ def s_hak_syn(st, w, t, T):
     u = K.uk(st, t)
     t_host, t_six, t_rode = sl("hak_syn", "hostage"), sl("hak_syn", "sixteen"), sl("hak_syn", "rode")
     u.rzedy["szereg"] = P.lalki - 0.01
-    for n in range(4):
-        K.zolnierz(st, t, f"żołnierz {n + 1}", ZOLNIERZE[n], 80 + n * 85, 250, rzad="szereg", flip=1)
+    for n in range(3):  # czwarty przy x 80 stał cały czas poza kadrem (kontrola układu 28.11)
+        K.zolnierz(st, t, f"żołnierz {n + 1}", ZOLNIERZE[n], 170 + n * 85, 250, rzad="szereg", flip=1)
     for n in range(3):
         K.lalka(st, t, f"murid {n + 1}", MURIDZI[n + 1], 1260 - n * 80, 250, rzad="szereg", flip=-1)
     idzie = ease(pr(t, 0.6, t_host + 0.8 - 0.6))
@@ -322,32 +323,30 @@ def s_hak_syn(st, w, t, T):
 
 
 def s_pytanie(st, w, t, T):
-    """Jedno pytanie prowadzi w retrospekcję: rzeka zamiera, połowa gór zapada się w piasek, na chwilę wyrasta wydma i znika;
-    kartki kalendarza lecą wstecz do 1832, ostatnia trafia maszynistę za kulisami („OUCH!”); wyrasta wioska w wąwozie
-    i zawieszka „Gimry, Dagestan, 1832”; ściemnienie."""
+    """Jedno pytanie prowadzi dalej w historię (otwarcie w akcji, 28.11: Gimry 1832 już było): rzeka zamiera, połowa gór zapada
+    się w piasek, na chwilę wyrasta wydma i znika; na „Follow” kartki kalendarza lecą wstecz do 1834, ostatnia trafia
+    maszynistę za kulisami („OUCH!”), a Szamil schodzi w lewo za kulisy; na „jump” zawieszka „Dagestan, 1834”; ściemnienie."""
     kam(st, t, I["pytanie"], 640, 390, lerp(1.1, 1.0, ease(t / T)), 0.75)
-    t_des, t_starts, t_gimry = sl("pytanie", "desert"), sl("pytanie", "begins"), sl("pytanie", "gimry")
+    t_des, t_starts, t_jump = sl("pytanie", "desert"), sl("pytanie", "follow"), sl("pytanie", "jump")
     wydma = ease(pr(t, t_des - 0.2, 0.8)) * (1 - ease(pr(t, t_des + 1.6, 0.8)))
-    if t < t_starts + 1.4:
-        rzeka_wieczor(st, t, w)
-        K.lalka(st, t, "Szamil", w.szamil, 1060, 300, flip=-1, przod=6, alpha=1 - pr(t, t_starts + 0.8, 0.6))
-        jezdziec(st, t, "dzamal_oficer", 640, y=STOPY + 10, p=P.lalki + 0.01, flip=1, h=230, galop=0.0, seed=3,
-                 k=1 - pr(t, t_starts + 0.6, 0.6))
-        Z0.rise(st, J.wydma(0), 360, 700, P.gory + 0.01, wydma, t, 1220, w=900, wob=0.0, lift=460, anchor=(0.5, 1.0))
-    else:  # wioska w wąwozie buduje się od pustej sceny (jak przy zmianie miejsca)
-        w.build = t - (t_starts + 1.4)
-        gimry_sc(st, t, w, wieza_x=None, aul_x=760)
-    lata = (1855, 1850, 1845, 1839, 1834, 1832)
+    rzeka_wieczor(st, t, w)
+    # na „Follow the man” Szamil schodzi w lewo za kulisy — widz idzie za nim (wcześniej znikał i scena stała pusta ~2 s, 28.11)
+    idzie = ease(pr(t, t_starts + 0.2, max(1.0, t_jump - t_starts)))
+    K.lalka(st, t, "Szamil", w.szamil, lerp(1060, -170, idzie), 300, flip=-1, przod=6, hop=6 * (0 < idzie < 1))
+    jezdziec(st, t, "dzamal_oficer", 640, y=STOPY + 10, p=P.lalki + 0.01, flip=1, h=230, galop=0.0, seed=3,
+             k=1 - pr(t, t_starts + 0.6, 0.6))
+    Z0.rise(st, J.wydma(0), 360, 700, P.gory + 0.01, wydma, t, 1220, w=900, wob=0.0, lift=460, anchor=(0.5, 1.0))
+    lata = (1855, 1850, 1845, 1839, 1834)
     kartki_kalendarza(st, t, t_starts - 0.1, lata, x=640, y=60, dl=0.36)
-    trafia = t_starts - 0.1 + 5 * 0.36 + 0.36 * 0.6 + 0.7
+    trafia = t_starts - 0.1 + 4 * 0.36 + 0.36 * 0.6 + 0.7
     if t > trafia - 0.3:  # ostatnia kartka trafia w laskę maszynisty, która wysuwa się zza kulis
         maszynista(st, t, pr(t, trafia - 0.6, 0.4) * (1 - pr(t, trafia + 1.0, 0.4)), y=260, cel_x=60)
         podpis(w, t, "OUCH!", 150, 120, trafia, 1.4)
-    podpis(w, t, "Gimry, Dagestan, 1832", CX, 40, t_gimry, T)
+    podpis(w, t, "Dagestan, 1834", CX, 40, t_jump, T)
     koniec(st, w, t)
 
 
-# ================================================================ akt I: Gimry, skok, kanly, imam, imperium
+# ================================================================ prolog: otwarcie w akcji — Gimry, wieża, skok
 
 WIEZA_X = 430
 
@@ -367,6 +366,7 @@ def s_gimry(st, w, t, T):
             przod=lambda s: 10 + 90 * ease(pr(t, t_zol + 0.8, 0.4)))
     podpis(w, t, "Ghazi Muhammad, the first imam", 820, 340, t_ghazi, 2.8)
     podpis(w, t, "Shamil", 920, 340, t_shamil, 2.6)
+    podpis(w, t, "Gimry, Dagestan, 1832", CX, 40, 0.6, T)  # otwarcie w akcji (28.11): miejsce i czas od pierwszej chwili
     u.rzedy["gran"] = P.gory + 0.006
     for n in range(7):  # białe czapki za granią z lewej, po kolei
         k = ease(pr(t, t_zol + 0.25 * n, 0.4))
@@ -462,11 +462,11 @@ def s_rana(st, w, t, T):
     siada = ease(pr(t, t_hid + 0.6, 0.6))
     sz = K.lalka(st, t, "Szamil", w.szamil, x, 300, flip=1, lean=zatacza + 6, hop=5 * (t < t_hid + 0.4), lift=-40 * siada,
                  przod=lambda s: s["punkt"](150, 250), tyl=lambda s: (s["punkt"](178, 162) if t > po_kw("rana", 0.5) else 10))
-    for n in range(2):  # żołnierze z lewej strzelają w pusty wąwóz (trzeci stał poza kadrem — kontrola 28.11)
+    for n in range(2):  # żołnierze z lewej strzelają w pusty wąwóz (trzeci stał poza kadrem, a drugi przy x −30 też — kontrola 28.11)
         s_ = t_chest - 0.4 + 0.4 * n
-        K.zolnierz(st, t, f"żołnierz {n + 1}", ZOLNIERZE[n + 2], 40 - n * 70, 240, flip=1, glebia=n)
-        blysk(st, 100, STOPY - 150, P.lalki + 0.02, t, s_, r=150)
-        dym(st, 120 + 40 * n, STOPY - 160, P.lalki + 0.02, t, s_, r=110, seed=n)
+        K.zolnierz(st, t, f"żołnierz {n + 1}", ZOLNIERZE[n + 2], 100 - n * 80, 240, flip=1, glebia=n)
+        blysk(st, 160, STOPY - 150, P.lalki + 0.02, t, s_, r=150)
+        dym(st, 180 + 40 * n, STOPY - 160, P.lalki + 0.02, t, s_, r=110, seed=n)
     gag = po_kw("rana", -0.6)
     kz = ease(pr(t, gag - 0.4, 0.6))
     koza(st, t, "koza", lerp(1100, 1010, kz), h=110, flip=-1, k=kz)
@@ -588,7 +588,7 @@ def s_marsz(st, w, t, T):
     mk = ease(pr(t, gag, 0.4)) * (1 - ease(pr(t, gag + 1.1, 0.3)))
     if mk > 0:
         K.lalka(st, t, "murid z gagu", "murid4", ostatni_x - 80, 250, rzad="lalki", glebia=2, flip=1, k=mk, wejscie=False,
-                przod=lambda s: (ostatni_x - 20, STOPY - 190))
+                przod=lambda s: K.w_zasiegu(s, (ostatni_x - 20, STOPY - 190)))  # przy wejściu i zejściu ręka nie sięga (28.11)
     if t > gag + 1.2:
         podpis(w, t, "?!", ostatni_x, 330, gag + 1.2, 1.6)
     koniec(st, w, t)
@@ -598,16 +598,13 @@ def s_marsz(st, w, t, T):
 
 def s_akhulgo(st, w, t, T):
     """Na skale wyrasta twierdza, zawieszka „Akhulgo, 1839”; u stóp wyrastają namioty; koń wciąga armatę na pozycję;
-    na „eighty days” nad obozem przesuwają się księżyc i słońce dwa razy (dni mijają)."""
+    na „eighty days” dni mijają na nitkach (reżyser 28.11: „słońce przesuwa się na lince w lewo za kadr, z prawej na lince
+    jedzie księżyc, już ciemniając scenerię… znowu wyjeżdża słońce z prawej i rozjaśnia, i tak w kółko”) — scena.cykl_dni;
+    wcześniej dekoracja rysowała własny księżyc i słońce, a ujęcie drugi księżyc, który przelatywał przez słońce."""
     kam(st, t, I["akhulgo"], 660, lerp(400, 360, ease(t / T)), lerp(1.0, 1.15, ease(t / T)), 0.62)
-    t_eighty = sl("akhulgo", "eighty")
-    dni = pr(t, t_eighty, 2.4)
-    if 0 < dni < 1:
-        faza = (dni * 2) % 1.0
-        w.noc = 1.0 if 0.5 < faza < 0.9 else 0.0
-    kaukaz(st, t, w, twierdza=True, rzeka_=False, namioty=6, blisko=False)
-    if 0 < dni < 1:
-        ksiezyc(st, t, 1.0, x=lerp(1200, 100, (dni * 2) % 1.0), y=140)
+    ciala, noc = cykl_dni(t, sl("akhulgo", "eighty"), 2.6, cykle=2)
+    kaukaz(st, t, w, twierdza=True, rzeka_=False, namioty=6, blisko=False, cialo=False)
+    niebo_dni(st, t, w, ciala, noc)
     u = K.uk(st, t)
     xa = lerp(-160, 300, ease(pr(t, 2.6, 2.4)))
     if K.wjechal():
@@ -616,7 +613,7 @@ def s_akhulgo(st, w, t, T):
     K.lalka(st, t, "artylerzysta", "zolnierz5", xa + 330, 250, flip=-1, hop=4 * (t < 5.0),
             przod=lambda s: K.w_zasiegu(s, (xa + 300, STOPY - 160)))
     podpis(w, t, "Akhulgo, 1839", 380, 40, 0.5, T)
-    koniec(st, w, t)
+    koniec(st, w, t, dim=1.0 - 0.45 * noc)
 
 
 def s_armaty(st, w, t, T):

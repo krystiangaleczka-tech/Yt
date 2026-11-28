@@ -26,9 +26,10 @@ def r(klucz, kotwica=""):
 SWIAT = {
     "version": 1,
     "unitLabel": "Akt",
-    # szkic E (28.11): akty 60–115 s z tempa rozpiski; z prawdziwym lektorem (D12) 64–125 s — górna granica 130 s;
+    # szkic E (28.11): akty 60–115 s z tempa rozpiski; z prawdziwym lektorem (D12) 64–125 s; z otwarciem w akcji (D13) akt I
+    # z prologiem ok. 2:30 — górna granica 160 s;
     # prolog to jednostka 0 wewnątrz aktu 1 (world.prologue ustawia studio_film.py)
-    "tempo": {"minSeconds": 55, "maxSeconds": 130, "maxVoiceShare": 0.85},
+    "tempo": {"minSeconds": 55, "maxSeconds": 160, "maxVoiceShare": 0.85},
     "places": [
         {"id": "teatr", "name": "Teatr papierowy", "note": "Rama z ciemnego rzeźbionego drewna; prolog i puenta: wydma (Arrakis) "
          "i góry Kaukazu obok siebie; maszynista za kulisami (laska z hakiem).", "connects": ["gory", "pustynia"]},
@@ -38,7 +39,7 @@ SWIAT = {
         {"id": "gruzja", "name": "Cinandali (Gruzja)", "note": "Dwór z balkonem, winnice, kamienny mur."},
         {"id": "petersburg", "name": "Petersburg", "note": "Gabinet z mapą i biurkiem z pieczątką, sala balowa, sala tronowa, iglice."},
         {"id": "kaluga", "name": "Kaługa", "note": "Dom z kolumienkami i płotem, za płotem gapie."},
-        {"id": "pustynia", "name": "Pustynia", "note": "Arrakis z robakiem (prolog, puenta), droga pielgrzymki do Medyny."},
+        {"id": "pustynia", "name": "Pustynia", "note": "Arrakis z robakiem (otwarcie aktu I, puenta), droga pielgrzymki do Medyny."},
         {"id": "pracownia", "name": "Pracownie pisarzy", "note": "Biurko Lesley Blanch (Londyn, 1960) i stół Franka Herberta (1965)."},
     ],
     "characters": [
@@ -80,7 +81,7 @@ SWIAT = {
         {"id": "car", "name": "Tsar Alexander II", "role": "car Rosji (od 1855)", "look": "mundur, bokobrody"},
         {"id": "muridzi", "name": "muridzi", "role": "wojownicy Szamila", "look": "czarne czerkieski, papachy, szable"},
         {"id": "koza", "name": "koza", "role": "gag powracający", "look": "biało-szara koza z bródką"},
-        {"id": "fremen", "name": "fremeni", "role": "lalki z Diuny w prologu i w akcie VI (bez twarzy z filmów, D5)",
+        {"id": "fremen", "name": "fremeni", "role": "lalki z Diuny w kurtynie startu, w otwarciu aktu I i w akcie VI (bez twarzy z filmów, D5)",
          "look": "piaskowe płaszcze z kapturami"},
         {"id": "blanch", "name": "Lesley Blanch", "role": "pisarka, autorka „The Sabres of Paradise” (1960)", "look": "kobieta w "
          "kapeluszu przy maszynie do pisania"},
@@ -118,11 +119,11 @@ SWIAT = {
     "threads": [
         {"id": "syn", "title": "Syn zakładnik", "setup": [r("hak_syn", "hostage")],
          "clues": [r("amanat", "hostage"), r("syn_na_polnoc", "officer"), r("kreski", "son back"), r("cena", "his son")],
-         "payoff": [r("syn_wraca", "uniform")], "note": "Hak w prologu (syn oddany, wraca w mundurze) — rozwiązanie w akcie IV."},
+         "payoff": [r("syn_wraca", "uniform")], "note": "Hak w otwarciu aktu I (syn oddany, wraca w mundurze) — rozwiązanie w akcie IV."},
         {"id": "pytanie", "title": "Jak wojna w śniegu trafiła na pustynną planetę", "setup": [r("pytanie", "desert planet")],
          "clues": [r("medyna", "desert")], "payoff": [r("herbert", "Dune"), r("slowa1", "Kanly")]},
         {"id": "kanly", "title": "Kanly — wendeta z gór", "setup": [r("arrakis", "kanly")], "clues": [r("kanly_1834", "kanly")],
-         "payoff": [r("slowa1", "Kanly")], "note": "Słowo pada w Diunie (prolog), wraca przy śmierci drugiego imama, odlatuje na pustynię w akcie VI."},
+         "payoff": [r("slowa1", "Kanly")], "note": "Słowo pada w Diunie (otwarcie aktu I), wraca przy śmierci drugiego imama, odlatuje na pustynię w akcie VI."},
         {"id": "padyszach", "title": "Padyszach — słowo Szamila na cara", "setup": [r("cena", "padishah")],
          "payoff": [r("slowa3", "padishah")]},
         {"id": "siridar", "title": "Siridar — słowo Szamila na carskiego namiestnika", "setup": [r("kapitulacja", "siridar")],
@@ -168,6 +169,14 @@ SWIAT = {
          "70 ujęć, 9:45, kwestia w 61 ujęciach i 2–4 wydarzenia pod słowa w każdym; otwarcie od Diuny, którą widz zna; Gimry 1832 "
          "(skok — legenda), Dargo 1845 i „Biscuit Expedition”, Tołstoj, Kaługa; słowa z Diuny zasiane w historii; 22 gagi (GAGI.md). "
          "Silnik, lalki i dekoracje z D zostają."},
+        {"id": "D13", "at": "2026-11-28", "by": "reżyser", "text": "Otwarcie w akcji. Reżyser: „w każdym naszym filmie… dopiero po "
+         "2–3 minutach zaczyna się jakaś akcja… powinniśmy stworzyć coś takiego, że już ten początek filmu jest angażujący… potem "
+         "możemy minimalnie zwolnić tempo, tam po 2 minutach”. W szkicu E pierwsza akcja (wieża) była w 1:14, przed nią same "
+         "objaśnienia. Teraz po kurtynie od razu Gimry 1832 (wieża, śmierć Ghaziego, skok, ucieczka z raną), potem most do Diuny, "
+         "przedstawienie („the man who made that jump”), hak z synem, pytanie do 1834. Akt I to „The New Imam”. Zapowiedź bierze "
+         "pościg Tołstoja zamiast skoku (skok gra w otwarciu). Dni pod Achulgo mijają na nitkach (słońce, księżyc), góry w trzech "
+         "ułożeniach (dolina w otwarciu, pasma pod Achulgo, szczyt nad Gunibem). Sceny otwarcia (Gimry, most do Diuny, hak, pytanie) "
+         "należą do aktu I — prolog to tylko zapowiedź i kurtyna startu; w prologu akt I miał 43 s, poniżej 55 s z tempa księgi."},
         {"id": "D12", "at": "2026-11-28", "by": "wykonawca", "text": "Lektor nagrany klonem (reżyser 28.11: „nagraj lektora”): "
          "61 kwestii, przepis TEATR, ziarno 42, 12 kwestii poprawionych ziarnem 123 albo 7 po kontroli Whisperem i ucięć. Klon czyta "
          "2,64 słowa/s zamiast 2,84 z rozpiski, więc film urósł z 9:58 do 10:34, a akt IV (syn i księżne) do 124 s — długość "
@@ -203,8 +212,9 @@ BIBLIA = {
     "narration": "Lektor po angielsku, 3. osoba, czas przeszły, spokojny, z lekką ironią wobec imperium (nigdy wobec ofiar); pełne "
                  "zdania z łącznikami. Szkic E (28.11): każde ujęcie z kwestią ma 2–4 wydarzenia na słowach lektora; długość ujęcia: "
                  "oddech 0,6 s (w haku 0,4) + słowa / 2,84 + pauza 1,1–2,3 s + czas na wydarzenie albo gag (WYDLUZ); bez samotnych "
-                 "wstawek bez słów (Wytyczne 1.9 „Rytm filmu”). Lektor od pierwszej sekundy; otwarcie od Diuny, którą widz zna; jedno "
-                 "pytanie prowadzi do Gimry 1832; bez kurtyny przed aktem I. Nie mówimy „Paul to Szamil” ani „Herbert ukradł”; skok "
+                 "wstawek bez słów (Wytyczne 1.9 „Rytm filmu”). Lektor od pierwszej sekundy; otwarcie w akcji (D13): zaraz po kurtynie "
+                 "walka w Gimry 1832 — wieża, skok, ucieczka; potem most do Diuny, kim jest Szamil, hak z synem i jedno pytanie, które "
+                 "prowadzi do 1834; bez kurtyny przed aktem I. Nie mówimy „Paul to Szamil” ani „Herbert ukradł”; skok "
                  "w Gimry to „the story goes”. Silnik humoru: papiery imperium kontra góry (pieczątka FINISHED → VICTORY → CAPTURED, "
                  "trzecia bez żartu), Szamila nigdy nie ma tam, gdzie celują, koza w trzech podejściach, teatr świadomy siebie (robak "
                  "z Diuny na złej scenie, laska maszynisty). Granica: bez gagów przy śmierci, zakładniku, zasadzce, śmierci syna "
@@ -221,8 +231,9 @@ BIBLIA = {
              "Chavchavadze. Gruzińska Biblioteka Narodowa (nplg.gov.ge) — Cinandali, żądanie miliona rubli, zgoda cara. Szczegóły "
              "i rozbieżności: decyzje D6, D7, D10. Szamil nie jest udowodnionym pierwowzorem Paula; Herbert nie potwierdził inspiracji "
              "Szamilem wprost.",
-    "transitions": "Zapowiedź bez przejść; kurtyna startu na pustynię; wydmy zapadają się w góry (zwrot); prolog → akt I przez kalendarz "
-                   "lecący wstecz i zawieszkę „Gimry, Dagestan, 1832” (bez kurtyny); kurtyny z pytaniem przed aktami II–VI; "
+    "transitions": "Zapowiedź bez przejść; kurtyna startu na pustynię, cięcie w Gimry 1832 (zawieszka miejsca i czasu); po ucieczce "
+                   "most kwestią („that war turned up in a novel”) na pustynię; wydmy zapadają się w góry (zwrot); z hakiem do 1834 przez "
+                   "kalendarz lecący wstecz i zawieszkę „Dagestan, 1834” (wszystko to akt I, bez kurtyny — prolog to zapowiedź i kurtyna startu); kurtyny z pytaniem przed aktami II–VI; "
                    "ściemnienie przy zmianie miejsca w akcie; w akcie VI słowa zasiane w historii lecą na nitkach z gór nad wydmę; "
                    "biała flaga łączy zakładnika, Gunib i puentę.",
 }

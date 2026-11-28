@@ -429,11 +429,12 @@ def slonce(st, t, w, k=None, xy=None, alpha=1.0):
         J.hang(st, J.slonce_bc(), x, y, P.slonce, k, t, 1, w=140, shadow=(5, 7, 9, 0.30), haze=0.1)
 
 
-def ksiezyc(st, t, k, x=980, y=150):
+def ksiezyc(st, t, k, x=980, y=150, p=None):
+    p = P.slonce if p is None else p
     if k > 0:
-        st.put(J.glow(), x, y + 54 - (1 - back(k, 1.1)) * 480, P.slonce, w=560, anchor=(0.5, 0.5), mode="add", alpha=0.26 * ease(k),
+        st.put(J.glow(), x, y + 54 - (1 - back(k, 1.1)) * 480, p, w=560, anchor=(0.5, 0.5), mode="add", alpha=0.26 * ease(k),
                shadow=None, tint=(0.75, 0.85, 1.0), z=-1)
-        J.hang(st, J.moon(), x, y, P.slonce, k, t, 2, drop=480, w=96, shadow=(5, 7, 9, 0.3))
+        J.hang(st, J.moon(), x, y, p, k, t, 2, drop=480, w=96, shadow=(5, 7, 9, 0.3))
 
 
 def chmury(st, t, w, k=(1.0, 1.0, 1.0), haze=1.0):
@@ -682,7 +683,8 @@ def drukarnia(st, t, w, obrot=0.0, kul=True, podskok=0.0):
 
 def spod(st, kolor=(130, 96, 66)):
     """Stały pas podłogi pod ścianą wnętrza: zanim wjedzie podłoga (budowa dekoracji), pod ścianą nie świeci puste płótno."""
-    st.put(J.grunt(kolor), CX, 700, P.miasto - 0.002, w=2200, anchor=(0.5, 0.0), shadow=None, tint=(0.7, 0.7, 0.7))
+    # od y 680, nie 700: postrzępiony brzeg pasa i dolny brzeg ściany zostawiały razem 1 px płótna (raport 0,3 s, 28.11)
+    st.put(J.grunt(kolor), CX, 680, P.miasto - 0.002, w=2200, anchor=(0.5, 0.0), shadow=None, tint=(0.7, 0.7, 0.7))
 
 
 def mapa_scena(st, t, w, k=1.0, x=640, y=40, wd=820, sciana="deski"):
@@ -792,16 +794,26 @@ def teatr_kz(st, t, w, lewa=1.0, prawa=1.0, wydma_k=1.0, gory_k=1.0, kul=True, p
     rampa(st, bk(w, 0.7, 0.6))
 
 
-def kaukaz(st, t, w, aul=None, twierdza=False, rzeka_=False, namioty=0, kul=True, dal=True, blisko=True, gory_tint=None):
-    """Góry Dagestanu: trzy pasma, opcjonalnie auł (x), skała Achulgo z twierdzą, rzeka u stóp, namioty oblężenia."""
+def kaukaz(st, t, w, aul=None, twierdza=False, rzeka_=False, namioty=0, kul=True, dal=True, blisko=True, gory_tint=None, cialo=True,
+           uklad=0):
+    """Góry Dagestanu: trzy pasma, opcjonalnie auł (x), skała Achulgo z twierdzą, rzeka u stóp, namioty oblężenia. cialo=False —
+    bez słońca, księżyca i gwiazd dekoracji (ujęcie rysuje je samo, np. cykl_dni); uklad 0..2 — trzy różne ułożenia gór
+    (Wytyczne 1.33: jedna sceneria, trzy podejścia): 0 — trzy pasma w poprzek, 1 — dolina w głąb (zbocza z obu stron
+    schodzą do środka), 2 — jeden wielki szczyt z przedgórzem."""
     _niebo_kz(st, w)
-    if w.noc > 0.5:
+    if not cialo:
+        chmury(st, t, w)
+    elif w.noc > 0.5:
         ksiezyc(st, t, bk(w, 0.2), 1010, 120)
         gwiazdy(st, t, bk(w, 0.3), seed=7)
     else:
         slonce(st, t, w)
         chmury(st, t, w)
-    if dal:
+    if dal and uklad == 1:
+        gory_dolina(st, t, w, tint=gory_tint)
+    elif dal and uklad == 2:
+        gory_szczyt(st, t, w, tint=gory_tint)
+    elif dal:
         gory_pasma = (("dal", 560, P.gory_dal, 0.1, 0.2), ("srodek", 620, P.gory, 0.25, 0.0))
         for which, y, p, d, hz in gory_pasma:
             gory_pasmo(st, t, w, which, CX, y, p, d, haze=hz, tint=gory_tint)
@@ -1235,6 +1247,7 @@ def sala_tronowa_sc(st, t, w):
 
 def namiot_sc(st, t, w):
     """Namiot polowy Woroncowa: płótno, maszty, odchylona poła z widokiem na las; ubita ziemia."""
+    spod(st, (130, 112, 84))
     st.put(J.namiot_wnetrze(), CX, 740, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None)
     ziemia(st, t, w, (130, 112, 84), y=820)
     rampa(st)
@@ -1281,10 +1294,12 @@ def polka_sc(st, t, w):
     kulisy(st, t, w, gazeta=False)
 
 
-def wedeno_sc(st, t, w):
+def wedeno_sc(st, t, w, cialo=True):
     """Wedeno: stolica Szamila w lesistych górach — ciemnozielone zalesione stoki zamiast skał, buki w oddali."""
     _niebo_kz(st, w)
-    if w.noc > 0.5:
+    if not cialo:
+        pass
+    elif w.noc > 0.5:
         gwiazdy(st, t, bk(w, 0.3), seed=13)
     else:
         slonce(st, t, w)
@@ -1318,6 +1333,7 @@ def kaluga_sc2(st, t, w):
 def pracownia_sc(st, t, w, v=0):
     """Pracownia pisarza (zamiast tapety „Bonnie and Clyde”): 0 — Londyn 1960, regały z książkami i okno gilotynowe;
     1 — Herbert 1965, ściana z sęczastej sosny, żaluzje, korkowa tablica."""
+    spod(st, (120, 92, 64))  # pod ścianą, zanim wyrośnie ziemia sceny (koniec świata 28.11: Herbert 39 645 px pustki w 0 s)
     if v == 0:
         st.put(J.regaly(0), CX, 730, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None)
         J.hang(st, J.okno_londyn(), 1000, 130, P.miasto + 0.01, bk(w, 0.2), t, 1450, h=360, drop=500, sway=0.25, strings=(0.1, 0.9))
@@ -1329,6 +1345,7 @@ def pracownia_sc(st, t, w, v=0):
 
 def biblioteka_sc(st, t, w, noc=False):
     """Biblioteka (akt VI, dowód ze słów): ściana regałów z książkami, ciepłe światło lampy."""
+    spod(st, (110, 84, 60))
     st.put(J.regaly(0 if noc else 1), CX, 730, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None, tint=(0.8, 0.76, 0.72) if noc else None)
     st.put(J.glow(), 900, 300, P.miasto + 0.01, w=900, anchor=(0.5, 0.5), mode="add", alpha=0.16, shadow=None, tint=(1.0, 0.86, 0.6))
     ziemia(st, t, w, (110, 84, 60), y=820)
@@ -1353,3 +1370,66 @@ def gran_wieczor_sc(st, t, w):
 import uklad as _U  # noqa: E402
 _U.POWIERZCHNIE.update({"stol_palac": {"blat": (0, 360, 0)}, "biurko_palac": {"blat": (0, 460, 0)}, "stol_polowy": {"blat": (0, 360, 0)},
                         "biurko_pisarza": {"blat": (0, 460, 0)}, "lozko_kz": {"materac": (30, 490, 62)}, "skrzynka": {"blat": (0, 220, 0)}})
+
+
+
+# ---------- dni mijają na nitkach (reżyser 28.11, ujęcie 24: „księżyc wlatuje przez słońce… tak nie może być”) ----------
+
+def _trapez(u, r=0.15):
+    """Droga 0..1 przy prędkości narastającej przez r, stałej i hamującej przez r — szczyt prędkości 1/(1−r) średniej
+    (ease ma 1,5–2×: w środku cyklu ciała przeskakiwały po ~110 px na klatkę)."""
+    u = clamp(u, 0.0, 1.0)
+    v = 1.0 / (1.0 - r)
+    if u < r:
+        return v * u * u / (2 * r)
+    if u > 1 - r:
+        return 1.0 - v * (1 - u) ** 2 / (2 * r)
+    return v * (u - r / 2)
+
+
+def cykl_dni(t, t0, dl, cykle=2, D=1450.0, x0=905.0):
+    """Położenia ciał na niebie w cyklu dni: na jednej linii jadą w lewo na nitkach po kolei słońce, księżyc, słońce…
+    w odstępie D większym niż kadr z ciałem (1280 + 140), więc w kadrze jest zawsze najwyżej jedno: słońce znika za lewą
+    kulisą, zanim księżyc wjedzie z prawej (Metoda filmu 4, Wytyczne 1.6). Przed t0 i po końcu słońce wisi w spoczynku (x0).
+    Zwraca (lista (rodzaj, x), noc 0..1) — noc rośnie, gdy księżyc zbliża się do środka kadru (ściemnia już przy wjeździe)."""
+    p = _trapez((t - t0) / dl) * cykle if dl > 0 else 0.0
+    off = p * 2 * D
+    ciala, noc = [], 0.0
+    for k in range(2 * cykle + 1):
+        x = x0 + k * D - off
+        if -260 < x < 1540 + D - 1100:
+            ciala.append(("slonce" if k % 2 == 0 else "ksiezyc", x))
+        if k % 2:
+            noc = max(noc, clamp(1 - abs(x - 640) / (D * 0.6), 0.0, 1.0))
+    return ciala, ease(noc)
+
+
+def niebo_dni(st, t, w, ciala, noc, y_s=110, y_k=130, gwiazdy_seed=7):
+    """Rysuje cykl dni: papier nocy kładzie się na papier dnia (noc 0..1), gwiazdy zjeżdżają na nitkach, słońce i księżyc
+    wiszą na nitkach w swoich położeniach (cykl_dni) PRZED pasem chmur — za chmurami księżyc w środku nocy był schowany
+    i scena ciemniała bez księżyca (arkusz ujęcia 24, 28.11). Dekoracja ma być narysowana z cialo=False."""
+    pc = P.chmury + 0.03
+    if noc > 0.01:
+        st.put(J.niebo_sp(True), CX, CY, P.niebo + 0.0005, w=1760, anchor=(0.5, 0.5), shadow=None, alpha=noc)
+    for rodzaj, x in ciala:
+        if rodzaj == "slonce":
+            st.put(J.glow(), x, y_s + 85, pc, w=620, anchor=(0.5, 0.5), mode="add", alpha=0.30 * (1 - noc), shadow=None, z=-1)
+            J.hang(st, J.slonce_bc(), x, y_s, pc, 1.0, t, 1, w=140, shadow=(5, 7, 9, 0.30), haze=0.1)
+        else:
+            ksiezyc(st, t, 1.0, x=x, y=y_k, p=pc)
+    gwiazdy(st, t, noc, seed=gwiazdy_seed)
+
+
+def gory_dolina(st, t, w, tint=None):
+    """Drugie ułożenie gór: dolina w głąb — z lewej i z prawej zbocza schodzą ku środkowi, w środku daleki ośnieżony grzbiet."""
+    gory_pasmo(st, t, w, "dal", CX, 520, P.gory_dal, 0.1, wd=1100, haze=0.35, tint=tint, seed=21)
+    Z0.rise(st, J.gory("srodek", 22), -60, 700, P.gory, bk(w, 0.25, 0.9), t, 1460, w=1300, wob=0.0, lift=420, anchor=(0.5, 1.0), tint=tint,
+            sy=0.8)
+    Z0.rise(st, J.gory("srodek", 23), 1340, 700, P.gory + 0.002, bk(w, 0.3, 0.9), t, 1461, w=1300, wob=0.0, lift=420, anchor=(0.5, 1.0),
+            tint=tint, sy=0.8)
+
+
+def gory_szczyt(st, t, w, tint=None):
+    """Trzecie ułożenie gór: jeden wielki ośnieżony szczyt pośrodku, przed nim niskie zielono-brązowe przedgórze."""
+    Z0.rise(st, J.szczyt(), 760, 640, P.gory_dal, bk(w, 0.15, 0.9), t, 1462, w=1100, wob=0.0, lift=520, anchor=(0.5, 1.0), tint=tint, haze=0.1)
+    wzgorza(st, t, w, 19, CX, 690, P.gory, (126, 118, 86), d=0.3)

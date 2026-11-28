@@ -37,12 +37,12 @@ from pathlib import Path
 N = None
 AKTY = [
  (0, "Prologue",
-  "Zapowiedź 6 s z lektorem od pierwszej sekundy, krótka kurtyna startu, potem Diuna, którą widz zna (pustynia i trzy słowa), "
-  "zwrot (te słowa są z gór Kaukazu), Szamil, hak (syn oddany wrogowi wraca w rosyjskim mundurze) i jedno pytanie, które "
-  "prowadzi do Gimry 1832. Bez kurtyny przed aktem I.",
+  "Początek w akcji (reżyser 28.11: „w każdym filmie dopiero po 2–3 minutach zaczyna się akcja… początek ma angażować”): "
+  "zapowiedź 6 s z lektorem i krótka kurtyna startu; zaraz po niej akt I zaczyna się walką w Gimry 1832 (bez kurtyny przed "
+  "aktem I).",
   [("Zapowiedź", "Skróty najmocniejszych ujęć filmu", [
      ("Zapowiedź — skróty", [
-      ("zap_skok", "PP", "szarp", 0.7, "skrót ujęcia „skok”: Szamil przelatuje nad bagnetami",
+      ("zap_skok", "PP", "szarp", 0.7, "skrót ujęcia „tolstoj”: jeźdźcy w czerni wypadają zza wzgórza (skok jest w otwarciu)",
        "L: Some of Dune's words came from a real holy war, fought in the snow against an empire."),
       ("zap_armaty", "PO", "szarp", 0.4, "skrót ujęcia „armaty”: armaty pod Achulgo dają ognia", "huk, uderzenie"),
       ("zap_tratwa", "PŚ", "szarp", 0.7, "skrót ujęcia „tratwa”: tratwa ze słomianymi kukłami nocą", "plusk, uderzenie"),
@@ -55,58 +55,23 @@ AKTY = [
        "piasek, gong; ściemnienie"),
      ]),
    ]),
-   ("Diuna i zwrot", "Teatr papierowy w ramie z rzeźbionego drewna: najpierw cała scena to pustynia, potem góry Kaukazu", [
+   ("Kurtyna", "Kurtyna startu rozsuwa się na pustynię Diuny (teatr świadomy siebie)", [
      ("Kurtyna startu", [
       ("tytul", "TYT", "naj", 4.4, "Kurtyna startu rozsuwa się na pustynię: wydmy, dwa słońca, na grzbiecie wydmy mała lalka w "
        "ciemnym płaszczu pustyni (fremen); 0,5 s z góry zjeżdża szyld „The Imam Who Fought Russia for 25 Years”; 2,6 s piasek "
        "na grzbiecie drga (coś jest pod spodem)", "L: Almost no Dune fan knows his name."),
      ]),
-     ("Diuna, którą widz zna", [
-      ("arrakis", "PO", "pan", N, "Pustynia: 0,6 s za wydmą wynurza się papierowy robak z Diuny (pierścienie, okrągła paszcza) "
-       "i zanurza się z powrotem; 2,6 s na „kindjal” fremen wyciąga kindżał, nad nim KINDJAL; 4,6 s na „great houses” po bokach "
-       "zjeżdżają dwie chorągwie rodów (zielona i niebieska, bez herbów z filmów), między nimi KANLY; 6,8 s na „sietches” w skale "
-       "otwiera się jaskinia, nad nią SIETCH; 9 s gag: robak wynurza się pod kartą KANLY, połyka ją i beka chmurką piasku; fremeni "
-       "patrzą na siebie. W Diunie kanly to wendeta wielkich rodów, nie fremenów (sprawdzenie faktów 28.11)",
-       "L: In Dune, fighters carry a dagger called a kindjal, great houses swear blood feuds called kanly, and desert people live in caves called sietches."),
-      ("zamiana", "PO", "naj", N, "0,6 s na „weren't made up” wydmy zapadają się pod scenę, sypie się piasek; 2,5 s wyrastają "
-       "ośnieżone góry Kaukazu, kołyszą się i osiadają; 4,5 s z góry zaczyna padać papierowy śnieg; 6 s zza grani wysuwają się "
-       "kamienne domy aułu; 8,8 s gag: fremen, który został na scenie, trzęsie się z zimna, tabliczka „BRRR!”, a zza kulis "
-       "wysuwa się laska maszynisty z hakiem i ściąga go za kołnierz ze sceny",
-       "L: But those words weren't made up for another planet. They come from the Caucasus mountains, and from a war that lasted twenty-five years."),
-     ]),
-     ("Szamil", [
-      ("przedstawienie", "PŚ", "naj", N, "Kamera najeżdża na lalkę na grani (plecami do widza); 0,8 s Szamil odwraca się: orli "
-       "profil, czarna broda, biały turban na papasze; 1,8 s przy imieniu zjeżdża podpis „Imam Shamil”; 3,5 s za nim wysuwają się "
-       "jeden po drugim muridzi w czarnych czerkieskach; 6,2 s na „most wanted” nad Szamilem spada tabliczka „WANTED BY THE TSAR”, "
-       "a Szamil spokojnie odsuwa ją pochwą kindżału",
-       "L: Its leader was Imam Shamil, a scholar from a small mountain village who became the most wanted man in the Russian Empire."),
-     ]),
-     ("Hak", [
-     ]),
-   ]),
-   ("Hak", "Rzeka w górach: dwa brzegi i bród (ta sama rzeka wróci w akcie IV)", [
-     ("Syn", [
-      ("hak_syn", "PO", "jaz", N, "Rzeka w górach: z lewej brzeg z rosyjskimi żołnierzami, z prawej jeźdźcy w czerni; 0,6 s Szamil "
-       "na prawym brzegu prowadzi za rękę małego chłopca w papasze, chłopiec idzie sam w lewo (przy „hostage” chłopiec chowa się "
-       "za szeregiem Rosjan); 4,6 s na „Sixteen years later” kartki kalendarza przelatują nad rzeką; 6 s z lewego brzegu w bród "
-       "wjeżdża młody mężczyzna w rosyjskim mundurze, na koniu; 9,2 s staje na środku brodu i patrzy na Szamila — bez imienia "
-       "i bez podpisu (imię pada w akcie I)",
-       "L: To buy time in a siege, he gave up his own little boy as a hostage. Sixteen years later, that boy rode home through a river in a Russian officer's uniform."),
-      ("pytanie", "PO", "naj", N, "Rzeka zamiera; 0,6 s na „desert planet” połowa gór zapada się w piasek, a nad nią na moment "
-       "wyrasta wydma i znów się chowa; 4,5 s na „The answer begins” kartki kalendarza lecą wstecz: 1855… 1845… 1839… 1832, ostatnia "
-       "uderza maszynistę w kulisach („OUCH!”); 7,6 s wyrasta górska wioska w wąwozie, zawieszka „Gimry, Dagestan, 1832”; "
-       "ściemnienie",
-       "L: So what is a war fought in the snow doing on a desert planet? The answer begins in a mountain village called Gimry, in 1832."),
-     ]),
    ]),
   ]),
- (1, "The Leap",
-  "Gimry 1832: Rosjanie przychodzą po pierwszego imama Ghaziego Muhammada i jego ucznia Szamila. Wieża, śmierć imama, skok "
-  "Szamila nad bagnetami (legenda), ucieczka z raną. 1834: drugi imam ginie w wendecie (kanly), Szamil zostaje imamem. Car "
-  "Mikołaj I chce gór „dolina po dolinie”; wojsko wchodzi, muridzi uderzają i znikają.",
+ (1, "The New Imam",
+  "Otwarcie w akcji bez kurtyny (reżyser 28.11): Gimry 1832 — oblężenie wieży, śmierć Ghaziego, skok Szamila nad bagnetami "
+  "(legenda), ucieczka z raną; most do Diuny (te słowa wiek później trafiły do powieści) i zwrot (są z gór Kaukazu); kim jest "
+  "człowiek ze skoku; hak (syn oddany wrogowi wraca w rosyjskim mundurze) i jedno pytanie, które prowadzi do 1834. Potem 1834: "
+  "drugi imam ginie w wendecie (kanly), Szamil zostaje imamem; car Mikołaj I chce gór „dolina po dolinie”; wojsko wchodzi, "
+  "muridzi uderzają i znikają. (Sceny otwarcia były w prologu; akt I miał wtedy 43 s, poniżej 55 s z księgi — 28.11.)",
   [("Gimry", "Wąwóz z górską wioską: kamienne domy tarasami, kamienna wieża przy ścieżce, potok", [
      ("Wieża", [
-      ("gimry", "PO", "naj", N, "0,6 s wioska w wąwozie (zawieszka „Gimry, 1832” z poprzedniego ujęcia odjeżdża w górę); "
+      ("gimry", "PO", "naj", N, "0,6 s wioska w wąwozie buduje się po kurtynie, zjeżdża zawieszka „Gimry, Dagestan, 1832”; "
        "2,6 s przy imieniu na płaskim dachu staje Ghazi Muhammad, podpis „Ghazi Muhammad, the first imam”; 5,8 s obok niego "
        "Szamil (rówieśnik i przyjaciel Ghaziego z dzieciństwa w Gimry), podpis „Shamil”; 7 s za granią wysuwają się po kolei białe czapki rosyjskich żołnierzy; 8,4 s Szamil "
        "wskazuje je ręką, Ghazi odwraca głowę",
@@ -125,6 +90,42 @@ AKTY = [
        "w pusty wąwóz, dymki; 5 s Szamil chowa się w szałasie pasterza; 7 s z ciemności wychodzi koza, obwąchuje go i liże "
        "po brodzie, Szamil kładzie palec na ustach („SHH!”) — zasiew kozy",
        "L: He escaped into the gorge with a bayonet wound through his chest, and hid in the mountains until he could fight again."),
+     ]),
+   ]),
+   ("Diuna i zwrot", "Teatr papierowy w ramie z rzeźbionego drewna: najpierw cała scena to pustynia, potem góry Kaukazu", [
+     ("Diuna, którą widz zna", [
+      ("arrakis", "PO", "pan", N, "Most z Gimry do Diuny („that war turned up in a novel”). Pustynia: 0,6 s za wydmą wynurza się papierowy robak z Diuny (pierścienie, okrągła paszcza) "
+       "i zanurza się z powrotem; 2,6 s na „kindjal” fremen wyciąga kindżał, nad nim KINDJAL; 4,6 s na „great houses” po bokach "
+       "zjeżdżają dwie chorągwie rodów (zielona i niebieska, bez herbów z filmów), między nimi KANLY; 6,8 s na „sietches” w skale "
+       "otwiera się jaskinia, nad nią SIETCH; 9 s gag: robak wynurza się pod kartą KANLY, połyka ją i beka chmurką piasku; fremeni "
+       "patrzą na siebie. W Diunie kanly to wendeta wielkich rodów, nie fremenów (sprawdzenie faktów 28.11)",
+       "L: A century later, that war turned up in a novel. In Dune, fighters carry a dagger called a kindjal, great houses swear blood feuds called kanly, and desert people live in caves called sietches."),
+      ("zamiana", "PO", "naj", N, "0,6 s na „weren't made up” wydmy zapadają się pod scenę, sypie się piasek; 2,5 s wyrastają "
+       "ośnieżone góry Kaukazu, kołyszą się i osiadają; 4,5 s z góry zaczyna padać papierowy śnieg; 6 s zza grani wysuwają się "
+       "kamienne domy aułu; 8,8 s gag: fremen, który został na scenie, trzęsie się z zimna, tabliczka „BRRR!”, a zza kulis "
+       "wysuwa się laska maszynisty z hakiem i ściąga go za kołnierz ze sceny",
+       "L: But those words weren't made up for another planet. They come from the Caucasus mountains, and from a war that lasted twenty-five years."),
+     ]),
+     ("Szamil", [
+      ("przedstawienie", "PŚ", "naj", N, "Kamera najeżdża na lalkę na grani (plecami do widza); 0,8 s Szamil odwraca się: orli "
+       "profil, czarna broda, biały turban na papasze; 1,8 s przy imieniu zjeżdża podpis „Imam Shamil”; 3,5 s za nim wysuwają się "
+       "jeden po drugim muridzi w czarnych czerkieskach; 6,2 s na „most wanted” nad Szamilem spada tabliczka „WANTED BY THE TSAR”, "
+       "a Szamil spokojnie odsuwa ją pochwą kindżału",
+       "L: The man who made that jump became Imam Shamil, a scholar from the mountains and the most wanted man in the Russian Empire."),
+     ]),
+   ]),
+   ("Hak", "Rzeka w górach: dwa brzegi i bród (ta sama rzeka wróci w akcie IV)", [
+     ("Syn", [
+      ("hak_syn", "PO", "jaz", N, "Rzeka w górach: z lewej brzeg z rosyjskimi żołnierzami, z prawej jeźdźcy w czerni; 0,6 s Szamil "
+       "na prawym brzegu prowadzi za rękę małego chłopca w papasze, chłopiec idzie sam w lewo (przy „hostage” chłopiec chowa się "
+       "za szeregiem Rosjan); 4,6 s na „Sixteen years later” kartki kalendarza przelatują nad rzeką; 6 s z lewego brzegu w bród "
+       "wjeżdża młody mężczyzna w rosyjskim mundurze, na koniu; 9,2 s staje na środku brodu i patrzy na Szamila — bez imienia "
+       "i bez podpisu (imię pada w akcie I)",
+       "L: To buy time in a siege, he gave up his own little boy as a hostage. Sixteen years later, that boy rode home through a river in a Russian officer's uniform."),
+      ("pytanie", "PO", "naj", N, "Rzeka zamiera; 0,6 s na „desert planet” połowa gór zapada się w piasek, a nad nią na moment "
+       "wyrasta wydma i znów się chowa; 4,5 s na „Follow” kartki kalendarza lecą wstecz: 1855… 1850… 1845… 1839… 1834, ostatnia "
+       "uderza maszynistę w kulisach („OUCH!”); na „jump” zawieszka „Dagestan, 1834”; ściemnienie",
+       "L: So what is a war fought in the snow doing on a desert planet? Follow the man from the tower, two years after his famous jump."),
      ]),
    ]),
    ("Nowy imam", "Meczet w aule (teatr cieni), potem plac w aule na grani", [
@@ -491,6 +492,10 @@ AKTY = [
   ]),
 ]
 
+# Ujęcia akcji (konflikt na scenie: walka, pościg, ucieczka, zasadzka) — mapa tempa (Podręcznik → Metoda filmu, 3; reżyser 28.11:
+# „dopiero po 2–3 minutach zaczyna się akcja”): pierwsza najpóźniej 0:30, trzy przed 3:00 (scripts/kontrola_filmu.py)
+AKCJA = ["wieza", "skok", "rana", "kanly_1834", "marsz", "armaty", "upadek", "tratwa", "pochod", "dargo", "zasadzka", "tolstoj",
+         "tsinandali", "szturm_gunib"]
 HAK = ["przedstawienie", "hak_syn", "pytanie"]  # w haku oddech 0,4 s i pauza 1,0 s
 JEZYK = "en"
 TEMPO_EN = 2.84  # angielski klon (TEATR): „Pierwszy cesarz” EN, 1233 słowa w 434 s nagrań (17.11.2026)

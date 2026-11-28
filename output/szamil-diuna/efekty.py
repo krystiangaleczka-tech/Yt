@@ -1738,10 +1738,11 @@ POD_KWESTIA_MUZYKA, POD_KWESTIA_EFEKTY = -8.0, -5.0
 # Od którego ujęcia gra który temat (do następnego wpisu). Opcje: bpm, key, motyw, zurna, doli, fanfara, cicho, zywo,
 # nadzieja, bez_melodii, bez_zurny.
 CUES = [
-    ("zap_skok", "lezginka", {"bpm": 168}), ("tytul", "pustynia", {}), ("zamiana", "gory", {"zurna": True}),
-    ("przedstawienie", "gory", {"motyw": True}), ("hak_syn", "lament", {"motyw": "syn"}), ("pytanie", "napiecie", {"bpm": 64}),
-    ("gimry", "gory", {"bpm": 80}), ("wieza", "napiecie", {"bpm": (80, 104)}), ("skok", "lezginka", {"bpm": 156}),
-    ("rana", "lament", {"bpm": 56}), ("kanly_1834", "mrok", {}), ("imam", "gory", {"doli": True, "zurna": True, "motyw": True}),
+    # otwarcie w akcji (28.11): Gimry 1832 zaraz po kurtynie — napięcie rośnie od wioski przez wieżę, skok na lezgince
+    ("zap_skok", "lezginka", {"bpm": 168}), ("tytul", "pustynia", {}), ("gimry", "napiecie", {"bpm": (72, 104)}),
+    ("skok", "lezginka", {"bpm": 156}), ("rana", "lament", {"bpm": 56}), ("arrakis", "pustynia", {}),
+    ("zamiana", "gory", {"zurna": True}), ("przedstawienie", "gory", {"motyw": True}), ("hak_syn", "lament", {"motyw": "syn"}),
+    ("pytanie", "napiecie", {"bpm": 64}), ("kanly_1834", "mrok", {}), ("imam", "gory", {"doli": True, "zurna": True, "motyw": True}),
     ("mapa", "imperium", {"fanfara": True}), ("marsz", "imperium", {"bpm": 108, "key": 58}),
     ("akhulgo", "napiecie", {"bpm": (60, 72)}), ("armaty", "lezginka", {"bpm": 144, "bez_zurny": True}), ("amanat", "lament", {}),
     ("upadek", "mrok", {}), ("tratwa", "napiecie", {"bpm": (72, 92)}), ("raport", "imperium", {"bpm": 104}),
@@ -2048,8 +2049,7 @@ def zdarzenia():
         "zamiana": [(sl("zamiana", "weren't"), "piasek", 2.0), (sl("zamiana", "weren't") + 0.2, "kamien_d", 1.4),
                     (2.5, "gory_rosna", 1.0), (po("zamiana", 0.0) + 0.9, "whoosh", 0.5)],
         "przedstawienie": [(sl("przedstawienie", "most") + 0.7, "stuk", 0.8)],
-        "pytanie": [(sl("pytanie", "desert"), "piasek", 1.4), (sl("pytanie", "desert") + 0.1, "kamien_d", 1.0),
-                    (7.6, "gory_rosna", 1.0)],
+        "pytanie": [(sl("pytanie", "desert"), "piasek", 1.4), (sl("pytanie", "desert") + 0.1, "kamien_d", 1.0)],
         "wieza": [(sl("wieza", "killed") + 0.5, "thud", 0.35)],
         "skok": [(0.6, "szabla_wyj", 0.8), (sl("skok", "jumped"), "dum", 1.0), (sl("skok", "jumped") + 0.05, "whoosh", 0.7),
                  (sl("skok", "landed"), "thud", 0.7)],
