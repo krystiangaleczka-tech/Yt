@@ -416,6 +416,13 @@ Nowy znak, który reżyser wymyśli, dopisz do tej tabeli razem z funkcją, któ
   4.11: „popraw te oczy, jak są ujęcia z daleka, bo one są za duże”).
 - Postać w otworze ma skalę otworu: w okienku widać ją od ramion w górę, a nie całą, małą jak mrówka, wiszącą
   w powietrzu (pilot 29.10). Postać w lokacji ma skalę sąsiadów; olbrzym tylko z powodu fabuły (1.15).
+- Wycinek ma swoje proporcje: nie ściskaj go w jednej osi (`sy` albo `sx` różne od 1), żeby udawał rzecz leżącą płasko
+  na stole — kształt i napis się rozjeżdżają, a rzecz wychodzi szersza niż mebel. Płaską rzecz (mapę, list, plan bitwy)
+  pokaż w jej proporcjach: na sztaludze, na ścianie, w dłoniach albo w zbliżeniu z góry; rzecz na stole nie jest szersza
+  niż blat (reżyser 28.11, „Imam / Diuna”, ujęcie 22: „ta mapa jest jakaś rozciągnięta i ten napis Caucasus też”).
+  Ściskanie w jednej osi zostaje dla ruchu: rzecz wstaje z zawiasu (góra na mapie), obraca się do widza.
+- Marsz to lalki, które idą: kolumna przesuwa się po scenie z krokiem, a tło najwyżej wolniej za nią. Gdy jedzie samo tło,
+  a lalki tylko podskakują w miejscu, widz widzi postój (ujęcie 34, „Imam / Diuna”, 28.11).
 
 ### 1.25 Każdy w kadrze gra, a każda rzecz jest tam, gdzie trzeba
 - Co ma pracować, pracuje u wszystkich: każda łódź wiosłuje we własnym rytmie, nie tylko łódź bohatera (reżyser 18.11:
@@ -734,6 +741,11 @@ Zanim ujęcie trafi do Studio do oceny:
      ujęcia, kwestią i poprzednim ujęciem tej sceny — nic nie zostało z poprzedniej dekoracji, nikogo nie brakuje,
      rzecz leży tam, gdzie leżała, nowa postać ma podpis (reżyser 14.11: „sprawdź, czy na każdym ujęciu są właściwe
      osoby i rekwizyty według scenariusza”).
+   - **Opis zdanie po zdaniu**: rozbij opis ujęcia na elementy (kto, co, gdzie, co robi, gag) i przy każdym zapisz klatkę,
+     w której to widać — jak „armata”, „wozy”, „zza buków”, „z dziupli wysuwa się murid i puka go w czapkę”. Element
+     bez klatki to błąd, nawet gdy reszta ujęcia działa (reżyser 28.11: „popraw ujęcie 34 oraz też porównaj je do opisu
+     sceny” — kolumna stała, armaty i konia przy wozie nie było, muridzi stali na widoku, a z „dziupli” wychodziła sama
+     papacha).
    - **Dźwięk**: przy opisie ujęcia przejdź listę `efekty.ZDARZENIA` — każde zdarzenie z osi czasu (0.4) ma swój
      dźwięk w tej samej sekundzie; wysuwanie lalek, opadanie płacht i gesty też.
    - **Wydarzenie się kończy**: na ostatniej klatce wzrost, przemarsz albo upadek jest skończony i stoi chwilę (1.18).
@@ -1070,10 +1082,11 @@ i błędy znalezione w kontroli.
 
 | Imam / Diuna, 2 minuty szkicu E (28.11, reżyser) | Od 0:40 do 4:00 prawie każde ujęcie na tym samym paśmie gór (7 ujęć Achulgo i 4 w Gimry na jednej dekoracji), góry także za lasem, dworem i Kaługą; gabinet cara złożony z tapety, okna, podłogi i biurka „Bonnie and Clyde” | 1.33 |
 | Imam / Diuna, lektor (28.11, reżyser) | Kwestia haka powtarzała zdanie z „Pierwszego cesarza” („handed … to the enemy as a hostage”), a „It all starts in…” i „So how did…” stały już w „Synu słońca” i „Bonnie and Clyde” | Podręcznik → Jak pracujemy, krok 4 (`scripts/powtorzenia_kwestii.py`) |
-
 | Imam / Diuna, ujęcie 24 „Achulgo” (28.11, reżyser) | Przy „eighty days” księżyc przelatywał przez słońce: dekoracja rysowała własne słońce i księżyc, ujęcie drugi księżyc | 1.6 (upływ dni na nitkach) |
 | Imam / Diuna, sceneria gór (28.11, reżyser) | Wszystkie góry filmu w jednym ułożeniu pasm; reżyser: trzy podejścia do każdej scenerii (góry, rzeka, las) | 1.33 |
 | Wszystkie filmy, początek (28.11, reżyser) | „Dopiero po 2–3 minutach zaczyna się akcja”; w „Imamie / Diunie” pierwsza akcja w 1:14, przed nią objaśnienia | Podręcznik → Metoda filmu, 3 (początek w akcji, `dane.AKCJA`) |
+| Imam / Diuna, ujęcie 22 „mapa” (28.11, reżyser) | Mapa Kaukazu leżała na stole ściśnięta do 1/3 wysokości (`sy=0.32`): szersza niż stół, napis CAUCASUS spłaszczony, żołnierzyki po zjeździe wisiały w powietrzu | 1.24 (proporcje wycinka; mapa na sztaludze) |
+| Imam / Diuna, ujęcie 34 „pochód” (28.11, reżyser) | Ujęcie nie trzymało się opisu: kolumna stała (jechał tylko las), nie było armaty, koń wozu był za kadrem, muridzi stali na widoku między żołnierzami, dziupla była czarnym prostokątem na pniu, z dziupli wychodziła sama papacha, a żołnierz nie pukał | 3 (opis zdanie po zdaniu), 1.24 (marsz), 1.1 (dziupla jako otwór) |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
