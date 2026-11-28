@@ -160,15 +160,22 @@ Cały film od tematu do Studio w półtora dnia. Kolejność, która się sprawd
    symboliczne `docs/filmy/<film>` i `output/<film>` do worktree, bo Studio działa z głównego katalogu. Commit po każdym
    etapie na gałęzi filmu.
 4. **Spójność scenariusza** przed rozpiską: fakty i daty, kto kiedy się pojawia, co jest tajemnicą do którego aktu
-   (np. łowca do aktu V), czy kwestie nie zdradzają zakończenia.
+   (np. łowca do aktu V), czy kwestie nie zdradzają zakończenia. **Bez powtórzeń między filmami** (reżyser 28.11, „Imam /
+   Diuna”: „słyszałem zdanie »enemy as a hostage«, to już było w Pierwszym Cesarzu. Nie ma powielania scenariusza pomiędzy
+   filmami”): `python3 -I scripts/powtorzenia_kwestii.py <film>` porównuje kwestie z nagraniami innych filmów; zdanie
+   o tej samej budowie i treści przepisuje się, także formuły otwarcia („It all starts in…”, „So how did…”). Zostają tylko
+   zwroty ogólne („a year later”) i podpis kanału na końcu. To samo dla scenografii: Wytyczne 1.33.
 5. **Rozpiska i księga.** `dane.py` raz wygenerowany ze szkicu, potem jedyne źródło; `ksiega.py` (świat, postaci,
    rekwizyty, wątki, spoilery; `namedIn` to lista wzorców `["d05_*"]`); `buduj.py` → `ROZPISKA.md`;
    `studio_film.py plan` → kontrola ciągłości bez błędów wagi 3 i 2.
 6. **Rysunek po aktach.** Zestaw kraju i epoki (lalki, dekoracje, pojazdy, rekwizyty), `scena.py` (scenografie
    i pomocnicze), ujęcia `ujecia_a.py` / `ujecia_b.py`. Po każdym akcie arkusz klatek (rozdział „Animacja kodem”),
    poprawki, commit.
-7. **Kontrole.** `render.py kontrola` (koniec świata) i przegląd dźwięku (`efekty.py` liczy każdą klatkę co 0,08 s —
-   wyłapuje też klatki, które się wywracają). Dopiero potem Studio.
+7. **Kontrole.** Jedno polecenie na cały film: `python3 -I scripts/kontrola_filmu.py <film>` (rytm, nagrania lektora,
+   powtórzenia kwestii z innych filmów, co najmniej 4 dekoracje na 2 minuty, wycinki i meble innego filmu), potem
+   układ sceny we **wszystkich** klatkach (`kontrola_ukladu.py`, 3 procesy), `render.py kontrola` (koniec świata), arkusze
+   klatek zmienionych ujęć i przegląd dźwięku (`efekty.py` liczy każdą klatkę co 0,08 s — wyłapuje też klatki, które się
+   wywracają). Zero błędów, dopiero potem Studio. Lista: „Przed oddaniem reżyserowi” niżej.
 8. **Studio.** `studio_film.py plan`, potem `klatki` (po jednej klatce na ujęcie na oś v1 jako zapas; obraz rysuje
    podgląd na żywo — sprawdź `/api/projects/<id>/teatr/stan`). Studio uruchamia `npm run dev` (konfiguracja „studio”,
    API na porcie 8876).
@@ -187,3 +194,39 @@ Cały film od tematu do Studio w półtora dnia. Kolejność, która się sprawd
 13. **Render końcowy** należy do reżysera (albo idzie na jego wyraźną prośbę): `FILM=1 ROZDZIELCZOSC=1440 PROCESY=3
     render.py klipy …`, potem `zloz.py` (rozdział niżej, „Poprawki w Studio i render końcowy”).
 14. **Publikacja i Shortsy** — rozdział „Publikacja: miniaturka, tytuł, napisy i Shortsy”.
+
+## Przed oddaniem reżyserowi (każdy film, każda tura poprawek)
+
+Reżyser 28.11.2026 („Imam / Diuna”): „musisz zapisać gdzieś to, co zrobiliśmy, aby zawsze tworzenie filmu było w ten
+sposób, z przestrzeganiem wytycznych”. Ta lista obowiązuje przy każdym filmie i każdej turze poprawek — zanim reżyser
+usłyszy „jest w Studio”.
+
+**Scenariusz i lektor**
+1. Rytm z treści: kwestia + 2–4 wydarzenia na jej słowach, bez samotnych krótkich wstawek (Wytyczne 1.9, `dane.kontrola_rytmu`).
+2. Kwestie nie powtarzają zdań ani formuł innych filmów (`scripts/powtorzenia_kwestii.py`; krok 4 wyżej).
+3. Lektor: klon, jedno podejście na kwestię, przepis teatru; tempo według reżysera (od 28.11 dla „Imama / Diuny”
+   `TEATR_TEMPO=1.06 PAUZY_SKALA=0.85`); `uciecia_lektora.py` + Whisper z 0,5 s ciszy przed kwestią (bez niej Whisper myli
+   pierwsze słowo); zły take → inne ziarno, porównanie Whisperem obu (Podręcznik → Lektor).
+
+**Obraz**
+4. Co najmniej 4 różne dekoracje w każdych 2 minutach; to samo miejsce drugi raz pokazane inaczej (plan, pora dnia,
+   światło, pokój); pasma gór tylko w planach ogólnych gór (Wytyczne 1.33, `kontrola_scenografii.py` filmu).
+5. Dekoracje, meble i podłogi narysowane dla tego filmu — żadnego arkusza zestawu poprzedniego filmu (Wytyczne 1.33;
+   `kontrola_filmu.py` zna arkusze „Bonnie and Clyde”). Silnik i sposób pracy bierze się z najnowszego wzorca.
+6. Układ sceny bez błędów we wszystkich klatkach (Wytyczne 1.32) — kontrola sprawdza ujęcie do końca, także gdy w pierwszej
+   klatce dekoracja dopiero się buduje (28.11 przez ten skrót 12 ujęć nie było sprawdzanych); koniec świata bez pustek.
+7. Arkusze klatek zmienionych ujęć obejrzane: obsada, rekwizyty, pary cięć n−1 → n → n+1 (Wytyczne 3).
+
+**Dźwięk**
+8. Nowy rodzaj dźwięku → próbka do reżysera (fragmenty z planszami, lektor w miksie); po zmianie długości ujęć muzyka
+   i efekty liczą się od nowa i wgrywają (`efekty.py`, `studio_film.py dzwiek`) — muszą mieć długość osi.
+
+**Studio — sprawdzone w Studio, nie w wyniku skryptu**
+9. Kolejność wgrania: `NOWA_OS=1 studio_film.py plan` → `klatki` (albo `os`) → `lektor` → `dzwiek`.
+10. `python3 -I scripts/kontrola_filmu.py <film> --studio --podglad` — liczba ujęć i długość osi = rozpiska, lektor przy
+    każdej kwestii, muzyka i efekty długości osi, ciągłość 0/0, podgląd na żywo rysuje **każde** ujęcie. 28.11 plan
+    i skrypty mówiły „wgrane”, a podgląd nie rysował sześciu ujęć (moduł silnika bez przeładowania), muzyka zaś miała
+    jeszcze starą długość filmu.
+11. Wpis w dzienniku (co, dlaczego, wynik kontroli, cytat zgody reżysera) i commit na gałęzi filmu.
+12. Nowy błąd zauważony przez reżysera → wiersz w tabeli „Skąd te zasady” Wytycznych, a nowa klasa błędu → zasada
+    i, jeśli się da, kontrola w `kontrola_filmu.py`.

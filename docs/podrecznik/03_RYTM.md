@@ -108,6 +108,23 @@ arrested”). Ostatnie ujęcie aktu zostawia pytanie.
 sama wydłuża. Zapowiedź tnie się parami 0,4 / 0,7 s (różnica bez błędów zaokrągleń), a ostatnie ujęcie z wyciemnieniem
 jest dłuższe.
 
+### Ujęcie = kwestia + wydarzenia (lekcja z „Imama / Diuny”, 28.11.2026)
+
+Wersja D filmu o Szamilu (76 ujęć, 5:55) miała połowę ujęć bez słów — detale 1,4–2,4 s — a ujęcia z kwestią po 6–10 s,
+w których lalka tylko stała. Reżyser po minucie: „trzy ujęcia jakieś długie, nagle jedno, które ma pół sekundy… dwa długie,
+a jeszcze nic się na nich nie dzieje”, „cały początek… nic nie wiadomo, o co chodzi”, „brakuje gagów”. Film przebudowano
+od rozpiski (szkic E: 70 ujęć, 9:55, kwestia w 61, 22 gagi). Zasady:
+1. **Każde ujęcie z kwestią ma 2–4 wydarzenia na słowach lektora** (w opisie rozpiski z sekundami, w kodzie `sl()`), gag stoi
+   w pauzie po kwestii. Detal nie jest osobnym ujęciem, tylko wydarzeniem w ujęciu z kwestią.
+2. **Krótkie ujęcia nie stoją samotnie** między długimi — bez słów zostaje zapowiedź, kurtyna i emocjonalne trzymanie.
+   Cisza mieszka w pauzie po kwestii i w gagu.
+3. **Długość z historii**, nie z formatu (4–5 min było za krótko na tę historię; wyszło prawie 10 min).
+4. **Otwarcie od tego, co widz zna** (pustynia Diuny i jej słowa), potem zwrot („te słowa są z gór Kaukazu”), kim jest bohater,
+   hak i jedno pytanie. Karta z cytatem jako hak była dla zimnego widza niezrozumiała.
+5. **Każda scena ma swoje miejsce** — w D prawie wszystko działo się na tych samych szarych górach; w E są pustynia, Gimry
+   z wieżą, gabinet z mapą, bukowy las, Dargo, Kaługa, pracownie pisarzy.
+6. Przed rysunkiem `kontrola_rytmu()` z rozpiski filmu: zero uwag.
+
 ### Skracanie a pomosty (lekcja z 19.11.2026)
 
 Przy skracaniu aktu nie wycina się ujęcia, które przenosi opowieść do innej postaci albo miejsca, choćby było „tylko tłem”.

@@ -28,3 +28,8 @@
 - Zmiana historii idzie od góry: scenariusz i Story Bible → księga świata (decyzja w `decisions`) → rozpiska → ujęcia.
 - Po każdej jednostce: recenzja (Continuity Editor → Recenzje, lista z podręcznika) i wpis w dzienniku pracy
   (`POST /api/projects/{id}/flow/log`: co, dlaczego, pliki, wynik kontroli). Zatwierdza reżyser.
+- **Przed oddaniem reżyserowi** (film, sekwencja, tura poprawek) przejdź listę „Przed oddaniem reżyserowi” z Podręcznika
+  (`docs/podrecznik/01_PRACA.md`) i uruchom `python3 -I scripts/kontrola_filmu.py <film> --studio --podglad` — zero błędów.
+  „Jest w Studio” mów dopiero po sprawdzeniu stanu w Studio (oś, lektor, dźwięk, podgląd każdego ujęcia), nie po wyniku
+  skryptu wgrywającego. Każdy film ma własne dekoracje i meble (żadnych arkuszy poprzedniego filmu), co najmniej 4 dekoracje
+  na 2 minuty, a kwestie nie powtarzają zdań innych filmów (Wytyczne 1.33, reżyser 28.11.2026).

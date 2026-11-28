@@ -10,7 +10,11 @@ zatwierdzony przez reżysera 16.11.2026 po trzech turach markerów, render końc
 `prj_dad935cf1d7446fa`, 119 ujęć, 18:19, gagi, klon lektora i podgląd na żywo; cztery tury markerów 19–24.11, 169 markerów
 i 17 uwag, opublikowany 25.11 — raporty tur w `docs/filmy/bonnie-i-clyde/uwagi_rezysera_<data>.md`). Kreskówka 2D: „Oddział C”
 0:00–0:53 (poprawione przez reżysera 3.11, wzorzec dla dni 2–30). Nowy film tej samej techniki zaczyna się od silnika
-i sposobu pracy wzorca, nie od zera; scenerię i obsadę rysuje się nowe (Podręcznik, „Animacja rysowana kodem”).
+i sposobu pracy wzorca, nie od zera; scenerię i obsadę rysuje się nowe (Podręcznik, „Animacja rysowana kodem”). Silnik bierze się **najnowszy**, także
+z gałęzi roboczej, na której jeszcze trwa praca (28.11: `uklad.py` z ujęcia „kawiarnia” był tylko na gałęzi
+`claude/bonnie-i-clyde-kawiarnia`, a film o Szamilu powstał najpierw bez niego; reżyser: „miałeś się zastosować do wszystkich
+wytycznych od najnowszych po najstarsze obowiązujące”) — przed pierwszym ujęciem sprawdź `git worktree list` i gałęzie
+wzorca, weź najnowszy silnik i przejdź wytyczne od najnowszych (1.32) do najstarszych.
 
 Spis: 0 przepis na ujęcie · 1 zasady kadru · 2 obrazy generowane · 3 kontrola przed oddaniem · 4 praca w Studio
 i uwagi reżysera · 5 miniaturka · 6 skąd te zasady.
@@ -105,6 +109,9 @@ zamknięte drzwi sprawdza się klamką, a nie tylko się o nich mówi.
 - Pojazd ma to, co go napędza: wóz i powóz ciągnie koń, a ktoś nim powozi.
 - Postać wygląda na swój wiek i ma tylko te atrybuty, które ma w tej chwili historii: dziecko nie nosi korony, zanim
   zostało królem. Jedna lalka nie gra dziecka i dorosłego.
+- Znak, który z daleka czyta się jako symbol (krzyż, półksiężyc, gwiazda), nie wchodzi do kadru przypadkiem — zwłaszcza
+  w historii wojny religijnej: pionowy karabin na tle czerwonej opaski białej czapki z daleka był czerwonym krzyżem nad
+  głową rosyjskiego żołnierza (film o Szamilu, 28.11; karabin trzymany za plecami, własny arkusz `rek_kz("karabin")`).
 - Postacie różnią się sylwetką i strojem, a nie tylko kolorem obszycia: kupiec nie nosi dworskiej szaty ze smokami,
   a dwie postacie w jednym kadrze nie są tą samą wycinanką odbitą lustrzanie. Strój mówi, kim postać jest (bogaty
   kupiec, ubogi zakładnik, woźnica, posłaniec).
@@ -158,6 +165,21 @@ W wariancie A liczy to `docs/filmy/oddzial-c/ujecia/tempo.py`; zasada jest też 
 w innym języku bywa dłuższe. Wtedy ujęcie się wydłuża (oddech przed ≥ 0,5 s, pauza po 0,6–1,2 s), a nie kwestia
 przesuwa się pod cięcie — Oddział C EN: `output/zombie-psychiatryk/en_film.timing`. Kontrola: żadna kwestia nie kończy
 się bliżej niż 0,5 s przed cięciem i żadna nie wychodzi za cięcie.
+
+**Rytm filmu: ujęcie = kwestia + wydarzenia, bez samotnych wstawek** (reżyser 28.11, „Imam / Diuna” wersja D: „są trzy
+ujęcia jakieś długie, nagle jest jedno, które ma pół sekundy. Znowu są dwa ujęcia długie, a jeszcze nic się na nich nie
+dzieje… każde ujęcie powinno być… zależne od tego, co jest w scenariuszu i co jest w narracji”). W D połowa ujęć była bez
+słów (detale 1,4–2,4 s), a ujęcia z kwestią trwały 6–10 s, w których lalka tylko stała — rytm skakał „długie, długie,
+krótkie” i nic się nie działo. Wzór to „Syn słońca” i „Bonnie and Clyde”: kwestia w 80–85 % ujęć, mediana ok. 10 s.
+- Ujęcie z kwestią ma w opisie rozpiski **2–4 wydarzenia z sekundami** i każde stoi na słowie lektora: w kodzie
+  `sl("klucz", "słowo")` (chwila słowa z tempa kwestii), gag w pauzie po kwestii `po_kw("klucz")` (output/szamil-diuna/ujecia_a.py).
+- Detal, który w D był osobną wstawką (kindżał wbity w deskę, perły, świeca), jest wydarzeniem wewnątrz ujęcia z kwestią.
+  Ujęcie bez słów to zapowiedź, kurtyna albo emocjonalne trzymanie (uścisk); krótkie ujęcia akcji idą seriami, nigdy
+  pojedynczo między długimi.
+- Długość filmu wynika z historii („nie róbmy stricte 4–5-minutowego filmu”), nie z formatu.
+- Kontrola przed rysunkiem: `dane.kontrola_rytmu()` (docs/filmy/szamil-diuna/ujecia/dane.py) wyłapuje samotne krótkie
+  ujęcie (< 3 s) między dwoma długimi (> 6 s), trzy ujęcia z rzędu o długościach w przedziale 0,6 s i kwestię bez
+  dwóch wydarzeń w opisie — zero uwag, zanim cokolwiek zostanie narysowane.
 
 ### 1.10 Ruch po schodach w osi ruchu, stopa na stopniu
 Postacie zestawu są rysowane od przodu i od tyłu, więc schody (i każdą pochylnię) pokazuje się **w osi biegu**:
@@ -650,6 +672,32 @@ strumień do filiżanki, odstawianie z hukiem, gazeta w obu dłoniach, toczenie 
 `claude/bonnie-i-clyde-kawiarnia` (kawiarnia + usprawnienia silnika z tej sekcji), jeszcze nie scalonych z gałęzią filmu.
 Ujęcia z meblami, drzwiami i rzeczami w dłoniach budujemy odtąd na tym silniku.
 
+### 1.33 Scenografia zmienia się z opowieścią, a każdy film ma własną
+Reżyser 28.11.2026 po 2 minutach szkicu E „Imama / Diuny”: „jest za mało różnych ujęć… przez 2 minuty tylko dwie
+scenografie, bądź jedna, a powinno ich być co najmniej, nie wiem, raczej 4 przez 2 minuty… od 40 s jest cały czas to
+samo, że są te góry… Jeśli mamy pokazywać znowu daną scenerię, to musimy ją pokazać w inny sposób… potem za jakiś czas
+w inny sposób w danym podrozdziale czy rozdziale, bo musi być różnica ujęć”; „wziąłeś biuro z Bonnie i Clyde. Ma być
+zupełnie inne”.
+- **Co najmniej 4 różne dekoracje w każdych 2 minutach** (wzór po poprawce: najmniej 9, średnio 11,5). Licznik:
+  `output/szamil-diuna/kontrola_scenografii.py` (okno 120 s co 10 s, najdłuższy ciąg tej samej dekoracji) — zero okien
+  poniżej minimum, zanim ujęcia pójdą do Studio.
+- **To samo miejsce jeszcze raz = inaczej pokazane**: plan ogólny, potem zbliżenie miejsca (wioska → wieża z bliska →
+  wąwóz), inna pora dnia i światło w kolejnych ujęciach jednej sceny (wymiana na rzece: dzień → złota godzina → zachód,
+  `scena.MICZIK_SWIATLO`), inna pogoda albo pora roku, inny pokój tego samego domu (izba Szamila, pokój syna, sypialnia
+  nocą). Siedem ujęć oblężenia Achulgo stało na jednej dekoracji; po poprawce: skała z twierdzą, bateria na szańcach,
+  brama, obóz, skała z jaskiniami z bliska, rzeka nocą.
+- **Motyw krajobrazu nie jest tłem każdej dekoracji.** Pasma gór stoją w planach ogólnych gór; las, dwór, równina,
+  wąwóz i miasto mają własne tło (gęsty las bez gór, łagodne wzgórza, ściany skał, niebo pory dnia). W szkicu E te same
+  arkusze gór stały za lasem, Gruzją, rzeką i nawet za Kaługą na rosyjskiej równinie.
+- **Każdy film rysuje swoje dekoracje i meble.** Z poprzedniego filmu bierze się silnik i sposób pracy, nie wycinki:
+  tapeta, okno, podłoga z desek, biurko, stół, łóżko i szafka „Bonnie and Clyde” złożyły gabinet cara i reżyser je
+  rozpoznał. Wnętrze ma epokę i miejsce (Pałac Zimowy: płyciny, złocone pilastry, karmazynowe zasłony, dwugłowy orzeł,
+  parkiet, malachitowy blat), meble są w zestawie filmu (`MEBLE["biurko_palac"]`…). Przed oddaniem przejrzyj, z jakich
+  arkuszy złożona jest każda dekoracja (pamięć: także kulisy i podłoga pod ścianą).
+- Technicznie: duży arkusz z dziesiątkami kawałków liczy się raz i leży na dysku (`zestaw_kz.stack_d`, `build/wycinki`),
+  a drobiazgi (grzbiety książek, kamienie, klepki) rysuje się wprost na arkuszu — regały z 480 kawałkami papieru liczyły
+  się 2 minuty i blokowały podgląd na żywo.
+
 ## 2. Obrazy generowane do ujęć (AI, Paper Theatre, pozy)
 
 - Osobne warstwy: tło bez postaci, postać (PNG RGBA, przezroczyste tło), **pierwszy plan zasłaniający** (drzwi z
@@ -1003,6 +1051,12 @@ i błędy znalezione w kontroli.
 | Miniaturki Bonnie and Clyde (24–25.11, reżyser i wyniki po 18 h) | plan ogólny w beżach (C, D) — CTR 2,1 % przy 3,2 % „Syna słońca”, w 320 px nie widać min; w plakacie D krzaki za duże, auto za wysoko, czapki w dłoniach ginęły na polu; Test & Compare przyjmuje najwyżej 3 warianty | 5.6 |
 | Bonnie and Clyde, ujęcie 25 „kuchnia” (27.11, reżyser) | „model AI nie do końca wie, kto trzyma co w ręku, kto jest za czym” — Clyde wjeżdżał zza krawędzi kadru obok zamkniętych drzwi (dźwięk drzwi był, drzwi się nie otwierały), „uchylał” kapelusz pustą dłonią nad głową (sztywna ręka z jednym zawiasem nie sięga własnej głowy), stół stał za aktorami jak ława | 1.1, 1.2, 1.32 (nowa; silnik `uklad.py`) |
 | Bonnie and Clyde, ujęcie 24 „kawiarnia” (27.11, kontrola silnika `uklad.py` — nie marker reżysera) | kontrola „stoi na blacie” przechodziła, kiedy filiżanki jeszcze nie było, a kontrola styku zielska nie trafiła w żadną klatkę; przy krawędzi kadru kontrola mierzyła brzeg kadru zamiast dna; dzbanek z zestawu ma ucho 17 px obok korpusu; przez szparki w ladzie prześwitywała Bonnie; gazeta klienta zasłaniała filiżankę (82%); dzbanek kołysany wokół środka dna wchodził 3 px w blat; dzbanek i gazeta prześwitywały w dłoniach wysuwających się lalek | 1.12, 1.22, 1.27, 1.28, 1.29, 1.32, 3.3 |
+| Imam / Diuna, cały film (28.11, reżyser) | Nowy film zaczęty od zestawu „Bonnie and Clyde” sprzed ujęcia „kawiarnia”: 76 ujęć bez `uklad.py` — rzeczy w dłoniach, siedzenie i kto za czym ustawione na oko, sprawdzone tylko arkuszami po 4 klatki; reżyser: „miałeś się zastosować do wszystkich wytycznych od najnowszych po najstarsze obowiązujące” | Wstęp: najnowszy silnik także z gałęzi roboczej, wytyczne od 1.32 w dół przed pierwszym ujęciem; 1.32 i 3.3 w każdym ujęciu z rzeczą w dłoni, siedzeniem albo otworem |
+| Imam / Diuna, pierwsza minuta wersji D (28.11, reżyser) | Ujęcia z kwestią 6–10 s, w których lalka tylko stoi, przeplatane samotnymi wstawkami 0,4–2,4 s bez słów; ciągle te same szare góry; otwarcie z dwóch kart z cytatem („nic nie wiadomo, o co chodzi”); jeden gag w całym filmie; film przycięty do 4–5 min — „przebuduj to… ludzie mają to oglądać” | 1.9 „Rytm filmu”: ujęcie = kwestia + 2–4 wydarzenia na słowach, bez samotnych wstawek, długość z historii, `kontrola_rytmu()`; Humor: silnik humoru i lista gagów przed rozpiską; Rytm „Początek filmu”: otwarcie od tego, co widz zna |
+| Imam / Diuna (28.11, kontrola `uklad.py` i przegląd z wytycznymi — nie marker) | Burta wozu, okno kibitki, grzbiet wielbłąda i blat stolika liczone z nieprzyciętego arkusza (wycinek jest przycięty do papieru) — wóz zasłaniał księżne w całości; jeździec wysuwał się osobno od konia (biodro 18–99 px od siodła w pierwszych 0,3–0,9 s); karabin z czerwoną opaską czapki z daleka jak krzyż; kibitka, wozy i armaty jechały bez koni i woźnic; w jednym kadrze ta sama lalka murida i oficera po kilka razy; podpisy zjeżdżały do 1,3 s przed imieniem | 1.28/1.32: punkt arkusza w kadrze tylko przez arkusz `Ark` (`uklad_kz.pkt`), jeździec wjeżdża razem z koniem; 1.6: znak czytany z daleka jako symbol nie wchodzi do kadru, pojazd ma konia i woźnicę, grupa z różnych lalek; 1.27: podpis na słowo, liczony z tempa kwestii |
+
+| Imam / Diuna, 2 minuty szkicu E (28.11, reżyser) | Od 0:40 do 4:00 prawie każde ujęcie na tym samym paśmie gór (7 ujęć Achulgo i 4 w Gimry na jednej dekoracji), góry także za lasem, dworem i Kaługą; gabinet cara złożony z tapety, okna, podłogi i biurka „Bonnie and Clyde” | 1.33 |
+| Imam / Diuna, lektor (28.11, reżyser) | Kwestia haka powtarzała zdanie z „Pierwszego cesarza” („handed … to the enemy as a hostage”), a „It all starts in…” i „So how did…” stały już w „Synu słońca” i „Bonnie and Clyde” | Podręcznik → Jak pracujemy, krok 4 (`scripts/powtorzenia_kwestii.py`) |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

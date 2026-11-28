@@ -66,6 +66,11 @@ Lektor teatru papierowego zawsze według przepisu z zasady 8.
    - Mowy nie zwalnia się bardziej niż o te 3 %: rozciągnięta mowa (atempo 0,81) brzmi jak autotune, samogłoski
      falują. Film czytany wolniej dostaje dłuższe pauzy (`PAUZY_SKALA`, np. 1,3) i przecinki frazowania w tekście
      mówionym przed nagraniem, a nie rozciąganie.
+   - **Szybciej, gdy reżyser prosi** („przyspiesz klona troszkę, żeby ten film też wyszedł szybciej”, 28.11.2026, „Imam /
+     Diuna”): `TEATR_TEMPO=1.06 PAUZY_SKALA=0.85 … lektor_studio.py podejscia <lektor> --teatr` — mowa 6 % szybciej od
+     nagrania (zamiast 3 % wolniej) i pauzy o 15 % krótsze; klon 2,64 → 2,88 słowa/s, film 10:34 → 9:59. Obróbka bierze
+     gotowe podejścia (bez nagrywania), a ujęcia mają długość z nowych nagrań same (`dane.nagranie`). Przyspieszenie o kilka
+     procent nie zniekształca głosu tak jak spowolnienie o 19 %.
 9. **Kwestia nie może się urywać.** Każde słowo wygasa samo, także ostatnie w kwestii („dziwne przycięcia w środku
    słowa albo przy końcu słowa”, 16.11.2026). Przed odsłuchem i przed Studio: `docos/uciecia_lektora.py <katalog
    lektora>` — zero uwag.
@@ -134,3 +139,4 @@ modelu ma ścieżki uniksowe — `lektor_studio.py` obchodzi oba sam (`_resemble
 | 18.11 i 20.11.2026 | „Rób jedno podejście… po co 3 podejścia na każde ujęcie? To będzie trwało wieczność” | Trzy podejścia na kwestię to trzy razy dłuższe nagrywanie (na Macu ok. 1–2 min na podejście) | 2 |
 | 20.11.2026 („Syn słońca”) | Własne nagranie autora z jazdy autem „nie podoba mi się” → „klonujemy, jak przy pierwszym cesarzu” | Nagranie w ruchu ma zawiechy i nierówne tempo; klon z oczyszczonej próbki brzmi równo | 8 |
 | 23.11.2026 („Bonnie and Clyde”) | „Zrób głos mój lektorski w całym filmie tak jak w poprzednich” — 100 kwestii klonem; klon czytał „Hamer” jak „hammer”, a 12 podejść miało urwane albo połknięte słowa | Klon czyta pisownię; Chatterbox czasem urywa koniec | 10, 11, 2 |
+| 28.11.2026 („Imam / Diuna”) | „Przyspiesz klona troszkę, żeby ten film też wyszedł szybciej” | Klon w przepisie teatru czytał 2,64 słowa/s (3 % wolniej od nagrania), film urósł z 9:58 do 10:34 | 8 |
