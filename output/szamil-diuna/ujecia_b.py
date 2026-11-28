@@ -278,9 +278,9 @@ def s_kadet(st, w, t, T):
         reka = (x + 20, STOPY - 30 - 230 * 0.55)
         if tance > 0:
             d = K.lalka(st, t, f"dama {n + 1}", ("dama", "dama2", "dama3")[n], x, 230, y=STOPY - 30, rzad="pary", flip=1 if prawo else -1,
-                        przod=reka, k=tance, wejscie=False)
+                        przod=lambda s: K.w_zasiegu(s, reka), k=tance, wejscie=False)  # przy wejściu pary ręka nie sięga (28.11)
             o = K.lalka(st, t, f"oficer {n + 1}", ("oficer_ros", "oficer_ros2", "oficer_ros3")[n], x + 40, 240, y=STOPY - 30, rzad="pary",
-                        flip=-1 if prawo else 1, przod=reka, k=tance, wejscie=False)
+                        flip=-1 if prawo else 1, przod=lambda s: K.w_zasiegu(s, reka), k=tance, wejscie=False)
             if d and o and tance >= 1:
                 u.kontakt((*d["przod"]["dlon"], d["p"]), (*o["przod"]["dlon"], o["p"]), f"para {n + 1}: dłonie razem", 4.0)
     if t > po_kw("kadet", -0.8):  # dama, której się kłania
@@ -664,7 +664,8 @@ def s_liczby(st, w, t, T):
     for r, (p, y, h, n_) in enumerate(((0.62, 640, 64, 22), (0.70, 680, 90, 16), (0.80, STOPY, 130, 11))):
         u.rzedy[f"szereg{r}"] = p
         for n in range(n_):
-            x = -40 + n * (1360 / n_) + (r % 2) * 30
+            # od x 60 (pierwszy szereg, najwięksi: od 130): skrajni przy x −40 stali cały czas poza kadrem (kontrola 28.11)
+            x = (130 if r == 2 else 60) + n * ((1220 if r == 2 else 1300) / n_) + (r % 2) * 30
             if 560 < x < 840 and r == 0:
                 continue
             K.zolnierz(st, t, f"żołnierz {r}.{n}", ZOLNIERZE[(n + 2 * r) % 6], x, h, y=y, rzad=f"szereg{r}",
