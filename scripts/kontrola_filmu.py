@@ -4,7 +4,8 @@ zapisać gdzieś to, co zrobiliśmy, aby zawsze tworzenie filmu było w ten spos
   python3 -I scripts/kontrola_filmu.py <film> [--studio] [--podglad]
 
 Sprawdza (Podręcznik → Jak pracujemy, „Nowy film krok po kroku”; Wytyczne 1.9, 1.26, 1.32, 1.33):
-  1. rytm rozpiski (dane.kontrola_rytmu: samotne krótkie ujęcia, trzy równe długości, kwestia bez wydarzeń),
+  1. rytm rozpiski (dane.kontrola_rytmu: samotne krótkie ujęcia, trzy równe długości, kwestia bez wydarzeń) i tempo początku
+     (dane.AKCJA: pierwsza akcja najpóźniej 0:30, co najmniej 3 ujęcia akcji przed 3:00, najwyżej 75 s bez akcji),
   2. lektor: każda kwestia ma nagranie z tym samym tekstem (dane.nagranie),
   3. kwestie bez zdań z innych filmów (scripts/powtorzenia_kwestii.py — do przejrzenia, nie zawsze błąd),
   4. scenografia: co najmniej 4 dekoracje w każdych 2 minutach (output/<film>/kontrola_scenografii.py),
@@ -109,6 +110,20 @@ def main():
     if hasattr(dane, "kontrola_rytmu"):
         uw = dane.kontrola_rytmu(rows)
         wynik(not uw, "rytm", "bez uwag" if not uw else "; ".join(uw[:5]))
+    # 1b. tempo początku (Podręcznik → Metoda filmu, 3: początek w akcji)
+    if hasattr(dane, "AKCJA"):
+        t, starty = 0.0, []
+        for r in rows:
+            if r[2] in dane.AKCJA:
+                starty.append((t, r[2]))
+            t += r[5]
+        przed3 = [x for x in starty if x[0] < 180]
+        luki = [b[0] - a[0] for a, b in zip([(0.0, "")] + przed3, przed3 + [(180.0, "")])]
+        ok = bool(starty) and starty[0][0] <= 30 and len(przed3) >= 3 and max(luki) <= 75
+        wynik(ok, "tempo początku", (f"pierwsza akcja {starty[0][1]} w {starty[0][0]:.0f} s, przed 3:00 {len(przed3)} ujęć akcji, "
+                                     f"najdłużej bez akcji {max(luki):.0f} s") if starty else "brak ujęć akcji w dane.AKCJA")
+    else:
+        wynik(False, "tempo początku", "rozpiska nie ma dane.AKCJA (ujęcia akcji) — Podręcznik → Metoda filmu, 3", ostrzezenie=True)
     # 2. nagrania lektora
     if hasattr(dane, "nagranie"):
         brak = [r[2] for r in kw if dane.nagranie(r[7]) is None]

@@ -33,3 +33,8 @@
   „Jest w Studio” mów dopiero po sprawdzeniu stanu w Studio (oś, lektor, dźwięk, podgląd każdego ujęcia), nie po wyniku
   skryptu wgrywającego. Każdy film ma własne dekoracje i meble (żadnych arkuszy poprzedniego filmu), co najmniej 4 dekoracje
   na 2 minuty, a kwestie nie powtarzają zdań innych filmów (Wytyczne 1.33, reżyser 28.11.2026).
+- **Każdy film prowadź według Podręcznika → Metoda filmu** (`docs/podrecznik/00_METODA.md`): pomysł i badanie, trzy szkice
+  z mapą tempa, **początek w akcji** (pierwsza akcja najpóźniej 0:30, trzy sceny akcji w pierwszych 3 minutach), plan
+  scenografii z **trzema podejściami do każdej scenerii**, rozpiska, rysunek, lektor, dźwięk, kontrole, Studio, poprawki,
+  publikacja, wnioski z wyników. Nie czekaj, aż reżyser powie następny krok — przyjdź z gotowym, sprawdzonym etapem
+  (reżyser 28.11.2026: „ty powinieneś mieć wszystko zapisane, jak masz robić”).

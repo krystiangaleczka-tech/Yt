@@ -125,6 +125,14 @@ od rozpiski (szkic E: 70 ujęć, 9:55, kwestia w 61, 22 gagi). Zasady:
    z wieżą, gabinet z mapą, bukowy las, Dargo, Kaługa, pracownie pisarzy.
 6. Przed rysunkiem `kontrola_rytmu()` z rozpiski filmu: zero uwag.
 
+### Początek w akcji (lekcja z 28.11.2026, wszystkie filmy)
+
+Reżyser: „w każdym naszym filmie… dopiero po 2–3 minutach zaczyna się jakaś akcja i on jest angażujący… powinniśmy stworzyć
+coś takiego, że już ten początek filmu jest angażujący… potem możemy minimalnie zwolnić tempo, tam po 2 minutach”. Przepis
+„zapowiedź → kurtyna → przedstawienie → hak → pytanie → retrospekcja” dawał minutę objaśnień przed pierwszą akcją. Odtąd po
+kurtynie startu gra najmocniejsza prawdziwa scena historii jako akcja (0:10–0:50), a obietnica filmu, kim jest bohater i hak
+idą po niej. Mapa tempa minuta po minucie i kontrola (`dane.AKCJA`, `scripts/kontrola_filmu.py`): Podręcznik → Metoda filmu, 3.
+
 ### Skracanie a pomosty (lekcja z 19.11.2026)
 
 Przy skracaniu aktu nie wycina się ujęcia, które przenosi opowieść do innej postaci albo miejsca, choćby było „tylko tłem”.

@@ -131,6 +131,13 @@ zamknięte drzwi sprawdza się klamką, a nie tylko się o nich mówi.
   24.11 o ujęciach 20–21: „w połowie ujęcia 20 zmieniłbym słońce na księżyc, ściemnił na noc i dodał gwiazdy, i pamiętaj:
   w ujęciu 21 musisz z ciemności i księżyca zmienić na słońce”. Kwestia albo opis z nocą („Nocą W.D. wysiada…”) ma w kadrze
   księżyc albo gwiazdy (marker 23.11 w ujęciu 66: „niech wjedzie tu księżyc”), a tło dźwięku idzie za porą (noc — świerszcze).
+- **Upływ dni i miesięcy na niebie** (reżyser 28.11, „Imam / Diuna” ujęcie 24: „księżyc wlatuje przez słońce… tak nie może być…
+  słońce, które jest zawieszone, przesuwa się na lince w lewo za kadr i z prawej na lince jedzie księżyc, już ciemniając
+  scenerię… znowu wyjeżdża słońce z prawej i rozjaśnia, i tak w kółko”): słońce i księżyc wiszą na nitkach na jednej linii
+  i jadą po kolei w jedną stronę w odstępie większym niż pół kadru; papier nocy kładzie się na papier dnia, gwiazdy zjeżdżają
+  i odjeżdżają, scena ciemnieje i jaśnieje (`scena.cykl_dni`, `niebo_dni`). Dekoracja rysowana wtedy bez własnego słońca
+  i księżyca (`cialo=False`) — w ujęciu 24 dekoracja gór miała swój księżyc nocą i swoje słońce w dzień, a ujęcie dokładało
+  drugi księżyc, który przelatywał przez słońce.
 
 ### 1.7 Tłum to osobne postacie
 Każdy w grupie ma własne opóźnienie, tempo i własną reakcję (jeden przystaje, drugi się spóźnia, trzeci unosi ręce
@@ -686,6 +693,12 @@ zupełnie inne”.
   `scena.MICZIK_SWIATLO`), inna pogoda albo pora roku, inny pokój tego samego domu (izba Szamila, pokój syna, sypialnia
   nocą). Siedem ujęć oblężenia Achulgo stało na jednej dekoracji; po poprawce: skała z twierdzą, bateria na szańcach,
   brama, obóz, skała z jaskiniami z bliska, rzeka nocą.
+- **Trzy podejścia do każdej scenerii** (reżyser 28.11: „jak jest jedna dana sceneria, dajmy góry, albo rzeka, albo woda,
+  albo las, to robimy trzy różne podejścia do tego, żeby widz się nie nudził… zrobimy jeszcze dwie inne, z innym ułożeniem
+  tych gór”): każdy rodzaj scenerii ma w filmie co najmniej trzy wersje — inne ułożenie (góry: `kaukaz(uklad=0)` pasma
+  w poprzek, `uklad=1` dolina w głąb, `uklad=2` jeden wielki szczyt), inna pora i światło (rzeka o zmierzchu, w dzień,
+  nocą), inna kompozycja (plan ogólny, zbliżenie miejsca, wnętrze). Jedna scena trzyma jedno podejście (ciągłość miejsca),
+  a powrót tej scenerii w innym rozdziale bierze następne. Plan trzech podejść powstaje w szkicu (Podręcznik → Metoda, 4).
 - **Motyw krajobrazu nie jest tłem każdej dekoracji.** Pasma gór stoją w planach ogólnych gór; las, dwór, równina,
   wąwóz i miasto mają własne tło (gęsty las bez gór, łagodne wzgórza, ściany skał, niebo pory dnia). W szkicu E te same
   arkusze gór stały za lasem, Gruzją, rzeką i nawet za Kaługą na rosyjskiej równinie.
@@ -1057,6 +1070,10 @@ i błędy znalezione w kontroli.
 
 | Imam / Diuna, 2 minuty szkicu E (28.11, reżyser) | Od 0:40 do 4:00 prawie każde ujęcie na tym samym paśmie gór (7 ujęć Achulgo i 4 w Gimry na jednej dekoracji), góry także za lasem, dworem i Kaługą; gabinet cara złożony z tapety, okna, podłogi i biurka „Bonnie and Clyde” | 1.33 |
 | Imam / Diuna, lektor (28.11, reżyser) | Kwestia haka powtarzała zdanie z „Pierwszego cesarza” („handed … to the enemy as a hostage”), a „It all starts in…” i „So how did…” stały już w „Synu słońca” i „Bonnie and Clyde” | Podręcznik → Jak pracujemy, krok 4 (`scripts/powtorzenia_kwestii.py`) |
+
+| Imam / Diuna, ujęcie 24 „Achulgo” (28.11, reżyser) | Przy „eighty days” księżyc przelatywał przez słońce: dekoracja rysowała własne słońce i księżyc, ujęcie drugi księżyc | 1.6 (upływ dni na nitkach) |
+| Imam / Diuna, sceneria gór (28.11, reżyser) | Wszystkie góry filmu w jednym ułożeniu pasm; reżyser: trzy podejścia do każdej scenerii (góry, rzeka, las) | 1.33 |
+| Wszystkie filmy, początek (28.11, reżyser) | „Dopiero po 2–3 minutach zaczyna się akcja”; w „Imamie / Diunie” pierwsza akcja w 1:14, przed nią objaśnienia | Podręcznik → Metoda filmu, 3 (początek w akcji, `dane.AKCJA`) |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.

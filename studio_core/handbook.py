@@ -9,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = [
+    ("metoda", "Metoda filmu: od pomysłu do publikacji", "docs/podrecznik/00_METODA.md"),
     ("praca", "Jak pracujemy: od scenariusza do ujęcia", "docs/podrecznik/01_PRACA.md"),
     ("sekwencja", "Sekwencja, świat i ciągłość", "docs/podrecznik/02_SEKWENCJA_I_SWIAT.md"),
     ("rytm", "Rytm i tempo ujęć", "docs/podrecznik/03_RYTM.md"),
