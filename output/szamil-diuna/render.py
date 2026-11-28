@@ -63,6 +63,8 @@ DUR = _t
 # końcowy 21).
 FILM = os.environ.get("FILM", "0") == "1"
 CRF = os.environ.get("CRF", "21" if FILM else "23")  # 1440p, CRF 21: ok. 16 Mbit/s przy ziarnie papieru (CRF 18: 40 Mbit/s)
+# PRESET — szybkość kodera x264 (reżyser 28.11: „rób render tylko 1080p, ale z lepszą jakością” → 1080p, CRF 17, slow)
+PRESET = os.environ.get("PRESET", "medium")
 
 
 def klatki_ujecia(i):
@@ -385,7 +387,7 @@ def _klip(arg):
     ow, oh = int(round(W * papier.Q)), int(round(H * papier.Q))
     part = out.with_name(out.stem + ".part.mp4")  # plik niedokończony nie wygląda na gotowy po przerwaniu
     proc = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{ow}x{oh}",
-                             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", CRF, "-preset", "medium", "-pix_fmt", "yuv420p",
+                             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", CRF, "-preset", PRESET, "-pix_fmt", "yuv420p",
                              str(part)],
                             stdin=subprocess.PIPE)
     for f in range(n):
