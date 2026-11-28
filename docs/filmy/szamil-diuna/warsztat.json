@@ -1,0 +1,22 @@
+{
+  "pipeline": "## Technika\n\nUjęcia będą **rysowane kodem** w Pythonie jako teatr papierowy — silnik „Pierwszego cesarza” (`output/pierwszy-cesarz/papier.py`, `zestaw.py`) i sposób pracy „Bonnie and Clyde” (podgląd na żywo, `uklad.py` przy rekwizytach w dłoniach).\n\n- **Zestaw filmu** (do zrobienia, `output/szamil-diuna/zestaw_kz.py`): lalki kaukaskie (czerkieski, papachy, kindżały), rosyjskie mundury, księżne, sala balowa, góry i auły, winnice, rzeka, wydma, karty z maszynopisem, słowa na nitkach.\n- **Świat** (`scena.py`), **ujęcia** (`ujecia_a.py` — akty 0–2, `ujecia_b.py` — akty 3–4), **podgląd na żywo** (`na_zywo.py`), **dźwięk** (`efekty.py`).\n- **Ken Burns**: pliki domeny publicznej z Wikimedia Commons (Horschelt 1863, fotografia 1859) w `output/szamil-diuna/obrazy/` z zapisaną licencją.",
+  "method": "## Kolejność pracy\n\n1. Szkice A/B/C: `python3 -I docs/filmy/szamil-diuna/szkice/buduj_szkice.py` → import w Studio (etap Szkice ujęć).\n2. Rozpiska: `docs/filmy/szamil-diuna/ujecia/dane.py` (z zatwierdzonego szkicu).\n3. Księga świata: `ujecia/ksiega.py`.\n4. `python3 -I output/szamil-diuna/studio_film.py plan` — plan, księga i warsztat do Studio + kontrola ciągłości.\n5. Rysunek po aktach, arkusz klatek, kontrola (Wytyczne 3), podgląd na żywo.\n6. Dźwięk (próbka do akceptacji), lektor (klon, jedno podejście na kwestię), recenzja aktu i dziennik.",
+  "files": [
+    {
+      "path": "docs/filmy/szamil-diuna/szkice/buduj_szkice.py",
+      "role": "szkice A–C"
+    },
+    {
+      "path": "docs/filmy/szamil-diuna/ujecia/dane.py",
+      "role": "rozpiska: akty, sceny, ujęcia, kwestie EN"
+    },
+    {
+      "path": "docs/filmy/szamil-diuna/ujecia/ksiega.py",
+      "role": "księga świata, Story Bible i warsztat"
+    },
+    {
+      "path": "output/szamil-diuna/studio_film.py",
+      "role": "plan, księga i rozwój filmu do Studio"
+    }
+  ]
+}

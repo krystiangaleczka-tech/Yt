@@ -1,0 +1,395 @@
+{
+  "version": 1,
+  "unitLabel": "Akt",
+  "tempo": {
+    "minSeconds": 40,
+    "maxSeconds": 95,
+    "maxVoiceShare": 0.85
+  },
+  "places": [
+    {
+      "id": "teatr",
+      "name": "Teatr papierowy",
+      "note": "Rama z ciemnego rzeźbionego drewna z ornamentem kaukaskim; z lewej wydma (Arrakis), z prawej góry (Kaukaz) — dwie połowy sceny, które wracają w puencie.",
+      "connects": [
+        "gory",
+        "pustynia"
+      ]
+    },
+    {
+      "id": "gory",
+      "name": "Góry Dagestanu",
+      "note": "Ośnieżone granie, wąwozy, kamienne auły przyklejone do zboczy, mgła z bibuły; odmiany: Gimry, Achulgo (skała z twierdzą nad zakolem rzeki), Wedeno (stolica w lesie), Gunib (płaskowyż w urwiskach).",
+      "connects": [
+        "rzeka",
+        "gruzja"
+      ]
+    },
+    {
+      "id": "rzeka",
+      "name": "Rzeki",
+      "note": "Rzeka pod Achulgo nocą (ucieczka, tratwa) i rzeka Miczik w marcu 1855 (bród, wymiana)."
+    },
+    {
+      "id": "gruzja",
+      "name": "Cinandali (Gruzja)",
+      "note": "Dwór z drewnianym balkonem, winnice, kamienny mur."
+    },
+    {
+      "id": "petersburg",
+      "name": "Petersburg",
+      "note": "Złote iglice, śnieżna droga, sala balowa z kolumnami i żyrandolem, pałac cara."
+    },
+    {
+      "id": "pustynia",
+      "name": "Pustynia",
+      "note": "Wydma (hak i puenta), droga pielgrzymki do Medyny, słowa nad wydmą."
+    },
+    {
+      "id": "pracownia",
+      "name": "Pracownie pisarzy",
+      "note": "Biurko Lesley Blanch (Londyn, 1960) i stół Franka Herberta (1965)."
+    }
+  ],
+  "characters": [
+    {
+      "id": "szamil",
+      "name": "Imam Shamil",
+      "aliases": [
+        "Shamil"
+      ],
+      "role": "trzeci imam Dagestanu (1834–1859), przywódca oporu",
+      "look": "orli profil, broda (czarna → siwa od d03_05~starszy), biały turban na papasze, czarna czerkieska, kindżał u pasa",
+      "namedIn": [
+        "d*"
+      ],
+      "states": [
+        {
+          "from": "d03_05~starszy",
+          "state": "62 lata, siwa broda, bez broni"
+        }
+      ]
+    },
+    {
+      "id": "dzamaluddin",
+      "name": "Jamal al-Din",
+      "role": "pierworodny syn Szamila, zakładnik",
+      "look": "jako chłopiec: mała lalka w papasze; od d02_01~oficer wysoki młody oficer z wąsikiem w rosyjskim mundurze; od d02_16~czerkieskę w czarnej czerkiesce",
+      "namedIn": [
+        "d01_*",
+        "d02_*"
+      ],
+      "joins": "d01_10~Jamal al-Din",
+      "leaves": "d02_21~gaśnie",
+      "states": [
+        {
+          "from": "d01_11~chłopiec",
+          "state": "zakładnik u Rosjan"
+        },
+        {
+          "from": "d02_01~oficer",
+          "state": "dorosły oficer carskiej armii"
+        },
+        {
+          "from": "d02_14~uniform",
+          "state": "z powrotem u ojca"
+        },
+        {
+          "from": "d02_21~gaśnie",
+          "state": "nie żyje (1858)"
+        }
+      ]
+    },
+    {
+      "id": "ghazi",
+      "name": "Ghazi Muhammad",
+      "role": "syn Szamila, dowódca najazdu na Cinandali",
+      "look": "młody jeździec w czerni"
+    },
+    {
+      "id": "anna",
+      "name": "Princess Anna Chavchavadze",
+      "role": "żona księcia Dawida Czawczawadze, wnuczka ostatniego króla Gruzji",
+      "look": "biały czepiec, ciemna suknia"
+    },
+    {
+      "id": "warwara",
+      "name": "Princess Varvara Orbeliani",
+      "role": "siostra Anny, wdowa",
+      "look": "biały czepiec, szara suknia"
+    },
+    {
+      "id": "bariatinski",
+      "name": "Prince Baryatinsky",
+      "role": "namiestnik Kaukazu, przyjmuje kapitulację",
+      "look": "mundur generalski, siedzi na kamieniu pod brzozą"
+    },
+    {
+      "id": "car",
+      "name": "Tsar Alexander II",
+      "role": "car Rosji (od 1855)",
+      "look": "mundur, bokobrody"
+    },
+    {
+      "id": "muridzi",
+      "name": "muridzi",
+      "role": "wojownicy Szamila",
+      "look": "czarne czerkieski, papachy, szable"
+    },
+    {
+      "id": "blanch",
+      "name": "Lesley Blanch",
+      "role": "pisarka, autorka „The Sabres of Paradise” (1960)",
+      "look": "kobieta w kapeluszu przy maszynie do pisania"
+    },
+    {
+      "id": "herbert",
+      "name": "Frank Herbert",
+      "role": "autor „Diuny” (1965)",
+      "look": "mężczyzna z brodą i w okularach przy maszynie"
+    }
+  ],
+  "props": [
+    {
+      "id": "karty",
+      "name": "Dwie karty ze zdaniem o ostrzu",
+      "place": "teatr",
+      "seeded": "d00_11~Killing",
+      "uses": [
+        "d00_13~point",
+        "d00_14~lupy",
+        "d00_15~karty"
+      ]
+    },
+    {
+      "id": "kindzal",
+      "name": "Kindżał",
+      "owner": "Shamil",
+      "seeded": "d00_12~kindżał",
+      "uses": [
+        "d01_01~kindżał",
+        "d01_12~kindżału",
+        "d02_17~kindżału",
+        "d04_04~kindżał"
+      ]
+    },
+    {
+      "id": "biala_flaga",
+      "name": "Biała flaga",
+      "seeded": "d01_10~biała flaga",
+      "uses": [
+        "d03_04~biała flaga",
+        "d04_12~białą flagę"
+      ]
+    },
+    {
+      "id": "ksiazka_blanch",
+      "name": "„The Sabres of Paradise”",
+      "place": "pracownia",
+      "seeded": "d00_15~SABRES",
+      "uses": [
+        "d04_01~Sabres"
+      ]
+    },
+    {
+      "id": "srebro",
+      "name": "40 000 rubli",
+      "seeded": "d02_09~40,000",
+      "uses": [
+        "d02_10~rublami"
+      ]
+    },
+    {
+      "id": "mundur",
+      "name": "Rosyjski mundur Dżamaluddina",
+      "owner": "Jamal al-Din",
+      "seeded": "d02_01~oficer",
+      "uses": [
+        "d02_14~uniform",
+        "d02_16~epolety",
+        "d04_12~mundurze"
+      ]
+    }
+  ],
+  "resources": [],
+  "rules": [
+    {
+      "id": "wojna",
+      "name": "Wojna Szamila trwa",
+      "from": "d01_02~imam",
+      "to": "d03_05~surrendered",
+      "note": "Od wyboru na imama (1834) do kapitulacji w Gunibie (6.09.1859; 25.08 st. st.) — 25 lat z tytułu."
+    },
+    {
+      "id": "syn_u_rosjan",
+      "name": "Syn u Rosjan",
+      "from": "d01_11~chłopiec",
+      "to": "d02_14~crossed",
+      "note": "Od Achulgo (1839) do wymiany na rzece Miczik (marzec 1855)."
+    }
+  ],
+  "events": [
+    {
+      "at": "d02_11~Michik",
+      "needs": [
+        "syn_u_rosjan"
+      ],
+      "note": "Wymiana ma sens tylko, gdy syn jest jeszcze u Rosjan."
+    }
+  ],
+  "threads": [
+    {
+      "id": "zdanie",
+      "title": "Dwa zdania o ostrzu",
+      "setup": [
+        "d00_11~Killing"
+      ],
+      "clues": [
+        "d00_13~sentence",
+        "d00_15~book"
+      ],
+      "payoff": [
+        "d04_01~Sabres"
+      ],
+      "note": "Hak: zdanie z Diuny i z książki z 1960; rozwiązanie: kim była autorka i skąd Herbert wziął słowa."
+    },
+    {
+      "id": "syn",
+      "title": "Syn zakładnik",
+      "setup": [
+        "d01_10~hostage"
+      ],
+      "clues": [
+        "d01_15~officer",
+        "d01_16~back",
+        "d02_09~son"
+      ],
+      "payoff": [
+        "d02_14~crossed"
+      ],
+      "note": "Pytanie z końca aktu I („no way to get him back”) — odpowiedź w akcie II."
+    },
+    {
+      "id": "pytanie",
+      "title": "Jak wojna w górach trafiła na pustynną planetę",
+      "setup": [
+        "d00_16~desert planet"
+      ],
+      "clues": [
+        "d04_01~Sabres"
+      ],
+      "payoff": [
+        "d04_02~Dune"
+      ]
+    },
+    {
+      "id": "siridar",
+      "title": "Siridar — słowo Szamila na carskiego namiestnika",
+      "setup": [
+        "d03_05~siridar"
+      ],
+      "payoff": [
+        "d04_07~siridar"
+      ],
+      "note": "Szkic D: przy kapitulacji pada słowo, w akcie IV wraca jako puenta listy."
+    },
+    {
+      "id": "slowa_kurtyny",
+      "title": "Słowo z Diuny na początku każdego aktu",
+      "setup": [
+        "d01_01~KINDJAL"
+      ],
+      "clues": [
+        "d01_16~KANLY",
+        "d02_22~SIRIDAR",
+        "d03_09~SIETCH"
+      ],
+      "payoff": [
+        "d04_03~Kanly",
+        "d04_06~Sietch"
+      ],
+      "note": "Szkic D: słowa na kurtynach wracają w akcie IV z wyjaśnieniem. Przypisanie słowa do aktu jest nasze — lektor nie twierdzi, że słowo pochodzi z tego wydarzenia (D4)."
+    },
+    {
+      "id": "flaga",
+      "title": "Biała flaga",
+      "setup": [
+        "d01_10~biała flaga"
+      ],
+      "clues": [
+        "d03_04~biała flaga"
+      ],
+      "payoff": [
+        "d04_12~white flag"
+      ],
+      "note": "Flaga przy oddaniu syna wraca przy kapitulacji i w puencie."
+    }
+  ],
+  "spoilers": [
+    {
+      "pattern": "Gunib",
+      "notBefore": "d03_01~Gunib",
+      "why": "Koniec wojny dopiero w akcie III (zapowiedź pokazuje tylko flagę)."
+    },
+    {
+      "pattern": "surrender",
+      "notBefore": "d03_05~surrendered",
+      "why": "Kapitulacja to kulminacja aktu III."
+    },
+    {
+      "pattern": "Herbert",
+      "notBefore": "d04_02~Herbert",
+      "why": "Nazwisko autora Diuny pada przy jego wejściu w akcie IV."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "at": "2026-11-27",
+      "by": "reżyser",
+      "text": "Tytuł główny: „The Imam Who Fought Russia for 25 Years — and Ended Up in Dune” (wariant 3 z rozmowy; reżyser: „tytuł ten z rosją 25 years czyli 3 jako główny pierwszy”); zapasowe do testu A/B: „The Real Holy War Hidden Inside Dune”, „Dune Borrowed Its Words From a Real War”."
+    },
+    {
+      "id": "D2",
+      "at": "2026-11-27",
+      "by": "reżyser",
+      "text": "Film krótki (test formatu 4–5 min) z gęstym montażem: ok. 70 ujęć, zbliżenia, detale i Ken Burns na prawdziwych obrazach XIX w. — zawsze z wydarzeniem w środku (Rytm 1)."
+    },
+    {
+      "id": "D3",
+      "at": "2026-11-27",
+      "by": "wykonawca",
+      "text": "Ton czysto historyczny: Szamil jest symbolem dla Czeczenów i Dagestańczyków, w tle islam i Rosja — bez polityki współczesnej, bez ocen."
+    },
+    {
+      "id": "D4",
+      "at": "2026-11-27",
+      "by": "wykonawca",
+      "text": "Udokumentowane są słowa i zdania (esej Collinsa, LARB 2017), nie cała fabuła. Film nie mówi „Paul to Szamil” ani „Herbert ukradł”; zastrzeżenie pada w akcie IV."
+    },
+    {
+      "id": "D5",
+      "at": "2026-11-27",
+      "by": "wykonawca",
+      "text": "Prawa autorskie: żadnych postaci, kadrów ani okładek z filmów Villeneuve'a i z wydań książek; cytaty z powieści krótkie, na naszych kartach z maszynopisem. Ken Burns tylko po plikach oznaczonych jako domena publiczna (Horschelt 1863, fotografia Szamila 1859)."
+    },
+    {
+      "id": "D6",
+      "at": "2026-11-28",
+      "by": "reżyser",
+      "text": "Kalendarz gregoriański w całym filmie (fact-check ChatGPT przekazany przez reżysera 28.11): kapitulacja 6.09.1859 (25.08 st. st.) → „That September”; wymiana 22.03.1855 (10.03 st. st.) → „March 1855”; najazd lipiec 1854 → „summer of 1854”. Wiek syna przy Achulgo: 6 (NPLG), ok. 7 (Central Asian Survey), 8 (Blanch), 12 (Wikipedia) → „still a boy”, lalka małego dziecka; niewola księżnych 8–9 miesięcy → „for months”."
+    },
+    {
+      "id": "D8",
+      "at": "2026-11-28",
+      "by": "reżyser",
+      "text": "Zatwierdzony szkic D „Dwa zdania, trop słów i rzeka” zamiast A (reżyser: „Zatwierdzam”, po porównaniu A z podejściami „Trop słów” i „Syn między dwoma światami”): słowo z Diuny na początku każdego aktu (KINDJAL, KANLY, SIRIDAR, SIETCH), „siridar” przy kapitulacji jako zasiew puenty aktu IV, wymiana na rzece jako emocjonalny szczyt (zbliżenia, „almost sixteen years”, cisza przed uściskiem). 76 ujęć, 5:55."
+    },
+    {
+      "id": "D7",
+      "at": "2026-11-28",
+      "by": "reżyser",
+      "text": "Poprawki z fact-checku 28.11: (1) karta z Diuny dopiero po sprawdzeniu w wydaniu — źródła cytują „tip” albo „point”, mówi Duncan Idaho albo Gurney Halleck; lektor nie nazywa nauczyciela; (2) zapowiedź mówi o historii wojny, nie że Diuna wzięła słowa „od imama”; (3) wymiana na rzece to nie „dwie księżne za syna”: z księżnymi były dzieci i służba, Szamil żądał więcej, stanęło na synu, 40 000 rubli w srebrze i wymianie jeńców; (4) obrazy do Ken Burnsa tylko z plików Commons oznaczonych jako domena publiczna (Horschelt 1863, Denier 1859); ilustracja wymiany z Met (nr 423472) tylko jako wzór rysunku."
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+build/
+__pycache__/
+# identyfikator projektu Studio i stan wgrań — lokalnie, nie do publicznego repozytorium (jak studio*.json innych filmów)
+studio.json

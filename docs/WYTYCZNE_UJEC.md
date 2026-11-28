@@ -10,7 +10,11 @@ zatwierdzony przez reżysera 16.11.2026 po trzech turach markerów, render końc
 `prj_dad935cf1d7446fa`, 119 ujęć, 18:19, gagi, klon lektora i podgląd na żywo; cztery tury markerów 19–24.11, 169 markerów
 i 17 uwag, opublikowany 25.11 — raporty tur w `docs/filmy/bonnie-i-clyde/uwagi_rezysera_<data>.md`). Kreskówka 2D: „Oddział C”
 0:00–0:53 (poprawione przez reżysera 3.11, wzorzec dla dni 2–30). Nowy film tej samej techniki zaczyna się od silnika
-i sposobu pracy wzorca, nie od zera; scenerię i obsadę rysuje się nowe (Podręcznik, „Animacja rysowana kodem”).
+i sposobu pracy wzorca, nie od zera; scenerię i obsadę rysuje się nowe (Podręcznik, „Animacja rysowana kodem”). Silnik bierze się **najnowszy**, także
+z gałęzi roboczej, na której jeszcze trwa praca (28.11: `uklad.py` z ujęcia „kawiarnia” był tylko na gałęzi
+`claude/bonnie-i-clyde-kawiarnia`, a film o Szamilu powstał najpierw bez niego; reżyser: „miałeś się zastosować do wszystkich
+wytycznych od najnowszych po najstarsze obowiązujące”) — przed pierwszym ujęciem sprawdź `git worktree list` i gałęzie
+wzorca, weź najnowszy silnik i przejdź wytyczne od najnowszych (1.32) do najstarszych.
 
 Spis: 0 przepis na ujęcie · 1 zasady kadru · 2 obrazy generowane · 3 kontrola przed oddaniem · 4 praca w Studio
 i uwagi reżysera · 5 miniaturka · 6 skąd te zasady.
@@ -105,6 +109,9 @@ zamknięte drzwi sprawdza się klamką, a nie tylko się o nich mówi.
 - Pojazd ma to, co go napędza: wóz i powóz ciągnie koń, a ktoś nim powozi.
 - Postać wygląda na swój wiek i ma tylko te atrybuty, które ma w tej chwili historii: dziecko nie nosi korony, zanim
   zostało królem. Jedna lalka nie gra dziecka i dorosłego.
+- Znak, który z daleka czyta się jako symbol (krzyż, półksiężyc, gwiazda), nie wchodzi do kadru przypadkiem — zwłaszcza
+  w historii wojny religijnej: pionowy karabin na tle czerwonej opaski białej czapki z daleka był czerwonym krzyżem nad
+  głową rosyjskiego żołnierza (film o Szamilu, 28.11; karabin trzymany za plecami, własny arkusz `rek_kz("karabin")`).
 - Postacie różnią się sylwetką i strojem, a nie tylko kolorem obszycia: kupiec nie nosi dworskiej szaty ze smokami,
   a dwie postacie w jednym kadrze nie są tą samą wycinanką odbitą lustrzanie. Strój mówi, kim postać jest (bogaty
   kupiec, ubogi zakładnik, woźnica, posłaniec).
@@ -1003,6 +1010,8 @@ i błędy znalezione w kontroli.
 | Miniaturki Bonnie and Clyde (24–25.11, reżyser i wyniki po 18 h) | plan ogólny w beżach (C, D) — CTR 2,1 % przy 3,2 % „Syna słońca”, w 320 px nie widać min; w plakacie D krzaki za duże, auto za wysoko, czapki w dłoniach ginęły na polu; Test & Compare przyjmuje najwyżej 3 warianty | 5.6 |
 | Bonnie and Clyde, ujęcie 25 „kuchnia” (27.11, reżyser) | „model AI nie do końca wie, kto trzyma co w ręku, kto jest za czym” — Clyde wjeżdżał zza krawędzi kadru obok zamkniętych drzwi (dźwięk drzwi był, drzwi się nie otwierały), „uchylał” kapelusz pustą dłonią nad głową (sztywna ręka z jednym zawiasem nie sięga własnej głowy), stół stał za aktorami jak ława | 1.1, 1.2, 1.32 (nowa; silnik `uklad.py`) |
 | Bonnie and Clyde, ujęcie 24 „kawiarnia” (27.11, kontrola silnika `uklad.py` — nie marker reżysera) | kontrola „stoi na blacie” przechodziła, kiedy filiżanki jeszcze nie było, a kontrola styku zielska nie trafiła w żadną klatkę; przy krawędzi kadru kontrola mierzyła brzeg kadru zamiast dna; dzbanek z zestawu ma ucho 17 px obok korpusu; przez szparki w ladzie prześwitywała Bonnie; gazeta klienta zasłaniała filiżankę (82%); dzbanek kołysany wokół środka dna wchodził 3 px w blat; dzbanek i gazeta prześwitywały w dłoniach wysuwających się lalek | 1.12, 1.22, 1.27, 1.28, 1.29, 1.32, 3.3 |
+| Imam / Diuna, cały film (28.11, reżyser) | Nowy film zaczęty od zestawu „Bonnie and Clyde” sprzed ujęcia „kawiarnia”: 76 ujęć bez `uklad.py` — rzeczy w dłoniach, siedzenie i kto za czym ustawione na oko, sprawdzone tylko arkuszami po 4 klatki; reżyser: „miałeś się zastosować do wszystkich wytycznych od najnowszych po najstarsze obowiązujące” | Wstęp: najnowszy silnik także z gałęzi roboczej, wytyczne od 1.32 w dół przed pierwszym ujęciem; 1.32 i 3.3 w każdym ujęciu z rzeczą w dłoni, siedzeniem albo otworem |
+| Imam / Diuna (28.11, kontrola `uklad.py` i przegląd z wytycznymi — nie marker) | Burta wozu, okno kibitki, grzbiet wielbłąda i blat stolika liczone z nieprzyciętego arkusza (wycinek jest przycięty do papieru) — wóz zasłaniał księżne w całości; jeździec wysuwał się osobno od konia (biodro 18–99 px od siodła w pierwszych 0,3–0,9 s); karabin z czerwoną opaską czapki z daleka jak krzyż; kibitka, wozy i armaty jechały bez koni i woźnic; w jednym kadrze ta sama lalka murida i oficera po kilka razy; podpisy zjeżdżały do 1,3 s przed imieniem | 1.28/1.32: punkt arkusza w kadrze tylko przez arkusz `Ark` (`uklad_kz.pkt`), jeździec wjeżdża razem z koniem; 1.6: znak czytany z daleka jako symbol nie wchodzi do kadru, pojazd ma konia i woźnicę, grupa z różnych lalek; 1.27: podpis na słowo, liczony z tempa kwestii |
 
 Otwarte: słuchawka w „Starym telefonie” nie ma kabla do aparatu, a po spadnięciu telefon dzwoni dalej (świadomie,
 dla ciągłości z następnym ujęciem) — do decyzji reżysera.
