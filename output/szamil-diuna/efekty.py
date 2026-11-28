@@ -2099,7 +2099,11 @@ def zdarzenia():
 SKAN_DT = 0.08
 DEKORACJE = ("kaukaz", "gory_pasmo", "snieg", "pustynia", "arrakis_sc", "jaskinia", "gimry_sc", "gabinet", "las_bukowy", "kaluga_sc",
              "miczik", "izba", "petersburg", "sala_balowa", "gruzja", "teatr_kz", "parawan", "ciemnosc", "wnetrze", "plaskowyz",
-             "polana", "pracownia")
+             "polana", "pracownia",
+             # dekoracje 2 (28.11): każde miejsce ma swoje tło dźwięku
+             "rzeka_wieczor", "wieza_sc", "wawoz_sc", "dziedziniec_sc", "gabinet_cara", "przelecz_sc", "bateria_sc", "brama_sc",
+             "oboz_sc", "skala_sc", "ostaniec_sc", "sala_tyflis_sc", "sala_tronowa_sc", "namiot_sc", "izba_kz", "przedgorze_sc",
+             "polka_sc", "wedeno_sc", "kaluga_sc2", "pracownia_sc", "biblioteka_sc", "gran_wieczor_sc")
 
 
 def skan():
@@ -2395,7 +2399,12 @@ def tlo(rodzaj, sec, seed, noc_):
 
 
 def rodzaj_tla(d):
-    for k, v in (("parawan", "sala"), ("ciemnosc", "sala"), ("gabinet", "gabinet"), ("pracownia", "pracownia"), ("izba", "izba"),
+    for k, v in (("parawan", "sala"), ("gabinet_cara", "gabinet"), ("pracownia_sc", "pracownia"), ("biblioteka_sc", "pracownia"),
+                 ("izba_kz", "izba"), ("sala_tyflis_sc", "sala"), ("sala_tronowa_sc", "sala"), ("namiot_sc", "las"),
+                 ("rzeka_wieczor", "rzeka"), ("wawoz_sc", "gory"), ("wieza_sc", "aul"), ("dziedziniec_sc", "aul"), ("przelecz_sc", "gory"),
+                 ("bateria_sc", "gory"), ("brama_sc", "gory"), ("oboz_sc", "aul"), ("skala_sc", "gory"), ("ostaniec_sc", "snieg"),
+                 ("przedgorze_sc", "aul"), ("polka_sc", "gory"), ("wedeno_sc", "las"), ("kaluga_sc2", "kaluga"), ("gran_wieczor_sc", "gory"),
+                 ("ciemnosc", "sala"), ("gabinet", "gabinet"), ("pracownia", "pracownia"), ("izba", "izba"),
                  ("wnetrze", "izba"), ("sala_balowa", "sala"), ("petersburg", "miasto"), ("kaluga_sc", "kaluga"), ("miczik", "rzeka"),
                  ("las_bukowy", "las"), ("gruzja", "gruzja"), ("gimry_sc", "aul"), ("snieg", "snieg"), ("pustynia", "pustynia"),
                  ("arrakis_sc", "pustynia"), ("plaskowyz", "gory"), ("polana", "gory"), ("kaukaz", "gory"), ("gory_pasmo", "gory"),

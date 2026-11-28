@@ -8,7 +8,9 @@ from ujecia_a import (CX, CY, I, J, K, MURIDZI, P, STOPY, ZOLNIERZE, Z0, _bump, 
                      dym, ease, ease_out, gabinet, gimry_sc, izba, jaskinia, jezdziec, kam, kaukaz, koniec, koza, ksiezyc, lalka,
                      las_bukowy, lerp, miczik, mur_przod, noise, parawan, pieczatka, plomien, po_kw, podpis, pr, pustynia, robak,
                      sala_balowa, sl, slowo, snieg, teatr_kz, gruzja, kaluga_sc, wnetrze, arrakis_sc, SZABLA, FLAGA, gory_pasmo, rampa)
-from scena import chmury, spod, swiatlo, wejscie  # noqa: F401
+from scena import MICZIK_SWIATLO, chmury, spod, swiatlo, wejscie  # noqa: F401
+from scena import (biblioteka_sc, gabinet_cara, gran_wieczor_sc, izba_kz, kaluga_sc2, namiot_sc, polka_sc, pracownia_sc,  # noqa: F401,E402
+                   przedgorze_sc, sala_tronowa_sc, sala_tyflis_sc, wedeno_sc)
 
 
 def pioropusz(st, szk, lean=0.0, p=None):
@@ -41,9 +43,7 @@ def s_vorontsov(st, w, t, T):
     nazwisku); na mapie na ścianie zjeżdża strzałka do „DARGO”; gag po kwestii: Woroncow się kłania, pióropusz zahacza
     o żyrandol, żyrandol się kołysze, Woroncow prostuje się dumnie."""
     kam(st, t, I["vorontsov"], 640, 420, 1.12, 0.8)
-    spod(st, (130, 92, 62))
-    st.put(J.sala(), CX, 740, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None)
-    rampa(st, bk(w, 0.7, 0.6))
+    sala_tyflis_sc(st, t, w)
     u = K.uk(st, t)
     t_name, t_dargo = sl("vorontsov", "vorontsov"), sl("vorontsov", "dargo")
     gag = po_kw("vorontsov", 0.1)
@@ -142,12 +142,9 @@ def s_zwyciestwo(st, w, t, T):
     """Namiot Woroncowa: pisze raport, pieczątka uderza „DARGO TAKEN! VICTORY!” (powtórka gagu); na „eat” adiutant przynosi
     pusty worek i odwraca go do góry dnem — wypada jeden suchar; Woroncow patrzy na suchar."""
     kam(st, t, I["zwyciestwo"], 640, 440, 1.25, 0.8)
-    st.put(J.sciana("tynk"), CX, 720, P.miasto, w=2200, anchor=(0.5, 1.0), shadow=None, tint=(0.96, 0.9, 0.78))
-    Z0.rise(st, J.podloga((150, 126, 90)), CX, 820, P.droga, bk(w, 0.3), t, 1320, w=2200, wob=0.0, lift=220, anchor=(0.5, 1.0))
-    st.put(J.rek_kz("namiot"), CX, 742, P.miasto + 0.01, w=1500, anchor=(0.5, 1.0), shadow=None, tint=(0.9, 0.86, 0.76), alpha=0.6)
-    rampa(st)
+    namiot_sc(st, t, w)
     u = K.uk(st, t)
-    u.mebel("stół", "stol", 560, 180, rzad="przod")
+    u.mebel("stół", "stol_polowy", 560, 180, rzad="przod")
     _, blat = u.powierzchnia("stół", "blat", 0.5)
     t_stamp, t_eat = sl("zwyciestwo", "reported"), sl("zwyciestwo", "eat")
     wor = K.lalka(st, t, "Woroncow", "vorontsov", 420, 320, flip=1, przod=lambda s: 40 + 100 * _bump(t, t_stamp + 0.9, 0.5),
@@ -226,7 +223,7 @@ def s_tolstoj(st, w, t, T):
     t_name, t_capt, t_stories = sl("tolstoj", "leo"), sl("tolstoj", "captured"), sl("tolstoj", "stories")
     galop = pr(t, t_capt, 0.3)
     kam(st, t, I["tolstoj"], 640 + 80 * ease(galop), 410, 1.08, 0.75)
-    kaukaz(st, t, w, blisko=True)
+    przedgorze_sc(st, t, w)
     u = K.uk(st, t)
     x_t = lerp(300, 560, ease(pr(t, 0, t_capt))) + 900 * ease_out(pr(t, t_capt, 4.0))
     szk = jezdziec(st, t, "tolstoj", x_t, STOPY, P.lalki + 0.01, flip=1, h=230, galop=0.3 + 0.7 * galop, seed=7,
@@ -333,7 +330,7 @@ def s_ksiezne(st, w, t, T):
     """Górska droga: księżne w czepcach na koniach za jeźdźcami (podpisy przy imionach), dzieci przed nimi, guwernantka
     na ostatnim koniu trzyma kapelusz. Każdy siedzący ma kontrolę siodła (uklad_kz.jezdziec)."""
     kam(st, t, I["ksiezne"], lerp(520, 760, t / T), 420, 1.1, 0.8)
-    kaukaz(st, t, w, blisko=True)
+    polka_sc(st, t, w)
     t_anna, t_var, t_gov = sl("ksiezne", "anna"), sl("ksiezne", "varvara"), sl("ksiezne", "governess")
     grupy = [("ghazi", "anna", "dziecko_g"), ("murid", "warwara", "dziecko_g2"), ("murid2", "guwernantka", None)]
     for n, (jezdzc, pani, dziecko) in enumerate(grupy):
@@ -358,7 +355,7 @@ def s_wedeno(st, w, t, T):
     mies = pr(t, t_eight, 2.6)
     if 0 < mies < 1:
         w.noc = 1.0 if 0.4 < (mies * 3) % 1.0 < 0.75 else 0.0
-    kaukaz(st, t, w, aul=640, blisko=False)
+    wedeno_sc(st, t, w)
     if 0 < mies < 1:
         ksiezyc(st, t, 1.0, x=lerp(1200, 100, (mies * 3) % 1.0), y=140)
         snieg(st, t, math.sin(math.pi * mies), seed=12)
@@ -386,7 +383,7 @@ def s_cena(st, w, t, T):
     na „son” obok rysunek chłopca; na „million” wielka liczba „1,000,000”; gag na „forty thousand”: cyfry odpadają po kolei
     i spadają z brzękiem, zjeżdża „40,000”; Szamil gładzi brodę."""
     kam(st, t, I["cena"], 640, 470, 1.35, 0.8)
-    izba(st, t, w)
+    izba_kz(st, t, w, 0, okno_x=1040)
     u = K.uk(st, t)
     t_pad, t_son, t_mil, t_forty = sl("cena", "padishah"), sl("cena", "son"), sl("cena", "million"), sl("cena", "forty")
     u.rzecz("stolik", K.ark("stol_niski"), 560, STOPY + 10, u.p("przod"), (180, 120), 100)
@@ -456,7 +453,7 @@ def s_rzeka(st, w, t, T):
     """Rzeka Miczik: na brzegach ustawiają się dwa oddziały, zawieszka „River Michik, March 1855”; chorągwie; konie przestępują
     z nogi na nogę; z lewej wjeżdża wóz z workami srebra."""
     kam(st, t, I["rzeka"], CX, lerp(400, 470, ease(t / T)), lerp(1.0, 1.15, ease(t / T)), 0.62)
-    miczik(st, t, w)
+    miczik(st, t, w, swiatlo=MICZIK_SWIATLO['rzeka'])
     brzegi_oddzialy(st, t, w)
     u = K.uk(st, t)
     if K.wjechal():
@@ -469,7 +466,7 @@ def s_przeprawa(st, w, t, T):
     """Wóz z księżnymi, dziećmi i guwernantką przejeżdża bród w lewo (siedzą za burtą); na „silver” wóz z workami jedzie w prawo;
     jeńcy przechodzą pieszo; dziecko na wozie macha; koń strząsa wodę z grzywy."""
     kam(st, t, I["przeprawa"], CX, 520, 1.35, 0.66)
-    miczik(st, t, w)
+    miczik(st, t, w, swiatlo=MICZIK_SWIATLO['przeprawa'])
     brzegi_oddzialy(st, t, w, kadr=(170, 1110))
     u = K.uk(st, t)
     t_silver = sl("przeprawa", "silver")
@@ -500,7 +497,7 @@ def s_syn_wraca(st, w, t, T):
     staje, rusza = po_kw("syn_wraca", -1.2), po_kw("syn_wraca", 1.0)
     x = lerp(240, 640, ease_out(pr(t, 0.4, staje - 0.4))) + 400 * ease(pr(t, rusza, T - rusza))
     kam(st, t, I["syn_wraca"], lerp(540, 700, ease(t / T)), lerp(500, 470, ease(pr(t, staje, 1.4))), lerp(1.3, 1.6, ease(pr(t, staje, 1.4))), 0.66)
-    miczik(st, t, w)
+    miczik(st, t, w, swiatlo=MICZIK_SWIATLO['syn_wraca'])
     brzegi_oddzialy(st, t, w, kadr=(-999, 1150))
     stoi = staje < t < rusza
     jezdziec(st, t, "dzamal_oficer", x, 732, P.droga + 0.01, flip=-1 if _bump(t, (staje + rusza) / 2, 0.4) > 0 else 1, h=160, seed=4,
@@ -518,7 +515,7 @@ def s_mundur(st, w, t, T):
     """Prawy brzeg: młody oficer zsiada z konia, zdejmuje epolety (dłoń do barku), murid podaje mu złożoną czarną czerkieskę,
     syn chwyta ją i na moment znika za koniem — wychodzi w czerkiesce (zmiana stroju w kadrze, 1.28)."""
     kam(st, t, I["mundur"], 760, 470, 1.4, 0.8)
-    miczik(st, t, w)
+    miczik(st, t, w, swiatlo=MICZIK_SWIATLO['mundur'])
     u = K.uk(st, t)
     t_off, t_put = sl("mundur", "take"), sl("mundur", "put")
     u.put("koń syna", J.zwierze("kon"), 1000, STOPY, u.p("lalki", 2), "zwierze", h=230, anchor=(0.5, 1.0), sx=-1)
@@ -549,7 +546,7 @@ def s_uscisk(st, w, t, T):
     """Muzyka milknie, zostaje szum rzeki; Szamil podchodzi, dłoń puszcza rękojeść kindżału; obejmuje syna — dłonie każdego na
     plecach drugiego (kontrola); kamera bardzo wolno dojeżdża (emocjonalny szczyt, Wytyczne 1.23)."""
     kam(st, t, I["uscisk"], 640, 470, lerp(1.6, 1.95, t / T), 0.8)
-    miczik(st, t, w)
+    miczik(st, t, w, swiatlo=MICZIK_SWIATLO['uscisk'])
     u = K.uk(st, t)
     zbliz = ease(pr(t, 0.8, 1.4))
     xs, xd = lerp(460, 600, zbliz), lerp(760, 690, zbliz)
@@ -572,7 +569,7 @@ def s_obcy(st, w, t, T):
     """Izba: syn w czerkiesce siedzi nad rosyjską książką, za oknem śnieg; nad nim obłok z miniaturą Petersburga (iglice);
     Szamil w drzwiach patrzy na syna; obłok pęka i znika."""
     kam(st, t, I["obcy"], 640, 460, 1.3, 0.8)
-    izba(st, t, w)
+    izba_kz(st, t, w, 1, okno_x=1000)
     u = K.uk(st, t)
     t_str, t_miss = sl("obcy", "stranger"), sl("obcy", "missed")
     u.rzecz("stolik", K.ark("stol_niski"), 690, STOPY + 10, u.p("przod"), (180, 120), 90)
@@ -594,12 +591,12 @@ def s_smierc(st, w, t, T):
     """Syn w łóżku, przy nim świeca na szafce, Szamil siedzi obok; syn kaszle; na „died” płomień świecy drży i gaśnie, smużka
     dymu — bez gagu; kurtyna w pauzie (render: „Act 5 · How does a 25-year war end?”)."""
     kam(st, t, I["smierc"], 640, 470, lerp(1.3, 1.45, ease(t / T)), 0.8)
-    izba(st, t, w, okno_noc=True)
+    izba_kz(st, t, w, 2, okno_x=980, noc=True)
     w.noc = 0.6
     u = K.uk(st, t)
     t_died = sl("smierc", "died")
-    u.mebel("łóżko", "lozko", 640, 150, rzad="przy_scianie")
-    u.mebel("szafka", "szafka", 900, 120, rzad="przy_scianie")
+    u.mebel("łóżko", "lozko_kz", 640, 150, rzad="przy_scianie")
+    u.mebel("szafka", "skrzynka", 900, 110, rzad="przy_scianie")
     u.na("świeca", K.ark("swieca"), "szafka", "blat", 0.5, 80)
     sx, sy = u.powierzchnia("szafka", "blat", 0.5)
     _, my = u.powierzchnia("łóżko", "materac", 0.5)
@@ -749,9 +746,9 @@ def s_stempel(st, w, t, T):
     """Gabinet w Petersburgu, ten sam urzędnik co w 1839, siwy; kładzie raport; pieczątka opada powoli: „SHAMIL: CAPTURED” —
     trzecie podejście gagu bez żartu (bez brzdęku), urzędnik tylko patrzy; za oknem biją dzwony."""
     kam(st, t, I["stempel"], 600, 470, lerp(1.4, 1.55, ease(t / T)), 0.8)
-    gabinet(st, t, w, okno_x=1000)
+    gabinet_cara(st, t, w, okno_x=1000, portret_x=250)
     u = K.uk(st, t)
-    u.mebel("biurko", "biurko", 560, 170, rzad="przod")
+    u.mebel("biurko", "biurko_palac", 560, 170, rzad="przod")
     _, blat = u.powierzchnia("biurko", "blat", 0.5)
     t_true = sl("stempel", "true")
     K.lalka(st, t, "urzędnik", "urzednik_stary", 760, 300, flip=-1, przod=lambda s: 30 + 40 * ease(pr(t, 0.4, 0.6)) * (1 - ease(pr(t, 1.4, 0.6))))
@@ -768,7 +765,7 @@ def s_car(st, w, t, T):
     """Sala z kolumnami: Szamil staje przed carem Aleksandrem II (podpis); car podaje mu rękę — dłonie w jednym punkcie
     (kontrola); na „Kaluga” obok zjeżdża domek z kolumienkami i zawieszka „Kaluga”."""
     kam(st, t, I["car"], 640, 430, 1.15, 0.8)
-    sala_balowa(st, t, w)
+    sala_tronowa_sc(st, t, w)
     u = K.uk(st, t)
     t_tsar, t_hon, t_kal = sl("car", "tsar"), sl("car", "honours"), sl("car", "kaluga")
     xs = lerp(380, 600, ease(pr(t, 0.4, 1.8)))
@@ -796,7 +793,7 @@ def s_kaluga(st, w, t, T):
     w meloniku, dziecko, żołnierz); Szamil uprzejmie macha, gapie chowają się i wysuwają; gag po kwestii: zza płotu wychyla
     się koza — Szamil i koza patrzą na siebie (koza: puenta)."""
     kam(st, t, I["kaluga"], 640, 440, lerp(1.0, 1.12, ease(t / T)), 0.75)
-    kaluga_sc(st, t, w)
+    kaluga_sc2(st, t, w)
     u = K.uk(st, t)
     t_guest, t_look = sl("kaluga", "guest"), sl("kaluga", "look")
     K.lalka(st, t, "Szamil", w.szamil, 760, 260, y=650, rzad="dom", flip=-1, przod=lambda s: 20 + 130 * _bump(t, t_look + 0.6, 0.6))
@@ -850,14 +847,14 @@ def s_medyna(st, w, t, T):
 def pracownia(st, t, w, rok, kto, x=600, sciana="paski"):
     """Pracownia pisarza: ściana, okno, biurko z maszyną do pisania na blacie; pisarz siedzi za biurkiem, palce na klawiszach
     (kontrola: dłoń na maszynie)."""
-    wnetrze(st, t, w, sciana=sciana, okna=(1000,))
+    pracownia_sc(st, t, w, 0 if kto == "blanch" else 1)
     u = K.uk(st, t)
-    u.mebel("biurko", "biurko", 660, 160, rzad="przod")
+    u.mebel("biurko", "biurko_pisarza", 660, 160, rzad="przod")
     geo = u.na("maszyna", K.ark("maszyna"), "biurko", "blat", 0.5, 90)
     stuk = lambda faza: 6 * max(0.0, math.sin(t * 16 + faza))
     _, blat_y = u.powierzchnia("biurko", "blat", 0.5)
     stoi = wejscie(1.0) >= 1  # przy budowie dekoracji maszyna jeszcze wyrasta: dłonie opuszczone (kontrola 28.11)
-    szk = K.lalka(st, t, kto, kto, x, 290, flip=1, siedzi=True, y=K.y_siedzi(kto, 290, blat_y + 40),
+    szk = K.lalka(st, t, kto, kto, x, 290, flip=1, siedzi=True, y=K.y_siedzi(kto, 290, blat_y + (40 if kto == "blanch" else 8)),
                   przod=(lambda s: (geo(250, 112)[0], geo(250, 112)[1] - 4 + stuk(0))) if stoi else 8,
                   tyl=(lambda s: (geo(160, 112)[0], geo(160, 112)[1] - 4 + stuk(1.6))) if stoi else 6)
     if szk and stoi:
@@ -946,7 +943,7 @@ def s_slowa2(st, w, t, T):
     „Sietch and tabr” słowa SIETCH i TABR zjeżdżają osobno i sklejają się nad jaskinią w skale pustyni; gag po kwestii: z jaskini
     wygląda robak, tabliczka się chwieje."""
     kam(st, t, I["slowa2"], lerp(640, 520, ease(t / T)), 390, 1.02, 0.8)
-    teatr_kz(st, t, w)
+    teatr_kz(st, t, w, pora="noc")
     t_ch, t_si, t_home = sl("slowa2", "chakobsa"), sl("slowa2", "sietch"), sl("slowa2", "home")
     lalka(st, t, "mysliwy", 920, 290, flip=1, lean=-6 * _bump(t, t_ch + 0.6, 0.8), seed=5)
     lalka(st, t, "mysliwy", 1100, 280, flip=-1, seed=6)
@@ -977,7 +974,7 @@ def s_slowa3(st, w, t, T):
     """Na „padishah” nad lalką cara (Aleksander II, ta sama co w 1859) zjeżdża PADISHAH; na „siridar” nad księciem Bariatinskim
     SIRIDAR; obie tabliczki odjeżdżają na nitkach nad wydmę; car i książę patrzą za nimi i poprawiają mundury."""
     kam(st, t, I["slowa3"], CX, 400, 1.0, 0.8)
-    teatr_kz(st, t, w)
+    teatr_kz(st, t, w, pora="zmierzch")
     t_pad, t_sir, t_end = sl("slowa3", "padishah"), sl("slowa3", "siridar"), sl("slowa3", "ended")
     patrza = ease(pr(t, t_end + 0.4, 0.5))
     K.lalka(st, t, "car", "car", 880, 300, flip=-1, lean=-4 * patrza, przod=lambda s: 30 * patrza)
@@ -996,7 +993,7 @@ def s_zdanie(st, w, t, T):
     z Diuny (TEKST DO SPRAWDZENIA W WYDANIU, księga D7); ramka lupy przesuwa się po obu zdaniach, wspólne słowa podświetlają
     się na złoto; kindżał spada ostrzem w dół i wbija się w deskę między kartami."""
     kam(st, t, I["zdanie"], CX, 300, 1.08, 0.84)
-    teatr_kz(st, t, w)
+    biblioteka_sc(st, t, w)
     st.spot = (CX, 300, P.rekwizyty, 620, 0.45)
     t_bl, t_dune = sl("zdanie", "blanch"), sl("zdanie", "dune")
     J.hang(st, J.karta("To kill with the point|lacked artistry.", "1960", True), 360, 130, P.rekwizyty, pr(t, t_bl - 0.2, 0.8), t, 1360,
@@ -1024,7 +1021,7 @@ def s_przyslowie(st, w, t, T):
     """Karta „…wisdom from the hills.”; na „became” słowo „hills” odkleja się z jednej nitki i spada; na jego miejsce zjeżdża
     „desert”; z dołu sypie się trochę piasku."""
     kam(st, t, I["przyslowie"], CX, 300, 1.1, 0.84)
-    teatr_kz(st, t, w)
+    pustynia(st, t, w)
     st.spot = (CX, 300, P.rekwizyty, 620, 0.4)
     t_bec = sl("przyslowie", "became")
     J.hang(st, J.karta("Polish comes from the city,|wisdom from the", "1960", True), CX, 120, P.rekwizyty, pr(t, 0.1, 0.8), t, 1370,
@@ -1048,7 +1045,7 @@ def s_zastrzezenie(st, w, t, T):
     """Kamera odjeżdża: stosy innych książek i map pustyni; na „Paul is not Shamil” lalka Szamila stoi z boku i kręci głową;
     na „his war” kładzie dłoń na stosie książek (Herbert czerpał z wielu źródeł — księga D4)."""
     kam(st, t, I["zastrzezenie"], CX, 400, lerp(1.4, 1.0, ease(t / T)), 0.8)
-    teatr_kz(st, t, w)
+    biblioteka_sc(st, t, w, noc=True)
     t_paul, t_war = sl("zastrzezenie", "paul"), sl("zastrzezenie", "war")
     for n, (x, key) in enumerate(((330, "ksiazki"), (520, "mapa_pustyni"), (720, "ksiazki"), (900, "ksiazki"))):
         st.put(J.rek_kz(key), x, STOPY + 4, P.lalki + 0.01 * (n % 2), h=140 if key == "ksiazki" else 120, anchor=(0.5, 1.0), rot=4 * (n % 2 - 0.5))
@@ -1082,7 +1079,7 @@ def s_biala_flaga(st, w, t, T):
     """Szamil na grani podnosi białą flagę (drzewce w dłoni — kontrola); obok cień syna w mundurze rozwiewa się jak dym; Szamil
     opuszcza flagę i patrzy na wydmę."""
     kam(st, t, I["biala_flaga"], 980, 430, lerp(1.2, 1.5, ease(t / T)), 0.8)
-    teatr_kz(st, t, w)
+    gran_wieczor_sc(st, t, w)
     t_flag, t_son = sl("biala_flaga", "white"), sl("biala_flaga", "son")
     opuszcza = ease(pr(t, po_kw("biala_flaga", 0.2), 0.8))
     szk = K.lalka(st, t, "Szamil", w.szamil, 960, 300, flip=-1, przod=lerp(10, 150, ease(pr(t, t_flag - 1.2, 1.0))) - 120 * opuszcza,

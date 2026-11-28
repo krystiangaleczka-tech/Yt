@@ -682,7 +682,7 @@ def drukarnia(st, t, w, obrot=0.0, kul=True, podskok=0.0):
 
 def spod(st, kolor=(130, 96, 66)):
     """Stały pas podłogi pod ścianą wnętrza: zanim wjedzie podłoga (budowa dekoracji), pod ścianą nie świeci puste płótno."""
-    st.put(J.podloga(kolor), CX, 700, P.miasto - 0.002, w=2200, anchor=(0.5, 0.0), shadow=None, tint=(0.7, 0.7, 0.7))
+    st.put(J.grunt(kolor), CX, 700, P.miasto - 0.002, w=2200, anchor=(0.5, 0.0), shadow=None, tint=(0.7, 0.7, 0.7))
 
 
 def mapa_scena(st, t, w, k=1.0, x=640, y=40, wd=820, sciana="deski"):
@@ -766,11 +766,20 @@ def gory_pasmo(st, t, w, which, x, y, p, d=0.1, wd=2000, tint=None, haze=0.0, se
 GORY_SY = {"dal": 0.55, "srodek": 0.55, "blisko": 0.6}  # pasma niższe niż arkusz: niebo zostaje nad górami (przegląd 28.11)
 
 
-def teatr_kz(st, t, w, lewa=1.0, prawa=1.0, wydma_k=1.0, gory_k=1.0, kul=True):
-    """Scena podzielona: z lewej wydma (Arrakis), z prawej ośnieżone góry Kaukazu (prolog i puenta)."""
-    _niebo_kz(st, w, (0.96, 0.9, 0.82))
-    slonce(st, t, w, xy=(330, 120))
-    chmury(st, t, w, k=(0.0, 1.0, 1.0))
+def teatr_kz(st, t, w, lewa=1.0, prawa=1.0, wydma_k=1.0, gory_k=1.0, kul=True, pora=None):
+    """Scena podzielona: z lewej wydma (Arrakis), z prawej ośnieżone góry Kaukazu (prolog i puenta). pora — „noc”, „zmierzch”
+    albo None (dzień): akt VI pokazuje tę samą scenę o różnych porach (dekoracje 2, reżyser 28.11)."""
+    if pora:
+        niebo_pory(st, w, pora)
+        if pora == "noc":
+            ksiezyc(st, t, bk(w, 0.2), 980, 120)
+            gwiazdy(st, t, bk(w, 0.3), seed=15)
+        else:
+            slonce(st, t, w, xy=(330, 380))
+    else:
+        _niebo_kz(st, w, (0.96, 0.9, 0.82))
+        slonce(st, t, w, xy=(330, 120))
+        chmury(st, t, w, k=(0.0, 1.0, 1.0))
     if gory_k > 0:
         Z0.rise(st, J.gory("dal", 2), 1180, 610, P.gory_dal, min(gory_k, prawa, bk(w, 0.1, 0.9)), t, 801, w=1500, wob=0.0, lift=420,
                 haze=0.15, anchor=(0.5, 1.0), sy=0.6)
@@ -850,16 +859,26 @@ def sala_balowa(st, t, w):
     rampa(st, bk(w, 0.7, 0.6))
 
 
-def miczik(st, t, w):
-    """Rzeka Miczik: góry w marcu (śnieg na szczytach), dwa kamieniste brzegi, płytki bród pośrodku."""
-    _niebo_kz(st, w, (0.92, 0.94, 0.98))
-    slonce(st, t, w)
+MICZIK_SWIATLO = {"rzeka": 0.0, "przeprawa": 0.15, "syn_wraca": 0.45, "mundur": 0.7, "uscisk": 1.0}  # dzień → złoto → zachód
+
+
+def miczik(st, t, w, swiatlo=None):
+    """Rzeka Miczik: góry w marcu (śnieg na szczytach), dwa kamieniste brzegi, płytki bród pośrodku. swiatlo 0..1 — wymiana
+    trwa od dnia do zachodu (dekoracje 2, reżyser 28.11: tę samą scenerię pokazać w inny sposób): niebo, słońce coraz niżej
+    i cieplejsze barwy w kolejnych ujęciach sceny (MICZIK_SWIATLO)."""
+    swiatlo = swiatlo or 0.0
+    if swiatlo > 0.6:
+        niebo_pory(st, w, "zmierzch")
+    else:
+        _niebo_kz(st, w, (lerp(0.92, 1.02, swiatlo / 0.6), lerp(0.94, 0.9, swiatlo / 0.6), lerp(0.98, 0.76, swiatlo / 0.6)))
+    slonce(st, t, w, xy=(lerp(980, 1120, swiatlo), lerp(110, 380, swiatlo)))
     chmury(st, t, w)
-    gory_pasmo(st, t, w, "dal", CX, 560, P.gory_dal, 0.1, haze=0.2, seed=5)
-    gory_pasmo(st, t, w, "srodek", CX, 620, P.gory, 0.2, seed=5)
-    Z0.rise(st, J.brzeg(-1), 200, 690, P.most, bk(w, 0.35), t, 880, w=760, wob=0.0, lift=200, anchor=(0.5, 1.0))
-    Z0.rise(st, J.brzeg(1), 1080, 690, P.most, bk(w, 0.35), t, 881, w=760, wob=0.0, lift=200, anchor=(0.5, 1.0))
-    Z0.rise(st, J.rzeka(False), CX, 740, P.droga, bk(w, 0.45), t, 882, w=2000, wob=0.0, lift=160, anchor=(0.5, 1.0))
+    ciep = (lerp(1.0, 1.08, swiatlo), lerp(1.0, 0.84, swiatlo), lerp(1.0, 0.8, swiatlo))
+    gory_pasmo(st, t, w, "dal", CX, 560, P.gory_dal, 0.1, haze=0.2, seed=5, tint=ciep)
+    gory_pasmo(st, t, w, "srodek", CX, 620, P.gory, 0.2, seed=5, tint=ciep)
+    Z0.rise(st, J.brzeg(-1), 200, 690, P.most, bk(w, 0.35), t, 880, w=760, wob=0.0, lift=200, anchor=(0.5, 1.0), tint=ciep)
+    Z0.rise(st, J.brzeg(1), 1080, 690, P.most, bk(w, 0.35), t, 881, w=760, wob=0.0, lift=200, anchor=(0.5, 1.0), tint=ciep)
+    Z0.rise(st, J.rzeka(False), CX, 740, P.droga, bk(w, 0.45), t, 882, w=2000, wob=0.0, lift=160, anchor=(0.5, 1.0), tint=ciep)
     rampa(st, bk(w, 0.7, 0.6))
 
 
@@ -979,7 +998,7 @@ def las_bukowy(st, t, w, ciemno=0.0, droga=True, kul=True, x0=0.0):
     _niebo_kz(st, w, (lerp(1.0, 0.7, ciemno), lerp(1.0, 0.74, ciemno), lerp(1.0, 0.7, ciemno)))
     slonce(st, t, w, alpha=1.0 - ciemno)
     chmury(st, t, w)
-    gory_pasmo(st, t, w, "dal", CX, 560, P.gory_dal, 0.1, haze=0.3, seed=9, tint=(0.8, 0.86, 0.8))
+    wzgorza(st, t, w, 18, CX, 590, P.gory_dal, (110, 130, 110), d=0.1, haze=0.4)
     for n in range(8):
         x = (-80 + n * 200 + x0 * 0.5) % 1600 - 160
         Z0.rise(st, J.rek_kz("buk"), x, 620, P.gory + 0.004 * n, bk(w, 0.15 + 0.04 * n), t, 980 + n, h=330, wob=0.2, anchor=(0.5, 1.0),
@@ -1005,3 +1024,323 @@ def kaluga_sc(st, t, w, kul=True):
     rampa(st, bk(w, 0.7, 0.6))
     if kul:
         kulisy(st, t, w, gazeta=False)
+
+
+# =====================================================================================================================
+# ---------- dekoracje 2 (reżyser 28.11, po 2 minutach szkicu E): „od 40 s cały czas to samo, te góry… powinno ich być
+# co najmniej 4 przez 2 minuty… jeśli to mają być góry, to pokazujemy je w jeden sposób, potem w inny”; „wziąłeś biuro
+# z Bonnie i Clyde — ma być zupełnie inne”. Każde miejsce ma swoją dekorację, porę dnia i kompozycję; pasma gór
+# (gory_pasmo) stoją tylko w planach ogólnych gór, nie w każdym tle.
+# =====================================================================================================================
+
+def niebo_pory(st, w, pora):
+    st.put(J.niebo_pora(pora), CX, CY, P.niebo, w=1760, anchor=(0.5, 0.5), shadow=None)
+
+
+def wzgorza(st, t, w, v, x, y, p, kolor, d=0.1, wd=2000, haze=0.0, sy=1.0):
+    Z0.rise(st, J.wzgorza(v, kolor), x, y, p, bk(w, d, 0.9), t, 1300 + v, w=wd, wob=0.0, lift=300, haze=haze, anchor=(0.5, 1.0), sy=sy)
+
+
+def klif(st, t, w, v, x, y, p, h=1000, d=0.2, kolor=(132, 116, 96), tint=None):
+    Z0.rise(st, J.klif(v, kolor), x, y, p, bk(w, d, 0.9), t, 1310 + v, h=h, wob=0.0, lift=600, anchor=(0.5, 1.0), tint=tint)
+
+
+def ziemia(st, t, w, kolor=(128, 112, 90), y=800, d=0.3, bruk=False):
+    """Ziemia sceny pod lalkami (zamiast desek „Bonnie and Clyde”): ubita ziemia z kamykami albo (bruk) kamienna posadzka."""
+    Z0.rise(st, (J.bruk if bruk else J.grunt)(kolor), CX, y, P.droga, bk(w, d), t, 1320, w=2200, anchor=(0.5, 1.0), lift=200, wob=0)
+
+
+def rzeka_wieczor(st, t, w):
+    """Rzeka o zmierzchu (hak: wymiana na rzece widziana z przyszłości): pomarańczowe niebo, nisko słońce, ciemnofioletowe
+    łagodne wzgórza zamiast postrzępionych gór, brzegi i woda w ciepłym odblasku."""
+    niebo_pory(st, w, "zmierzch")
+    slonce(st, t, w, xy=(980, 380))
+    wzgorza(st, t, w, 1, CX, 600, P.gory_dal, (96, 80, 120), d=0.1, haze=0.15)
+    wzgorza(st, t, w, 2, CX + 200, 650, P.gory, (70, 58, 92), d=0.2)
+    Z0.rise(st, J.brzeg(-1), 200, 690, P.most, bk(w, 0.35), t, 880, w=760, wob=0.0, lift=200, anchor=(0.5, 1.0), tint=(0.8, 0.66, 0.6))
+    Z0.rise(st, J.brzeg(1), 1080, 690, P.most, bk(w, 0.35), t, 881, w=760, wob=0.0, lift=200, anchor=(0.5, 1.0), tint=(0.8, 0.66, 0.6))
+    Z0.rise(st, J.rzeka(False), CX, 740, P.droga, bk(w, 0.45), t, 882, w=2000, wob=0.0, lift=160, anchor=(0.5, 1.0), tint=(1.15, 0.86, 0.7))
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+def wieza_sc(st, t, w, wieza_x, mrok=0.0):
+    """Wieża w Gimry z bliska: niebo późnego popołudnia (mrok — zmierzch), za wieżą stromy stok wąwozu (klif), daleko tylko
+    mglista łagodna linia; ziemia z kamieniami. Bez aułu i bez pasm gór (ujęcie „gimry” pokazuje całą wioskę)."""
+    niebo_pory(st, w, "zmierzch" if mrok > 0.5 else "lato")
+    if mrok <= 0.5:
+        slonce(st, t, w, xy=(1080, 150), alpha=1.0 - mrok)
+    wzgorza(st, t, w, 3, CX, 620, P.gory_dal, (150, 150, 170), d=0.1, haze=0.4)
+    klif(st, t, w, 0, 1180, 780, P.gory, h=900, d=0.2)
+    klif(st, t, w, 3, 40, 760, P.wzgorza, h=640, d=0.25, kolor=(112, 98, 82))
+    u = getattr(st, "uklad", None)
+    if u is not None:
+        with u.obiekt("wieża", "dekoracja"):
+            Z0.rise(st, J.rek_kz("wieza"), wieza_x, 712, P.most, bk(w, 0.45, 0.8), t, 971, h=560, wob=0.0, lift=600, anchor=(0.5, 1.0))
+    else:
+        Z0.rise(st, J.rek_kz("wieza"), wieza_x, 712, P.most, bk(w, 0.45, 0.8), t, 971, h=560, wob=0.0, lift=600, anchor=(0.5, 1.0))
+    ziemia(st, t, w, (126, 110, 88))
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+def wawoz_sc(st, t, w):
+    """Wąwóz o zmierzchu: dwie strome ściany skalne po bokach, między nimi pas nieba i mglista dal, potok na dnie."""
+    niebo_pory(st, w, "zmierzch")
+    wzgorza(st, t, w, 4, CX, 640, P.gory_dal, (120, 100, 140), d=0.1, haze=0.35, wd=1200)
+    klif(st, t, w, 1, 130, 800, P.gory, h=1060, d=0.15, kolor=(104, 90, 80))
+    klif(st, t, w, 2, 1180, 800, P.gory + 0.002, h=1100, d=0.2, kolor=(96, 84, 76))
+    Z0.rise(st, J.rzeka(False), CX, 790, P.drzewa, bk(w, 0.4), t, 1330, w=2000, wob=0.0, lift=160, anchor=(0.5, 1.0), sy=0.45, tint=(0.8, 0.7, 0.8))
+    ziemia(st, t, w, (96, 86, 76), y=810)
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+def dziedziniec_sc(st, t, w):
+    """Dziedziniec meczetu w aule: arkada z ostrymi łukami, drewniana galeria, minaret, kamienna posadzka; jasne letnie niebo."""
+    niebo_pory(st, w, "lato")
+    slonce(st, t, w, xy=(260, 120))
+    chmury(st, t, w, k=(1.0, 0.0, 1.0))
+    Z0.rise(st, J.arkady(), CX, 700, P.miasto, bk(w, 0.2, 0.9), t, 1340, w=1700, wob=0.0, lift=520, anchor=(0.5, 1.0))
+    Z0.rise(st, J.minaret_szczyt(), CX + 1520 - 850, 700 - 760 + 2, P.miasto - 0.001, bk(w, 0.4, 0.8), t, 1341, w=140, wob=0.0, lift=300,
+            anchor=(0.5, 1.0))
+    ziemia(st, t, w, (170, 156, 132), bruk=True)
+    rampa(st, bk(w, 0.7, 0.6))
+
+
+def gabinet_cara(st, t, w, okno_x=1010, noc=False, portret_x=None, orzel_x=None):
+    """Gabinet w Pałacu Zimowym (zamiast tapety i okna „Bonnie and Clyde”): szaroniebieska ściana z płycinami i złotymi
+    pilastrami, łukowe okno z karmazynowymi zasłonami i widokiem na Newę, dwugłowy orzeł, portret w złotej ramie, parkiet."""
+    st.put(J.sciana_palac(), CX, 720, P.miasto, w=2200, anchor=(0.5, 1.0), shadow=None)
+    spod(st, (150, 104, 66))
+    J.hang(st, J.okno_palac(noc), okno_x, 80, P.miasto + 0.01, bk(w, 0.2), t, 1350, h=520, drop=520, sway=0.25, strings=(0.15, 0.85))
+    if orzel_x is not None:
+        J.hang(st, J.orzel(), orzel_x, 60, P.miasto + 0.011, bk(w, 0.35), t, 1351, h=170, drop=420, sway=0.3, strings=(0.3, 0.7))
+    if portret_x is not None:
+        J.hang(st, J.portret(), portret_x, 150, P.miasto + 0.012, bk(w, 0.45), t, 1352, h=230, drop=440, sway=0.3, strings=(0.25, 0.75))
+    Z0.rise(st, J.parkiet(), CX, 820, P.droga, bk(w, 0.3), t, 1353, w=2200, wob=0.0, lift=220, anchor=(0.5, 1.0))
+    st.put(J.glow(), okno_x, 330, P.miasto + 0.013, w=760, anchor=(0.5, 0.5), mode="add", alpha=0.12 if not noc else 0.05, shadow=None,
+           tint=(1.0, 0.96, 0.86))
+    rampa(st, bk(w, 0.6, 0.6))
+
+
+def przelecz_sc(st, t, w):
+    """Przełęcz: kamienista droga między dwiema ścianami skał, w przerwie mglista dal; ostre letnie słońce."""
+    niebo_pory(st, w, "lato")
+    slonce(st, t, w, xy=(640, 110))
+    chmury(st, t, w, k=(1.0, 1.0, 0.0))
+    wzgorza(st, t, w, 5, CX, 600, P.gory_dal, (150, 160, 176), d=0.1, haze=0.45, wd=1400)
+    klif(st, t, w, 3, 140, 720, P.gory, h=820, d=0.15, kolor=(150, 130, 104))
+    klif(st, t, w, 4, 1140, 720, P.gory + 0.002, h=760, d=0.2, kolor=(140, 122, 98))
+    ziemia(st, t, w, (160, 140, 110))
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+def bateria_sc(st, t, w):
+    """Rosyjska bateria pod Achulgo: szańce z koszami na pierwszym planie, w oddali mała skała z twierdzą w dymie."""
+    niebo_pory(st, w, "dym")
+    chmury(st, t, w, k=(1.0, 1.0, 1.0))
+    wzgorza(st, t, w, 6, CX, 600, P.gory_dal, (150, 130, 110), d=0.1, haze=0.35)
+    Z0.rise(st, J.skala(), 900, 610, P.gory, bk(w, 0.2, 0.9), t, 1360, w=300, wob=0.0, lift=480, anchor=(0.5, 1.0), haze=0.25)
+    Z0.rise(st, J.twierdza(), 900, 610 - 300 * 620 / 760 + 300 * 100 / 760 + 4, P.gory - 0.001, bk(w, 0.35, 0.8), t, 1361, w=200, wob=0.0,
+            lift=260, anchor=(0.5, 1.0), haze=0.25)
+    Z0.rise(st, J.szance(), CX, 760, P.wzgorza, bk(w, 0.4, 0.9), t, 1362, w=1800, wob=0.0, lift=260, anchor=(0.5, 1.0))
+    ziemia(st, t, w, (120, 100, 78))
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+def brama_sc(st, t, w):
+    """Brama twierdzy Achulgo z bliska: mur z blankami i zamkniętymi wrotami wypełnia scenę; nad nim letnie niebo."""
+    niebo_pory(st, w, "lato")
+    chmury(st, t, w, k=(1.0, 1.0, 1.0))
+    Z0.rise(st, J.brama_twierdzy(), CX, 740, P.miasto, bk(w, 0.25, 0.9), t, 1370, w=1500, wob=0.0, lift=560, anchor=(0.5, 1.0))
+    ziemia(st, t, w, (140, 124, 98))
+    rampa(st, bk(w, 0.7, 0.6))
+
+
+SKALA_OBOZ = (1180, 785, 420)  # x, dół, szerokość skały w obozie: płaski szczyt na y ≈ 500 (tam stoi Szamil)
+
+
+def oboz_sc(st, t, w, namioty=5):
+    """Obóz oblężniczy: brązowe letnie wzgórza, z prawej skała Achulgo (na szczycie stoi Szamil), rzędy namiotów."""
+    niebo_pory(st, w, "lato")
+    slonce(st, t, w, xy=(300, 130))
+    wzgorza(st, t, w, 7, CX, 620, P.gory_dal, (170, 146, 104), d=0.1, haze=0.2)
+    x, y, wd = SKALA_OBOZ
+    Z0.rise(st, J.skala(), x, y, P.gory, bk(w, 0.2, 0.9), t, 1380, w=wd, wob=0.0, lift=480, anchor=(0.5, 1.0))
+    for n in range(namioty):
+        Z0.rise(st, J.rek_kz("namiot"), 120 + n * 170 - (n % 2) * 40, 690 + (n % 2) * 6, P.droga + 0.004 * n, bk(w, 0.5 + 0.05 * n),
+                t, 1381 + n, h=120 - (n % 2) * 14, wob=0.0, anchor=(0.5, 1.0))
+    ziemia(st, t, w, (150, 128, 96))
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+SKALA_SCIANA = (CX, 850, 1500)  # x, dół, szerokość skały z jaskiniami (ujęcie „upadek”): nad skałą widać mur i niebo
+
+
+def skala_sc(st, t, w):
+    """Skała Achulgo z bliska po upadku: ściana z jaskiniami wypełnia kadr, u góry płonący mur, niebo w dymie."""
+    niebo_pory(st, w, "dym")
+    x, y, wd = SKALA_SCIANA
+    Z0.rise(st, J.skala_sciana(), x, y, P.most, bk(w, 0.2, 0.9), t, 1390, w=wd, wob=0.0, lift=560, anchor=(0.5, 1.0))
+    Z0.rise(st, J.mur(1500, 120), CX, skala_szczyt() + 16, P.most - 0.002, bk(w, 0.4, 0.8), t, 1391, w=1300, wob=0.0, lift=200,
+            anchor=(0.5, 1.0))
+    ziemia(st, t, w, (110, 96, 80))
+    rampa(st, bk(w, 0.7, 0.6))
+
+
+def skala_szczyt():
+    """y górnej krawędzi skały z jaskiniami na ekranie (mur twierdzy stoi na niej)."""
+    x, y, wd = SKALA_SCIANA
+    return y - 760 * wd / 1700 + 100 * wd / 1700
+
+
+def skala_jaskinia(n):
+    """Środek wejścia do n-tej jaskini na ekranie (sceny skala_sc) i szerokość otworu."""
+    x, y, wd = SKALA_SCIANA
+    s = wd / 1700
+    cx, cy = J.SKALA_JASKINIE[n]
+    return x - wd / 2 + cx * s, y - 760 * s + cy * s, 140 * s
+
+
+def ostaniec_sc(st, t, w):
+    """Ostaniec w zimie: skalna ściana z boku, za nią szara zimowa dal i łagodne zaśnieżone wzgórza, pada śnieg."""
+    niebo_pory(st, w, "zima")
+    wzgorza(st, t, w, 8, CX, 620, P.gory_dal, (226, 228, 234), d=0.1, haze=0.3)
+    wzgorza(st, t, w, 9, CX - 300, 680, P.gory, (208, 212, 220), d=0.2)
+    klif(st, t, w, 5, 160, 790, P.wzgorza, h=980, d=0.25, kolor=(120, 112, 108))
+    ziemia(st, t, w, (220, 222, 228))
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+# ---------- dekoracje 2, akty III–VI ----------
+
+def sala_tyflis_sc(st, t, w):
+    """Pałac namiestnika w Tyflisie (Woroncow): ochrowa sala z ostrołukowymi oknami i dywanem na ścianie, żyrandol."""
+    spod(st, (96, 64, 44))
+    st.put(J.sala_tyflis(), CX, 740, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None)
+    rampa(st, bk(w, 0.7, 0.6))
+
+
+def sala_tronowa_sc(st, t, w):
+    """Sala tronowa: czerwone obicia, tron pod baldachimem, czerwony chodnik."""
+    spod(st, (176, 150, 120))
+    st.put(J.sala_tronowa(), CX, 740, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None)
+    rampa(st, bk(w, 0.7, 0.6))
+
+
+def namiot_sc(st, t, w):
+    """Namiot polowy Woroncowa: płótno, maszty, odchylona poła z widokiem na las; ubita ziemia."""
+    st.put(J.namiot_wnetrze(), CX, 740, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None)
+    ziemia(st, t, w, (130, 112, 84), y=820)
+    rampa(st)
+
+
+def izba_kz(st, t, w, v=0, okno_x=None, noc=False):
+    """Izba w aule, trzy różne pokoje jednego domu (zamiast muru i okna „Bonnie and Clyde”): 0 — izba Szamila z dywanem
+    i niszą, 1 — pokój syna z półką rosyjskich książek, 2 — sypialnia nocą ze skrzynią; okienko z okiennicami, dywan na podłodze."""
+    ciemnosc(st, (0.22, 0.16, 0.11))
+    st.put(J.izba_sciana(v), CX, 730, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None, tint=(0.62, 0.58, 0.6) if noc else None)
+    if okno_x is not None:
+        st.put(J.okienko(noc), okno_x, 300, P.most, w=200, anchor=(0.5, 0.5))
+    ziemia(st, t, w, (120, 92, 64), y=820)
+    Z0.rise(st, J.dywan(v), CX, 800, P.droga + 0.01, bk(w, 0.4), t, 1400 + v, w=1500, wob=0.0, lift=120, anchor=(0.5, 1.0), sy=0.5)
+    rampa(st, bk(w, 0.6, 0.6))
+
+
+def przedgorze_sc(st, t, w):
+    """Przedgórze Czeczenii (Tołstoj): zielone łagodne wzgórza, wąski Terek, kozacka strażnica na słupach, trawa."""
+    niebo_pory(st, w, "lato")
+    slonce(st, t, w, xy=(1000, 130))
+    chmury(st, t, w)
+    wzgorza(st, t, w, 10, CX, 600, P.gory_dal, (130, 150, 120), d=0.1, haze=0.3)
+    wzgorza(st, t, w, 11, CX + 300, 660, P.gory, (104, 128, 76), d=0.2)
+    Z0.rise(st, J.straznica(), 1040, 650, P.miasto, bk(w, 0.3, 0.9), t, 1410, h=300, wob=0.0, lift=360, anchor=(0.5, 1.0))
+    Z0.rise(st, J.rzeka(False), CX, 700, P.most, bk(w, 0.35), t, 1411, w=2000, wob=0.0, lift=160, anchor=(0.5, 1.0), sy=0.3)
+    ziemia(st, t, w, (118, 132, 80))
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+def polka_sc(st, t, w):
+    """Półka nad przepaścią (księżne w drodze w góry): z lewej wysoka ściana skały, z prawej głęboka dolina z rzeką daleko
+    w dole, chmury poniżej ścieżki."""
+    niebo_pory(st, w, "lato")
+    slonce(st, t, w, xy=(1050, 110))
+    wzgorza(st, t, w, 12, CX + 200, 700, P.gory_dal, (140, 150, 170), d=0.1, haze=0.4)
+    Z0.rise(st, J.rzeka(False), CX + 300, 690, P.gory_dal + 0.002, bk(w, 0.2), t, 1420, w=1200, wob=0.0, lift=120, anchor=(0.5, 1.0), sy=0.2,
+            haze=0.4)
+    chmury(st, t, w, k=(0.0, 1.0, 1.0))
+    klif(st, t, w, 7, 120, 760, P.gory, h=1100, d=0.15, kolor=(138, 120, 98))
+    ziemia(st, t, w, (140, 124, 100))
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+def wedeno_sc(st, t, w):
+    """Wedeno: stolica Szamila w lesistych górach — ciemnozielone zalesione stoki zamiast skał, buki w oddali."""
+    _niebo_kz(st, w)
+    if w.noc > 0.5:
+        gwiazdy(st, t, bk(w, 0.3), seed=13)
+    else:
+        slonce(st, t, w)
+        chmury(st, t, w)
+    wzgorza(st, t, w, 13, CX, 590, P.gory_dal, (78, 100, 80), d=0.1, haze=0.3)
+    for n in range(7):
+        x = 60 + n * 200
+        Z0.rise(st, J.rek_kz("buk"), x, 640, P.gory + 0.003 * n, bk(w, 0.2 + 0.04 * n), t, 1430 + n, h=300, wob=0.15, anchor=(0.5, 1.0),
+                haze=0.25, tint=(0.7, 0.8, 0.7))
+    wzgorza(st, t, w, 14, CX - 200, 680, P.gory + 0.03, (70, 92, 60), d=0.25)
+    ziemia(st, t, w, (110, 100, 80))
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+def kaluga_sc2(st, t, w):
+    """Kaługa: rosyjska równina bez gór — płaskie zielone pola, brzozy, w oddali biała cerkiew ze złotymi kopułami."""
+    niebo_pory(st, w, "lato")
+    slonce(st, t, w)
+    chmury(st, t, w)
+    wzgorza(st, t, w, 15, CX, 600, P.gory_dal, (140, 160, 110), d=0.1, haze=0.3, sy=0.5)
+    Z0.rise(st, J.cerkiew(), 300, 600, P.gory, bk(w, 0.2, 0.9), t, 1440, h=210, wob=0.0, lift=300, anchor=(0.5, 1.0), haze=0.2)
+    for n, x in enumerate((90, 1180, 1260)):
+        Z0.rise(st, J.rek_kz("brzoza"), x, 680, P.gory + 0.01 + 0.002 * n, bk(w, 0.3 + 0.05 * n), t, 1441 + n, h=420, wob=0.2, anchor=(0.5, 1.0))
+    Z0.rise(st, J.rek_kz("dom_kaluga"), 760, 650, P.miasto, bk(w, 0.3, 0.9), t, 1000, w=760, wob=0.0, lift=460, anchor=(0.5, 1.0))
+    ziemia(st, t, w, (110, 130, 80))
+    rampa(st, bk(w, 0.7, 0.6))
+    kulisy(st, t, w, gazeta=False)
+
+
+def pracownia_sc(st, t, w, v=0):
+    """Pracownia pisarza (zamiast tapety „Bonnie and Clyde”): 0 — Londyn 1960, regały z książkami i okno gilotynowe;
+    1 — Herbert 1965, ściana z sęczastej sosny, żaluzje, korkowa tablica."""
+    if v == 0:
+        st.put(J.regaly(0), CX, 730, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None)
+        J.hang(st, J.okno_londyn(), 1000, 130, P.miasto + 0.01, bk(w, 0.2), t, 1450, h=360, drop=500, sway=0.25, strings=(0.1, 0.9))
+    else:
+        st.put(J.panele_sosna(), CX, 730, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None)
+    ziemia(st, t, w, (120, 92, 64), y=820)
+    rampa(st, bk(w, 0.6, 0.6))
+
+
+def biblioteka_sc(st, t, w, noc=False):
+    """Biblioteka (akt VI, dowód ze słów): ściana regałów z książkami, ciepłe światło lampy."""
+    st.put(J.regaly(0 if noc else 1), CX, 730, P.miasto, w=2100, anchor=(0.5, 1.0), shadow=None, tint=(0.8, 0.76, 0.72) if noc else None)
+    st.put(J.glow(), 900, 300, P.miasto + 0.01, w=900, anchor=(0.5, 0.5), mode="add", alpha=0.16, shadow=None, tint=(1.0, 0.86, 0.6))
+    ziemia(st, t, w, (110, 84, 60), y=820)
+    rampa(st, bk(w, 0.6, 0.6))
+
+
+def gran_wieczor_sc(st, t, w):
+    """Grań o zmierzchu (puenta: biała flaga): ściana skały z boku, pomarańczowe niebo, ciemne łagodne pasma w dole."""
+    niebo_pory(st, w, "zmierzch")
+    slonce(st, t, w, xy=(300, 400))
+    wzgorza(st, t, w, 16, CX, 640, P.gory_dal, (96, 76, 116), d=0.1, haze=0.2)
+    wzgorza(st, t, w, 17, CX + 400, 700, P.gory, (64, 52, 82), d=0.2)
+    klif(st, t, w, 8, 1260, 780, P.wzgorza, h=900, d=0.25, kolor=(98, 84, 86))
+    ziemia(st, t, w, (90, 76, 80))
+    rampa(st, bk(w, 0.7, 0.6))

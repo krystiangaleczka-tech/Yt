@@ -16,6 +16,8 @@ from scena import (CX, CY, I, J, P, STOPY, Z0, _off, arrakis_sc, back, bk, blysk
                    gimry_sc, gwiazdy, iks, izba, jaskinia, jazda, kam, kaukaz, ksiezyc, kulisy, lalka, las_bukowy, lerp, miczik,
                    mur_przod, noise, parawan, petersburg, podpis, pr, rampa, gruzja, sala_balowa, settle, siegnij, snieg, swiatlo,
                    teatr_kz, zawieszki, pustynia, ciemnosc, slonce, kaluga_sc, wnetrze, gory_pasmo)
+from scena import (SKALA_OBOZ, bateria_sc, brama_sc, dziedziniec_sc, gabinet_cara, klif, oboz_sc, ostaniec_sc,  # noqa: F401,E402
+                   przelecz_sc, rzeka_wieczor, skala_jaskinia, skala_sc, skala_szczyt, wawoz_sc, wieza_sc)
 
 ZOLNIERZE = ("zolnierz", "zolnierz2", "zolnierz3", "zolnierz4", "zolnierz5", "zolnierz6")  # sześć różnych żołnierzy (1.6)
 MURIDZI = ("murid", "murid2", "murid3", "murid4", "murid5", "sado")
@@ -291,7 +293,7 @@ def s_hak_syn(st, w, t, T):
     kartki kalendarza przelatują nad rzeką („Sixteen years later”); młody mężczyzna w rosyjskim mundurze wjeżdża w bród
     i staje na środku. Bez imienia i bez podpisu (Wytyczne 1.26)."""
     kam(st, t, I["hak_syn"], lerp(760, 640, ease(t / T)), 420, lerp(1.08, 1.18, ease(t / T)), 0.75)
-    miczik(st, t, w)
+    rzeka_wieczor(st, t, w)
     u = K.uk(st, t)
     t_host, t_six, t_rode = sl("hak_syn", "hostage"), sl("hak_syn", "sixteen"), sl("hak_syn", "rode")
     u.rzedy["szereg"] = P.lalki - 0.01
@@ -324,10 +326,10 @@ def s_pytanie(st, w, t, T):
     kartki kalendarza lecą wstecz do 1832, ostatnia trafia maszynistę za kulisami („OUCH!”); wyrasta wioska w wąwozie
     i zawieszka „Gimry, Dagestan, 1832”; ściemnienie."""
     kam(st, t, I["pytanie"], 640, 390, lerp(1.1, 1.0, ease(t / T)), 0.75)
-    t_des, t_starts, t_gimry = sl("pytanie", "desert"), sl("pytanie", "starts"), sl("pytanie", "gimry")
+    t_des, t_starts, t_gimry = sl("pytanie", "desert"), sl("pytanie", "begins"), sl("pytanie", "gimry")
     wydma = ease(pr(t, t_des - 0.2, 0.8)) * (1 - ease(pr(t, t_des + 1.6, 0.8)))
     if t < t_starts + 1.4:
-        miczik(st, t, w)
+        rzeka_wieczor(st, t, w)
         K.lalka(st, t, "Szamil", w.szamil, 1060, 300, flip=-1, przod=6, alpha=1 - pr(t, t_starts + 0.8, 0.6))
         jezdziec(st, t, "dzamal_oficer", 640, y=STOPY + 10, p=P.lalki + 0.01, flip=1, h=230, galop=0.0, seed=3,
                  k=1 - pr(t, t_starts + 0.6, 0.6))
@@ -379,7 +381,7 @@ def s_wieza(st, w, t, T):
     stron; na „killed” Ghazi znika z okna, a jego papacha spada z okna i zostaje na ziemi (ślad śmierci, bez gagu, 1.11);
     pod drzwiami żołnierze stają w szereg z bagnetami w górę."""
     kam(st, t, I["wieza"], 560, 380, 1.2, 0.75)
-    gimry_sc(st, t, w, wieza_x=WIEZA_X, aul_x=980)
+    wieza_sc(st, t, w, WIEZA_X, mrok=0.0)
     u = K.uk(st, t)
     t_trap, t_kill, t_door = sl("wieza", "trapped"), sl("wieza", "killed"), sl("wieza", "door")
     # okno wieży: otwór (108..192, 148..244) arkusza 300 × 900 przy h 560 → piksele kadru
@@ -420,7 +422,7 @@ def s_skok(st, w, t, T):
     t_jump = sl("skok", "jumped")
     t_land = t_jump + 1.2
     kam(st, t, I["skok"], lerp(480, 640, ease(pr(t, t_jump, 1.4))), 400, 1.25, 0.78, shake=6 * _bump(t, t_land, 0.15))
-    gimry_sc(st, t, w, wieza_x=WIEZA_X, aul_x=None)
+    wieza_sc(st, t, w, WIEZA_X, mrok=0.8)
     u = K.uk(st, t)
     prog = (WIEZA_X, 712 - 560 * (1 - 820 / 900) - 8)  # podwyższony próg drzwi wieży
     f = pr(t, t_jump, 1.2)
@@ -451,7 +453,7 @@ def s_rana(st, w, t, T):
     """Wąwóz o zmierzchu: Szamil biegnie, zatacza się, ręka przy piersi; żołnierze strzelają w pusty wąwóz; Szamil chowa się
     w szałasie pasterza; z ciemności wychodzi koza, liże go po brodzie, Szamil kładzie palec na ustach („SHH!”) — zasiew kozy."""
     kam(st, t, I["rana"], lerp(520, 760, ease(t / T)), 410, 1.12, 0.78)
-    gimry_sc(st, t, w, wieza_x=None, aul_x=None, zmierzch=0.6)
+    wawoz_sc(st, t, w)
     u = K.uk(st, t)
     t_chest, t_hid = sl("rana", "chest"), sl("rana", "hid")
     u.put("szałas", J.rek_kz("szalas"), 960, STOPY + 4, u.p("lalki", -3), h=300, anchor=(0.5, 1.0))
@@ -497,7 +499,7 @@ def s_imam(st, w, t, T):
     na „imam” unoszą szable falą; nad nimi „TO THE DEATH!”; gag: ostatni murid unosi szablę spóźniony i odwrotnie,
     sprawdza i poprawia."""
     kam(st, t, I["imam"], lerp(700, 620, ease(t / T)), 420, lerp(1.0, 1.12, ease(t / T)), 0.78)
-    kaukaz(st, t, w, aul=1060)
+    dziedziniec_sc(st, t, w)
     u = K.uk(st, t)
     t_imam, t_death = sl("imam", "imam"), sl("imam", "death")
     u.put("kamień", Z0.prop("kamien"), 660, STOPY + 6, u.p("lalki", -2), h=90, anchor=(0.5, 1.0))
@@ -530,10 +532,10 @@ def s_mapa(st, w, t, T):
     w doliny; na „valley” papierowa góra na mapie wstaje z łoskotem i żołnierzyki zjeżdżają z niej jak z sanek; generał
     łapie ostatniego, car marszczy brwi (silnik humoru: mapy imperium kontra góry)."""
     kam(st, t, I["mapa"], 640, 420, 1.15, 0.8)
-    gabinet(st, t, w, okno_x=1080)
+    gabinet_cara(st, t, w, okno_x=1080, orzel_x=330)
     u = K.uk(st, t)
     t_tsar, t_valley = sl("mapa", "tsar"), sl("mapa", "valley")
-    u.mebel("stół", "stol", 640, 190, rzad="przod")
+    u.mebel("stół", "stol_palac", 640, 190, rzad="przod")
     _, blat = u.powierzchnia("stół", "blat", 0.5)
     mapa_w = 520
     st.put(J.mapa_kaukazu(), 640, blat - 2, u.p("przod", 0.5), w=mapa_w, anchor=(0.5, 1.0), sy=0.32, shadow=(3, 4, 6, 0.3))
@@ -564,7 +566,7 @@ def s_marsz(st, w, t, T):
     chowają się; na „vanished” pusto; gag: murid wysuwa się za plecami ostatniego żołnierza i stuka go w ramię, żołnierz się
     odwraca — pusto. Kurtyna w pauzie (render: „Act 2 · What would you give to buy time?”)."""
     kam(st, t, I["marsz"], lerp(560, 740, ease(t / T)), 410, 1.05, 0.75)
-    kaukaz(st, t, w, blisko=True)
+    przelecz_sc(st, t, w)
     u = K.uk(st, t)
     t_struck, t_van = sl("marsz", "struck"), sl("marsz", "vanished")
     for n in range(6):
@@ -623,7 +625,8 @@ def s_armaty(st, w, t, T):
     skałą — bez upadku na oczach."""
     strzaly = (0.6, 1.1, 1.6, 2.3)
     kam(st, t, I["armaty"], 600, 380, 1.1, 0.7, shake=sum(6 * _bump(t, s_, 0.12) for s_ in strzaly))
-    kaukaz(st, t, w, twierdza=True, namioty=3, blisko=False)
+    bateria_sc(st, t, w)
+    klif(st, t, w, 6, 1230, 790, P.wzgorza, h=900, d=0.3)
     u = K.uk(st, t)
     for n, s_ in enumerate(strzaly[:3]):
         x = 140 + n * 150
@@ -633,12 +636,12 @@ def s_armaty(st, w, t, T):
         kk = pr(t, s_ + 0.25, 0.6)
         if 0 < kk < 1:
             for m in range(3):
-                st.put(Z0.prop("kamien"), 640 + m * 30 + 80 * kk, 250 + 120 * kk ** 2 - 40 * kk, P.most + 0.01, h=16, anchor=(0.5, 0.5),
+                st.put(Z0.prop("kamien"), 860 + m * 30 + 60 * kk, 250 + 120 * kk ** 2 - 40 * kk, P.most + 0.01, h=16, anchor=(0.5, 0.5),
                        rot=200 * kk, shadow=None)
     t_att = sl("armaty", "attack")
     gag = po_kw("armaty", 0.0)
     przechyl = ease(pr(t, gag + 0.3, 1.4))
-    dx, dy = 800, STOPY
+    dx, dy = 1010, STOPY
     rot = 14 - 70 * przechyl
     dr = ease(pr(t, t_att - 0.5, 0.5))
     u.put("drabina", J.rek_kz("drabina"), dx, dy, P.lalki - 0.01, h=400 * dr if dr > 0 else 1, anchor=(0.5, 1.0), rot=rot)
@@ -651,7 +654,7 @@ def s_armaty(st, w, t, T):
             K.lalka(st, t, f"żołnierz na drabinie {n + 1}", ZOLNIERZE[n + 1], ax - 6, 150, y=ay + 90, flip=1, glebia=0.5, wejscie=False,
                     lean=rot * 0.6, przod=150, tyl=130, alpha=1 - pr(t, gag + 1.4, 0.3))
     if przechyl > 0:
-        podpis(w, t, "WHOA!", 760, 140, gag + 0.6, 1.8)
+        podpis(w, t, "WHOA!", 960, 140, gag + 0.6, 1.8)
     koniec(st, w, t)
 
 
@@ -659,14 +662,13 @@ def s_amanat(st, w, t, T):
     """Brama twierdzy: nad murem unosi się biała flaga rozmów; Szamil wychodzi z małym chłopcem, dłoń na jego ramieniu; przy
     imieniu podpis „Jamal al-Din, Shamil's son”; dłoń Szamila zostaje jeszcze chwilę i powoli puszcza — bez gagu."""
     kam(st, t, I["amanat"], 640, 430, lerp(1.15, 1.3, ease(t / T)), 0.8)
-    kaukaz(st, t, w, twierdza=True, blisko=False)
+    brama_sc(st, t, w)
     u = K.uk(st, t)
-    u.put("mur", J.mur(900, 120), CX, STOPY + 40, P.lalki + 0.02, w=1300, sy=0.6, anchor=(0.5, 1.0))
     t_host, t_name = sl("amanat", "hostage"), sl("amanat", "jamal")
     flaga = ease(pr(t, 0.6, 0.9))
-    st.put(J.rek_kz("flaga_biala"), 330, STOPY - 60 + (1 - flaga) * 300, P.lalki - 0.01, h=300, anchor=(0.04, 1.0), rot=2 * math.sin(t * 5))
+    st.put(J.rek_kz("flaga_biala"), 1010, STOPY - 60 + (1 - flaga) * 300, P.lalki - 0.01, h=300, anchor=(0.04, 1.0), rot=2 * math.sin(t * 5))
     wych = ease(pr(t, sl("amanat", "unthinkable") - 0.4, 1.2))
-    sx = lerp(980, 650, wych)
+    sx = lerp(700, 430, wych)  # z bramy (środek muru) w lewo
     syn = K.lalka(st, t, "chłopiec", "dzamal_maly", sx + 50, 190, flip=-1, glebia=0.5, hop=4 * (0 < wych < 1))
     kladzie = ease(pr(t, t_host - 0.4, 0.6)) * (1 - ease(pr(t, po_kw("amanat", -0.2), 1.2)))
     start = lambda s: K.U.Uklad.dlon_z_kata(s, 8)
@@ -674,7 +676,7 @@ def s_amanat(st, w, t, T):
     sz = K.lalka(st, t, "Szamil", w.szamil, sx, 300, flip=-1 if wych < 1 else 1, hop=4 * (0 < wych < 1), przod=cel)
     if sz and syn and kladzie >= 0.999:
         u.dotyka("chłopiec", (*sz["przod"]["dlon"], sz["p"]), "dłoń Szamila na ramieniu chłopca", 6.0)
-    podpis(w, t, "Jamal al-Din, Shamil's son", 720, 250, t_name, 3.0)
+    podpis(w, t, "Jamal al-Din, Shamil's son", 500, 250, t_name, 3.0)
     koniec(st, w, t)
 
 
@@ -684,7 +686,7 @@ def s_chlopiec(st, w, t, T):
     był mały i ginął między żołnierzami."""
     x = lerp(1060, 220, ease_out(pr(t, 0.0, T * 0.85)))
     kam(st, t, I["chlopiec"], lerp(900, 420, ease(pr(t, 0.0, T * 0.85))), 470, 1.35, 0.8)
-    kaukaz(st, t, w, namioty=5, blisko=False)
+    oboz_sc(st, t, w)
     u = K.uk(st, t)
     u.rzedy["gora"] = P.gory + 0.01
     zaciska = ease(pr(t, T * 0.45, 0.5))
@@ -705,29 +707,32 @@ def s_chlopiec(st, w, t, T):
 
 
 def s_upadek(st, w, t, T):
-    """Twierdza płonie, dym; na murze staje rosyjska chorągiew; żołnierze z latarniami schodzą do jaskiń w skale i zaglądają
-    w każdą — bez gagu."""
-    kam(st, t, I["upadek"], 660, 380, lerp(1.05, 1.2, ease(t / T)), 0.65)
-    kaukaz(st, t, w, twierdza=True, rzeka_=True, blisko=False)
+    """Skała Achulgo z bliska (dekoracje 2, reżyser 28.11: „pokazujemy je w inny sposób”): u góry płonie mur twierdzy, dym;
+    na „fell” na murze staje rosyjska chorągiew; na „searched” żołnierze z latarniami podchodzą po kolei do trzech jaskiń
+    w skale i zaglądają do środka — bez gagu."""
+    kam(st, t, I["upadek"], 640, lerp(370, 410, ease(t / T)), lerp(1.0, 1.08, ease(t / T)), 0.65)
+    skala_sc(st, t, w)
     t_fell, t_search = sl("upadek", "fell"), sl("upadek", "searched")
-    for n in range(6):
-        plomien(st, 540 + n * 45, 312 + (n % 2) * 8, P.most + 0.004, t, h=30 + 50 * pr(t, t_fell - 0.6, T) + 8 * (n % 2), seed=n * 3)
-        dym(st, 560 + n * 40, 300, P.most + 0.006, t, (t * 0.7 + n * 0.37) % 2.0 + int(t / 2.0) * 2.0 - 2.0, r=130, dl=2.0, seed=n)
+    top = skala_szczyt()
+    for n in range(9):  # płonący mur na krawędzi skały
+        plomien(st, 260 + n * 95, top + 10 + (n % 2) * 6, P.most + 0.004, t, h=60 + 60 * pr(t, t_fell - 0.6, T) + 10 * (n % 2), seed=n * 3)
+        dym(st, 270 + n * 90, top - 70, P.most + 0.006, t, (t * 0.7 + n * 0.37) % 2.0 + int(t / 2.0) * 2.0 - 2.0, r=150, dl=2.0, seed=n)
     k = ease(pr(t, t_fell + 0.4, 0.8))
     if k > 0:
-        st.put(J.rek_kz("flaga_biala"), 700, 270 + (1 - k) * 120, P.most - 0.001, h=120, anchor=(0.04, 1.0), tint=(0.95, 0.4, 0.4))
+        st.put(J.rek_kz("flaga_biala"), 700, top - 90 + (1 - k) * 120, P.most - 0.001, h=150, anchor=(0.04, 1.0), tint=(0.95, 0.4, 0.4))
     u = K.uk(st, t)
     u.rzedy["jaskinie"] = P.most + 0.008
     for n in range(3):
-        jx, jy = 560 + n * 90, 560 + (n % 2) * 40
-        jaskinia(st, jx, jy, P.most + 0.006, h=50)
-        kk = ease(pr(t, t_search + 0.3 * n, 0.6))
+        jx, jy, jw = skala_jaskinia(n)
+        podloga_j = jy + 80
+        kk = ease(pr(t, t_search + 0.5 * n, 0.6))
         if kk > 0:
-            szk = K.lalka(st, t, f"żołnierz z latarnią {n + 1}", ZOLNIERZE[n], jx - 30, 70, y=jy + 4, rzad="jaskinie", flip=1, k=kk, wejscie=False,
-                          przod=80, lean=8 * math.sin(t * 2 + n))
+            zaglada = ease(pr(t, t_search + 0.5 * n + 0.8, 0.6))
+            szk = K.lalka(st, t, f"żołnierz z latarnią {n + 1}", ZOLNIERZE[n], jx - 70 - 40 * (1 - kk), 160, y=podloga_j, rzad="jaskinie",
+                          flip=1, k=kk, wejscie=False, przod=lambda s_, jx=jx, jy=jy: K.w_zasiegu(s_, (jx - 20, jy + 10)), lean=14 * zaglada)
             if szk:
                 hx, hy = szk["przod"]["dlon"]
-                st.put(J.glow(), hx, hy, szk["p"] + 0.001, w=80, anchor=(0.5, 0.5), mode="add", alpha=0.5, shadow=None, tint=(1.0, 0.8, 0.4))
+                st.put(J.glow(), hx, hy, szk["p"] + 0.001, w=120, anchor=(0.5, 0.5), mode="add", alpha=0.55, shadow=None, tint=(1.0, 0.8, 0.4))
     koniec(st, w, t, dim=0.94)
 
 
@@ -737,7 +742,7 @@ def s_tratwa(st, w, t, T):
     żołnierz z latarnią zastyga („…”)."""
     w.noc = 1.0
     kam(st, t, I["tratwa"], lerp(560, 760, t / T), 430, 1.2, 0.75)
-    kaukaz(st, t, w, twierdza=True, rzeka_=True, blisko=True)
+    kaukaz(st, t, w, twierdza=True, rzeka_=True, blisko=True, dal=False)
     for n in range(4):
         if bk(w, 0.6) >= 1:
             plomien(st, 560 + n * 50, 312 + (n % 2) * 8, P.most + 0.004, t, h=40, seed=n * 3)
@@ -773,9 +778,9 @@ def s_raport(st, w, t, T):
     urzędnik zadowolony; za oknem kartka kalendarza 1840; przez okno wpada kamień z kartką „CHECHNYA RISES”, pieczątka spada
     z biurka („OOPS”)."""
     kam(st, t, I["raport"], 640, 430, 1.25, 0.8)
-    gabinet(st, t, w, okno_x=1000)
+    gabinet_cara(st, t, w, okno_x=1000, portret_x=250)
     u = K.uk(st, t)
-    u.mebel("biurko", "biurko", 560, 170, rzad="przod")
+    u.mebel("biurko", "biurko_palac", 560, 170, rzad="przod")
     _, blat = u.powierzchnia("biurko", "blat", 0.5)
     t_stamp, t_year, t_rose = sl("raport", "stamped"), sl("raport", "year"), sl("raport", "rose")
     kladzie = ease(pr(t, 0.4, 0.6))
@@ -845,7 +850,7 @@ def s_kreski(st, w, t, T):
     od końca, który pracuje (1.28); potem podnosi wzrok na północ. Kurtyna zasuwa się w pauzie (render: „Act 3 · Can you win
     by burning your own capital?”)."""
     kam(st, t, I["kreski"], 700, 420, lerp(1.1, 1.35, ease(t / T)), 0.8)
-    kaukaz(st, t, w, aul=1100)
+    ostaniec_sc(st, t, w)
     snieg(st, t, 0.4, seed=8, wiatr=1.0)
     u = K.uk(st, t)
     u.put("kamień", J.rek_kz("kamien_kreski"), 820, STOPY, P.lalki + 0.02, h=150, anchor=(0.5, 1.0))

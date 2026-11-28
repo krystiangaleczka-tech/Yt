@@ -5,7 +5,9 @@ output/bonnie-i-clyde/lektor_en.py — ten sam silnik i przepis, rozpiska tego f
 uruchom na Macu (bez Whispera, na procesorze — MPS rośnie do 9,7 GB i staje; jedno podejście na kwestię, ZIARNA=42):
   JEZYK=en TEATR=1 SPRAWDZ=0 ZIARNA=42 LEKTOR_DEVICE=cpu PROMPT=pilot/assets/ref_en_teatr_nizej_0.25pt.wav \
       LEKTOR_ENHANCE=pilot/.venv-enhance/bin/python pilot/.venv-tts/bin/python -I output/szamil-diuna/lektor_en.py [klucz …]
-  (Chatterbox Multilingual z ustawieniami TEATR, potem lektor_studio.py podejscia --teatr: 3% wolniej i pauzy z zakresów;
+  obróbka (reżyser 28.11: „przyspiesz klona troszkę”): TEATR_TEMPO=1.06 PAUZY_SKALA=0.85 pilot/.venv-enhance/bin/python -I
+      docos/lektor_studio.py podejscia output/szamil-diuna/lektor_en --teatr  — mowa 6 % szybciej od nagrania, pauzy o 15 % krótsze
+  (Chatterbox Multilingual z ustawieniami TEATR, potem lektor_studio.py podejscia --teatr: tempo i pauzy z zakresów;
   Podręcznik → Lektor, zasady 8 i 9; na końcu docos/uciecia_lektora.py output/szamil-diuna/lektor_en)
 wynik:    output/szamil-diuna/lektor_en/<klucz>.wav + <klucz>.json; podejścia w lektor_en/podejscia/
 Nagrania lektora nie idą do repo (głos autora).

@@ -156,3 +156,12 @@ def w_zasiegu(s, cel, f=0.92, reka="przod"):
     dx, dy = cel[0] - bx, cel[1] - by
     d = math.hypot(dx, dy)
     return cel if d <= L or d == 0 else (bx + dx * L / d, by + dy * L / d)
+
+
+# Meble Pałacu Zimowego (dekoracje 2, 28.11): blaty jak stół i biurko zestawu
+U.POWIERZCHNIE["stol_palac"] = {"blat": (0, 360, 0)}
+U.POWIERZCHNIE["biurko_palac"] = {"blat": (0, 460, 0)}
+U.POWIERZCHNIE["stol_polowy"] = {"blat": (0, 360, 0)}
+U.POWIERZCHNIE["biurko_pisarza"] = {"blat": (0, 460, 0)}
+U.POWIERZCHNIE["lozko_kz"] = {"materac": (30, 490, 62)}
+U.POWIERZCHNIE["skrzynka"] = {"blat": (0, 220, 0)}

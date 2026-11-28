@@ -2912,3 +2912,548 @@ def cyfra(txt, size=110, kolor=(40, 28, 24)):
     h = size + 30
     return Sprite(stack(w, h, [(glyphs(txt, size, FONT_PL, PL_IDX, (w / 2, h / 2), "mm"), kolor, dict(kind="gladki", rough=0.6))],
                         seed=len(txt) + size), f"cyfra-{txt}-{size}", rim=1, clean=False)
+
+
+# =====================================================================================================================
+# ---------- duże arkusze z wieloma kawałkami: liczone raz i trzymane na dysku ----------
+_WYCINKI = Path(__file__).resolve().parent / "build" / "wycinki"
+
+
+def stack_d(w, h, parts, seed=0, detale=None):
+    """stack z pamięcią na dysku (build/wycinki): duży arkusz (np. 2200 × 900) z dziesiątkami kawałków liczył się do 2 min
+    (regały), a podgląd na żywo i każdy proces renderu liczyłby go od nowa. Klucz: kod funkcji, która woła, jej argumenty
+    i wymiary — zmiana rysunku daje nowy klucz. detale(draw, im) — drobiazgi (książki, kamienie, klepki) rysowane wprost na
+    arkuszu, bez osobnego kawałka papieru na każdy."""
+    import hashlib
+    import inspect
+    fr = sys._getframe(1)
+    co = fr.f_code
+    src = inspect.getsource(co)
+    args = [(k, fr.f_locals.get(k)) for k in co.co_varnames[:co.co_argcount]]
+    stale = [(k, fr.f_globals.get(k)) for k in co.co_names
+             if isinstance(fr.f_globals.get(k), (int, float, str, tuple, list, dict)) and k.isupper()]  # SKALA_JASKINIE, PORY…
+    klucz = hashlib.sha1((src + repr(args) + repr(stale) + f"{w}x{h}-{seed}").encode()).hexdigest()[:20]
+    path = _WYCINKI / f"{co.co_name}-{klucz}.png"
+    if path.exists():
+        try:
+            return Image.open(path).convert("RGBA")
+        except Exception:
+            pass
+    im = stack(w, h, parts, seed=seed)
+    if detale is not None:
+        detale(ImageDraw.Draw(im), im)
+    _WYCINKI.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(f".{random.randint(0, 10 ** 9)}.tmp.png")
+    im.save(tmp)
+    tmp.replace(path)
+    return im
+
+
+# ---------- dekoracje 2 (reżyser 28.11 po 2 minutach szkicu E): „od 40 s cały czas te góry… co najmniej 4 scenografie
+# na 2 minuty”, „wziąłeś biuro z Bonnie i Clyde… ma być zupełnie inne”. Nowe niebo pór dnia, ściany wąwozu, niskie
+# wzgórza, dziedziniec meczetu, gabinet w Pałacu Zimowym, szańce baterii, brama twierdzy, skała z jaskiniami — bez
+# arkuszy „Bonnie and Clyde” (tapeta, okno, deski, meble) i bez ciągłych pasm gór w tle.
+# =====================================================================================================================
+
+PORY = {"zmierzch": ((64, 56, 104), (244, 152, 92)), "swit": ((118, 148, 198), (248, 200, 172)), "noc": ((16, 20, 46), (58, 64, 102)),
+        "lato": ((150, 190, 214), (252, 242, 212)), "zima": ((150, 160, 178), (228, 230, 234)), "dym": ((120, 100, 96), (232, 176, 120)),
+        "palac": ((200, 212, 226), (240, 236, 226))}
+
+
+@lru_cache(None)
+def niebo_pora(pora):
+    """Niebo pory dnia (2080 × 1280): u góry ciemniej, przy horyzoncie (ok. 70 % wysokości) najjaśniej."""
+    w, h = 2080, 1280
+    lum = texture("gladki", w, h, 17)
+    yy = np.linspace(0, 1, h, dtype=np.float32)[:, None]
+    top, dol = (np.array(c, np.float32) for c in PORY[pora])
+    k = np.clip(yy / 0.7, 0, 1) ** 1.4
+    rgb = (top + (dol - top) * k)[:, None, :].reshape(h, 1, 3) / 255.0 * lum[..., None]
+    out = np.dstack([np.clip(rgb, 0, 1), np.ones((h, w), np.float32)])
+    return Sprite(Image.fromarray((out * 255).astype(np.uint8), "RGBA"), f"niebo-{pora}", rim=0, clean=False, pad=0)
+
+
+@lru_cache(None)
+def wzgorza(v=0, kolor=(110, 118, 86)):
+    """Niskie, zaokrąglone wzgórza (przedgórze, równina; 2000 × 320) — miękka linia zamiast postrzępionych szczytów."""
+    w, h = 2000, 320
+    r = random.Random(v)
+    f = [r.uniform(0, 6.28) for _ in range(3)]
+    top = [(x, 150 - 60 * math.sin(x / 330 + f[0]) - 30 * math.sin(x / 140 + f[1]) - 12 * math.sin(x / 60 + f[2])) for x in range(0, w + 20, 20)]
+    parts = [(poly(top + [(w, h), (0, h)]), kolor, dict(kind="gladki", edge=3, shade=0.14, contrast=0.9))]
+    for n in range(7):
+        x0 = r.uniform(0, w - 300)
+        parts.append((poly([(x0, 210 + r.uniform(-30, 30)), (x0 + 260, 196 + r.uniform(-30, 30)), (x0 + 270, 214), (x0 + 10, 226)]),
+                      _shade(kolor, 1.12)))
+    return Sprite(stack_d(w, h, parts, seed=170 + v), f"wzgorza-{v}-{kolor}", rim=3, clean=False)
+
+
+@lru_cache(None)
+def klif(v=0, kolor=(132, 116, 96)):
+    """Pionowa ściana skalna (640 × 1100): wewnętrzny brzeg po lewej stronie arkusza, półki i pęknięcia; v nieparzyste — lustro
+    (brzeg po prawej). Wąwóz w Gimry, przełęcz, ostaniec z kreskami."""
+    w, h = 640, 1100
+    r = random.Random(40 + v)
+    kraw, y, x = [], 0.0, 240.0
+    while y < h:
+        kraw.append((x, y))
+        y += r.uniform(70, 130)
+        x = clamp(x + r.uniform(-70, 60), 60, 360)
+    kraw.append((x, h))
+    parts = [(poly(kraw + [(w, h), (w, 0)]), kolor, dict(edge=3, shade=0.24, contrast=1.25))]
+    for n in range(len(kraw) - 1):  # półki: jasny pas pod załamaniem brzegu
+        (x0, y0), (x1, y1) = kraw[n], kraw[n + 1]
+        parts.append((poly([(x0, y0), (x0 + 160, y0 + 30), (x0 + 150, y0 + 44), (x0 - 4, y0 + 18)]), _shade(kolor, 1.18)))
+        parts.append((_band((x0 + 60, y0 + 40), (x1 + 120, y1 - 10), 7), _shade(kolor, 0.7)))
+    for n in range(10):  # pęknięcia
+        x0, y0 = r.uniform(300, 600), r.uniform(40, 1040)
+        parts.append((_band((x0, y0), (x0 + r.uniform(-40, 40), y0 + r.uniform(80, 180)), 5), _shade(kolor, 0.66)))
+    im = stack_d(w, h, parts, seed=180 + v)
+    if v % 2:
+        im = im.transpose(Image.FLIP_LEFT_RIGHT)
+    return Sprite(im, f"klif-{v}-{kolor}", rim=3, clean=False)
+
+
+@lru_cache(None)
+def bruk(kolor=(150, 138, 118)):
+    """Kamienna posadzka dziedzińca (2200 × 200): nieregularne płyty."""
+    w, h = 2200, 200
+    r = random.Random(5)
+    parts = [(rect(0, 0, w, h), _shade(kolor, 0.8), dict(shade=0.2))]
+    for row in range(5):
+        x = -r.uniform(0, 60)
+        while x < w:
+            dw = r.uniform(70, 130)
+            parts.append((rect(x + 3, row * 40 + 3, x + dw - 3, row * 40 + 37), _shade(kolor, r.uniform(0.9, 1.1))))
+            x += dw
+    return Sprite(stack_d(w, h, parts, seed=190), f"bruk-{kolor}", rim=0, clean=False, pad=0)
+
+
+@lru_cache(None)
+def arkady():
+    """Dziedziniec meczetu w aule (1700 × 760): kamienna ściana z arkadą ostrych łuków, drewniana galeria nad nią, płaski
+    dach, z prawej smukły minaret z balkonikiem."""
+    w, h = 1700, 760
+    kam, drewno = (198, 180, 150), (128, 88, 56)
+    parts = [(rect(0, 250, w, h), kam, dict(edge=3, shade=0.14)), (rect(0, 230, w, 256), _shade(kam, 0.8))]
+    for n in range(6):  # arkada
+        x0 = 70 + n * 230
+        parts += [(poly([(x0, h), (x0, 480), (x0 + 30, 420), (x0 + 75, 392), (x0 + 120, 420), (x0 + 150, 480), (x0 + 150, h)]), (64, 50, 40)),
+                  (poly([(x0 - 10, 480), (x0 + 30, 410), (x0 + 75, 380), (x0 + 120, 410), (x0 + 160, 480), (x0 + 150, 482), (x0 + 120, 422),
+                         (x0 + 75, 394), (x0 + 30, 422), (x0, 482)]), _shade(kam, 1.15))]
+    parts += [(rect(0, 150, 1380, 236), drewno, dict(edge=2)), (rect(0, 140, 1390, 156), _shade(drewno, 0.8))]  # galeria
+    for x in range(10, 1380, 26):
+        parts.append((rect(x, 176, x + 8, 232), _shade(drewno, 1.25)))
+    for n in range(5):  # drzwi na galerię
+        x0 = 120 + n * 260
+        parts.append((rect(x0, 40, x0 + 90, 150), (84, 60, 40)))
+    parts.append((rect(0, 20, 1380, 44), _shade(kam, 0.75)))  # płaski dach
+    mx = 1520  # minaret
+    parts += [(rect(mx - 34, 0, mx + 34, h), _shade(kam, 1.05), dict(edge=2, shade=0.18)),
+              (rect(mx - 56, 120, mx + 56, 140), drewno), (rect(mx - 50, 96, mx + 50, 122), (84, 60, 40))]
+    for yy in (240, 400, 560):
+        parts.append((rect(mx - 8, yy, mx + 8, yy + 40), (60, 46, 38)))
+    return Sprite(stack_d(w, h, parts, seed=200), "arkady", rim=2, clean=False)
+
+
+@lru_cache(None)
+def minaret_szczyt():
+    """Szczyt minaretu nad dachem (stożek z półksiężycem byłby symbolem — tylko kamienny stożek, Wytyczne 1.6)."""
+    return Sprite(stack_d(140, 160, [(poly([(10, 160), (70, 0), (130, 160)]), (150, 120, 90), dict(edge=2))], seed=201), "minaret-szczyt", rim=2,
+                  clean=False)
+
+
+# ---------- Pałac Zimowy (gabinet cara i urzędu) ----------
+
+@lru_cache(None)
+def sciana_palac():
+    """Ściana gabinetu w Pałacu Zimowym (2200 × 900): szaroniebieski tynk, białe płyciny, złocone pilastry z kapitelami,
+    fryz pod sufitem, ciemnoczerwony cokół ze złotą listwą."""
+    w, h = 2200, 900
+    base = (184, 198, 210)
+    parts = [(rect(0, 0, w, h), base, dict(kind="gladki", edge=0, shade=0.1, contrast=0.7))]
+    for n in range(8):
+        x = 40 + n * 275
+        parts += [(rect(x + 34, 150, x + 236, 600), (230, 232, 228), dict(edge=2)), (rect(x + 48, 164, x + 222, 586), base)]
+    for n in range(9):
+        x = 32 + n * 275
+        parts += [(rect(x - 18, 90, x + 18, 760), (236, 226, 200), dict(edge=2)), (rect(x - 26, 70, x + 26, 100), GOLD),
+                  (rect(x - 26, 740, x + 26, 772), GOLD), (rect(x - 5, 110, x + 5, 736), _shade(GOLD, 0.92))]
+    parts += [(rect(0, 0, w, 64), (236, 226, 200)), (rect(0, 54, w, 68), GOLD), (rect(0, 764, w, h), (112, 48, 42), dict(edge=2)),
+              (rect(0, 760, w, 774), GOLD)]
+    for x in range(0, w, 44):  # meander fryzu
+        parts.append((rect(x + 8, 14, x + 30, 22), _shade(GOLD, 0.9)))
+    return Sprite(stack_d(w, h, parts, seed=210), "sciana-palac", rim=0, clean=False, pad=0)
+
+
+@lru_cache(None)
+def okno_palac(noc=False):
+    """Wysokie okno zakończone łukiem (440 × 720) z karmazynowymi zasłonami i złotymi chwostami; za szybą Newa, drugi brzeg
+    i złota iglica twierdzy (Pietropawłowskiej)."""
+    w, h = 440, 720
+    niebo = (40, 46, 82) if noc else (196, 210, 226)
+    woda = (30, 40, 70) if noc else (120, 140, 160)
+    parts = [(poly([(70, h - 40), (70, 200), (110, 110), (220, 60), (330, 110), (370, 200), (370, h - 40)]), (236, 230, 214), dict(edge=2)),
+             (poly([(90, h - 60), (90, 210), (124, 130), (220, 86), (316, 130), (350, 210), (350, h - 60)]), niebo, dict(kind="gladki")),
+             (rect(90, 470, 350, h - 60), woda, dict(kind="gladki")), (rect(90, 430, 350, 474), (150, 140, 120)),
+             (rect(200, 300, 232, 436), (214, 196, 160)), (rect(208, 210, 224, 302), GOLD), (poly([(210, 212), (222, 212), (216, 130)]), GOLD)]
+    parts += [(rect(214, 86, 226, h - 60), (236, 230, 214)), (rect(90, 330, 350, 342), (236, 230, 214))]  # szprosy
+    for x0, x1, kier in ((0, 120, 1), (320, 440, -1)):  # zasłony
+        parts += [(poly([(x0, 20), (x1, 20), (x1 - 30 * kier if kier > 0 else x0 + 30, h), (x0 if kier > 0 else x1, h)]), (150, 30, 42),
+                   dict(edge=2, shade=0.25)),
+                  (ell((x0 + x1) / 2, 420, 26, 40), GOLD)]
+    parts += [(rect(-10, 0, w + 10, 36), GOLD), (rect(40, h - 44, w - 40, h - 24), (236, 226, 200))]
+    return Sprite(stack_d(w, h, parts, seed=211 + noc), f"okno-palac-{noc}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def orzel():
+    """Złoty dwugłowy orzeł w owalnym kartuszu (herb imperium; 320 × 320)."""
+    w = h = 320
+    g = GOLD
+    parts = [(ell(160, 160, 150, 150), (120, 30, 36), dict(edge=2)), (ell(160, 160, 134, 134), (150, 40, 44)),
+             (poly([(160, 110), (40, 70), (60, 140), (30, 170), (90, 190), (120, 230), (160, 250), (200, 230), (230, 190), (290, 170),
+                    (260, 140), (280, 70)]), g, dict(edge=2)),
+             (ell(120, 96, 20, 18), g), (ell(200, 96, 20, 18), g), (poly([(100, 94), (84, 100), (100, 104)]), g), (poly([(220, 94), (236, 100), (220, 104)]), g),
+             (poly([(136, 60), (160, 30), (184, 60)]), g), (rect(150, 230, 170, 290), g), (poly([(140, 290), (160, 270), (180, 290)]), g)]
+    return Sprite(stack_d(w, h, parts, seed=212), "orzel", rim=2, clean=False)
+
+
+@lru_cache(None)
+def portret():
+    """Portret w złotej ramie (260 × 340): ciemne tło, popiersie w zielonym mundurze z epoletami, twarz bez rysów (nie konkretna
+    osoba)."""
+    w, h = 260, 340
+    parts = [(rect(0, 0, w, h), GOLD, dict(edge=2)), (rect(18, 18, w - 18, h - 18), (52, 44, 40)),
+             (poly([(50, h - 18), (70, 230), (130, 206), (190, 230), (210, h - 18)]), (40, 70, 54)), (rect(60, 222, 92, 236), GOLD),
+             (rect(168, 222, 200, 236), GOLD), (ell(130, 170, 36, 44), (210, 184, 160)), (ell(130, 132, 38, 20), (120, 100, 80))]
+    return Sprite(stack_d(w, h, parts, seed=213), "portret", rim=2, clean=False)
+
+
+@lru_cache(None)
+def parkiet():
+    """Parkiet w jodełkę (2200 × 220); klepki rysowane wprost na arkuszu."""
+    w, h = 2200, 220
+    kol = (150, 104, 66)
+
+    def detale(d, im):
+        for row in range(6):
+            for n in range(56):
+                x, y = n * 40, row * 40
+                if (n + row) % 2:
+                    d.polygon([(x, y), (x + 36, y + 18), (x + 36, y + 36), (x, y + 18)], fill=_shade(kol, 1.05) + (255,),
+                              outline=_shade(kol, 0.7) + (255,))
+                else:
+                    d.polygon([(x, y + 18), (x + 36, y), (x + 36, y + 18), (x, y + 36)], fill=_shade(kol, 0.92) + (255,),
+                              outline=_shade(kol, 0.7) + (255,))
+    return Sprite(stack_d(w, h, [(rect(0, 0, w, h), _shade(kol, 0.8))], seed=214, detale=detale), "parkiet", rim=0, clean=False, pad=0)
+
+
+MEBLE["biurko_palac"] = (460, 230, [(rect(0, 0, 460, 30), (44, 112, 86)), (rect(0, 26, 460, 34), GOLD), (rect(10, 34, 150, 230), (74, 38, 30)),
+                                    (rect(310, 34, 450, 230), (74, 38, 30)), (rect(30, 70, 130, 100), (96, 52, 40)), (rect(330, 70, 430, 100), (96, 52, 40)),
+                                    (ell(80, 85, 6, 6), GOLD), (ell(380, 85, 6, 6), GOLD)])
+MEBLE["stol_palac"] = (360, 200, [(rect(0, 0, 360, 24), (50, 96, 62)), (rect(0, 20, 360, 30), GOLD), (rect(20, 30, 40, 200), (74, 38, 30)),
+                                  (rect(320, 30, 340, 200), (74, 38, 30)), (ell(30, 196, 14, 6), GOLD), (ell(330, 196, 14, 6), GOLD)])
+
+
+# ---------- oblężenie Achulgo ----------
+
+@lru_cache(None)
+def szance():
+    """Szańce baterii (1800 × 230): nasyp z ziemi, na nim rząd koszy faszynowych (pionowa wiklina) z ziemią na górze."""
+    w, h = 1800, 230
+    ziemia, wik = (120, 96, 66), (150, 118, 70)
+    parts = [(poly([(0, h), (0, 150), (200, 120), (1600, 120), (1800, 150), (1800, h)]), ziemia, dict(edge=3, shade=0.2))]
+    for n in range(24):
+        x0 = 30 + n * 74
+        parts += [(rect(x0, 40, x0 + 64, 132), wik, dict(edge=2)), (ell(x0 + 32, 42, 32, 10), _shade(ziemia, 0.9))]
+        for k in range(5):
+            parts.append((rect(x0 + 6 + k * 12, 50, x0 + 9 + k * 12, 128), _shade(wik, 0.72)))
+    return Sprite(stack_d(w, h, parts, seed=220), "szance", rim=2, clean=False)
+
+
+@lru_cache(None)
+def brama_twierdzy():
+    """Mur twierdzy z bramą (1500 × 560): kamienie, blanki, strzelnice, łukowa brama z drewnianymi wrotami (zamknięta)."""
+    w, h = 1500, 560
+    kam = (176, 158, 128)
+    parts = [(rect(0, 80, w, h), kam, dict(edge=3, shade=0.16))]
+    parts += [(rect(x + 6, 40, x + 46, 84), kam) for x in range(0, w, 70)]
+    parts += [(poly([(600, h), (600, 300), (650, 230), (750, 200), (850, 230), (900, 300), (900, h)]), (90, 70, 52)),
+              (poly([(620, h), (620, 310), (660, 250), (750, 222), (840, 250), (880, 310), (880, h)]), (120, 82, 52), dict(edge=2))]
+
+    def detale(d, im):
+        r = random.Random(9)
+        for row in range(10):
+            for n in range(22):
+                cx, cy = n * 70 + (35 if row % 2 else 0) + r.uniform(-5, 5), 110 + row * 46
+                if 590 < cx < 910 and cy > 190:
+                    continue
+                c = _shade(kam, r.uniform(0.86, 1.08))
+                d.ellipse([cx - 30, cy - 18, cx + 30, cy + 18], fill=c + (255,), outline=_shade(kam, 0.7) + (255,))
+        for x in (200, 420, 1080, 1300):
+            d.rectangle([x, 180, x + 14, 240], fill=(50, 40, 34, 255))
+        d.rectangle([746, 230, 754, h], fill=(80, 56, 38, 255))
+        for yy in (330, 420, 500):
+            d.rectangle([620, yy, 880, yy + 10], fill=(80, 56, 38, 255))
+    return Sprite(stack_d(w, h, parts, seed=221, detale=detale), "brama-twierdzy", rim=2, clean=False)
+
+
+SKALA_JASKINIE = ((380, 390), (760, 430), (1140, 380))  # środki wejść do jaskiń na arkuszu skala_sciana (1700 × 760)
+
+
+@lru_cache(None)
+def skala_sciana():
+    """Skała Achulgo z bliska (1700 × 760): ściana z półkami, trzy ciemne wejścia do jaskiń (SKALA_JASKINIE), u góry płaska
+    krawędź pod mur twierdzy."""
+    w, h = 1700, 760
+    kol = (146, 124, 98)
+    r = random.Random(13)
+    parts = [(poly([(0, h), (0, 120), (300, 90), (900, 70), (1500, 96), (1700, 130), (1700, h)]), kol, dict(edge=3, shade=0.22, contrast=1.2))]
+    for n in range(12):
+        x0, y0 = r.uniform(0, w - 200), r.uniform(150, 700)
+        parts.append((_band((x0, y0), (x0 + r.uniform(120, 260), y0 + r.uniform(-20, 20)), 8), _shade(kol, 1.18)))
+        parts.append((_band((x0 + 20, y0 + 12), (x0 + r.uniform(100, 220), y0 + 16), 5), _shade(kol, 0.7)))
+    for cx, cy in SKALA_JASKINIE:
+        parts += [(poly([(cx - 70, cy + 80), (cx - 64, cy - 10), (cx - 30, cy - 60), (cx + 30, cy - 62), (cx + 66, cy - 8), (cx + 72, cy + 80)]),
+                   (34, 26, 22)), (rect(cx - 90, cy + 76, cx + 92, cy + 92), _shade(kol, 1.2))]
+    return Sprite(stack_d(w, h, parts, seed=222), "skala-sciana", rim=3, clean=False)
+
+
+@lru_cache(None)
+def grunt(kolor=(128, 112, 90)):
+    """Ubita ziemia sceny (2200 × 200): nierówny wierzch, rozrzucone kamyki i kępki — bez siatki płyt (bruk wyglądał jak murek)."""
+    w, h = 2200, 200
+    r = random.Random(21)
+    top = [(x, 14 + 8 * math.sin(x / 90) + r.uniform(-3, 3)) for x in range(0, w + 20, 20)]
+    parts = [(poly(top + [(w, h), (0, h)]), kolor, dict(edge=2, shade=0.22, contrast=0.9))]
+    for _ in range(70):
+        x, y = r.uniform(0, w), r.uniform(30, 190)
+        parts.append((ell(x, y, r.uniform(5, 14), r.uniform(3, 8)), _shade(kolor, r.uniform(0.75, 1.25))))
+    return Sprite(stack_d(w, h, parts, seed=230), f"grunt-{kolor}", rim=0, clean=False, pad=0)
+
+
+# ---------- dekoracje 2, akty III–VI ----------
+
+@lru_cache(None)
+def sala_tyflis():
+    """Sala pałacu namiestnika w Tyflisie (2100 × 900): ochrowa ściana, trzy okna z ostrym łukiem i drewnianą kratką,
+    wielki dywan na ścianie, belkowany strop — inna niż sala balowa w Petersburgu."""
+    w, h = 2100, 900
+    sc, drewno = (214, 172, 112), (112, 72, 44)
+    parts = [(rect(0, 0, w, h), sc, dict(kind="gladki", shade=0.12, contrast=0.8))]
+    for n in range(9):
+        parts.append((rect(n * 240, 0, n * 240 + 40, 70), drewno))
+    parts.append((rect(0, 60, w, 84), _shade(drewno, 0.85)))
+    for x0 in (220, 1630):
+        parts += [(poly([(x0, 640), (x0, 300), (x0 + 50, 220), (x0 + 125, 180), (x0 + 200, 220), (x0 + 250, 300), (x0 + 250, 640)]), (150, 186, 200)),
+                  (poly([(x0 - 14, 300), (x0 + 50, 206), (x0 + 125, 166), (x0 + 200, 206), (x0 + 264, 300), (x0 + 250, 304), (x0 + 196, 222),
+                         (x0 + 125, 186), (x0 + 54, 222), (x0, 304)]), drewno)]
+        for k in range(1, 6):
+            parts.append((rect(x0 + k * 42 - 3, 230, x0 + k * 42 + 3, 640), drewno))
+        for k in range(1, 8):
+            parts.append((rect(x0, 300 + k * 44 - 3, x0 + 250, 300 + k * 44 + 3), drewno))
+    parts += [(rect(780, 160, 1320, 640), (150, 44, 40), dict(edge=2)), (rect(810, 190, 1290, 610), (170, 64, 50))]  # dywan
+    for k in range(5):
+        cx = 900 + k * 75
+        parts.append((poly([(cx, 300), (cx + 30, 400), (cx, 500), (cx - 30, 400)]), (40, 54, 100) if k % 2 else (220, 180, 90)))
+    for x in range(810, 1290, 24):
+        parts += [(rect(x, 640, x + 6, 668), (220, 196, 150)), (rect(x, 162, x + 6, 190), (220, 196, 150))]
+    parts.append((rect(0, 760, w, h), (96, 64, 44)))
+    return Sprite(stack_d(w, h, parts, seed=240), "sala-tyflis", rim=2, clean=False)
+
+
+@lru_cache(None)
+def sala_tronowa():
+    """Sala tronowa (2100 × 900): czerwone obicia ścian ze złotymi ramami, pośrodku tron pod baldachimem z dwugłowym orłem,
+    czerwony chodnik — inna niż sala balowa kadetów."""
+    w, h = 2100, 900
+    czer = (150, 36, 40)
+    parts = [(rect(0, 0, w, h), (226, 214, 190), dict(kind="gladki", contrast=0.7))]
+    for n in range(7):
+        x = 40 + n * 300
+        parts += [(rect(x, 120, x + 240, 700), GOLD, dict(edge=2)), (rect(x + 14, 134, x + 226, 686), czer)]
+    parts += [(poly([(800, 80), (1300, 80), (1340, 160), (760, 160)]), czer, dict(edge=2)), (rect(760, 150, 1340, 170), GOLD),
+              (poly([(800, 160), (830, 640), (780, 640)]), _shade(czer, 0.8)), (poly([(1300, 160), (1320, 640), (1270, 640)]), _shade(czer, 0.8))]
+    parts += [(rect(960, 380, 1140, 700), GOLD, dict(edge=2)), (rect(980, 300, 1120, 400), GOLD), (rect(990, 410, 1110, 640), czer),
+              (ell(1050, 300, 70, 40), GOLD)]  # tron
+    parts += [(rect(0, 700, w, h), (176, 150, 120)), (poly([(900, 700), (1200, 700), (1500, h), (600, h)]), czer)]
+    return Sprite(stack_d(w, h, parts, seed=241), "sala-tronowa", rim=2, clean=False)
+
+
+IZBY = {0: ((214, 200, 176), "dywan"), 1: ((226, 222, 210), "polka"), 2: ((150, 132, 112), "skrzynia")}
+
+
+@lru_cache(None)
+def izba_sciana(v=0):
+    """Ściana izby w aule (2100 × 860), trzy różne pokoje jednego domu: 0 — izba Szamila (bielony kamień, nisza, dywan na
+    ścianie), 1 — pokój syna (biała ściana, półka z rosyjskimi książkami), 2 — sypialnia nocą (ciemny kamień, rzeźbiona
+    skrzynia przy ścianie)."""
+    w, h = 2100, 860
+    sc, akc = IZBY[v]
+    r = random.Random(60 + v)
+    parts = [(rect(0, 0, w, h), sc, dict(shade=0.18, contrast=1.0))]
+    for _ in range(40):
+        x, y = r.uniform(0, w), r.uniform(0, h - 120)
+        parts.append((ell(x, y, r.uniform(30, 60), r.uniform(18, 30)), _shade(sc, r.uniform(0.92, 1.04))))
+    parts += [(rect(0, 0, w, 50), (90, 62, 42)), (rect(0, h - 110, w, h), _shade(sc, 0.7))]
+    if akc == "dywan":
+        parts += [(rect(300, 160, 760, 620), (130, 40, 36), dict(edge=2)), (rect(326, 186, 734, 594), (166, 70, 48))]
+        for k in range(4):
+            cy = 240 + k * 100
+            parts.append((poly([(530, cy - 40), (600, cy), (530, cy + 40), (460, cy)]), (220, 180, 90) if k % 2 else (40, 60, 100)))
+        parts += [(poly([(1300, 560), (1300, 300), (1350, 240), (1400, 300), (1400, 560)]), _shade(sc, 0.6)),
+                  (rect(1300, 420, 1400, 432), (120, 84, 54))]
+    elif akc == "polka":
+        parts += [(rect(260, 240, 760, 260), (120, 84, 54)), (rect(260, 420, 760, 440), (120, 84, 54))]
+        for k in range(14):
+            x = 270 + k * 34
+            parts.append((rect(x, 160 + (k % 3) * 8, x + 28, 240), [(150, 40, 40), (40, 70, 110), (60, 100, 70), (170, 140, 80)][k % 4]))
+            parts.append((rect(x, 340 + (k % 2) * 10, x + 28, 420), [(60, 100, 70), (150, 40, 40), (170, 140, 80), (40, 70, 110)][k % 4]))
+    else:
+        parts += [(rect(1240, 520, 1640, 750), (100, 64, 40), dict(edge=2)), (rect(1240, 500, 1640, 530), (80, 50, 30))]
+        for k in range(5):
+            parts.append((ell(1300 + k * 80, 640, 26, 40), (130, 90, 58)))
+    return Sprite(stack_d(w, h, parts, seed=242 + v), f"izba-{v}", rim=0, clean=False, pad=0)
+
+
+@lru_cache(None)
+def okienko(noc=False):
+    """Małe okienko izby w aule (220 × 260): gruba drewniana rama, okiennice, za szybą góry albo noc."""
+    w, h = 220, 260
+    szyba = (40, 48, 80) if noc else (176, 200, 214)
+    parts = [(rect(30, 30, 190, 230), (110, 74, 46), dict(edge=2)), (rect(46, 46, 174, 214), szyba, dict(kind="gladki")),
+             (rect(106, 46, 114, 214), (110, 74, 46)), (rect(46, 126, 174, 134), (110, 74, 46)),
+             (rect(0, 20, 34, 240), (130, 90, 58), dict(edge=2)), (rect(186, 20, 220, 240), (130, 90, 58), dict(edge=2))]
+    if not noc:
+        parts.append((poly([(46, 214), (46, 150), (90, 110), (130, 150), (174, 120), (174, 214)]), (220, 226, 236)))
+    return Sprite(stack_d(w, h, parts, seed=245 + noc), f"okienko-{noc}", rim=2, clean=False)
+
+
+@lru_cache(None)
+def dywan(v=0):
+    """Dywan na podłodze izby (1500 × 130), wzór w romby."""
+    w, h = 1500, 130
+    baza = ((140, 44, 40), (60, 70, 110), (120, 70, 40))[v % 3]
+    parts = [(rect(0, 0, w, h), baza, dict(edge=2)), (rect(14, 12, w - 14, h - 12), _shade(baza, 1.15))]
+    for k in range(18):
+        cx = 50 + k * 80
+        parts.append((poly([(cx, 30), (cx + 30, 65), (cx, 100), (cx - 30, 65)]), (220, 180, 90) if k % 2 else _shade(baza, 0.7)))
+    return Sprite(stack_d(w, h, parts, seed=248 + v), f"dywan-{v}", rim=1, clean=False)
+
+
+@lru_cache(None)
+def straznica():
+    """Kozacka strażnica nad Terekiem (300 × 620): drewniana budka na wysokich słupach, drabina, daszek."""
+    d = (120, 88, 58)
+    parts = [(rect(40, 220, 60, 620), d), (rect(240, 220, 260, 620), d), (_band((50, 620), (250, 300), 14), d), (_band((250, 620), (50, 300), 14), d),
+             (rect(20, 120, 280, 230), (150, 112, 74), dict(edge=2)), (poly([(0, 130), (150, 30), (300, 130)]), (100, 76, 50), dict(edge=2)),
+             (rect(120, 150, 180, 200), (50, 40, 32)), (rect(70, 380, 76, 620), d), (rect(110, 380, 116, 620), d)]
+    for y in range(400, 620, 36):
+        parts.append((rect(70, y, 116, y + 6), d))
+    return Sprite(stack_d(300, 620, parts, seed=250), "straznica", rim=2, clean=False)
+
+
+@lru_cache(None)
+def cerkiew():
+    """Cerkiew w oddali (Kaługa, 420 × 380): biała bryła, zielone dachy, złote cebulaste kopuły z krzyżami — tło miasta."""
+    bial, ziel = (236, 232, 222), (90, 130, 96)
+    parts = [(rect(80, 200, 340, 380), bial, dict(edge=2)), (rect(150, 120, 270, 210), bial), (ell(210, 110, 50, 44), GOLD),
+             (poly([(170, 100), (210, 30), (250, 100)]), GOLD), (rect(206, 0, 214, 34), GOLD), (rect(196, 10, 224, 16), GOLD)]
+    for cx in (110, 310):
+        parts += [(rect(cx - 26, 170, cx + 26, 230), bial), (ell(cx, 162, 26, 24), ziel), (poly([(cx - 18, 156), (cx, 118), (cx + 18, 156)]), ziel)]
+    for x in (120, 180, 240, 300):
+        parts.append((rect(x, 260, x + 20, 320), (90, 100, 120)))
+    return Sprite(stack_d(420, 380, parts, seed=251), "cerkiew", rim=2, clean=False)
+
+
+@lru_cache(None)
+def regaly(v=0):
+    """Ściana regałów z książkami (2100 × 860): biblioteka i pracownie pisarzy; v — układ i barwa drewna. Grzbiety książek
+    rysowane wprost na arkuszu (setki kawałków papieru liczyły się 2 minuty)."""
+    w, h = 2100, 860
+    drewno = ((96, 62, 40), (150, 110, 70))[v % 2]
+    parts = [(rect(0, 0, w, h), _shade(drewno, 0.7), dict(shade=0.15))]
+    parts += [(rect(0, 30 + row * 130 + 110, w, 30 + row * 130 + 126), drewno) for row in range(6)]
+    parts += [(rect(x, 0, x + 20, h), drewno) for x in range(0, w, 350)]
+
+    def detale(d, im):
+        r = random.Random(70 + v)
+        kolory = [(150, 40, 40), (40, 70, 110), (60, 100, 70), (170, 140, 80), (90, 60, 50), (200, 190, 160)]
+        for row in range(6):
+            y0 = 30 + row * 130
+            x = 24.0
+            while x < w - 30:
+                bw, bh = r.uniform(18, 34), r.uniform(70, 106)
+                if int(x) % 350 > 330:
+                    x += 24
+                    continue
+                c = _shade(r.choice(kolory), r.uniform(0.8, 1.05))
+                d.rectangle([x, y0 + 110 - bh, x + bw - 3, y0 + 110], fill=c + (255,), outline=_shade(c, 0.7) + (255,))
+                d.line([(x + 3, y0 + 118 - bh), (x + bw - 6, y0 + 118 - bh)], fill=(220, 200, 140, 200), width=2)
+                x += bw
+    return Sprite(stack_d(w, h, parts, seed=252 + v, detale=detale), f"regaly-{v}", rim=0, clean=False, pad=0)
+
+
+@lru_cache(None)
+def namiot_wnetrze():
+    """Wnętrze namiotu polowego (2100 × 860): płótno ze szwami, dwa maszty, odchylona poła z widokiem na las."""
+    w, h = 2100, 860
+    pl = (214, 200, 164)
+    parts = [(rect(0, 0, w, h), pl, dict(kind="gnieciony", shade=0.15, contrast=0.9))]
+    for x in range(0, w, 170):
+        parts.append((rect(x, 0, x + 6, h), _shade(pl, 0.82)))
+    parts += [(rect(560, 0, 590, h), (110, 80, 52)), (rect(1510, 0, 1540, h), (110, 80, 52)),
+              (poly([(1700, h), (1760, 360), (1860, 300), (1960, 360), (2020, h)]), (70, 96, 64)),
+              (poly([(1680, h), (1760, 340), (1800, 330), (1740, h)]), _shade(pl, 0.9)), (rect(0, h - 90, w, h), (120, 100, 74))]
+    return Sprite(stack_d(w, h, parts, seed=253), "namiot-wnetrze", rim=0, clean=False, pad=0)
+
+
+@lru_cache(None)
+def okno_londyn():
+    """Okno gilotynowe pracowni w Londynie (300 × 420): białe szprosy, za szybą szare niebo i dachy z kominami."""
+    w, h = 300, 420
+    parts = [(rect(0, 0, w, h), (236, 232, 222), dict(edge=2)), (rect(20, 20, w - 20, h - 20), (176, 186, 196), dict(kind="gladki")),
+             (poly([(20, 300), (80, 260), (120, 280), (160, 240), (220, 270), (280, 250), (280, h - 20), (20, h - 20)]), (120, 110, 104))]
+    for x in (100, 200):
+        parts.append((rect(x - 4, 20, x + 4, h - 20), (236, 232, 222)))
+    parts += [(rect(20, 206, w - 20, 216), (236, 232, 222)), (rect(130, 210, 146, 250), (110, 80, 70))]
+    return Sprite(stack_d(w, h + 10, parts, seed=254), "okno-londyn", rim=2, clean=False)
+
+
+@lru_cache(None)
+def panele_sosna():
+    """Ściana pracowni Herberta (2100 × 860): pionowe deski sęczastej sosny, okno z żaluzjami, korkowa tablica z kartkami."""
+    w, h = 2100, 860
+    sos = (196, 150, 96)
+    parts = [(rect(0, 0, w, h), sos, dict(shade=0.12)), (rect(1500, 120, 1900, 520), (236, 232, 222), dict(edge=2)),
+             (rect(300, 160, 760, 460), (176, 134, 90), dict(edge=2))]
+
+    def detale(d, im):
+        r = random.Random(77)
+        for x in range(0, w, 90):
+            if 1496 < x < 1904 and False:
+                continue
+            d.line([(x, 0), (x, h)], fill=_shade(sos, 0.7) + (255,), width=4)
+            for _ in range(2):
+                cx, cy = x + r.uniform(20, 70), r.uniform(40, 800)
+                d.ellipse([cx - 7, cy - 10, cx + 7, cy + 10], fill=_shade(sos, 0.6) + (255,))
+        d.rectangle([1500, 120, 1900, 520], fill=(236, 232, 222, 255))
+        for y in range(136, 506, 22):
+            d.rectangle([1516, y, 1884, y + 14], fill=(220, 214, 200, 255), outline=(190, 184, 170, 255))
+        d.rectangle([300, 160, 760, 460], fill=(176, 134, 90, 255))
+        for k in range(6):
+            x0, y0 = 330 + (k % 3) * 140, 190 + (k // 3) * 130
+            d.rectangle([x0, y0, x0 + 100, y0 + 100], fill=(240, 236, 222, 255), outline=(200, 190, 170, 255))
+            d.ellipse([x0 + 44, y0 + 4, x0 + 56, y0 + 16], fill=(170, 40, 40, 255))
+    return Sprite(stack_d(w, h, parts, seed=255, detale=detale), "panele-sosna", rim=0, clean=False, pad=0)
+
+
+MEBLE["stol_polowy"] = (360, 200, [(rect(0, 0, 360, 18), (170, 140, 100)), (_band((40, 18), (320, 200), 14), (120, 90, 60)),
+                                   (_band((320, 18), (40, 200), 14), (120, 90, 60))])
+MEBLE["biurko_pisarza"] = (460, 230, [(rect(0, 0, 460, 26), (176, 130, 84)), (rect(10, 26, 170, 230), (150, 108, 68)), (rect(400, 26, 440, 230), (150, 108, 68)),
+                                      (rect(30, 60, 150, 110), (176, 130, 84)), (rect(30, 130, 150, 180), (176, 130, 84))])
+MEBLE["lozko_kz"] = (520, 200, [(rect(0, 70, 520, 170), (140, 50, 44), dict(edge=2)), (rect(0, 60, 520, 84), (220, 180, 90)), (rect(0, 20, 24, 200), (96, 64, 40)),
+                                (rect(496, 50, 520, 200), (96, 64, 40)), (ell(80, 64, 60, 26), (230, 224, 206))])
+MEBLE["skrzynka"] = (220, 160, [(rect(0, 0, 220, 20), (110, 70, 42)), (rect(6, 20, 214, 160), (96, 60, 36), dict(edge=2)),
+                                (ell(60, 90, 26, 40), (130, 88, 56)), (ell(160, 90, 26, 40), (130, 88, 56)), (rect(100, 70, 120, 110), GOLD)])

@@ -91,12 +91,12 @@ AKTY = [
        "za szeregiem Rosjan); 4,6 s na „Sixteen years later” kartki kalendarza przelatują nad rzeką; 6 s z lewego brzegu w bród "
        "wjeżdża młody mężczyzna w rosyjskim mundurze, na koniu; 9,2 s staje na środku brodu i patrzy na Szamila — bez imienia "
        "i bez podpisu (imię pada w akcie I)",
-       "L: He once handed his own son to the enemy as a hostage. Sixteen years later, the boy rode back across a river, wearing a Russian uniform."),
+       "L: To buy time in a siege, he gave up his own little boy as a hostage. Sixteen years later, that boy rode home through a river in a Russian officer's uniform."),
       ("pytanie", "PO", "naj", N, "Rzeka zamiera; 0,6 s na „desert planet” połowa gór zapada się w piasek, a nad nią na moment "
-       "wyrasta wydma i znów się chowa; 4,5 s na „It all starts” kartki kalendarza lecą wstecz: 1855… 1845… 1839… 1832, ostatnia "
+       "wyrasta wydma i znów się chowa; 4,5 s na „The answer begins” kartki kalendarza lecą wstecz: 1855… 1845… 1839… 1832, ostatnia "
        "uderza maszynistę w kulisach („OUCH!”); 7,6 s wyrasta górska wioska w wąwozie, zawieszka „Gimry, Dagestan, 1832”; "
        "ściemnienie",
-       "L: So how did a war in the snow end up on a desert planet? It all starts in a village called Gimry, in 1832."),
+       "L: So what is a war fought in the snow doing on a desert planet? The answer begins in a mountain village called Gimry, in 1832."),
      ]),
    ]),
   ]),
@@ -132,7 +132,7 @@ AKTY = [
       ("kanly_1834", "PO", "stat", N, "Teatr cieni: za podświetlonym parawanem sylwetka meczetu z kopułą; zawieszka „1834”; 2 s "
        "dwie sylwetki z kindżałami podchodzą do trzeciej; 4 s trzecia sylwetka (drugi imam) opada za parawan — bez gagu; "
        "6,4 s na „kanly” nad parawanem zjeżdża na nitce duże słowo KANLY i kołysze się",
-       "L: Two years later, the second imam was killed in a blood feud. In the mountains, a blood feud had a name: kanly."),
+       "L: Two years on, the second imam was killed in a blood feud. In the mountains, such a feud carried a special name: kanly."),
      ]),
    ]),
    ("Imam", "Plac w aule na grani", [
@@ -183,7 +183,7 @@ AKTY = [
       ("amanat", "PŚ", "stat", N, "Brama twierdzy; 0,6 s nad murem unosi się biała flaga rozmów; 2,5 s Szamil wychodzi z małym "
        "chłopcem w papasze, dłoń na jego ramieniu; 5,6 s przy imieniu zjeżdża podpis „Jamal al-Din, Shamil's son”; 7,4 s dłoń "
        "Szamila zostaje jeszcze chwilę i powoli puszcza; bez gagu",
-       "L: To win time for talks, Shamil did something unthinkable. He handed the Russians a hostage: his eldest son, Jamal al-Din, still a boy."),
+       "L: To win time for talks, Shamil did something unthinkable. He gave the Russians an amanat, a hostage of honour: his eldest son, Jamal al-Din, still a boy."),
       ("chlopiec", "PP", "jaz", N, "Rosyjski oficer prowadzi chłopca ścieżką w dół przed szeregiem bagnetów do obozu; 3 s w połowie "
        "drogi chłopiec ogląda się za siebie; na górze Szamil zaciska dłoń na rękojeści kindżału; 6 s chłopiec znika między namiotami",
        "L: The boy was led down to the enemy camp. The talks failed anyway."),
@@ -204,9 +204,9 @@ AKTY = [
    ("Gabinet", "Gabinet w Petersburgu: biurko urzędnika, okno", [
      ("Raport", [
       ("raport", "PŚ", "stat", N, "Gabinet w Petersburgu; 0,6 s urzędnik kładzie na biurku raport; 1,4 s wielka pieczątka "
-       "uderza: „SHAMIL: FINISHED” (zasiew gagu pieczątki); urzędnik zadowolony; 4,4 s na „A year later” za oknem przesuwa się "
+       "uderza: „SHAMIL: FINISHED” (zasiew gagu pieczątki); urzędnik zadowolony; 4,4 s na „Within a year” za oknem przesuwa się "
        "kalendarz 1840; 5,6 s przez okno wpada kamień z kartką „CHECHNYA RISES”, pieczątka spada z biurka, „OOPS”",
-       "L: St Petersburg stamped the case closed: Shamil was finished. A year later, most of Chechnya rose up behind him."),
+       "L: St Petersburg stamped the case closed: Shamil was finished. Within a year, most of Chechnya rose up behind him."),
      ]),
      ("Syn na północ", [
      ]),
@@ -261,7 +261,7 @@ AKTY = [
       ("zwyciestwo", "PŚ", "stat", N, "Namiot; 0,6 s Woroncow pisze raport, 1,8 s pieczątka uderza: „DARGO TAKEN! VICTORY!” "
        "(powtórka gagu pieczątki); 4 s na „nothing left to eat” adiutant przynosi pusty worek i odwraca go do góry dnem — "
        "wypada jeden suchar; Woroncow patrzy na suchar",
-       "L: Vorontsov reported a great victory. Then he noticed his army had almost nothing left to eat."),
+       "L: Vorontsov reported a great victory. Then he noticed that his army had nothing left to eat."),
      ]),
      ("Suchary", [
       ("suchary", "PO", "jaz", N, "Bukowy las, droga; 0,6 s kolumna z wozami wraca po zaopatrzenie, na wozach worki z napisem "
@@ -322,7 +322,7 @@ AKTY = [
       ("wedeno", "PO", "naj", N, "Wedeno w górach: kamienny dom, w oknie księżne, przed domem wartownik; zawieszka „Vedeno”; "
        "2,5 s na „eight months” nad domem przesuwają się księżyc i słońce, śnieg pada i topnieje; 5,5 s na „governess” "
        "w oknie guwernantka pisze w zeszycie i zerka na wartownika",
-       "L: For eight months they were held in Shamil's mountain capital, Vedeno. The governess later wrote a whole book about it."),
+       "L: For eight months they were held in Shamil's mountain capital, Vedeno. Their governess later turned those months into a book."),
      ]),
      ("Cena", [
      ]),
@@ -366,7 +366,7 @@ AKTY = [
        "L: But Jamal al-Din had become a stranger in the mountains. He missed his books and the life of the capital."),
       ("smierc", "PŚ", "stat", N, "Syn w łóżku, przy nim świeca, Szamil siada obok; 0,6 s syn kaszle; 3,4 s na „died” płomień "
        "świecy drży i gaśnie, smużka dymu; bez gagu; kurtyna w pauzie, na niej „Act 5” i pytanie „How does a 25-year war end?”",
-       "L: Three years later, in 1858, he fell ill and died."),
+       "L: Three years after coming home, in 1858, he fell ill and died."),
      ]),
    ]),
   ]),
@@ -501,7 +501,7 @@ SLOWNIE = {"1832": "eighteen thirty-two", "1834": "eighteen thirty-four", "1839"
 # czas po kwestii na wydarzenie, które ma się skończyć na oczach widza (Wytyczne 1.8, 1.18) albo na gag (Humor: gag
 # wydłuża ujęcie o 0,5–1,5 s)
 WYDLUZ = {"arrakis": 0.9, "zamiana": 0.7, "hak_syn": 0.8, "pytanie": 0.6, "skok": 1.6, "kanly_1834": 0.0, "imam": 1.6,
-          "mapa": 1.2, "marsz": 1.0, "akhulgo": 1.2, "armaty": 1.6, "chlopiec": 1.6, "upadek": 1.0, "tratwa": 0.8,
+          "mapa": 1.8, "marsz": 1.0, "akhulgo": 1.2, "armaty": 1.6, "chlopiec": 1.6, "upadek": 1.0, "tratwa": 0.8,
           "raport": 1.0, "syn_na_polnoc": 1.0, "kreski": 1.6, "vorontsov": 0.2, "pochod": 1.0, "dargo": 1.2,
           "zwyciestwo": 1.0, "zasadzka": 0.8, "tolstoj": 0.6, "kadet": 0.8, "tsinandali": 1.4, "ksiezne": 0.2,
           "wedeno": 0.8, "cena": 1.0, "rzeka": 2.6, "przeprawa": 2.0, "syn_wraca": 2.2, "mundur": 0.6, "obcy": 0.6,
