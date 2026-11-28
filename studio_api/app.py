@@ -74,6 +74,8 @@ def create_app(root: Path | None = None, *, seed_demo=True) -> FastAPI:
     register_workspace(app, workspace)
     register_animation(app, store, connectors, jobs)
     register_flow(app, store, connectors)
+    from studio_api.readiness import register_readiness
+    register_readiness(app, store, REPO)
     register_sketches(app, store)
     motion_render=register_inserts(app, store, jobs, connectors)
     from studio_api.tv import register_tv

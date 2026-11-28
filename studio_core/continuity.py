@@ -342,6 +342,18 @@ def unit_signature(flow: dict, act_id: str) -> str:
     return found["signature"]
 
 
+def project_check(project) -> dict:
+    """Pełna kontrola projektu: plan filmu, oś montażu i szkice — to, co pokazuje Continuity Editor."""
+    from . import sketches  # sketches ciągnie magazyn projektów; kontrola planu działa bez niego
+
+    flow = project.legacy.get("production_flow")
+    flow = flow if isinstance(flow, dict) else {}
+    report = check(flow)
+    report["issues"] += timeline_issues(project) + sketches.issues(flow)
+    report["totals"] = {str(w): sum(1 for i in report["issues"] if i["severity"] == w) for w in (3, 2, 1)}
+    return report
+
+
 def timeline_issues(project) -> list[dict]:
     """Dziury i nakładki na ścieżkach obrazu osi montażu (waga 2): widz zobaczy czerń albo dwa klipy naraz."""
     out = []

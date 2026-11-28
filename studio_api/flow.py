@@ -206,12 +206,7 @@ def register_flow(app, store, connectors):
     @app.post("/api/projects/{pid}/continuity/check")
     def continuity_check(pid: str):
         """Deterministyczna kontrola ciągłości (księga świata × plan filmu). Niczego nie zmienia."""
-        project = store.get(pid)
-        report = continuity.check(_flow(project))
-        extra = continuity.timeline_issues(project)
-        report["issues"] += extra + sketches.issues(_flow(project))
-        report["totals"] = {str(w): sum(1 for i in report["issues"] if i["severity"] == w) for w in (3, 2, 1)}
-        return report
+        return continuity.project_check(store.get(pid))
 
     @app.put("/api/projects/{pid}/flow/world")
     def save_world(pid: str, body: dict):

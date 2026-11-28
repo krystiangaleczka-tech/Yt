@@ -12,7 +12,12 @@ type Chapter = { key: string; title: string; path: string; text: string };
 export default function Handbook() {
   const s = useStudio();
   const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [active, setActive] = useState("praca");
+  // Inny widok (np. Gotowość filmu) może wskazać rozdział, który ma się otworzyć.
+  const [active, setActive] = useState(() => {
+    const wanted = sessionStorage.getItem("docos:handbook-chapter");
+    sessionStorage.removeItem("docos:handbook-chapter");
+    return wanted || "praca";
+  });
   const [draft, setDraft] = useState<string | null>(null);
   useEffect(() => { api<{ chapters: Chapter[] }>("/handbook").then(r => setChapters(r.chapters)).catch(e => s.notify(String(e.message), true)); }, []);
   const chapter = chapters.find(c => c.key === active) || chapters[0];

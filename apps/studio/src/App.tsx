@@ -29,6 +29,7 @@ import {
   Backpack,
   AudioLines,
   BookCopy,
+  ListChecks,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { StudioProvider, useStudio } from "./context";
@@ -63,6 +64,7 @@ const Scenes = lazy(() => import("./Scenes"));
 const ShotEditor = lazy(() => import("./ShotEditor"));
 const Storyboard = lazy(() => import("./Storyboard"));
 const Handbook = lazy(() => import("./Handbook"));
+const Readiness = lazy(() => import("./Readiness"));
 
 const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "bible", label: "Story Bible", icon: BookOpen },
@@ -79,6 +81,7 @@ const steps: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: "generation", label: "Ujęcia", icon: Film },
   { id: "editing", label: "Montaż", icon: SlidersHorizontal },
   { id: "continuity", label: "Continuity Editor", icon: Check },
+  { id: "readiness", label: "Gotowość filmu", icon: ListChecks },
   { id: "export", label: "Eksport", icon: ArrowUpRight },
 ];
 const modes: { id: ProductionMode; icon: LucideIcon }[] = [
@@ -161,6 +164,10 @@ function Shell() {
     ) : (["bible", "project-setup", "idea-flow", "master-story", "acts", "sequences", "script-flow", "scene-plan", "continuity"] as string[]).includes(s.page) ? (
       <Suspense fallback={<div className="page-content">Otwieram etap produkcji…</div>}>
         <FilmFlow page={s.page as FlowPage} />
+      </Suspense>
+    ) : s.page === "readiness" ? (
+      <Suspense fallback={<div className="page-content">Sprawdzam gotowość filmu…</div>}>
+        <Readiness key={s.project.id} />
       </Suspense>
     ) : s.page === "director" ? (
       <Suspense fallback={<div className="page-content">Ładowanie reżyserii…</div>}>

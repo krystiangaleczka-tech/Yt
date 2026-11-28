@@ -93,7 +93,8 @@ na cały film. Lektor to osobna ścieżka: klon głosu autora (rozdział „Lekt
 1. **Nowy rodzaj dźwięku → próbka przed filmem**: `probka_dzwieku.py` robi fragmenty filmu z obrazem i pełnym miksem
    oraz sam dźwięk (tematy po kolei, nowe efekty, głosy). Wysłać reżyserowi, wgrać dopiero po zgodzie.
 2. Do czasu zgody na głosy: `BEZ_GLOSOW=1 python3 -I efekty.py` (reszta dźwięku już zatwierdzona).
-3. `studio_film.py dzwiek` — muzyka na a2 (głośność 0,8), efekty na a3 (1,0); wpis w dzienniku z cytatem zgody.
+3. `studio_film.py dzwiek` — muzyka na a2 (głośność 0,8), efekty na a3 (1,0); wpis w dzienniku z cytatem zgody
+   (Studio → Gotowość filmu → „Zgoda reżysera na próbkę”: wpis „próbka dźwięku”, który aplikacja rozpoznaje).
 4. Po każdej zmianie długości ujęć (nowy początek, skrócony akt) przelicz dźwięk i wgraj ponownie — inaczej rozjedzie
    się z obrazem. To samo po każdej turze poprawek rysunku, nawet gdy długości się nie zmieniły: nowe zdarzenia, tabliczki
    i błyski mają nowe dźwięki (24.11: same `efekty.py` + `studio_film.py dzwiek`).
